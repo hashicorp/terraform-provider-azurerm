@@ -119,7 +119,6 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdateSender(req *http.Re
 func (client AvailabilityGroupListenersClient) CreateOrUpdateResponder(resp *http.Response) (result AvailabilityGroupListener, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client AvailabilityGroupListenersClient) DeleteSender(req *http.Request) (
 func (client AvailabilityGroupListenersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -238,6 +236,7 @@ func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,7 +275,6 @@ func (client AvailabilityGroupListenersClient) GetSender(req *http.Request) (*ht
 func (client AvailabilityGroupListenersClient) GetResponder(resp *http.Response) (result AvailabilityGroupListener, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +315,10 @@ func (client AvailabilityGroupListenersClient) ListByGroup(ctx context.Context, 
 	result.agllr, err = client.ListByGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "ListByGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.agllr.hasNextLink() && result.agllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -354,7 +356,6 @@ func (client AvailabilityGroupListenersClient) ListByGroupSender(req *http.Reque
 func (client AvailabilityGroupListenersClient) ListByGroupResponder(resp *http.Response) (result AvailabilityGroupListenerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -379,6 +380,7 @@ func (client AvailabilityGroupListenersClient) listByGroupNextResults(ctx contex
 	result, err = client.ListByGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "listByGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

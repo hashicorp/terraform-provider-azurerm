@@ -24,7 +24,7 @@ type sku struct {
 }
 
 // getDTUMaxGB: this map holds all of the DTU to 'max_size_gb' mappings based on a DTU lookup
-//              note that the value can be below the returned value, except for 'basic' it's
+//              note that the value can be below the returned value; except for 'basic' its
 //              value must match exactly what is returned else it will be rejected by the API
 //              which will return a 'Internal Server Error'
 

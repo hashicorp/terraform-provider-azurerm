@@ -117,7 +117,6 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateSender(req *htt
 func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client PartnerTopicEventSubscriptionsClient) DeleteSender(req *http.Reques
 func (client PartnerTopicEventSubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -236,6 +234,7 @@ func (client PartnerTopicEventSubscriptionsClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,7 +273,6 @@ func (client PartnerTopicEventSubscriptionsClient) GetSender(req *http.Request) 
 func (client PartnerTopicEventSubscriptionsClient) GetResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +313,7 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURL(ctx context.Contex
 	result, err = client.GetFullURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -353,7 +352,6 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURLSender(req *http.Re
 func (client PartnerTopicEventSubscriptionsClient) GetFullURLResponder(resp *http.Response) (result EventSubscriptionFullURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -401,6 +399,10 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopic(ctx contex
 	result.eslr, err = client.ListByPartnerTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "ListByPartnerTopic", resp, "Failure responding to request")
+		return
+	}
+	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -444,7 +446,6 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicSender(req 
 func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopicResponder(resp *http.Response) (result EventSubscriptionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -469,6 +470,7 @@ func (client PartnerTopicEventSubscriptionsClient) listByPartnerTopicNextResults
 	result, err = client.ListByPartnerTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "listByPartnerTopicNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -563,7 +565,6 @@ func (client PartnerTopicEventSubscriptionsClient) UpdateSender(req *http.Reques
 func (client PartnerTopicEventSubscriptionsClient) UpdateResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

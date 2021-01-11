@@ -111,7 +111,6 @@ func (client DomainTopicsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client DomainTopicsClient) CreateOrUpdateResponder(resp *http.Response) (result DomainTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client DomainTopicsClient) DeleteSender(req *http.Request) (future DomainT
 func (client DomainTopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +226,7 @@ func (client DomainTopicsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -266,7 +265,6 @@ func (client DomainTopicsClient) GetSender(req *http.Request) (*http.Response, e
 func (client DomainTopicsClient) GetResponder(resp *http.Response) (result DomainTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,6 +312,10 @@ func (client DomainTopicsClient) ListByDomain(ctx context.Context, resourceGroup
 	result.dtlr, err = client.ListByDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "ListByDomain", resp, "Failure responding to request")
+		return
+	}
+	if result.dtlr.hasNextLink() && result.dtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -357,7 +359,6 @@ func (client DomainTopicsClient) ListByDomainSender(req *http.Request) (*http.Re
 func (client DomainTopicsClient) ListByDomainResponder(resp *http.Response) (result DomainTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,6 +383,7 @@ func (client DomainTopicsClient) listByDomainNextResults(ctx context.Context, la
 	result, err = client.ListByDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "listByDomainNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -92,6 +92,10 @@ func (client TenantActivityLogsClient) List(ctx context.Context, filter string, 
 	result.edc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.TenantActivityLogsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.edc.hasNextLink() && result.edc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -129,7 +133,6 @@ func (client TenantActivityLogsClient) ListSender(req *http.Request) (*http.Resp
 func (client TenantActivityLogsClient) ListResponder(resp *http.Response) (result EventDataCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -154,6 +157,7 @@ func (client TenantActivityLogsClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.TenantActivityLogsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

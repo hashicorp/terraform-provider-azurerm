@@ -511,6 +511,7 @@ func (client IntegrationAccountAgreementsClient) CreateOrUpdate(ctx context.Cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -551,7 +552,6 @@ func (client IntegrationAccountAgreementsClient) CreateOrUpdateSender(req *http.
 func (client IntegrationAccountAgreementsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountAgreement, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -591,6 +591,7 @@ func (client IntegrationAccountAgreementsClient) Delete(ctx context.Context, res
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -629,7 +630,6 @@ func (client IntegrationAccountAgreementsClient) DeleteSender(req *http.Request)
 func (client IntegrationAccountAgreementsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -668,6 +668,7 @@ func (client IntegrationAccountAgreementsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -706,7 +707,6 @@ func (client IntegrationAccountAgreementsClient) GetSender(req *http.Request) (*
 func (client IntegrationAccountAgreementsClient) GetResponder(resp *http.Response) (result IntegrationAccountAgreement, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -748,6 +748,10 @@ func (client IntegrationAccountAgreementsClient) List(ctx context.Context, resou
 	result.iaalr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.iaalr.hasNextLink() && result.iaalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -791,7 +795,6 @@ func (client IntegrationAccountAgreementsClient) ListSender(req *http.Request) (
 func (client IntegrationAccountAgreementsClient) ListResponder(resp *http.Response) (result IntegrationAccountAgreementListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -816,6 +819,7 @@ func (client IntegrationAccountAgreementsClient) listNextResults(ctx context.Con
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -868,6 +872,7 @@ func (client IntegrationAccountAgreementsClient) ListContentCallbackURL(ctx cont
 	result, err = client.ListContentCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "ListContentCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -908,7 +913,6 @@ func (client IntegrationAccountAgreementsClient) ListContentCallbackURLSender(re
 func (client IntegrationAccountAgreementsClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

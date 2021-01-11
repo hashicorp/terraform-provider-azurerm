@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
@@ -30,21 +30,23 @@ resource "azurerm_subnet" "ase" {
   name                 = "asesubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "gateway" {
   name                 = "gatewaysubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_app_service_environment" "example" {
-  name                   = "example-ase"
-  subnet_id              = azurerm_subnet.ase.id
-  pricing_tier           = "I2"
-  front_end_scale_factor = 10
+  name                         = "example-ase"
+  subnet_id                    = azurerm_subnet.ase.id
+  pricing_tier                 = "I2"
+  front_end_scale_factor       = 10
+  internal_load_balancing_mode = "Web, Publishing"
+  allowed_user_ip_cidrs        = ["11.22.33.44/32", "55.66.77.0/24"]
 }
 
 ```
@@ -57,9 +59,15 @@ resource "azurerm_app_service_environment" "example" {
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`.
+
 * `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1`, `I2` and `I3`. Defaults to `I1`.
 
 * `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `5` and `15`. Defaults to `15`.
+
+* `allowed_user_ip_cidrs` - (Optional) Allowed user added IP ranges on the ASE database. Use the addresses you want to set as the explicit egress address ranges.
+
+~> **NOTE:** `allowed_user_ip_cidrs` The addresses that will be used for all outbound traffic from your App Service Environment to the internet to avoid asymmetric routing challenge. If you're routing the traffic on premises, these addresses are your NATs or gateway IPs. If you want to route the App Service Environment outbound traffic through an NVA, the egress address is the public IP of the NVA. Please visit [Create your ASE with the egress addresses](https://docs.microsoft.com/en-us/azure/app-service/environment/forced-tunnel-support#add-your-own-ips-to-the-ase-azure-sql-firewall)
 
 * `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 

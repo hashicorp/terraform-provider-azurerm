@@ -9,6 +9,30 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesDataSourceTests = map[string]func(t *testing.T){
+	"basic":                                       testAccDataSourceAzureRMKubernetesCluster_basic,
+	"roleBasedAccessControl":                      testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl,
+	"roleBasedAccessControlAAD":                   testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+	"internalNetwork":                             testAccDataSourceAzureRMKubernetesCluster_internalNetwork,
+	"advancedNetworkingAzure":                     testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure,
+	"advancedNetworkingAzureCalicoPolicy":         testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
+	"advancedNetworkingAzureNPMPolicy":            testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
+	"advancedNetworkingAzureComplete":             testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
+	"advancedNetworkingAzureCalicoPolicyComplete": testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
+	"advancedNetworkingAzureNPMPolicyComplete":    testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
+	"advancedNetworkingKubenet":                   testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet,
+	"advancedNetworkingKubenetComplete":           testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
+	"addOnProfileOMS":                             testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS,
+	"addOnProfileKubeDashboard":                   testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard,
+	"addOnProfileAzurePolicy":                     testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy,
+	"addOnProfileRouting":                         testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting,
+	"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
+	"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
+	"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
+	"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
+	"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
+}
+
 func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceAzureRMKubernetesCluster_basic(t)
@@ -36,6 +60,12 @@ func testAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kubelet_identity.0.object_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kubelet_identity.0.client_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kubelet_identity.0.user_assigned_identity_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 		},
@@ -415,6 +445,9 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.oms_agent_identity.0.client_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.oms_agent_identity.0.object_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.oms_agent_identity.0.user_assigned_identity_id"),
 				),
 			},
 		},
@@ -576,30 +609,6 @@ func testAccDataSourceAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.0.node_labels.key", "value"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t)
-}
-
-func testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMKubernetesCluster_nodeTaintsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.1.node_taints.0", "key=value:NoSchedule"),
 				),
 			},
 		},
@@ -799,7 +808,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicyConfig(data acceptance.TestData) string {
-	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data)
+	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -848,18 +857,6 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
 	r := testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, labels)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_cluster" "test" {
-  name                = azurerm_kubernetes_cluster.test.name
-  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
-}
-`, r)
-}
-
-func testAccDataSourceAzureRMKubernetesCluster_nodeTaintsConfig(data acceptance.TestData) string {
-	r := testAccAzureRMKubernetesCluster_nodeTaintsConfig(data)
 	return fmt.Sprintf(`
 %s
 

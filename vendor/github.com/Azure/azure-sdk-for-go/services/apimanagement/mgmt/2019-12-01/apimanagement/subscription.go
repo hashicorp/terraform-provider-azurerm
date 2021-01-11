@@ -53,7 +53,9 @@ func NewSubscriptionClientWithBaseURI(baseURI string, subscriptionID string) Sub
 // - If false, do not send any email notification for change of state of subscription
 // - If true, send email notification of change of state of subscription
 // ifMatch - eTag of the Entity. Not required when creating an entity, but required when updating an entity.
-func (client SubscriptionClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionCreateParameters, notify *bool, ifMatch string) (result SubscriptionContract, err error) {
+// appType - determines the type of application which send the create user request. Default is legacy publisher
+// portal.
+func (client SubscriptionClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionCreateParameters, notify *bool, ifMatch string, appType AppType) (result SubscriptionContract, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SubscriptionClient.CreateOrUpdate")
 		defer func() {
@@ -91,7 +93,7 @@ func (client SubscriptionClient) CreateOrUpdate(ctx context.Context, resourceGro
 		return result, validation.NewError("apimanagement.SubscriptionClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, sid, parameters, notify, ifMatch)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, sid, parameters, notify, ifMatch, appType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -107,13 +109,14 @@ func (client SubscriptionClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client SubscriptionClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionCreateParameters, notify *bool, ifMatch string) (*http.Request, error) {
+func (client SubscriptionClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionCreateParameters, notify *bool, ifMatch string, appType AppType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
@@ -127,6 +130,11 @@ func (client SubscriptionClient) CreateOrUpdatePreparer(ctx context.Context, res
 	}
 	if notify != nil {
 		queryParameters["notify"] = autorest.Encode("query", *notify)
+	}
+	if len(string(appType)) > 0 {
+		queryParameters["appType"] = autorest.Encode("query", appType)
+	} else {
+		queryParameters["appType"] = autorest.Encode("query", "portal")
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -154,7 +162,6 @@ func (client SubscriptionClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client SubscriptionClient) CreateOrUpdateResponder(resp *http.Response) (result SubscriptionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,6 +215,7 @@ func (client SubscriptionClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -247,7 +255,6 @@ func (client SubscriptionClient) DeleteSender(req *http.Request) (*http.Response
 func (client SubscriptionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -298,6 +305,7 @@ func (client SubscriptionClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,7 +344,6 @@ func (client SubscriptionClient) GetSender(req *http.Request) (*http.Response, e
 func (client SubscriptionClient) GetResponder(resp *http.Response) (result SubscriptionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,6 +395,7 @@ func (client SubscriptionClient) GetEntityTag(ctx context.Context, resourceGroup
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -426,7 +434,6 @@ func (client SubscriptionClient) GetEntityTagSender(req *http.Request) (*http.Re
 func (client SubscriptionClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -490,6 +497,10 @@ func (client SubscriptionClient) List(ctx context.Context, resourceGroupName str
 	result.sc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.sc.hasNextLink() && result.sc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -536,7 +547,6 @@ func (client SubscriptionClient) ListSender(req *http.Request) (*http.Response, 
 func (client SubscriptionClient) ListResponder(resp *http.Response) (result SubscriptionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -561,6 +571,7 @@ func (client SubscriptionClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -625,6 +636,7 @@ func (client SubscriptionClient) ListSecrets(ctx context.Context, resourceGroupN
 	result, err = client.ListSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "ListSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -663,7 +675,6 @@ func (client SubscriptionClient) ListSecretsSender(req *http.Request) (*http.Res
 func (client SubscriptionClient) ListSecretsResponder(resp *http.Response) (result SubscriptionKeysContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -715,6 +726,7 @@ func (client SubscriptionClient) RegeneratePrimaryKey(ctx context.Context, resou
 	result, err = client.RegeneratePrimaryKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "RegeneratePrimaryKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -753,7 +765,6 @@ func (client SubscriptionClient) RegeneratePrimaryKeySender(req *http.Request) (
 func (client SubscriptionClient) RegeneratePrimaryKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -804,6 +815,7 @@ func (client SubscriptionClient) RegenerateSecondaryKey(ctx context.Context, res
 	result, err = client.RegenerateSecondaryKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "RegenerateSecondaryKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -842,7 +854,6 @@ func (client SubscriptionClient) RegenerateSecondaryKeySender(req *http.Request)
 func (client SubscriptionClient) RegenerateSecondaryKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -861,7 +872,9 @@ func (client SubscriptionClient) RegenerateSecondaryKeyResponder(resp *http.Resp
 // notify - notify change in Subscription State.
 // - If false, do not send any email notification for change of state of subscription
 // - If true, send email notification of change of state of subscription
-func (client SubscriptionClient) Update(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionUpdateParameters, ifMatch string, notify *bool) (result autorest.Response, err error) {
+// appType - determines the type of application which send the create user request. Default is legacy publisher
+// portal.
+func (client SubscriptionClient) Update(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionUpdateParameters, ifMatch string, notify *bool, appType AppType) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SubscriptionClient.Update")
 		defer func() {
@@ -883,7 +896,7 @@ func (client SubscriptionClient) Update(ctx context.Context, resourceGroupName s
 		return result, validation.NewError("apimanagement.SubscriptionClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, serviceName, sid, parameters, ifMatch, notify)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, serviceName, sid, parameters, ifMatch, notify, appType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "Update", nil, "Failure preparing request")
 		return
@@ -899,13 +912,14 @@ func (client SubscriptionClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SubscriptionClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // UpdatePreparer prepares the Update request.
-func (client SubscriptionClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionUpdateParameters, ifMatch string, notify *bool) (*http.Request, error) {
+func (client SubscriptionClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, sid string, parameters SubscriptionUpdateParameters, ifMatch string, notify *bool, appType AppType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
@@ -919,6 +933,11 @@ func (client SubscriptionClient) UpdatePreparer(ctx context.Context, resourceGro
 	}
 	if notify != nil {
 		queryParameters["notify"] = autorest.Encode("query", *notify)
+	}
+	if len(string(appType)) > 0 {
+		queryParameters["appType"] = autorest.Encode("query", appType)
+	} else {
+		queryParameters["appType"] = autorest.Encode("query", "portal")
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -943,7 +962,6 @@ func (client SubscriptionClient) UpdateSender(req *http.Request) (*http.Response
 func (client SubscriptionClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

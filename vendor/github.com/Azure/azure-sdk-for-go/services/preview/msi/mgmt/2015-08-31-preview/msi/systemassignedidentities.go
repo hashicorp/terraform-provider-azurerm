@@ -72,6 +72,7 @@ func (client SystemAssignedIdentitiesClient) GetByScope(ctx context.Context, sco
 	result, err = client.GetByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.SystemAssignedIdentitiesClient", "GetByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client SystemAssignedIdentitiesClient) GetByScopeSender(req *http.Request)
 func (client SystemAssignedIdentitiesClient) GetByScopeResponder(resp *http.Response) (result SystemAssignedIdentity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

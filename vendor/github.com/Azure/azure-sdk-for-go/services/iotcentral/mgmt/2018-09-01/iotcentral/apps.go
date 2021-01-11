@@ -79,6 +79,7 @@ func (client AppsClient) CheckNameAvailability(ctx context.Context, operationInp
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -116,7 +117,6 @@ func (client AppsClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 func (client AppsClient) CheckNameAvailabilityResponder(resp *http.Response) (result AppAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client AppsClient) CheckSubdomainAvailability(ctx context.Context, operati
 	result, err = client.CheckSubdomainAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "CheckSubdomainAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -198,7 +199,6 @@ func (client AppsClient) CheckSubdomainAvailabilitySender(req *http.Request) (*h
 func (client AppsClient) CheckSubdomainAvailabilityResponder(resp *http.Response) (result AppAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -285,7 +285,6 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +360,6 @@ func (client AppsClient) DeleteSender(req *http.Request) (future AppsDeleteFutur
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -399,6 +397,7 @@ func (client AppsClient) Get(ctx context.Context, resourceGroupName string, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -436,7 +435,6 @@ func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) GetResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,6 +473,10 @@ func (client AppsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -511,7 +513,6 @@ func (client AppsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client AppsClient) ListByResourceGroupResponder(resp *http.Response) (result AppListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -536,6 +537,7 @@ func (client AppsClient) listByResourceGroupNextResults(ctx context.Context, las
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -585,6 +587,10 @@ func (client AppsClient) ListBySubscription(ctx context.Context) (result AppList
 	result.alr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -620,7 +626,6 @@ func (client AppsClient) ListBySubscriptionSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListBySubscriptionResponder(resp *http.Response) (result AppListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -645,6 +650,7 @@ func (client AppsClient) listBySubscriptionNextResults(ctx context.Context, last
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -694,6 +700,10 @@ func (client AppsClient) ListTemplates(ctx context.Context) (result AppTemplates
 	result.atr, err = client.ListTemplatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListTemplates", resp, "Failure responding to request")
+		return
+	}
+	if result.atr.hasNextLink() && result.atr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -729,7 +739,6 @@ func (client AppsClient) ListTemplatesSender(req *http.Request) (*http.Response,
 func (client AppsClient) ListTemplatesResponder(resp *http.Response) (result AppTemplatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -754,6 +763,7 @@ func (client AppsClient) listTemplatesNextResults(ctx context.Context, lastResul
 	result, err = client.ListTemplatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "listTemplatesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -845,7 +855,6 @@ func (client AppsClient) UpdateSender(req *http.Request) (future AppsUpdateFutur
 func (client AppsClient) UpdateResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

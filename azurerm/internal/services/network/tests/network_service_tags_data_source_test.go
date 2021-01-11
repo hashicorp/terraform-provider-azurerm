@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMServiceTags_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "address_prefixes.#", "210"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefixes.#"),
 				),
 			},
 		},
@@ -34,7 +34,7 @@ func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMServiceTags_region(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "address_prefixes.#", "3"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefixes.#"),
 				),
 			},
 		},
@@ -43,14 +43,14 @@ func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
 
 func testAccDataSourceAzureRMServiceTags_basic() string {
 	return `data "azurerm_network_service_tags" "test" {
-  location = "northeurope"
+  location = "westcentralus"
   service  = "AzureKeyVault"
 }`
 }
 
 func testAccDataSourceAzureRMServiceTags_region() string {
 	return `data "azurerm_network_service_tags" "test" {
-  location        = "northeurope"
+  location        = "westcentralus"
   service         = "AzureKeyVault"
   location_filter = "australiacentral"
 }`

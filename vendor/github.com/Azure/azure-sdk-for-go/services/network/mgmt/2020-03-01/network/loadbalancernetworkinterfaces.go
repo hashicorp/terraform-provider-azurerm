@@ -74,6 +74,10 @@ func (client LoadBalancerNetworkInterfacesClient) List(ctx context.Context, reso
 	result.ilr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancerNetworkInterfacesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ilr.hasNextLink() && result.ilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -111,7 +115,6 @@ func (client LoadBalancerNetworkInterfacesClient) ListSender(req *http.Request) 
 func (client LoadBalancerNetworkInterfacesClient) ListResponder(resp *http.Response) (result InterfaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -136,6 +139,7 @@ func (client LoadBalancerNetworkInterfacesClient) listNextResults(ctx context.Co
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancerNetworkInterfacesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

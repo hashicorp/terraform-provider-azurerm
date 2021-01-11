@@ -123,7 +123,6 @@ func (client LocalNetworkGatewaysClient) CreateOrUpdateSender(req *http.Request)
 func (client LocalNetworkGatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result LocalNetworkGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client LocalNetworkGatewaysClient) DeleteSender(req *http.Request) (future
 func (client LocalNetworkGatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -249,6 +247,7 @@ func (client LocalNetworkGatewaysClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +285,6 @@ func (client LocalNetworkGatewaysClient) GetSender(req *http.Request) (*http.Res
 func (client LocalNetworkGatewaysClient) GetResponder(resp *http.Response) (result LocalNetworkGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +323,10 @@ func (client LocalNetworkGatewaysClient) List(ctx context.Context, resourceGroup
 	result.lnglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lnglr.hasNextLink() && result.lnglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -361,7 +363,6 @@ func (client LocalNetworkGatewaysClient) ListSender(req *http.Request) (*http.Re
 func (client LocalNetworkGatewaysClient) ListResponder(resp *http.Response) (result LocalNetworkGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +387,7 @@ func (client LocalNetworkGatewaysClient) listNextResults(ctx context.Context, la
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -444,6 +446,7 @@ func (client LocalNetworkGatewaysClient) UpdateTags(ctx context.Context, resourc
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -483,7 +486,6 @@ func (client LocalNetworkGatewaysClient) UpdateTagsSender(req *http.Request) (*h
 func (client LocalNetworkGatewaysClient) UpdateTagsResponder(resp *http.Response) (result LocalNetworkGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

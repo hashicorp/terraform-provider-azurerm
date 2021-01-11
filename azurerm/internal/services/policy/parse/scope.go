@@ -39,13 +39,14 @@ func (id ScopeAtResource) ScopeId() string {
 }
 
 type ScopeAtManagementGroup struct {
-	scopeId           string
-	ManagementGroupId string
+	scopeId             string
+	ManagementGroupName string
 }
 
 func (id ScopeAtManagementGroup) ScopeId() string {
 	return id.scopeId
 }
+
 func PolicyScopeID(input string) (PolicyScopeId, error) {
 	if input == "" {
 		return nil, fmt.Errorf("unable to parse Remediation Scope ID: ID is empty")
@@ -54,8 +55,8 @@ func PolicyScopeID(input string) (PolicyScopeId, error) {
 	if isManagementGroupId(input) {
 		id, _ := parseMgmtGroup.ManagementGroupID(input)
 		return ScopeAtManagementGroup{
-			scopeId:           input,
-			ManagementGroupId: id.GroupId,
+			scopeId:             input,
+			ManagementGroupName: id.Name,
 		}, nil
 	}
 	// scope is not a management group ID, should be subscription ID, resource group ID or a resource ID

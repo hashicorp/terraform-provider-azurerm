@@ -95,6 +95,7 @@ func (client HybridConnectionsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -135,7 +136,6 @@ func (client HybridConnectionsClient) CreateOrUpdateSender(req *http.Request) (*
 func (client HybridConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,6 +196,7 @@ func (client HybridConnectionsClient) CreateOrUpdateAuthorizationRule(ctx contex
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,7 +238,6 @@ func (client HybridConnectionsClient) CreateOrUpdateAuthorizationRuleSender(req 
 func (client HybridConnectionsClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -289,6 +289,7 @@ func (client HybridConnectionsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -327,7 +328,6 @@ func (client HybridConnectionsClient) DeleteSender(req *http.Request) (*http.Res
 func (client HybridConnectionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -381,6 +381,7 @@ func (client HybridConnectionsClient) DeleteAuthorizationRule(ctx context.Contex
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -420,7 +421,6 @@ func (client HybridConnectionsClient) DeleteAuthorizationRuleSender(req *http.Re
 func (client HybridConnectionsClient) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -471,6 +471,7 @@ func (client HybridConnectionsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -509,7 +510,6 @@ func (client HybridConnectionsClient) GetSender(req *http.Request) (*http.Respon
 func (client HybridConnectionsClient) GetResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -564,6 +564,7 @@ func (client HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, 
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -603,7 +604,6 @@ func (client HybridConnectionsClient) GetAuthorizationRuleSender(req *http.Reque
 func (client HybridConnectionsClient) GetAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -656,6 +656,10 @@ func (client HybridConnectionsClient) ListAuthorizationRules(ctx context.Context
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -694,7 +698,6 @@ func (client HybridConnectionsClient) ListAuthorizationRulesSender(req *http.Req
 func (client HybridConnectionsClient) ListAuthorizationRulesResponder(resp *http.Response) (result AuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -719,6 +722,7 @@ func (client HybridConnectionsClient) listAuthorizationRulesNextResults(ctx cont
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -781,6 +785,10 @@ func (client HybridConnectionsClient) ListByNamespace(ctx context.Context, resou
 	result.hclr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "ListByNamespace", resp, "Failure responding to request")
+		return
+	}
+	if result.hclr.hasNextLink() && result.hclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -818,7 +826,6 @@ func (client HybridConnectionsClient) ListByNamespaceSender(req *http.Request) (
 func (client HybridConnectionsClient) ListByNamespaceResponder(resp *http.Response) (result HybridConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -843,6 +850,7 @@ func (client HybridConnectionsClient) listByNamespaceNextResults(ctx context.Con
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -910,6 +918,7 @@ func (client HybridConnectionsClient) ListKeys(ctx context.Context, resourceGrou
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -949,7 +958,6 @@ func (client HybridConnectionsClient) ListKeysSender(req *http.Request) (*http.R
 func (client HybridConnectionsClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1005,6 +1013,7 @@ func (client HybridConnectionsClient) RegenerateKeys(ctx context.Context, resour
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.HybridConnectionsClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1046,7 +1055,6 @@ func (client HybridConnectionsClient) RegenerateKeysSender(req *http.Request) (*
 func (client HybridConnectionsClient) RegenerateKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

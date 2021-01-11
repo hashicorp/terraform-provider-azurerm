@@ -113,7 +113,6 @@ func (client IntegrationServiceEnvironmentsClient) CreateOrUpdateSender(req *htt
 func (client IntegrationServiceEnvironmentsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationServiceEnvironment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +151,7 @@ func (client IntegrationServiceEnvironmentsClient) Delete(ctx context.Context, r
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,7 +189,6 @@ func (client IntegrationServiceEnvironmentsClient) DeleteSender(req *http.Reques
 func (client IntegrationServiceEnvironmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,6 +226,7 @@ func (client IntegrationServiceEnvironmentsClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +264,6 @@ func (client IntegrationServiceEnvironmentsClient) GetSender(req *http.Request) 
 func (client IntegrationServiceEnvironmentsClient) GetResponder(resp *http.Response) (result IntegrationServiceEnvironment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,6 +303,10 @@ func (client IntegrationServiceEnvironmentsClient) ListByResourceGroup(ctx conte
 	result.iselr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.iselr.hasNextLink() && result.iselr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -343,7 +346,6 @@ func (client IntegrationServiceEnvironmentsClient) ListByResourceGroupSender(req
 func (client IntegrationServiceEnvironmentsClient) ListByResourceGroupResponder(resp *http.Response) (result IntegrationServiceEnvironmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -368,6 +370,7 @@ func (client IntegrationServiceEnvironmentsClient) listByResourceGroupNextResult
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -419,6 +422,10 @@ func (client IntegrationServiceEnvironmentsClient) ListBySubscription(ctx contex
 	result.iselr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.iselr.hasNextLink() && result.iselr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -457,7 +464,6 @@ func (client IntegrationServiceEnvironmentsClient) ListBySubscriptionSender(req 
 func (client IntegrationServiceEnvironmentsClient) ListBySubscriptionResponder(resp *http.Response) (result IntegrationServiceEnvironmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -482,6 +488,7 @@ func (client IntegrationServiceEnvironmentsClient) listBySubscriptionNextResults
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -533,6 +540,7 @@ func (client IntegrationServiceEnvironmentsClient) Restart(ctx context.Context, 
 	result, err = client.RestartResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Restart", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -570,7 +578,6 @@ func (client IntegrationServiceEnvironmentsClient) RestartSender(req *http.Reque
 func (client IntegrationServiceEnvironmentsClient) RestartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -648,7 +655,6 @@ func (client IntegrationServiceEnvironmentsClient) UpdateSender(req *http.Reques
 func (client IntegrationServiceEnvironmentsClient) UpdateResponder(resp *http.Response) (result IntegrationServiceEnvironment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

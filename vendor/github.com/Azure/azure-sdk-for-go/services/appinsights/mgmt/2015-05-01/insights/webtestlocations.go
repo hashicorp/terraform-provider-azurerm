@@ -84,6 +84,7 @@ func (client WebTestLocationsClient) List(ctx context.Context, resourceGroupName
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestLocationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client WebTestLocationsClient) ListSender(req *http.Request) (*http.Respon
 func (client WebTestLocationsClient) ListResponder(resp *http.Response) (result ApplicationInsightsWebTestLocationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

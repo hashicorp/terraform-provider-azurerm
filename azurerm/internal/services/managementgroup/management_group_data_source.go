@@ -1,6 +1,7 @@
 package managementgroup
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmManagementGroup() *schema.Resource {
+func dataSourceManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmManagementGroupRead,
+		Read: dataSourceManagementGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,22 +26,24 @@ func dataSourceArmManagementGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ExactlyOneOf: []string{"name", "group_id"},
+				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 				Deprecated:   "Deprecated in favour of `name`",
 				ValidateFunc: validate.ManagementGroupName,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
-				Optional:     true, // TODO -- change back to required after the deprecation
-				Computed:     true, // TODO -- remove computed after the deprecation
-				ExactlyOneOf: []string{"name", "group_id"},
+				Optional:     true,
+				Computed:     true,
+				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 				ValidateFunc: validate.ManagementGroupName,
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 			},
 
 			"parent_management_group_id": {
@@ -58,7 +61,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,15 +73,25 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("group_id"); ok {
 		groupName = v.(string)
 	}
+	displayName := d.Get("display_name").(string)
 
+	// one of displayName and groupName must be non-empty, this is guaranteed by schema
+	// if the user is retrieving the mgmt group by display name, use the list api to get the group name first
+	var err error
+	if displayName != "" {
+		groupName, err = getManagementGroupNameByDisplayName(ctx, client, displayName)
+		if err != nil {
+			return fmt.Errorf("Error reading Management Group (Display Name %q): %+v", displayName, err)
+		}
+	}
 	recurse := true
 	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasForbidden(resp.Response) {
 			return fmt.Errorf("Management Group %q was not found", groupName)
 		}
 
-		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
+		return fmt.Errorf("Error reading Management Group %q: %+v", groupName, err)
 	}
 
 	if resp.ID == nil {
@@ -92,7 +105,7 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 
-		subscriptionIds, err := flattenArmManagementGroupDataSourceSubscriptionIds(props.Children)
+		subscriptionIds, err := flattenManagementGroupDataSourceSubscriptionIds(props.Children)
 		if err != nil {
 			return fmt.Errorf("Error flattening `subscription_ids`: %+v", err)
 		}
@@ -112,7 +125,38 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func flattenArmManagementGroupDataSourceSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
+func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.Client, displayName string) (string, error) {
+	iterator, err := client.ListComplete(ctx, managementGroupCacheControl, "")
+	if err != nil {
+		return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+	}
+
+	var results []string
+	for iterator.NotDone() {
+		group := iterator.Value()
+		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil && *group.Name != "" {
+			results = append(results, *group.Name)
+		}
+
+		if err := iterator.NextWithContext(ctx); err != nil {
+			return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+		}
+	}
+
+	// we found none
+	if len(results) == 0 {
+		return "", fmt.Errorf("Management Group (Display Name %q) was not found", displayName)
+	}
+
+	// we found more than one
+	if len(results) > 1 {
+		return "", fmt.Errorf("expected a single Management Group with the Display Name %q but expected one", displayName)
+	}
+
+	return results[0], nil
+}
+
+func flattenManagementGroupDataSourceSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
 	subscriptionIds := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return subscriptionIds, nil

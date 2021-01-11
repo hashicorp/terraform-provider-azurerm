@@ -68,9 +68,13 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Databricks Workspace.
+* `id` - The ID of the Databricks Workspace in the Azure management plane.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
+
+* `workspace_url` - The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
+
+* `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
 
 ## Timeouts
 

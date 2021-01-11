@@ -130,7 +130,6 @@ func (client PoliciesClient) CreateOrUpdateSender(req *http.Request) (future Pol
 func (client PoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result WebApplicationFirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client PoliciesClient) DeleteSender(req *http.Request) (future PoliciesDel
 func (client PoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -264,6 +262,7 @@ func (client PoliciesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -301,7 +300,6 @@ func (client PoliciesClient) GetSender(req *http.Request) (*http.Response, error
 func (client PoliciesClient) GetResponder(resp *http.Response) (result WebApplicationFirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,6 +346,10 @@ func (client PoliciesClient) List(ctx context.Context, resourceGroupName string)
 	result.wafpl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wafpl.hasNextLink() && result.wafpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -384,7 +386,6 @@ func (client PoliciesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client PoliciesClient) ListResponder(resp *http.Response) (result WebApplicationFirewallPolicyList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -409,6 +410,7 @@ func (client PoliciesClient) listNextResults(ctx context.Context, lastResults We
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

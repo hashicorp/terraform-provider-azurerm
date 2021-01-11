@@ -71,6 +71,7 @@ func (client TagsClient) CreateOrUpdate(ctx context.Context, tagName string) (re
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client TagsClient) CreateOrUpdateSender(req *http.Request) (*http.Response
 func (client TagsClient) CreateOrUpdateResponder(resp *http.Response) (result TagDetails, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -146,6 +146,7 @@ func (client TagsClient) CreateOrUpdateValue(ctx context.Context, tagName string
 	result, err = client.CreateOrUpdateValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "CreateOrUpdateValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -183,7 +184,6 @@ func (client TagsClient) CreateOrUpdateValueSender(req *http.Request) (*http.Res
 func (client TagsClient) CreateOrUpdateValueResponder(resp *http.Response) (result TagValue, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -221,6 +221,7 @@ func (client TagsClient) Delete(ctx context.Context, tagName string) (result aut
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -257,7 +258,6 @@ func (client TagsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client TagsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -295,6 +295,7 @@ func (client TagsClient) DeleteValue(ctx context.Context, tagName string, tagVal
 	result, err = client.DeleteValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "DeleteValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -332,7 +333,6 @@ func (client TagsClient) DeleteValueSender(req *http.Request) (*http.Response, e
 func (client TagsClient) DeleteValueResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -368,6 +368,10 @@ func (client TagsClient) List(ctx context.Context) (result TagsListResultPage, e
 	result.tlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -403,7 +407,6 @@ func (client TagsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client TagsClient) ListResponder(resp *http.Response) (result TagsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -428,6 +431,7 @@ func (client TagsClient) listNextResults(ctx context.Context, lastResults TagsLi
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

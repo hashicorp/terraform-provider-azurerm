@@ -87,6 +87,7 @@ func (client LogProfilesClient) CreateOrUpdate(ctx context.Context, logProfileNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.LogProfilesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client LogProfilesClient) CreateOrUpdateSender(req *http.Request) (*http.R
 func (client LogProfilesClient) CreateOrUpdateResponder(resp *http.Response) (result LogProfileResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -163,6 +163,7 @@ func (client LogProfilesClient) Delete(ctx context.Context, logProfileName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.LogProfilesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +200,6 @@ func (client LogProfilesClient) DeleteSender(req *http.Request) (*http.Response,
 func (client LogProfilesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -236,6 +236,7 @@ func (client LogProfilesClient) Get(ctx context.Context, logProfileName string) 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.LogProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -272,7 +273,6 @@ func (client LogProfilesClient) GetSender(req *http.Request) (*http.Response, er
 func (client LogProfilesClient) GetResponder(resp *http.Response) (result LogProfileResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -308,6 +308,7 @@ func (client LogProfilesClient) List(ctx context.Context) (result LogProfileColl
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.LogProfilesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -343,7 +344,6 @@ func (client LogProfilesClient) ListSender(req *http.Request) (*http.Response, e
 func (client LogProfilesClient) ListResponder(resp *http.Response) (result LogProfileCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,6 +382,7 @@ func (client LogProfilesClient) Update(ctx context.Context, logProfileName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.LogProfilesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -420,7 +421,6 @@ func (client LogProfilesClient) UpdateSender(req *http.Request) (*http.Response,
 func (client LogProfilesClient) UpdateResponder(resp *http.Response) (result LogProfileResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

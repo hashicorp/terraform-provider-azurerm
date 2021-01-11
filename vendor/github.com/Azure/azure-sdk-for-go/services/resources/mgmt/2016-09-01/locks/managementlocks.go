@@ -89,6 +89,7 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevel(ctx conte
 	result, err = client.CreateOrUpdateAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelSender(req
 func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,6 +188,7 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevel(ctx context.Co
 	result, err = client.CreateOrUpdateAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,7 +235,6 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelSender(req *htt
 func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -283,6 +283,7 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevel(ctx contex
 	result, err = client.CreateOrUpdateAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -324,7 +325,6 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelSender(req 
 func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,6 +374,7 @@ func (client ManagementLocksClient) CreateOrUpdateByScope(ctx context.Context, s
 	result, err = client.CreateOrUpdateByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -415,7 +416,6 @@ func (client ManagementLocksClient) CreateOrUpdateByScopeSender(req *http.Reques
 func (client ManagementLocksClient) CreateOrUpdateByScopeResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -464,6 +464,7 @@ func (client ManagementLocksClient) DeleteAtResourceGroupLevel(ctx context.Conte
 	result, err = client.DeleteAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -501,7 +502,6 @@ func (client ManagementLocksClient) DeleteAtResourceGroupLevelSender(req *http.R
 func (client ManagementLocksClient) DeleteAtResourceGroupLevelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -553,6 +553,7 @@ func (client ManagementLocksClient) DeleteAtResourceLevel(ctx context.Context, r
 	result, err = client.DeleteAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -594,7 +595,6 @@ func (client ManagementLocksClient) DeleteAtResourceLevelSender(req *http.Reques
 func (client ManagementLocksClient) DeleteAtResourceLevelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -633,6 +633,7 @@ func (client ManagementLocksClient) DeleteAtSubscriptionLevel(ctx context.Contex
 	result, err = client.DeleteAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -669,7 +670,6 @@ func (client ManagementLocksClient) DeleteAtSubscriptionLevelSender(req *http.Re
 func (client ManagementLocksClient) DeleteAtSubscriptionLevelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -707,6 +707,7 @@ func (client ManagementLocksClient) DeleteByScope(ctx context.Context, scope str
 	result, err = client.DeleteByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -743,7 +744,6 @@ func (client ManagementLocksClient) DeleteByScopeSender(req *http.Request) (*htt
 func (client ManagementLocksClient) DeleteByScopeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -789,6 +789,7 @@ func (client ManagementLocksClient) GetAtResourceGroupLevel(ctx context.Context,
 	result, err = client.GetAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -826,7 +827,6 @@ func (client ManagementLocksClient) GetAtResourceGroupLevelSender(req *http.Requ
 func (client ManagementLocksClient) GetAtResourceGroupLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -877,6 +877,7 @@ func (client ManagementLocksClient) GetAtResourceLevel(ctx context.Context, reso
 	result, err = client.GetAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -918,7 +919,6 @@ func (client ManagementLocksClient) GetAtResourceLevelSender(req *http.Request) 
 func (client ManagementLocksClient) GetAtResourceLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -956,6 +956,7 @@ func (client ManagementLocksClient) GetAtSubscriptionLevel(ctx context.Context, 
 	result, err = client.GetAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -992,7 +993,6 @@ func (client ManagementLocksClient) GetAtSubscriptionLevelSender(req *http.Reque
 func (client ManagementLocksClient) GetAtSubscriptionLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1031,6 +1031,7 @@ func (client ManagementLocksClient) GetByScope(ctx context.Context, scope string
 	result, err = client.GetByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1067,7 +1068,6 @@ func (client ManagementLocksClient) GetByScopeSender(req *http.Request) (*http.R
 func (client ManagementLocksClient) GetByScopeResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1115,6 +1115,10 @@ func (client ManagementLocksClient) ListAtResourceGroupLevel(ctx context.Context
 	result.mllr, err = client.ListAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListAtResourceGroupLevel", resp, "Failure responding to request")
+		return
+	}
+	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1154,7 +1158,6 @@ func (client ManagementLocksClient) ListAtResourceGroupLevelSender(req *http.Req
 func (client ManagementLocksClient) ListAtResourceGroupLevelResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1179,6 +1182,7 @@ func (client ManagementLocksClient) listAtResourceGroupLevelNextResults(ctx cont
 	result, err = client.ListAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listAtResourceGroupLevelNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1244,6 +1248,10 @@ func (client ManagementLocksClient) ListAtResourceLevel(ctx context.Context, res
 	result.mllr, err = client.ListAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListAtResourceLevel", resp, "Failure responding to request")
+		return
+	}
+	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1287,7 +1295,6 @@ func (client ManagementLocksClient) ListAtResourceLevelSender(req *http.Request)
 func (client ManagementLocksClient) ListAtResourceLevelResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1312,6 +1319,7 @@ func (client ManagementLocksClient) listAtResourceLevelNextResults(ctx context.C
 	result, err = client.ListAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listAtResourceLevelNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1363,6 +1371,10 @@ func (client ManagementLocksClient) ListAtSubscriptionLevel(ctx context.Context,
 	result.mllr, err = client.ListAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListAtSubscriptionLevel", resp, "Failure responding to request")
+		return
+	}
+	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1401,7 +1413,6 @@ func (client ManagementLocksClient) ListAtSubscriptionLevelSender(req *http.Requ
 func (client ManagementLocksClient) ListAtSubscriptionLevelResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1426,6 +1437,7 @@ func (client ManagementLocksClient) listAtSubscriptionLevelNextResults(ctx conte
 	result, err = client.ListAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listAtSubscriptionLevelNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1482,6 +1494,10 @@ func (client ManagementLocksClient) ListByScope(ctx context.Context, scope strin
 	result.mllr, err = client.ListByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", resp, "Failure responding to request")
+		return
+	}
+	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1520,7 +1536,6 @@ func (client ManagementLocksClient) ListByScopeSender(req *http.Request) (*http.
 func (client ManagementLocksClient) ListByScopeResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1545,6 +1560,7 @@ func (client ManagementLocksClient) listByScopeNextResults(ctx context.Context, 
 	result, err = client.ListByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

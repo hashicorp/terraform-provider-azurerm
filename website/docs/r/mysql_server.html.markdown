@@ -14,10 +14,6 @@ Manages a MySQL Server.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -37,9 +33,9 @@ resource "azurerm_mysql_server" "example" {
 
   auto_grow_enabled                 = true
   backup_retention_days             = 7
-  geo_redundant_backup_enabled      = true
-  infrastructure_encryption_enabled = true
-  public_network_access_enabled     = false
+  geo_redundant_backup_enabled      = false
+  infrastructure_encryption_enabled = false
+  public_network_access_enabled     = true
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
 }
@@ -73,6 +69,8 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Turn Geo-redundant server backups on/off. This allows you to choose between locally redundant or geo-redundant backup storage in the General Purpose and Memory Optimized tiers. When the backups are stored in geo-redundant backup storage, they are not only stored within the region in which your server is hosted, but are also replicated to a paired data center. This provides better protection and ability to restore your server in a different region in the event of a disaster. This is not supported for the Basic tier.
 
+* `identity` - (Optional) An `identity` block as defined below. 
+
 * `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
@@ -85,7 +83,34 @@ The following arguments are supported:
 
 * `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB(5GB) and `1048576` MB(1TB) for the Basic SKU and between `5120` MB(5GB) and `4194304` MB(4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mysql/servers/create#StorageProfile).
 
+* `threat_detection_policy` - (Optional) Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `identity` block supports the following:
+   
+* `type` - (Required) The Type of Identity which should be used for this MySQL Server. At this time the only possible value is `SystemAssigned`.
+
+---
+
+a `threat_detection_policy` block supports the following:
+
+* `enabled` - (Required) Is the policy enabled?
+
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
+
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
+
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
+
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+
 
 ## Attributes Reference
 
@@ -94,6 +119,14 @@ The following attributes are exported:
 * `id` - The ID of the MySQL Server.
 
 * `fqdn` - The FQDN of the MySQL Server.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Client ID of the Service Principal assigned to this MySQL Server.
+
+* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
 

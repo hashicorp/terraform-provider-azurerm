@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// ConfigurationAssignmentsClient is the azure Maintenance Management Client
+// ConfigurationAssignmentsClient is the maintenance Client
 type ConfigurationAssignmentsClient struct {
 	BaseClient
 }
@@ -77,6 +77,7 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context,
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -119,7 +120,6 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateSender(req *http.Requ
 func (client ConfigurationAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +164,7 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Co
 	result, err = client.CreateOrUpdateParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "CreateOrUpdateParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,7 +209,6 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateParentSender(req *htt
 func (client ConfigurationAssignmentsClient) CreateOrUpdateParentResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -250,6 +250,7 @@ func (client ConfigurationAssignmentsClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -290,7 +291,6 @@ func (client ConfigurationAssignmentsClient) DeleteSender(req *http.Request) (*h
 func (client ConfigurationAssignmentsClient) DeleteResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -334,6 +334,7 @@ func (client ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, r
 	result, err = client.DeleteParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "DeleteParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -376,7 +377,6 @@ func (client ConfigurationAssignmentsClient) DeleteParentSender(req *http.Reques
 func (client ConfigurationAssignmentsClient) DeleteParentResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -417,6 +417,7 @@ func (client ConfigurationAssignmentsClient) List(ctx context.Context, resourceG
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -456,7 +457,6 @@ func (client ConfigurationAssignmentsClient) ListSender(req *http.Request) (*htt
 func (client ConfigurationAssignmentsClient) ListResponder(resp *http.Response) (result ListConfigurationAssignmentsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -499,6 +499,7 @@ func (client ConfigurationAssignmentsClient) ListParent(ctx context.Context, res
 	result, err = client.ListParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "ListParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -540,7 +541,6 @@ func (client ConfigurationAssignmentsClient) ListParentSender(req *http.Request)
 func (client ConfigurationAssignmentsClient) ListParentResponder(resp *http.Response) (result ListConfigurationAssignmentsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

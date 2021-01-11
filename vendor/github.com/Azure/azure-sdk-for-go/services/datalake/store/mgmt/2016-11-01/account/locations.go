@@ -71,6 +71,7 @@ func (client LocationsClient) GetCapability(ctx context.Context, location string
 	result, err = client.GetCapabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetCapability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Resp
 func (client LocationsClient) GetCapabilityResponder(resp *http.Response) (result CapabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,6 +145,7 @@ func (client LocationsClient) GetUsage(ctx context.Context, location string) (re
 	result, err = client.GetUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetUsage", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -181,7 +182,6 @@ func (client LocationsClient) GetUsageSender(req *http.Request) (*http.Response,
 func (client LocationsClient) GetUsageResponder(resp *http.Response) (result UsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

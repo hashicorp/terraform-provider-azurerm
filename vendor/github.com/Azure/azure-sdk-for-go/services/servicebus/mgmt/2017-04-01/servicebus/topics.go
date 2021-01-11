@@ -87,6 +87,7 @@ func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result SBTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -187,6 +187,7 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, 
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -228,7 +229,6 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRuleSender(req *http.Reque
 func (client TopicsClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -280,6 +280,7 @@ func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,7 +319,6 @@ func (client TopicsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -373,6 +373,7 @@ func (client TopicsClient) DeleteAuthorizationRule(ctx context.Context, resource
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -412,7 +413,6 @@ func (client TopicsClient) DeleteAuthorizationRuleSender(req *http.Request) (*ht
 func (client TopicsClient) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -463,6 +463,7 @@ func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, na
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -501,7 +502,6 @@ func (client TopicsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client TopicsClient) GetResponder(resp *http.Response) (result SBTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -557,6 +557,7 @@ func (client TopicsClient) GetAuthorizationRule(ctx context.Context, resourceGro
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -596,7 +597,6 @@ func (client TopicsClient) GetAuthorizationRuleSender(req *http.Request) (*http.
 func (client TopicsClient) GetAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -649,6 +649,10 @@ func (client TopicsClient) ListAuthorizationRules(ctx context.Context, resourceG
 	result.sarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -687,7 +691,6 @@ func (client TopicsClient) ListAuthorizationRulesSender(req *http.Request) (*htt
 func (client TopicsClient) ListAuthorizationRulesResponder(resp *http.Response) (result SBAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -712,6 +715,7 @@ func (client TopicsClient) listAuthorizationRulesNextResults(ctx context.Context
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -788,6 +792,10 @@ func (client TopicsClient) ListByNamespace(ctx context.Context, resourceGroupNam
 	result.stlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "ListByNamespace", resp, "Failure responding to request")
+		return
+	}
+	if result.stlr.hasNextLink() && result.stlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -831,7 +839,6 @@ func (client TopicsClient) ListByNamespaceSender(req *http.Request) (*http.Respo
 func (client TopicsClient) ListByNamespaceResponder(resp *http.Response) (result SBTopicListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -856,6 +863,7 @@ func (client TopicsClient) listByNamespaceNextResults(ctx context.Context, lastR
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -924,6 +932,7 @@ func (client TopicsClient) ListKeys(ctx context.Context, resourceGroupName strin
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -963,7 +972,6 @@ func (client TopicsClient) ListKeysSender(req *http.Request) (*http.Response, er
 func (client TopicsClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1020,6 +1028,7 @@ func (client TopicsClient) RegenerateKeys(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1061,7 +1070,6 @@ func (client TopicsClient) RegenerateKeysSender(req *http.Request) (*http.Respon
 func (client TopicsClient) RegenerateKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

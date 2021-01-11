@@ -113,7 +113,6 @@ func (client NatGatewaysClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client NatGatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result NatGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client NatGatewaysClient) DeleteSender(req *http.Request) (future NatGatew
 func (client NatGatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +226,7 @@ func (client NatGatewaysClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,7 +267,6 @@ func (client NatGatewaysClient) GetSender(req *http.Request) (*http.Response, er
 func (client NatGatewaysClient) GetResponder(resp *http.Response) (result NatGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,6 +305,10 @@ func (client NatGatewaysClient) List(ctx context.Context, resourceGroupName stri
 	result.nglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.nglr.hasNextLink() && result.nglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -343,7 +345,6 @@ func (client NatGatewaysClient) ListSender(req *http.Request) (*http.Response, e
 func (client NatGatewaysClient) ListResponder(resp *http.Response) (result NatGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -368,6 +369,7 @@ func (client NatGatewaysClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -417,6 +419,10 @@ func (client NatGatewaysClient) ListAll(ctx context.Context) (result NatGatewayL
 	result.nglr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.nglr.hasNextLink() && result.nglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -452,7 +458,6 @@ func (client NatGatewaysClient) ListAllSender(req *http.Request) (*http.Response
 func (client NatGatewaysClient) ListAllResponder(resp *http.Response) (result NatGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,6 +482,7 @@ func (client NatGatewaysClient) listAllNextResults(ctx context.Context, lastResu
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -529,6 +535,7 @@ func (client NatGatewaysClient) UpdateTags(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -568,7 +575,6 @@ func (client NatGatewaysClient) UpdateTagsSender(req *http.Request) (*http.Respo
 func (client NatGatewaysClient) UpdateTagsResponder(resp *http.Response) (result NatGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

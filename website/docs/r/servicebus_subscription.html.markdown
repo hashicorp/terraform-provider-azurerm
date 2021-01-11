@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
+  name                = "tfex-servicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
@@ -30,7 +30,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_sevicebus_topic"
+  name                = "tfex_servicebus_topic"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
 
@@ -38,7 +38,7 @@ resource "azurerm_servicebus_topic" "example" {
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "tfex_sevicebus_subscription"
+  name                = "tfex_servicebus_subscription"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   topic_name          = azurerm_servicebus_topic.example.name
@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Subscription has dead letter support when a message expires. Defaults to `false`.
 
+* `dead_lettering_on_filter_evaluation_error` - (Optional) Boolean flag which controls whether the Subscription has dead letter support on filter evaluation exceptions. Defaults to `true`.
+
 * `enable_batched_operations` - (Optional) Boolean flag which controls whether the Subscription supports batched operations. Defaults to `false`.
 
 * `requires_session` - (Optional) Boolean flag which controls whether this Subscription supports the concept of a session. Defaults to `false`. Changing this forces a new resource to be created.
@@ -75,6 +77,8 @@ The following arguments are supported:
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to.
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
+
+* `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
 
 ## Attributes Reference
 

@@ -6,23 +6,23 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabase() *schema.Resource {
+func resourceKustoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabaseCreateUpdate,
-		Read:   resourceArmKustoDatabaseRead,
-		Update: resourceArmKustoDatabaseCreateUpdate,
-		Delete: resourceArmKustoDatabaseDelete,
+		Create: resourceKustoDatabaseCreateUpdate,
+		Read:   resourceKustoDatabaseRead,
+		Update: resourceKustoDatabaseCreateUpdate,
+		Delete: resourceKustoDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -74,7 +74,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -85,16 +85,23 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		server, err := client.Get(ctx, resourceGroup, clusterName, name)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, clusterName, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Kusto Database %q (Resource Group %q, Cluster %q): %s", name, resourceGroup, clusterName, err)
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kusto_database", *server.ID)
+		if existing.Value != nil {
+			database, ok := existing.Value.AsReadWriteDatabase()
+			if !ok {
+				return fmt.Errorf("Exisiting Resource is not a Kusto Read/Write Database %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
+			}
+
+			if database.ID != nil && *database.ID != "" {
+				return tf.ImportAsExistsError("azurerm_kusto_database", *database.ID)
+			}
 		}
 	}
 
@@ -102,68 +109,79 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	databaseProperties := expandKustoDatabaseProperties(d)
 
-	kustoDatabase := kusto.Database{
-		Name:               &name,
-		Location:           &location,
-		DatabaseProperties: databaseProperties,
+	readWriteDatabase := kusto.ReadWriteDatabase{
+		Name:                        &name,
+		Location:                    &location,
+		ReadWriteDatabaseProperties: databaseProperties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, kustoDatabase)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, readWriteDatabase)
 	if err != nil {
-		return fmt.Errorf("Error creating or updating Kusto Cluster %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("Error creating or updating Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Kusto Cluster %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("Error waiting for completion of Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
 	}
 
-	resp, getDetailsErr := client.Get(ctx, resourceGroup, clusterName, name)
-	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+	resp, err := client.Get(ctx, resourceGroup, clusterName, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+	}
+	if resp.Value == nil {
+		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", name, resourceGroup, clusterName)
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Kusto Cluster %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
+	database, ok := resp.Value.AsReadWriteDatabase()
+	if !ok {
+		return fmt.Errorf("Resource is not a Read/Write Database %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
+	}
+	if database.ID == nil || *database.ID == "" {
+		return fmt.Errorf("Cannot read ID for Kusto Database %q (Resource Group %q, Cluster %q)", name, resourceGroup, clusterName)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(*database.ID)
 
-	return resourceArmKustoDatabaseRead(d, meta)
+	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	clusterName := id.Path["Clusters"]
-	name := id.Path["Databases"]
-
-	databaseResponse, err := client.Get(ctx, resourceGroup, clusterName, name)
-
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(databaseResponse.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("cluster_name", clusterName)
+	if resp.Value == nil {
+		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", id.Name, id.ResourceGroup, id.ClusterName)
+	}
 
-	if location := databaseResponse.Location; location != nil {
+	database, ok := resp.Value.AsReadWriteDatabase()
+	if !ok {
+		return fmt.Errorf("Existing resource is not a Read/Write Database (Resource Group %q, Cluster %q): %q", id.ResourceGroup, id.ClusterName, id.Name)
+	}
+
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("cluster_name", id.ClusterName)
+
+	if location := database.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := databaseResponse.DatabaseProperties; props != nil {
+	if props := database.ReadWriteDatabaseProperties; props != nil {
 		d.Set("hot_cache_period", props.HotCachePeriod)
 		d.Set("soft_delete_period", props.SoftDeletePeriod)
 
@@ -175,27 +193,23 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	clusterName := id.Path["Clusters"]
-	name := id.Path["Databases"]
-
-	future, err := client.Delete(ctx, resGroup, clusterName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resGroup, clusterName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resGroup, clusterName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
@@ -219,8 +233,8 @@ func validateAzureRMKustoDatabaseName(v interface{}, k string) (warnings []strin
 	return warnings, errors
 }
 
-func expandKustoDatabaseProperties(d *schema.ResourceData) *kusto.DatabaseProperties {
-	databaseProperties := &kusto.DatabaseProperties{}
+func expandKustoDatabaseProperties(d *schema.ResourceData) *kusto.ReadWriteDatabaseProperties {
+	databaseProperties := &kusto.ReadWriteDatabaseProperties{}
 
 	if softDeletePeriod, ok := d.GetOk("soft_delete_period"); ok {
 		databaseProperties.SoftDeletePeriod = utils.String(softDeletePeriod.(string))

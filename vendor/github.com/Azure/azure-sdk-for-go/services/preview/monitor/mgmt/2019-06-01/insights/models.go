@@ -30,629 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 
-// AggregationType enumerates the values for aggregation type.
-type AggregationType string
-
-const (
-	// Average ...
-	Average AggregationType = "Average"
-	// Count ...
-	Count AggregationType = "Count"
-	// Maximum ...
-	Maximum AggregationType = "Maximum"
-	// Minimum ...
-	Minimum AggregationType = "Minimum"
-	// None ...
-	None AggregationType = "None"
-	// Total ...
-	Total AggregationType = "Total"
-)
-
-// PossibleAggregationTypeValues returns an array of possible values for the AggregationType const type.
-func PossibleAggregationTypeValues() []AggregationType {
-	return []AggregationType{Average, Count, Maximum, Minimum, None, Total}
-}
-
-// AlertSeverity enumerates the values for alert severity.
-type AlertSeverity string
-
-const (
-	// Four ...
-	Four AlertSeverity = "4"
-	// One ...
-	One AlertSeverity = "1"
-	// Three ...
-	Three AlertSeverity = "3"
-	// Two ...
-	Two AlertSeverity = "2"
-	// Zero ...
-	Zero AlertSeverity = "0"
-)
-
-// PossibleAlertSeverityValues returns an array of possible values for the AlertSeverity const type.
-func PossibleAlertSeverityValues() []AlertSeverity {
-	return []AlertSeverity{Four, One, Three, Two, Zero}
-}
-
-// BaselineSensitivity enumerates the values for baseline sensitivity.
-type BaselineSensitivity string
-
-const (
-	// High ...
-	High BaselineSensitivity = "High"
-	// Low ...
-	Low BaselineSensitivity = "Low"
-	// Medium ...
-	Medium BaselineSensitivity = "Medium"
-)
-
-// PossibleBaselineSensitivityValues returns an array of possible values for the BaselineSensitivity const type.
-func PossibleBaselineSensitivityValues() []BaselineSensitivity {
-	return []BaselineSensitivity{High, Low, Medium}
-}
-
-// CategoryType enumerates the values for category type.
-type CategoryType string
-
-const (
-	// Logs ...
-	Logs CategoryType = "Logs"
-	// Metrics ...
-	Metrics CategoryType = "Metrics"
-)
-
-// PossibleCategoryTypeValues returns an array of possible values for the CategoryType const type.
-func PossibleCategoryTypeValues() []CategoryType {
-	return []CategoryType{Logs, Metrics}
-}
-
-// ComparisonOperationType enumerates the values for comparison operation type.
-type ComparisonOperationType string
-
-const (
-	// Equals ...
-	Equals ComparisonOperationType = "Equals"
-	// GreaterThan ...
-	GreaterThan ComparisonOperationType = "GreaterThan"
-	// GreaterThanOrEqual ...
-	GreaterThanOrEqual ComparisonOperationType = "GreaterThanOrEqual"
-	// LessThan ...
-	LessThan ComparisonOperationType = "LessThan"
-	// LessThanOrEqual ...
-	LessThanOrEqual ComparisonOperationType = "LessThanOrEqual"
-	// NotEquals ...
-	NotEquals ComparisonOperationType = "NotEquals"
-)
-
-// PossibleComparisonOperationTypeValues returns an array of possible values for the ComparisonOperationType const type.
-func PossibleComparisonOperationTypeValues() []ComparisonOperationType {
-	return []ComparisonOperationType{Equals, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEquals}
-}
-
-// ConditionalOperator enumerates the values for conditional operator.
-type ConditionalOperator string
-
-const (
-	// ConditionalOperatorEqual ...
-	ConditionalOperatorEqual ConditionalOperator = "Equal"
-	// ConditionalOperatorGreaterThan ...
-	ConditionalOperatorGreaterThan ConditionalOperator = "GreaterThan"
-	// ConditionalOperatorLessThan ...
-	ConditionalOperatorLessThan ConditionalOperator = "LessThan"
-)
-
-// PossibleConditionalOperatorValues returns an array of possible values for the ConditionalOperator const type.
-func PossibleConditionalOperatorValues() []ConditionalOperator {
-	return []ConditionalOperator{ConditionalOperatorEqual, ConditionalOperatorGreaterThan, ConditionalOperatorLessThan}
-}
-
-// ConditionOperator enumerates the values for condition operator.
-type ConditionOperator string
-
-const (
-	// ConditionOperatorGreaterThan ...
-	ConditionOperatorGreaterThan ConditionOperator = "GreaterThan"
-	// ConditionOperatorGreaterThanOrEqual ...
-	ConditionOperatorGreaterThanOrEqual ConditionOperator = "GreaterThanOrEqual"
-	// ConditionOperatorLessThan ...
-	ConditionOperatorLessThan ConditionOperator = "LessThan"
-	// ConditionOperatorLessThanOrEqual ...
-	ConditionOperatorLessThanOrEqual ConditionOperator = "LessThanOrEqual"
-)
-
-// PossibleConditionOperatorValues returns an array of possible values for the ConditionOperator const type.
-func PossibleConditionOperatorValues() []ConditionOperator {
-	return []ConditionOperator{ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual}
-}
-
-// CriterionType enumerates the values for criterion type.
-type CriterionType string
-
-const (
-	// CriterionTypeDynamicThresholdCriterion ...
-	CriterionTypeDynamicThresholdCriterion CriterionType = "DynamicThresholdCriterion"
-	// CriterionTypeMultiMetricCriteria ...
-	CriterionTypeMultiMetricCriteria CriterionType = "MultiMetricCriteria"
-	// CriterionTypeStaticThresholdCriterion ...
-	CriterionTypeStaticThresholdCriterion CriterionType = "StaticThresholdCriterion"
-)
-
-// PossibleCriterionTypeValues returns an array of possible values for the CriterionType const type.
-func PossibleCriterionTypeValues() []CriterionType {
-	return []CriterionType{CriterionTypeDynamicThresholdCriterion, CriterionTypeMultiMetricCriteria, CriterionTypeStaticThresholdCriterion}
-}
-
-// DataStatus enumerates the values for data status.
-type DataStatus string
-
-const (
-	// NotPresent ...
-	NotPresent DataStatus = "notPresent"
-	// Present ...
-	Present DataStatus = "present"
-)
-
-// PossibleDataStatusValues returns an array of possible values for the DataStatus const type.
-func PossibleDataStatusValues() []DataStatus {
-	return []DataStatus{NotPresent, Present}
-}
-
-// DynamicThresholdOperator enumerates the values for dynamic threshold operator.
-type DynamicThresholdOperator string
-
-const (
-	// DynamicThresholdOperatorGreaterOrLessThan ...
-	DynamicThresholdOperatorGreaterOrLessThan DynamicThresholdOperator = "GreaterOrLessThan"
-	// DynamicThresholdOperatorGreaterThan ...
-	DynamicThresholdOperatorGreaterThan DynamicThresholdOperator = "GreaterThan"
-	// DynamicThresholdOperatorLessThan ...
-	DynamicThresholdOperatorLessThan DynamicThresholdOperator = "LessThan"
-)
-
-// PossibleDynamicThresholdOperatorValues returns an array of possible values for the DynamicThresholdOperator const type.
-func PossibleDynamicThresholdOperatorValues() []DynamicThresholdOperator {
-	return []DynamicThresholdOperator{DynamicThresholdOperatorGreaterOrLessThan, DynamicThresholdOperatorGreaterThan, DynamicThresholdOperatorLessThan}
-}
-
-// DynamicThresholdSensitivity enumerates the values for dynamic threshold sensitivity.
-type DynamicThresholdSensitivity string
-
-const (
-	// DynamicThresholdSensitivityHigh ...
-	DynamicThresholdSensitivityHigh DynamicThresholdSensitivity = "High"
-	// DynamicThresholdSensitivityLow ...
-	DynamicThresholdSensitivityLow DynamicThresholdSensitivity = "Low"
-	// DynamicThresholdSensitivityMedium ...
-	DynamicThresholdSensitivityMedium DynamicThresholdSensitivity = "Medium"
-)
-
-// PossibleDynamicThresholdSensitivityValues returns an array of possible values for the DynamicThresholdSensitivity const type.
-func PossibleDynamicThresholdSensitivityValues() []DynamicThresholdSensitivity {
-	return []DynamicThresholdSensitivity{DynamicThresholdSensitivityHigh, DynamicThresholdSensitivityLow, DynamicThresholdSensitivityMedium}
-}
-
-// Enabled enumerates the values for enabled.
-type Enabled string
-
-const (
-	// False ...
-	False Enabled = "false"
-	// True ...
-	True Enabled = "true"
-)
-
-// PossibleEnabledValues returns an array of possible values for the Enabled const type.
-func PossibleEnabledValues() []Enabled {
-	return []Enabled{False, True}
-}
-
-// EventLevel enumerates the values for event level.
-type EventLevel string
-
-const (
-	// EventLevelCritical ...
-	EventLevelCritical EventLevel = "Critical"
-	// EventLevelError ...
-	EventLevelError EventLevel = "Error"
-	// EventLevelInformational ...
-	EventLevelInformational EventLevel = "Informational"
-	// EventLevelVerbose ...
-	EventLevelVerbose EventLevel = "Verbose"
-	// EventLevelWarning ...
-	EventLevelWarning EventLevel = "Warning"
-)
-
-// PossibleEventLevelValues returns an array of possible values for the EventLevel const type.
-func PossibleEventLevelValues() []EventLevel {
-	return []EventLevel{EventLevelCritical, EventLevelError, EventLevelInformational, EventLevelVerbose, EventLevelWarning}
-}
-
-// MetricStatisticType enumerates the values for metric statistic type.
-type MetricStatisticType string
-
-const (
-	// MetricStatisticTypeAverage ...
-	MetricStatisticTypeAverage MetricStatisticType = "Average"
-	// MetricStatisticTypeMax ...
-	MetricStatisticTypeMax MetricStatisticType = "Max"
-	// MetricStatisticTypeMin ...
-	MetricStatisticTypeMin MetricStatisticType = "Min"
-	// MetricStatisticTypeSum ...
-	MetricStatisticTypeSum MetricStatisticType = "Sum"
-)
-
-// PossibleMetricStatisticTypeValues returns an array of possible values for the MetricStatisticType const type.
-func PossibleMetricStatisticTypeValues() []MetricStatisticType {
-	return []MetricStatisticType{MetricStatisticTypeAverage, MetricStatisticTypeMax, MetricStatisticTypeMin, MetricStatisticTypeSum}
-}
-
-// MetricTriggerType enumerates the values for metric trigger type.
-type MetricTriggerType string
-
-const (
-	// MetricTriggerTypeConsecutive ...
-	MetricTriggerTypeConsecutive MetricTriggerType = "Consecutive"
-	// MetricTriggerTypeTotal ...
-	MetricTriggerTypeTotal MetricTriggerType = "Total"
-)
-
-// PossibleMetricTriggerTypeValues returns an array of possible values for the MetricTriggerType const type.
-func PossibleMetricTriggerTypeValues() []MetricTriggerType {
-	return []MetricTriggerType{MetricTriggerTypeConsecutive, MetricTriggerTypeTotal}
-}
-
-// OdataType enumerates the values for odata type.
-type OdataType string
-
-const (
-	// OdataTypeMicrosoftAzureManagementInsightsModelsRuleManagementEventDataSource ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsRuleManagementEventDataSource OdataType = "Microsoft.Azure.Management.Insights.Models.RuleManagementEventDataSource"
-	// OdataTypeMicrosoftAzureManagementInsightsModelsRuleMetricDataSource ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsRuleMetricDataSource OdataType = "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource"
-	// OdataTypeRuleDataSource ...
-	OdataTypeRuleDataSource OdataType = "RuleDataSource"
-)
-
-// PossibleOdataTypeValues returns an array of possible values for the OdataType const type.
-func PossibleOdataTypeValues() []OdataType {
-	return []OdataType{OdataTypeMicrosoftAzureManagementInsightsModelsRuleManagementEventDataSource, OdataTypeMicrosoftAzureManagementInsightsModelsRuleMetricDataSource, OdataTypeRuleDataSource}
-}
-
-// OdataTypeBasicAction enumerates the values for odata type basic action.
-type OdataTypeBasicAction string
-
-const (
-	// OdataTypeAction ...
-	OdataTypeAction OdataTypeBasicAction = "Action"
-	// OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction ...
-	OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction OdataTypeBasicAction = "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
-	// OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesLogToMetricAction ...
-	OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesLogToMetricAction OdataTypeBasicAction = "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.LogToMetricAction"
-)
-
-// PossibleOdataTypeBasicActionValues returns an array of possible values for the OdataTypeBasicAction const type.
-func PossibleOdataTypeBasicActionValues() []OdataTypeBasicAction {
-	return []OdataTypeBasicAction{OdataTypeAction, OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction, OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesLogToMetricAction}
-}
-
-// OdataTypeBasicMetricAlertCriteria enumerates the values for odata type basic metric alert criteria.
-type OdataTypeBasicMetricAlertCriteria string
-
-const (
-	// OdataTypeMetricAlertCriteria ...
-	OdataTypeMetricAlertCriteria OdataTypeBasicMetricAlertCriteria = "MetricAlertCriteria"
-	// OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria ...
-	OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria OdataTypeBasicMetricAlertCriteria = "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
-	// OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria ...
-	OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria OdataTypeBasicMetricAlertCriteria = "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
-	// OdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria ...
-	OdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria OdataTypeBasicMetricAlertCriteria = "Microsoft.Azure.Monitor.WebtestLocationAvailabilityCriteria"
-)
-
-// PossibleOdataTypeBasicMetricAlertCriteriaValues returns an array of possible values for the OdataTypeBasicMetricAlertCriteria const type.
-func PossibleOdataTypeBasicMetricAlertCriteriaValues() []OdataTypeBasicMetricAlertCriteria {
-	return []OdataTypeBasicMetricAlertCriteria{OdataTypeMetricAlertCriteria, OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria, OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria, OdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria}
-}
-
-// OdataTypeBasicRuleAction enumerates the values for odata type basic rule action.
-type OdataTypeBasicRuleAction string
-
-const (
-	// OdataTypeMicrosoftAzureManagementInsightsModelsRuleEmailAction ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsRuleEmailAction OdataTypeBasicRuleAction = "Microsoft.Azure.Management.Insights.Models.RuleEmailAction"
-	// OdataTypeMicrosoftAzureManagementInsightsModelsRuleWebhookAction ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsRuleWebhookAction OdataTypeBasicRuleAction = "Microsoft.Azure.Management.Insights.Models.RuleWebhookAction"
-	// OdataTypeRuleAction ...
-	OdataTypeRuleAction OdataTypeBasicRuleAction = "RuleAction"
-)
-
-// PossibleOdataTypeBasicRuleActionValues returns an array of possible values for the OdataTypeBasicRuleAction const type.
-func PossibleOdataTypeBasicRuleActionValues() []OdataTypeBasicRuleAction {
-	return []OdataTypeBasicRuleAction{OdataTypeMicrosoftAzureManagementInsightsModelsRuleEmailAction, OdataTypeMicrosoftAzureManagementInsightsModelsRuleWebhookAction, OdataTypeRuleAction}
-}
-
-// OdataTypeBasicRuleCondition enumerates the values for odata type basic rule condition.
-type OdataTypeBasicRuleCondition string
-
-const (
-	// OdataTypeMicrosoftAzureManagementInsightsModelsLocationThresholdRuleCondition ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsLocationThresholdRuleCondition OdataTypeBasicRuleCondition = "Microsoft.Azure.Management.Insights.Models.LocationThresholdRuleCondition"
-	// OdataTypeMicrosoftAzureManagementInsightsModelsManagementEventRuleCondition ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsManagementEventRuleCondition OdataTypeBasicRuleCondition = "Microsoft.Azure.Management.Insights.Models.ManagementEventRuleCondition"
-	// OdataTypeMicrosoftAzureManagementInsightsModelsThresholdRuleCondition ...
-	OdataTypeMicrosoftAzureManagementInsightsModelsThresholdRuleCondition OdataTypeBasicRuleCondition = "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition"
-	// OdataTypeRuleCondition ...
-	OdataTypeRuleCondition OdataTypeBasicRuleCondition = "RuleCondition"
-)
-
-// PossibleOdataTypeBasicRuleConditionValues returns an array of possible values for the OdataTypeBasicRuleCondition const type.
-func PossibleOdataTypeBasicRuleConditionValues() []OdataTypeBasicRuleCondition {
-	return []OdataTypeBasicRuleCondition{OdataTypeMicrosoftAzureManagementInsightsModelsLocationThresholdRuleCondition, OdataTypeMicrosoftAzureManagementInsightsModelsManagementEventRuleCondition, OdataTypeMicrosoftAzureManagementInsightsModelsThresholdRuleCondition, OdataTypeRuleCondition}
-}
-
-// OnboardingStatus enumerates the values for onboarding status.
-type OnboardingStatus string
-
-const (
-	// NotOnboarded ...
-	NotOnboarded OnboardingStatus = "notOnboarded"
-	// Onboarded ...
-	Onboarded OnboardingStatus = "onboarded"
-	// Unknown ...
-	Unknown OnboardingStatus = "unknown"
-)
-
-// PossibleOnboardingStatusValues returns an array of possible values for the OnboardingStatus const type.
-func PossibleOnboardingStatusValues() []OnboardingStatus {
-	return []OnboardingStatus{NotOnboarded, Onboarded, Unknown}
-}
-
-// Operator enumerates the values for operator.
-type Operator string
-
-const (
-	// OperatorEquals ...
-	OperatorEquals Operator = "Equals"
-	// OperatorGreaterThan ...
-	OperatorGreaterThan Operator = "GreaterThan"
-	// OperatorGreaterThanOrEqual ...
-	OperatorGreaterThanOrEqual Operator = "GreaterThanOrEqual"
-	// OperatorLessThan ...
-	OperatorLessThan Operator = "LessThan"
-	// OperatorLessThanOrEqual ...
-	OperatorLessThanOrEqual Operator = "LessThanOrEqual"
-	// OperatorNotEquals ...
-	OperatorNotEquals Operator = "NotEquals"
-)
-
-// PossibleOperatorValues returns an array of possible values for the Operator const type.
-func PossibleOperatorValues() []Operator {
-	return []Operator{OperatorEquals, OperatorGreaterThan, OperatorGreaterThanOrEqual, OperatorLessThan, OperatorLessThanOrEqual, OperatorNotEquals}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Deploying ...
-	Deploying ProvisioningState = "Deploying"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Deploying, Failed, Succeeded}
-}
-
-// QueryType enumerates the values for query type.
-type QueryType string
-
-const (
-	// ResultCount ...
-	ResultCount QueryType = "ResultCount"
-)
-
-// PossibleQueryTypeValues returns an array of possible values for the QueryType const type.
-func PossibleQueryTypeValues() []QueryType {
-	return []QueryType{ResultCount}
-}
-
-// ReceiverStatus enumerates the values for receiver status.
-type ReceiverStatus string
-
-const (
-	// ReceiverStatusDisabled ...
-	ReceiverStatusDisabled ReceiverStatus = "Disabled"
-	// ReceiverStatusEnabled ...
-	ReceiverStatusEnabled ReceiverStatus = "Enabled"
-	// ReceiverStatusNotSpecified ...
-	ReceiverStatusNotSpecified ReceiverStatus = "NotSpecified"
-)
-
-// PossibleReceiverStatusValues returns an array of possible values for the ReceiverStatus const type.
-func PossibleReceiverStatusValues() []ReceiverStatus {
-	return []ReceiverStatus{ReceiverStatusDisabled, ReceiverStatusEnabled, ReceiverStatusNotSpecified}
-}
-
-// RecurrenceFrequency enumerates the values for recurrence frequency.
-type RecurrenceFrequency string
-
-const (
-	// RecurrenceFrequencyDay ...
-	RecurrenceFrequencyDay RecurrenceFrequency = "Day"
-	// RecurrenceFrequencyHour ...
-	RecurrenceFrequencyHour RecurrenceFrequency = "Hour"
-	// RecurrenceFrequencyMinute ...
-	RecurrenceFrequencyMinute RecurrenceFrequency = "Minute"
-	// RecurrenceFrequencyMonth ...
-	RecurrenceFrequencyMonth RecurrenceFrequency = "Month"
-	// RecurrenceFrequencyNone ...
-	RecurrenceFrequencyNone RecurrenceFrequency = "None"
-	// RecurrenceFrequencySecond ...
-	RecurrenceFrequencySecond RecurrenceFrequency = "Second"
-	// RecurrenceFrequencyWeek ...
-	RecurrenceFrequencyWeek RecurrenceFrequency = "Week"
-	// RecurrenceFrequencyYear ...
-	RecurrenceFrequencyYear RecurrenceFrequency = "Year"
-)
-
-// PossibleRecurrenceFrequencyValues returns an array of possible values for the RecurrenceFrequency const type.
-func PossibleRecurrenceFrequencyValues() []RecurrenceFrequency {
-	return []RecurrenceFrequency{RecurrenceFrequencyDay, RecurrenceFrequencyHour, RecurrenceFrequencyMinute, RecurrenceFrequencyMonth, RecurrenceFrequencyNone, RecurrenceFrequencySecond, RecurrenceFrequencyWeek, RecurrenceFrequencyYear}
-}
-
-// ResultType enumerates the values for result type.
-type ResultType string
-
-const (
-	// Data ...
-	Data ResultType = "Data"
-	// Metadata ...
-	Metadata ResultType = "Metadata"
-)
-
-// PossibleResultTypeValues returns an array of possible values for the ResultType const type.
-func PossibleResultTypeValues() []ResultType {
-	return []ResultType{Data, Metadata}
-}
-
-// ScaleDirection enumerates the values for scale direction.
-type ScaleDirection string
-
-const (
-	// ScaleDirectionDecrease ...
-	ScaleDirectionDecrease ScaleDirection = "Decrease"
-	// ScaleDirectionIncrease ...
-	ScaleDirectionIncrease ScaleDirection = "Increase"
-	// ScaleDirectionNone ...
-	ScaleDirectionNone ScaleDirection = "None"
-)
-
-// PossibleScaleDirectionValues returns an array of possible values for the ScaleDirection const type.
-func PossibleScaleDirectionValues() []ScaleDirection {
-	return []ScaleDirection{ScaleDirectionDecrease, ScaleDirectionIncrease, ScaleDirectionNone}
-}
-
-// ScaleType enumerates the values for scale type.
-type ScaleType string
-
-const (
-	// ChangeCount ...
-	ChangeCount ScaleType = "ChangeCount"
-	// ExactCount ...
-	ExactCount ScaleType = "ExactCount"
-	// PercentChangeCount ...
-	PercentChangeCount ScaleType = "PercentChangeCount"
-)
-
-// PossibleScaleTypeValues returns an array of possible values for the ScaleType const type.
-func PossibleScaleTypeValues() []ScaleType {
-	return []ScaleType{ChangeCount, ExactCount, PercentChangeCount}
-}
-
-// Sensitivity enumerates the values for sensitivity.
-type Sensitivity string
-
-const (
-	// SensitivityHigh ...
-	SensitivityHigh Sensitivity = "High"
-	// SensitivityLow ...
-	SensitivityLow Sensitivity = "Low"
-	// SensitivityMedium ...
-	SensitivityMedium Sensitivity = "Medium"
-)
-
-// PossibleSensitivityValues returns an array of possible values for the Sensitivity const type.
-func PossibleSensitivityValues() []Sensitivity {
-	return []Sensitivity{SensitivityHigh, SensitivityLow, SensitivityMedium}
-}
-
-// TimeAggregationOperator enumerates the values for time aggregation operator.
-type TimeAggregationOperator string
-
-const (
-	// TimeAggregationOperatorAverage ...
-	TimeAggregationOperatorAverage TimeAggregationOperator = "Average"
-	// TimeAggregationOperatorLast ...
-	TimeAggregationOperatorLast TimeAggregationOperator = "Last"
-	// TimeAggregationOperatorMaximum ...
-	TimeAggregationOperatorMaximum TimeAggregationOperator = "Maximum"
-	// TimeAggregationOperatorMinimum ...
-	TimeAggregationOperatorMinimum TimeAggregationOperator = "Minimum"
-	// TimeAggregationOperatorTotal ...
-	TimeAggregationOperatorTotal TimeAggregationOperator = "Total"
-)
-
-// PossibleTimeAggregationOperatorValues returns an array of possible values for the TimeAggregationOperator const type.
-func PossibleTimeAggregationOperatorValues() []TimeAggregationOperator {
-	return []TimeAggregationOperator{TimeAggregationOperatorAverage, TimeAggregationOperatorLast, TimeAggregationOperatorMaximum, TimeAggregationOperatorMinimum, TimeAggregationOperatorTotal}
-}
-
-// TimeAggregationType enumerates the values for time aggregation type.
-type TimeAggregationType string
-
-const (
-	// TimeAggregationTypeAverage ...
-	TimeAggregationTypeAverage TimeAggregationType = "Average"
-	// TimeAggregationTypeCount ...
-	TimeAggregationTypeCount TimeAggregationType = "Count"
-	// TimeAggregationTypeLast ...
-	TimeAggregationTypeLast TimeAggregationType = "Last"
-	// TimeAggregationTypeMaximum ...
-	TimeAggregationTypeMaximum TimeAggregationType = "Maximum"
-	// TimeAggregationTypeMinimum ...
-	TimeAggregationTypeMinimum TimeAggregationType = "Minimum"
-	// TimeAggregationTypeTotal ...
-	TimeAggregationTypeTotal TimeAggregationType = "Total"
-)
-
-// PossibleTimeAggregationTypeValues returns an array of possible values for the TimeAggregationType const type.
-func PossibleTimeAggregationTypeValues() []TimeAggregationType {
-	return []TimeAggregationType{TimeAggregationTypeAverage, TimeAggregationTypeCount, TimeAggregationTypeLast, TimeAggregationTypeMaximum, TimeAggregationTypeMinimum, TimeAggregationTypeTotal}
-}
-
-// Unit enumerates the values for unit.
-type Unit string
-
-const (
-	// UnitBitsPerSecond ...
-	UnitBitsPerSecond Unit = "BitsPerSecond"
-	// UnitBytes ...
-	UnitBytes Unit = "Bytes"
-	// UnitByteSeconds ...
-	UnitByteSeconds Unit = "ByteSeconds"
-	// UnitBytesPerSecond ...
-	UnitBytesPerSecond Unit = "BytesPerSecond"
-	// UnitCores ...
-	UnitCores Unit = "Cores"
-	// UnitCount ...
-	UnitCount Unit = "Count"
-	// UnitCountPerSecond ...
-	UnitCountPerSecond Unit = "CountPerSecond"
-	// UnitMilliCores ...
-	UnitMilliCores Unit = "MilliCores"
-	// UnitMilliSeconds ...
-	UnitMilliSeconds Unit = "MilliSeconds"
-	// UnitNanoCores ...
-	UnitNanoCores Unit = "NanoCores"
-	// UnitPercent ...
-	UnitPercent Unit = "Percent"
-	// UnitSeconds ...
-	UnitSeconds Unit = "Seconds"
-	// UnitUnspecified ...
-	UnitUnspecified Unit = "Unspecified"
-)
-
-// PossibleUnitValues returns an array of possible values for the Unit const type.
-func PossibleUnitValues() []Unit {
-	return []Unit{UnitBitsPerSecond, UnitBytes, UnitByteSeconds, UnitBytesPerSecond, UnitCores, UnitCount, UnitCountPerSecond, UnitMilliCores, UnitMilliSeconds, UnitNanoCores, UnitPercent, UnitSeconds, UnitUnspecified}
-}
-
 // BasicAction action descriptor.
 type BasicAction interface {
 	AsAlertingAction() (*AlertingAction, bool)
@@ -1231,6 +608,25 @@ type AlertRule struct {
 	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AlertRule.
+func (ar AlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ar.Name != nil {
+		objectMap["name"] = ar.Name
+	}
+	if ar.Description != nil {
+		objectMap["description"] = ar.Description
+	}
+	if ar.IsEnabled != nil {
+		objectMap["isEnabled"] = ar.IsEnabled
+	}
+	objectMap["condition"] = ar.Condition
+	if ar.Actions != nil {
+		objectMap["actions"] = ar.Actions
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for AlertRule struct.
 func (ar *AlertRule) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1705,10 +1101,15 @@ func (asrc AutoscaleSettingResourceCollection) IsEmpty() bool {
 	return asrc.Value == nil || len(*asrc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (asrc AutoscaleSettingResourceCollection) hasNextLink() bool {
+	return asrc.NextLink != nil && len(*asrc.NextLink) != 0
+}
+
 // autoscaleSettingResourceCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (asrc AutoscaleSettingResourceCollection) autoscaleSettingResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if asrc.NextLink == nil || len(to.String(asrc.NextLink)) < 1 {
+	if !asrc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1736,11 +1137,16 @@ func (page *AutoscaleSettingResourceCollectionPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.asrc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.asrc)
+		if err != nil {
+			return err
+		}
+		page.asrc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.asrc = next
 	return nil
 }
 
@@ -1770,8 +1176,11 @@ func (page AutoscaleSettingResourceCollectionPage) Values() []AutoscaleSettingRe
 }
 
 // Creates a new instance of the AutoscaleSettingResourceCollectionPage type.
-func NewAutoscaleSettingResourceCollectionPage(getNextPage func(context.Context, AutoscaleSettingResourceCollection) (AutoscaleSettingResourceCollection, error)) AutoscaleSettingResourceCollectionPage {
-	return AutoscaleSettingResourceCollectionPage{fn: getNextPage}
+func NewAutoscaleSettingResourceCollectionPage(cur AutoscaleSettingResourceCollection, getNextPage func(context.Context, AutoscaleSettingResourceCollection) (AutoscaleSettingResourceCollection, error)) AutoscaleSettingResourceCollectionPage {
+	return AutoscaleSettingResourceCollectionPage{
+		fn:   getNextPage,
+		asrc: cur,
+	}
 }
 
 // AutoscaleSettingResourcePatch the autoscale setting object for patch operations.
@@ -2218,6 +1627,8 @@ type DynamicMetricCriteria struct {
 	TimeAggregation interface{} `json:"timeAggregation,omitempty"`
 	// Dimensions - List of dimension conditions.
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// SkipMetricValidation - Allows creating an alert rule on a custom metric that isn't yet emitted, by causing the metric validation to be skipped.
+	SkipMetricValidation *bool `json:"skipMetricValidation,omitempty"`
 	// CriterionType - Possible values include: 'CriterionTypeMultiMetricCriteria', 'CriterionTypeStaticThresholdCriterion', 'CriterionTypeDynamicThresholdCriterion'
 	CriterionType CriterionType `json:"criterionType,omitempty"`
 }
@@ -2252,6 +1663,9 @@ func (dmc DynamicMetricCriteria) MarshalJSON() ([]byte, error) {
 	}
 	if dmc.Dimensions != nil {
 		objectMap["dimensions"] = dmc.Dimensions
+	}
+	if dmc.SkipMetricValidation != nil {
+		objectMap["skipMetricValidation"] = dmc.SkipMetricValidation
 	}
 	if dmc.CriterionType != "" {
 		objectMap["criterionType"] = dmc.CriterionType
@@ -2384,6 +1798,15 @@ func (dmc *DynamicMetricCriteria) UnmarshalJSON(body []byte) error {
 				}
 				dmc.Dimensions = &dimensions
 			}
+		case "skipMetricValidation":
+			if v != nil {
+				var skipMetricValidation bool
+				err = json.Unmarshal(*v, &skipMetricValidation)
+				if err != nil {
+					return err
+				}
+				dmc.SkipMetricValidation = &skipMetricValidation
+			}
 		case "criterionType":
 			if v != nil {
 				var criterionType CriterionType
@@ -2428,6 +1851,21 @@ type EmailReceiver struct {
 	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
 	// Status - READ-ONLY; The receiver status of the e-mail. Possible values include: 'ReceiverStatusNotSpecified', 'ReceiverStatusEnabled', 'ReceiverStatusDisabled'
 	Status ReceiverStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EmailReceiver.
+func (er EmailReceiver) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if er.Name != nil {
+		objectMap["name"] = er.Name
+	}
+	if er.EmailAddress != nil {
+		objectMap["emailAddress"] = er.EmailAddress
+	}
+	if er.UseCommonAlertSchema != nil {
+		objectMap["useCommonAlertSchema"] = er.UseCommonAlertSchema
+	}
+	return json.Marshal(objectMap)
 }
 
 // EnableRequest describes a receiver that should be resubscribed.
@@ -2595,10 +2033,15 @@ func (edc EventDataCollection) IsEmpty() bool {
 	return edc.Value == nil || len(*edc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (edc EventDataCollection) hasNextLink() bool {
+	return edc.NextLink != nil && len(*edc.NextLink) != 0
+}
+
 // eventDataCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (edc EventDataCollection) eventDataCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if edc.NextLink == nil || len(to.String(edc.NextLink)) < 1 {
+	if !edc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2626,11 +2069,16 @@ func (page *EventDataCollectionPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.edc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.edc)
+		if err != nil {
+			return err
+		}
+		page.edc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.edc = next
 	return nil
 }
 
@@ -2660,8 +2108,11 @@ func (page EventDataCollectionPage) Values() []EventData {
 }
 
 // Creates a new instance of the EventDataCollectionPage type.
-func NewEventDataCollectionPage(getNextPage func(context.Context, EventDataCollection) (EventDataCollection, error)) EventDataCollectionPage {
-	return EventDataCollectionPage{fn: getNextPage}
+func NewEventDataCollectionPage(cur EventDataCollection, getNextPage func(context.Context, EventDataCollection) (EventDataCollection, error)) EventDataCollectionPage {
+	return EventDataCollectionPage{
+		fn:  getNextPage,
+		edc: cur,
+	}
 }
 
 // HTTPRequestInfo the Http request info.
@@ -3039,6 +2490,25 @@ type LogSearchRule struct {
 	Schedule *Schedule `json:"schedule,omitempty"`
 	// Action - Action needs to be taken on rule execution.
 	Action BasicAction `json:"action,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LogSearchRule.
+func (lsr LogSearchRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lsr.Description != nil {
+		objectMap["description"] = lsr.Description
+	}
+	if lsr.Enabled != "" {
+		objectMap["enabled"] = lsr.Enabled
+	}
+	if lsr.Source != nil {
+		objectMap["source"] = lsr.Source
+	}
+	if lsr.Schedule != nil {
+		objectMap["schedule"] = lsr.Schedule
+	}
+	objectMap["action"] = lsr.Action
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for LogSearchRule struct.
@@ -3737,6 +3207,43 @@ type MetricAlertProperties struct {
 	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MetricAlertProperties.
+func (mapVar MetricAlertProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mapVar.Description != nil {
+		objectMap["description"] = mapVar.Description
+	}
+	if mapVar.Severity != nil {
+		objectMap["severity"] = mapVar.Severity
+	}
+	if mapVar.Enabled != nil {
+		objectMap["enabled"] = mapVar.Enabled
+	}
+	if mapVar.Scopes != nil {
+		objectMap["scopes"] = mapVar.Scopes
+	}
+	if mapVar.EvaluationFrequency != nil {
+		objectMap["evaluationFrequency"] = mapVar.EvaluationFrequency
+	}
+	if mapVar.WindowSize != nil {
+		objectMap["windowSize"] = mapVar.WindowSize
+	}
+	if mapVar.TargetResourceType != nil {
+		objectMap["targetResourceType"] = mapVar.TargetResourceType
+	}
+	if mapVar.TargetResourceRegion != nil {
+		objectMap["targetResourceRegion"] = mapVar.TargetResourceRegion
+	}
+	objectMap["criteria"] = mapVar.Criteria
+	if mapVar.AutoMitigate != nil {
+		objectMap["autoMitigate"] = mapVar.AutoMitigate
+	}
+	if mapVar.Actions != nil {
+		objectMap["actions"] = mapVar.Actions
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for MetricAlertProperties struct.
 func (mapVar *MetricAlertProperties) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -4207,6 +3714,8 @@ type MetricCriteria struct {
 	TimeAggregation interface{} `json:"timeAggregation,omitempty"`
 	// Dimensions - List of dimension conditions.
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// SkipMetricValidation - Allows creating an alert rule on a custom metric that isn't yet emitted, by causing the metric validation to be skipped.
+	SkipMetricValidation *bool `json:"skipMetricValidation,omitempty"`
 	// CriterionType - Possible values include: 'CriterionTypeMultiMetricCriteria', 'CriterionTypeStaticThresholdCriterion', 'CriterionTypeDynamicThresholdCriterion'
 	CriterionType CriterionType `json:"criterionType,omitempty"`
 }
@@ -4235,6 +3744,9 @@ func (mc MetricCriteria) MarshalJSON() ([]byte, error) {
 	}
 	if mc.Dimensions != nil {
 		objectMap["dimensions"] = mc.Dimensions
+	}
+	if mc.SkipMetricValidation != nil {
+		objectMap["skipMetricValidation"] = mc.SkipMetricValidation
 	}
 	if mc.CriterionType != "" {
 		objectMap["criterionType"] = mc.CriterionType
@@ -4349,6 +3861,15 @@ func (mc *MetricCriteria) UnmarshalJSON(body []byte) error {
 				}
 				mc.Dimensions = &dimensions
 			}
+		case "skipMetricValidation":
+			if v != nil {
+				var skipMetricValidation bool
+				err = json.Unmarshal(*v, &skipMetricValidation)
+				if err != nil {
+					return err
+				}
+				mc.SkipMetricValidation = &skipMetricValidation
+			}
 		case "criterionType":
 			if v != nil {
 				var criterionType CriterionType
@@ -4454,6 +3975,8 @@ type MetricSingleDimension struct {
 type MetricTrigger struct {
 	// MetricName - the name of the metric that defines what the rule monitors.
 	MetricName *string `json:"metricName,omitempty"`
+	// MetricNamespace - the namespace of the metric that defines what the rule monitors.
+	MetricNamespace *string `json:"metricNamespace,omitempty"`
 	// MetricResourceURI - the resource identifier of the resource the rule monitors.
 	MetricResourceURI *string `json:"metricResourceUri,omitempty"`
 	// TimeGrain - the granularity of metrics the rule monitors. Must be one of the predefined values returned from metric definitions for the metric. Must be between 12 hours and 1 minute.
@@ -4468,6 +3991,8 @@ type MetricTrigger struct {
 	Operator ComparisonOperationType `json:"operator,omitempty"`
 	// Threshold - the threshold of the metric that triggers the scale action.
 	Threshold *float64 `json:"threshold,omitempty"`
+	// Dimensions - List of dimension conditions. For example: [{"DimensionName":"AppName","Operator":"Equals","Values":["App1"]},{"DimensionName":"Deployment","Operator":"Equals","Values":["default"]}].
+	Dimensions *[]ScaleRuleMetricDimension `json:"dimensions,omitempty"`
 }
 
 // MetricValue represents a metric value.
@@ -4507,6 +4032,8 @@ type MultiMetricCriteria struct {
 	TimeAggregation interface{} `json:"timeAggregation,omitempty"`
 	// Dimensions - List of dimension conditions.
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// SkipMetricValidation - Allows creating an alert rule on a custom metric that isn't yet emitted, by causing the metric validation to be skipped.
+	SkipMetricValidation *bool `json:"skipMetricValidation,omitempty"`
 	// CriterionType - Possible values include: 'CriterionTypeMultiMetricCriteria', 'CriterionTypeStaticThresholdCriterion', 'CriterionTypeDynamicThresholdCriterion'
 	CriterionType CriterionType `json:"criterionType,omitempty"`
 }
@@ -4570,6 +4097,9 @@ func (mmc MultiMetricCriteria) MarshalJSON() ([]byte, error) {
 	}
 	if mmc.Dimensions != nil {
 		objectMap["dimensions"] = mmc.Dimensions
+	}
+	if mmc.SkipMetricValidation != nil {
+		objectMap["skipMetricValidation"] = mmc.SkipMetricValidation
 	}
 	if mmc.CriterionType != "" {
 		objectMap["criterionType"] = mmc.CriterionType
@@ -4665,6 +4195,15 @@ func (mmc *MultiMetricCriteria) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mmc.Dimensions = &dimensions
+			}
+		case "skipMetricValidation":
+			if v != nil {
+				var skipMetricValidation bool
+				err = json.Unmarshal(*v, &skipMetricValidation)
+				if err != nil {
+					return err
+				}
+				mmc.SkipMetricValidation = &skipMetricValidation
 			}
 		case "criterionType":
 			if v != nil {
@@ -5375,6 +4914,16 @@ type ScaleRule struct {
 	ScaleAction *ScaleAction `json:"scaleAction,omitempty"`
 }
 
+// ScaleRuleMetricDimension specifies an auto scale rule metric dimension.
+type ScaleRuleMetricDimension struct {
+	// DimensionName - Name of the dimension.
+	DimensionName *string `json:"DimensionName,omitempty"`
+	// Operator - the dimension operator. Only 'Equals' and 'NotEquals' are supported. 'Equals' being equal to any of the values. 'NotEquals' being not equal to all of the values. Possible values include: 'ScaleRuleMetricDimensionOperationTypeEquals', 'ScaleRuleMetricDimensionOperationTypeNotEquals'
+	Operator ScaleRuleMetricDimensionOperationType `json:"Operator,omitempty"`
+	// Values - list of dimension values. For example: ["App1","App2"].
+	Values *[]string `json:"Values,omitempty"`
+}
+
 // Schedule defines how often to run the search and the time interval.
 type Schedule struct {
 	// FrequencyInMinutes - frequency (in minutes) at which rule condition should be evaluated.
@@ -5496,6 +5045,21 @@ type SmsReceiver struct {
 	PhoneNumber *string `json:"phoneNumber,omitempty"`
 	// Status - READ-ONLY; The status of the receiver. Possible values include: 'ReceiverStatusNotSpecified', 'ReceiverStatusEnabled', 'ReceiverStatusDisabled'
 	Status ReceiverStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SmsReceiver.
+func (sr SmsReceiver) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sr.Name != nil {
+		objectMap["name"] = sr.Name
+	}
+	if sr.CountryCode != nil {
+		objectMap["countryCode"] = sr.CountryCode
+	}
+	if sr.PhoneNumber != nil {
+		objectMap["phoneNumber"] = sr.PhoneNumber
+	}
+	return json.Marshal(objectMap)
 }
 
 // Source specifies the log search query.

@@ -118,7 +118,6 @@ func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req 
 func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedServerSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +157,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) Get(ctx context.Context, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -196,7 +196,6 @@ func (client ManagedServerSecurityAlertPoliciesClient) GetSender(req *http.Reque
 func (client ManagedServerSecurityAlertPoliciesClient) GetResponder(resp *http.Response) (result ManagedServerSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -237,6 +236,10 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstance(ctx contex
 	result.mssaplr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "ListByInstance", resp, "Failure responding to request")
+		return
+	}
+	if result.mssaplr.hasNextLink() && result.mssaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -274,7 +277,6 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstanceSender(req 
 func (client ManagedServerSecurityAlertPoliciesClient) ListByInstanceResponder(resp *http.Response) (result ManagedServerSecurityAlertPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,6 +301,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) listByInstanceNextResults
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

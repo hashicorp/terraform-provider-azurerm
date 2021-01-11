@@ -73,6 +73,7 @@ func (client WorkflowsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client WorkflowsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client WorkflowsClient) CreateOrUpdateResponder(resp *http.Response) (result Workflow, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,7 @@ func (client WorkflowsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client WorkflowsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client WorkflowsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -226,6 +226,7 @@ func (client WorkflowsClient) Disable(ctx context.Context, resourceGroupName str
 	result, err = client.DisableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "Disable", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -263,7 +264,6 @@ func (client WorkflowsClient) DisableSender(req *http.Request) (*http.Response, 
 func (client WorkflowsClient) DisableResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -301,6 +301,7 @@ func (client WorkflowsClient) Enable(ctx context.Context, resourceGroupName stri
 	result, err = client.EnableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "Enable", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -338,7 +339,6 @@ func (client WorkflowsClient) EnableSender(req *http.Request) (*http.Response, e
 func (client WorkflowsClient) EnableResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -377,6 +377,7 @@ func (client WorkflowsClient) GenerateUpgradedDefinition(ctx context.Context, re
 	result, err = client.GenerateUpgradedDefinitionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "GenerateUpgradedDefinition", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -416,7 +417,6 @@ func (client WorkflowsClient) GenerateUpgradedDefinitionSender(req *http.Request
 func (client WorkflowsClient) GenerateUpgradedDefinitionResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -455,6 +455,7 @@ func (client WorkflowsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -492,7 +493,6 @@ func (client WorkflowsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client WorkflowsClient) GetResponder(resp *http.Response) (result Workflow, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -534,6 +534,10 @@ func (client WorkflowsClient) ListByResourceGroup(ctx context.Context, resourceG
 	result.wlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -576,7 +580,6 @@ func (client WorkflowsClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client WorkflowsClient) ListByResourceGroupResponder(resp *http.Response) (result WorkflowListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -601,6 +604,7 @@ func (client WorkflowsClient) listByResourceGroupNextResults(ctx context.Context
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -654,6 +658,10 @@ func (client WorkflowsClient) ListBySubscription(ctx context.Context, top *int32
 	result.wlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -695,7 +703,6 @@ func (client WorkflowsClient) ListBySubscriptionSender(req *http.Request) (*http
 func (client WorkflowsClient) ListBySubscriptionResponder(resp *http.Response) (result WorkflowListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -720,6 +727,7 @@ func (client WorkflowsClient) listBySubscriptionNextResults(ctx context.Context,
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -772,6 +780,7 @@ func (client WorkflowsClient) ListCallbackURL(ctx context.Context, resourceGroup
 	result, err = client.ListCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ListCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -811,7 +820,6 @@ func (client WorkflowsClient) ListCallbackURLSender(req *http.Request) (*http.Re
 func (client WorkflowsClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -850,6 +858,7 @@ func (client WorkflowsClient) ListSwagger(ctx context.Context, resourceGroupName
 	result, err = client.ListSwaggerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ListSwagger", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -887,7 +896,6 @@ func (client WorkflowsClient) ListSwaggerSender(req *http.Request) (*http.Respon
 func (client WorkflowsClient) ListSwaggerResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -966,7 +974,6 @@ func (client WorkflowsClient) MoveSender(req *http.Request) (future WorkflowsMov
 func (client WorkflowsClient) MoveResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1005,6 +1012,7 @@ func (client WorkflowsClient) RegenerateAccessKey(ctx context.Context, resourceG
 	result, err = client.RegenerateAccessKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "RegenerateAccessKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1044,7 +1052,6 @@ func (client WorkflowsClient) RegenerateAccessKeySender(req *http.Request) (*htt
 func (client WorkflowsClient) RegenerateAccessKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1082,6 +1089,7 @@ func (client WorkflowsClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1119,7 +1127,6 @@ func (client WorkflowsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client WorkflowsClient) UpdateResponder(resp *http.Response) (result Workflow, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1160,6 +1167,7 @@ func (client WorkflowsClient) ValidateByLocation(ctx context.Context, resourceGr
 	result, err = client.ValidateByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ValidateByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1200,7 +1208,6 @@ func (client WorkflowsClient) ValidateByLocationSender(req *http.Request) (*http
 func (client WorkflowsClient) ValidateByLocationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1239,6 +1246,7 @@ func (client WorkflowsClient) ValidateByResourceGroup(ctx context.Context, resou
 	result, err = client.ValidateByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ValidateByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1278,7 +1286,6 @@ func (client WorkflowsClient) ValidateByResourceGroupSender(req *http.Request) (
 func (client WorkflowsClient) ValidateByResourceGroupResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

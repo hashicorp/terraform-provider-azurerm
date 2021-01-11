@@ -71,8 +71,11 @@ resource "azurerm_web_application_firewall_policy" "example" {
   }
 
   policy_settings {
-    enabled = true
-    mode    = "Prevention"
+    enabled                     = true
+    mode                        = "Prevention"
+    request_body_check          = true
+    file_upload_limit_in_mb     = 100
+    max_request_body_size_in_kb = 128
   }
 
   managed_rules {
@@ -88,8 +91,8 @@ resource "azurerm_web_application_firewall_policy" "example" {
     }
 
     managed_rule_set {
-      rule_set_type    = "OWASP"
-      rule_set_version = "3.1"
+      type    = "OWASP"
+      version = "3.1"
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
         disabled_rules = [
@@ -117,7 +120,7 @@ The following arguments are supported:
 
 * `policy_settings` - (Optional) A `policy_settings` block as defined below.
 
-* `managed_rules` - (Optional) A `managed_rules` blocks as defined below.
+* `managed_rules` - (Required) A `managed_rules` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
@@ -141,11 +144,13 @@ The `match_conditions` block supports the following:
 
 * `match_variables` - (Required) One or more `match_variables` blocks as defined below.
 
+* `match_values` - (Required) A list of match values.
+
 * `operator` - (Required) Describes operator to be matched.
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
-* `match_values` - (Required) A list of match values.
+* `transforms` - (Optional) A list of transformations to do before the match is attempted.
 
 ---
 
@@ -159,9 +164,15 @@ The `match_variables` block supports the following:
 
 The `policy_settings` block supports the following:
 
-* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state Defaults to `Enabled`.
+* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `Enabled`.
 
-* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level Defaults to `Prevention`.
+* `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Defaults to `Prevention`.
+
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
+
+* `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
+
+* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `128`. Defaults to `128`.
 
 ---
 
@@ -175,7 +186,7 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variables` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 
@@ -185,9 +196,9 @@ The `exclusion` block supports the following:
 
 The `managed_rule_set` block supports the following:
 
-* `type` - (Required) The rule set type.
+* `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`.
 
-* `version` - (Required) The rule set version.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0` and `3.1`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

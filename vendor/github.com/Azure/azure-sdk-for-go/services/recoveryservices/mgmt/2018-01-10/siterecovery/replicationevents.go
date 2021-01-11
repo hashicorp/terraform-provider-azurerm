@@ -72,6 +72,7 @@ func (client ReplicationEventsClient) Get(ctx context.Context, eventName string)
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client ReplicationEventsClient) GetSender(req *http.Request) (*http.Respon
 func (client ReplicationEventsClient) GetResponder(resp *http.Response) (result Event, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -149,6 +149,10 @@ func (client ReplicationEventsClient) List(ctx context.Context, filter string) (
 	result.ec, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ec.hasNextLink() && result.ec.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -189,7 +193,6 @@ func (client ReplicationEventsClient) ListSender(req *http.Request) (*http.Respo
 func (client ReplicationEventsClient) ListResponder(resp *http.Response) (result EventCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,6 +217,7 @@ func (client ReplicationEventsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -74,6 +74,7 @@ func (client CapabilitiesClient) ListByLocation(ctx context.Context, locationNam
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.CapabilitiesClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client CapabilitiesClient) ListByLocationSender(req *http.Request) (*http.
 func (client CapabilitiesClient) ListByLocationResponder(resp *http.Response) (result LocationCapabilities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

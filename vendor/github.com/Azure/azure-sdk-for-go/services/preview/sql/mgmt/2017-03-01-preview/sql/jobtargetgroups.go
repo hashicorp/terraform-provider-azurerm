@@ -86,6 +86,7 @@ func (client JobTargetGroupsClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client JobTargetGroupsClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client JobTargetGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result JobTargetGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client JobTargetGroupsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,7 +209,6 @@ func (client JobTargetGroupsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client JobTargetGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -249,6 +249,7 @@ func (client JobTargetGroupsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -288,7 +289,6 @@ func (client JobTargetGroupsClient) GetSender(req *http.Request) (*http.Response
 func (client JobTargetGroupsClient) GetResponder(resp *http.Response) (result JobTargetGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -330,6 +330,10 @@ func (client JobTargetGroupsClient) ListByAgent(ctx context.Context, resourceGro
 	result.jtglr, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "ListByAgent", resp, "Failure responding to request")
+		return
+	}
+	if result.jtglr.hasNextLink() && result.jtglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -368,7 +372,6 @@ func (client JobTargetGroupsClient) ListByAgentSender(req *http.Request) (*http.
 func (client JobTargetGroupsClient) ListByAgentResponder(resp *http.Response) (result JobTargetGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,6 +396,7 @@ func (client JobTargetGroupsClient) listByAgentNextResults(ctx context.Context, 
 	result, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "listByAgentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

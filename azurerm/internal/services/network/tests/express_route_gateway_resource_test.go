@@ -175,7 +175,7 @@ func testAccAzureRMExpressRouteGateway_requiresImport(data acceptance.TestData) 
 
 resource "azurerm_express_route_gateway" "import" {
   name                = azurerm_express_route_gateway.test.name
-  resource_group_name = azurerm_express_route_gateway.test.name
+  resource_group_name = azurerm_express_route_gateway.test.resource_group_name
   location            = azurerm_express_route_gateway.test.location
   virtual_hub_id      = azurerm_express_route_gateway.test.virtual_hub_id
   scale_units         = azurerm_express_route_gateway.test.scale_units

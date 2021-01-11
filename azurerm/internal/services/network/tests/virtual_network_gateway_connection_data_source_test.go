@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"

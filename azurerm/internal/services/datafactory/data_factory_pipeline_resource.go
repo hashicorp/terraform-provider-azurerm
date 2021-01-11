@@ -72,6 +72,13 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 				Optional: true,
 			},
 
+			"activities_json": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				StateFunc:        utils.NormalizeJson,
+				DiffSuppressFunc: suppressJsonOrderingDifference,
+			},
+
 			"annotations": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -98,7 +105,7 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %s", name, resourceGroupName, dataFactoryName, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %s", name, resourceGroupName, dataFactoryName, err)
 			}
 		}
 
@@ -114,6 +121,14 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 		Description: &description,
 	}
 
+	if v, ok := d.GetOk("activities_json"); ok {
+		activities, err := deserializeDataFactoryPipelineActivities(v.(string))
+		if err != nil {
+			return fmt.Errorf("parsing 'activities_json' for Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID: %+v", name, resourceGroupName, dataFactoryName, err)
+		}
+		pipeline.Activities = activities
+	}
+
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
 		pipeline.Annotations = &annotations
@@ -127,16 +142,16 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, name, config, ""); err != nil {
-		return fmt.Errorf("Error creating Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
+		return fmt.Errorf("creating Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
+		return fmt.Errorf("retrieving Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID", name, resourceGroupName, dataFactoryName)
+		return fmt.Errorf("cannot read Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID", name, resourceGroupName, dataFactoryName)
 	}
 
 	d.SetId(*read.ID)
@@ -163,7 +178,7 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 			log.Printf("[DEBUG] Data Factory Pipeline %q was not found in Resource Group %q - removing from state!", name, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Data Factory Pipeline %q: %+v", name, err)
+		return fmt.Errorf("reading the state of Data Factory Pipeline %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -175,17 +190,27 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 
 		parameters := flattenDataFactoryParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("Error setting `parameters`: %+v", err)
+			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
 		annotations := flattenDataFactoryAnnotations(props.Annotations)
 		if err := d.Set("annotations", annotations); err != nil {
-			return fmt.Errorf("Error setting `annotations`: %+v", err)
+			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
 		variables := flattenDataFactoryVariables(props.Variables)
 		if err := d.Set("variables", variables); err != nil {
-			return fmt.Errorf("Error setting `variables`: %+v", err)
+			return fmt.Errorf("setting `variables`: %+v", err)
+		}
+
+		if activities := props.Activities; activities != nil {
+			activitiesJson, err := serializeDataFactoryPipelineActivities(activities)
+			if err != nil {
+				return fmt.Errorf("serializing `activities_json`: %+v", err)
+			}
+			if err := d.Set("activities_json", activitiesJson); err != nil {
+				return fmt.Errorf("setting `activities_json`: %+v", err)
+			}
 		}
 	}
 
@@ -206,7 +231,7 @@ func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface
 	resourceGroupName := id.ResourceGroup
 
 	if _, err = client.Delete(ctx, resourceGroupName, dataFactoryName, name); err != nil {
-		return fmt.Errorf("Error deleting Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
+		return fmt.Errorf("deleting Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
 	}
 
 	return nil

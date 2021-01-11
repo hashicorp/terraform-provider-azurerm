@@ -7,7 +7,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -152,7 +152,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
-				return fmt.Errorf("Error: Unable to list images for Resource Group %q", resGroup)
+				return fmt.Errorf("No Images were found for Resource Group %q", resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
 		}
@@ -162,21 +162,20 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 			if r.Match(([]byte)(*img.Name)) {
 				list = append(list, img)
 			}
-			err = resp.Next()
+			err = resp.NextWithContext(ctx)
 
 			if err != nil {
 				return err
 			}
 		}
 
-		if len(list) < 1 {
-			d.SetId("")
-			return nil
+		if 1 > len(list) {
+			return fmt.Errorf("No Images were found for Resource Group %q", resGroup)
 		}
 
 		if len(list) > 1 {
 			desc := d.Get("sort_descending").(bool)
-			log.Printf("[DEBUG] arm_image - multiple results found and `sort_descending` is set to: %t", desc)
+			log.Printf("[DEBUG] Image - multiple results found and `sort_descending` is set to: %t", desc)
 
 			sort.Slice(list, func(i, j int) bool {
 				return (!desc && *list[i].Name < *list[j].Name) ||

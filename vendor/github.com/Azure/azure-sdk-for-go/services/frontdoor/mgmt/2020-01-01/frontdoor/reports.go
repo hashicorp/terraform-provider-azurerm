@@ -91,6 +91,7 @@ func (client ReportsClient) GetLatencyScorecards(ctx context.Context, resourceGr
 	result, err = client.GetLatencyScorecardsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ReportsClient", "GetLatencyScorecards", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -136,7 +137,6 @@ func (client ReportsClient) GetLatencyScorecardsSender(req *http.Request) (*http
 func (client ReportsClient) GetLatencyScorecardsResponder(resp *http.Response) (result LatencyScorecard, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,6 +195,7 @@ func (client ReportsClient) GetTimeseries(ctx context.Context, resourceGroupName
 	result, err = client.GetTimeseriesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ReportsClient", "GetTimeseries", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -243,7 +244,6 @@ func (client ReportsClient) GetTimeseriesSender(req *http.Request) (*http.Respon
 func (client ReportsClient) GetTimeseriesResponder(resp *http.Response) (result Timeseries, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

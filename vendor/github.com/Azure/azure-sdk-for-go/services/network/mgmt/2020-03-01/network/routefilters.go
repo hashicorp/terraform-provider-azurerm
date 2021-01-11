@@ -113,7 +113,6 @@ func (client RouteFiltersClient) CreateOrUpdateSender(req *http.Request) (future
 func (client RouteFiltersClient) CreateOrUpdateResponder(resp *http.Response) (result RouteFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client RouteFiltersClient) DeleteSender(req *http.Request) (future RouteFi
 func (client RouteFiltersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +226,7 @@ func (client RouteFiltersClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RouteFiltersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,7 +267,6 @@ func (client RouteFiltersClient) GetSender(req *http.Request) (*http.Response, e
 func (client RouteFiltersClient) GetResponder(resp *http.Response) (result RouteFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,6 +303,10 @@ func (client RouteFiltersClient) List(ctx context.Context) (result RouteFilterLi
 	result.rflr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RouteFiltersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rflr.hasNextLink() && result.rflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -340,7 +342,6 @@ func (client RouteFiltersClient) ListSender(req *http.Request) (*http.Response, 
 func (client RouteFiltersClient) ListResponder(resp *http.Response) (result RouteFilterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -365,6 +366,7 @@ func (client RouteFiltersClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RouteFiltersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -416,6 +418,10 @@ func (client RouteFiltersClient) ListByResourceGroup(ctx context.Context, resour
 	result.rflr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RouteFiltersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.rflr.hasNextLink() && result.rflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -452,7 +458,6 @@ func (client RouteFiltersClient) ListByResourceGroupSender(req *http.Request) (*
 func (client RouteFiltersClient) ListByResourceGroupResponder(resp *http.Response) (result RouteFilterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,6 +482,7 @@ func (client RouteFiltersClient) listByResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RouteFiltersClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -529,6 +535,7 @@ func (client RouteFiltersClient) UpdateTags(ctx context.Context, resourceGroupNa
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RouteFiltersClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -568,7 +575,6 @@ func (client RouteFiltersClient) UpdateTagsSender(req *http.Request) (*http.Resp
 func (client RouteFiltersClient) UpdateTagsResponder(resp *http.Response) (result RouteFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

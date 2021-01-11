@@ -72,6 +72,7 @@ func (client DenyAssignmentsClient) Get(ctx context.Context, scope string, denyA
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -108,7 +109,6 @@ func (client DenyAssignmentsClient) GetSender(req *http.Request) (*http.Response
 func (client DenyAssignmentsClient) GetResponder(resp *http.Response) (result DenyAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -149,6 +149,7 @@ func (client DenyAssignmentsClient) GetByID(ctx context.Context, denyAssignmentI
 	result, err = client.GetByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "GetByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -184,7 +185,6 @@ func (client DenyAssignmentsClient) GetByIDSender(req *http.Request) (*http.Resp
 func (client DenyAssignmentsClient) GetByIDResponder(resp *http.Response) (result DenyAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -231,6 +231,10 @@ func (client DenyAssignmentsClient) List(ctx context.Context, filter string) (re
 	result.dalr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -269,7 +273,6 @@ func (client DenyAssignmentsClient) ListSender(req *http.Request) (*http.Respons
 func (client DenyAssignmentsClient) ListResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -294,6 +297,7 @@ func (client DenyAssignmentsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -358,6 +362,10 @@ func (client DenyAssignmentsClient) ListForResource(ctx context.Context, resourc
 	result.dalr, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForResource", resp, "Failure responding to request")
+		return
+	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -401,7 +409,6 @@ func (client DenyAssignmentsClient) ListForResourceSender(req *http.Request) (*h
 func (client DenyAssignmentsClient) ListForResourceResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -426,6 +433,7 @@ func (client DenyAssignmentsClient) listForResourceNextResults(ctx context.Conte
 	result, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listForResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -486,6 +494,10 @@ func (client DenyAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 	result.dalr, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -525,7 +537,6 @@ func (client DenyAssignmentsClient) ListForResourceGroupSender(req *http.Request
 func (client DenyAssignmentsClient) ListForResourceGroupResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -550,6 +561,7 @@ func (client DenyAssignmentsClient) listForResourceGroupNextResults(ctx context.
 	result, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listForResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -610,6 +622,10 @@ func (client DenyAssignmentsClient) ListForScope(ctx context.Context, scope stri
 	result.dalr, err = client.ListForScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForScope", resp, "Failure responding to request")
+		return
+	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -648,7 +664,6 @@ func (client DenyAssignmentsClient) ListForScopeSender(req *http.Request) (*http
 func (client DenyAssignmentsClient) ListForScopeResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -673,6 +688,7 @@ func (client DenyAssignmentsClient) listForScopeNextResults(ctx context.Context,
 	result, err = client.ListForScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listForScopeNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

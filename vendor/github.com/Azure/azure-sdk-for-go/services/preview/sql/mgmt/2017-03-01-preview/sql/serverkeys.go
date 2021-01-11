@@ -121,7 +121,6 @@ func (client ServerKeysClient) CreateOrUpdateSender(req *http.Request) (future S
 func (client ServerKeysClient) CreateOrUpdateResponder(resp *http.Response) (result ServerKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client ServerKeysClient) DeleteSender(req *http.Request) (future ServerKey
 func (client ServerKeysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -240,6 +238,7 @@ func (client ServerKeysClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,7 +277,6 @@ func (client ServerKeysClient) GetSender(req *http.Request) (*http.Response, err
 func (client ServerKeysClient) GetResponder(resp *http.Response) (result ServerKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +317,10 @@ func (client ServerKeysClient) ListByServer(ctx context.Context, resourceGroupNa
 	result.sklr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.sklr.hasNextLink() && result.sklr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -356,7 +358,6 @@ func (client ServerKeysClient) ListByServerSender(req *http.Request) (*http.Resp
 func (client ServerKeysClient) ListByServerResponder(resp *http.Response) (result ServerKeyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -381,6 +382,7 @@ func (client ServerKeysClient) listByServerNextResults(ctx context.Context, last
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

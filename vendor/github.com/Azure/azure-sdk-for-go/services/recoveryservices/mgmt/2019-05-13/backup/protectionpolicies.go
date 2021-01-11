@@ -77,6 +77,7 @@ func (client ProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, vault
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client ProtectionPoliciesClient) CreateOrUpdateSender(req *http.Request) (
 func (client ProtectionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ProtectionPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +159,7 @@ func (client ProtectionPoliciesClient) Delete(ctx context.Context, vaultName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPoliciesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client ProtectionPoliciesClient) DeleteSender(req *http.Request) (*http.Re
 func (client ProtectionPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -237,6 +237,7 @@ func (client ProtectionPoliciesClient) Get(ctx context.Context, vaultName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -275,7 +276,6 @@ func (client ProtectionPoliciesClient) GetSender(req *http.Request) (*http.Respo
 func (client ProtectionPoliciesClient) GetResponder(resp *http.Response) (result ProtectionPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -80,6 +80,7 @@ func (client Client) CheckNotificationHubAvailability(ctx context.Context, resou
 	result, err = client.CheckNotificationHubAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "CheckNotificationHubAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client Client) CheckNotificationHubAvailabilitySender(req *http.Request) (
 func (client Client) CheckNotificationHubAvailabilityResponder(resp *http.Response) (result CheckAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -168,6 +168,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,7 +209,6 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (*http.Response, er
 func (client Client) CreateOrUpdateResponder(resp *http.Response) (result ResourceType, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -256,6 +256,7 @@ func (client Client) CreateOrUpdateAuthorizationRule(ctx context.Context, resour
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -297,7 +298,6 @@ func (client Client) CreateOrUpdateAuthorizationRuleSender(req *http.Request) (*
 func (client Client) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result SharedAccessAuthorizationRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -338,6 +338,7 @@ func (client Client) DebugSend(ctx context.Context, resourceGroupName string, na
 	result, err = client.DebugSendResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "DebugSend", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -381,7 +382,6 @@ func (client Client) DebugSendSender(req *http.Request) (*http.Response, error) 
 func (client Client) DebugSendResponder(resp *http.Response) (result DebugSendResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -421,6 +421,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, names
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -459,7 +460,6 @@ func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
 func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -499,6 +499,7 @@ func (client Client) DeleteAuthorizationRule(ctx context.Context, resourceGroupN
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -538,7 +539,6 @@ func (client Client) DeleteAuthorizationRuleSender(req *http.Request) (*http.Res
 func (client Client) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -577,6 +577,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, namespac
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -615,7 +616,6 @@ func (client Client) GetSender(req *http.Request) (*http.Response, error) {
 func (client Client) GetResponder(resp *http.Response) (result ResourceType, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -656,6 +656,7 @@ func (client Client) GetAuthorizationRule(ctx context.Context, resourceGroupName
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -695,7 +696,6 @@ func (client Client) GetAuthorizationRuleSender(req *http.Request) (*http.Respon
 func (client Client) GetAuthorizationRuleResponder(resp *http.Response) (result SharedAccessAuthorizationRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -735,6 +735,7 @@ func (client Client) GetPnsCredentials(ctx context.Context, resourceGroupName st
 	result, err = client.GetPnsCredentialsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "GetPnsCredentials", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -773,7 +774,6 @@ func (client Client) GetPnsCredentialsSender(req *http.Request) (*http.Response,
 func (client Client) GetPnsCredentialsResponder(resp *http.Response) (result PnsCredentialsResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -813,6 +813,10 @@ func (client Client) List(ctx context.Context, resourceGroupName string, namespa
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -850,7 +854,6 @@ func (client Client) ListSender(req *http.Request) (*http.Response, error) {
 func (client Client) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -875,6 +878,7 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -928,6 +932,10 @@ func (client Client) ListAuthorizationRules(ctx context.Context, resourceGroupNa
 	result.saarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.saarlr.hasNextLink() && result.saarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -966,7 +974,6 @@ func (client Client) ListAuthorizationRulesSender(req *http.Request) (*http.Resp
 func (client Client) ListAuthorizationRulesResponder(resp *http.Response) (result SharedAccessAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -991,6 +998,7 @@ func (client Client) listAuthorizationRulesNextResults(ctx context.Context, last
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1044,6 +1052,7 @@ func (client Client) ListKeys(ctx context.Context, resourceGroupName string, nam
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1083,7 +1092,6 @@ func (client Client) ListKeysSender(req *http.Request) (*http.Response, error) {
 func (client Client) ListKeysResponder(resp *http.Response) (result ResourceListKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1124,6 +1132,7 @@ func (client Client) Patch(ctx context.Context, resourceGroupName string, namesp
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1167,7 +1176,6 @@ func (client Client) PatchSender(req *http.Request) (*http.Response, error) {
 func (client Client) PatchResponder(resp *http.Response) (result ResourceType, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1209,6 +1217,7 @@ func (client Client) RegenerateKeys(ctx context.Context, resourceGroupName strin
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1250,7 +1259,6 @@ func (client Client) RegenerateKeysSender(req *http.Request) (*http.Response, er
 func (client Client) RegenerateKeysResponder(resp *http.Response) (result ResourceListKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -77,6 +77,7 @@ func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client CustomDomainsClient) CreateOrUpdateResponder(resp *http.Response) (result CustomDomainResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -160,6 +160,7 @@ func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +200,6 @@ func (client CustomDomainsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client CustomDomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -240,6 +240,7 @@ func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,7 +280,6 @@ func (client CustomDomainsClient) GetSender(req *http.Request) (*http.Response, 
 func (client CustomDomainsClient) GetResponder(resp *http.Response) (result CustomDomainResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -321,6 +321,10 @@ func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName st
 	result.cdrc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.cdrc.hasNextLink() && result.cdrc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -359,7 +363,6 @@ func (client CustomDomainsClient) ListSender(req *http.Request) (*http.Response,
 func (client CustomDomainsClient) ListResponder(resp *http.Response) (result CustomDomainResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -384,6 +387,7 @@ func (client CustomDomainsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -439,6 +443,7 @@ func (client CustomDomainsClient) Patch(ctx context.Context, resourceGroupName s
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -480,7 +485,6 @@ func (client CustomDomainsClient) PatchSender(req *http.Request) (*http.Response
 func (client CustomDomainsClient) PatchResponder(resp *http.Response) (result CustomDomainResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -527,6 +531,7 @@ func (client CustomDomainsClient) Validate(ctx context.Context, resourceGroupNam
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -567,7 +572,6 @@ func (client CustomDomainsClient) ValidateSender(req *http.Request) (*http.Respo
 func (client CustomDomainsClient) ValidateResponder(resp *http.Response) (result CustomDomainValidateResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

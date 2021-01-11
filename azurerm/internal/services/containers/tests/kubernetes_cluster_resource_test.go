@@ -12,138 +12,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var olderKubernetesVersion = "1.15.10"
-var currentKubernetesVersion = "1.16.7"
+var (
+	olderKubernetesVersion   = "1.16.15"
+	currentKubernetesVersion = "1.17.11"
+)
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
-	// we can conditionally run tests tests individually, or combined
-	checkIfShouldRunTestsCombined(t)
-
-	// NOTE: this is a combined test rather than separate split out tests to
-	// ease the load on the kubernetes api
-	testCases := map[string]map[string]func(t *testing.T){
-		"clusterAddOn": {
-			"addonProfileAciConnectorLinux":         testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux,
-			"addonProfileAciConnectorLinuxDisabled": testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
-			"addonProfileAzurePolicy":               testAccAzureRMKubernetesCluster_addonProfileAzurePolicy,
-			"addonProfileKubeDashboard":             testAccAzureRMKubernetesCluster_addonProfileKubeDashboard,
-			"addonProfileOMS":                       testAccAzureRMKubernetesCluster_addonProfileOMS,
-			"addonProfileOMSToggle":                 testAccAzureRMKubernetesCluster_addonProfileOMSToggle,
-			"addonProfileRouting":                   testAccAzureRMKubernetesCluster_addonProfileRouting,
-		},
-		"auth": {
-			"apiServerAuthorizedIPRanges": testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
-			"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
-			"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
-			"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
-			"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
-			"servicePrincipal":            testAccAzureRMKubernetesCluster_servicePrincipal,
-		},
-		"network": {
-			"advancedNetworkingKubenet":                   testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
-			"advancedNetworkingKubenetComplete":           testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
-			"advancedNetworkingAzure":                     testAccAzureRMKubernetesCluster_advancedNetworkingAzure,
-			"advancedNetworkingAzureComplete":             testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
-			"advancedNetworkingAzureCalicoPolicy":         testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-			"advancedNetworkingAzureCalicoPolicyComplete": testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-			"advancedNetworkingAzureNPMPolicy":            testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-			"advancedNetworkingAzureNPMPolicyComplete":    testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-			"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
-			"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
-			"basicLoadBalancerProfile":                    testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
-			"changingLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
-			"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
-			"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
-			"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
-			"standardLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
-			"standardLoadBalancerProfileComplete":         testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
-		},
-		"nodePool": {
-			"autoScale":                      testAccAzureRMKubernetesClusterNodePool_autoScale,
-			"autoScaleUpdate":                testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate,
-			"availabilityZones":              testAccAzureRMKubernetesClusterNodePool_availabilityZones,
-			"errorForAvailabilitySet":        testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet,
-			"multiplePools":                  testAccAzureRMKubernetesClusterNodePool_multiplePools,
-			"manualScale":                    testAccAzureRMKubernetesClusterNodePool_manualScale,
-			"manualScaleMultiplePools":       testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools,
-			"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
-			"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
-			"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
-			"nodeLabels":                     testAccAzureRMKubernetesClusterNodePool_nodeLabels,
-			"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
-			"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
-			"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
-			"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
-			"virtualNetworkAutomatic":        testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic,
-			"virtualNetworkManual":           testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual,
-			"windows":                        testAccAzureRMKubernetesClusterNodePool_windows,
-			"windowsAndLinux":                testAccAzureRMKubernetesClusterNodePool_windowsAndLinux,
-		},
-		"other": {
-			"basicAvailabilitySet":           testAccAzureRMKubernetesCluster_basicAvailabilitySet,
-			"basicVMSS":                      testAccAzureRMKubernetesCluster_basicVMSS,
-			"requiresImport":                 testAccAzureRMKubernetesCluster_requiresImport,
-			"linuxProfile":                   testAccAzureRMKubernetesCluster_linuxProfile,
-			"nodeLabels":                     testAccAzureRMKubernetesCluster_nodeLabels,
-			"nodeTaints":                     testAccAzureRMKubernetesCluster_nodeTaints,
-			"nodeResourceGroup":              testAccAzureRMKubernetesCluster_nodeResourceGroup,
-			"upgradeConfig":                  testAccAzureRMKubernetesCluster_upgrade,
-			"tags":                           testAccAzureRMKubernetesCluster_tags,
-			"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
-			"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
-			"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
-			"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
-			"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
-		},
-		"scaling": {
-			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
-			"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
-			"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
-			"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
-			"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
-			"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
-			"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
-			"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
-			"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
-		},
-		"datasource": {
-			"basic":                                       testAccDataSourceAzureRMKubernetesCluster_basic,
-			"roleBasedAccessControl":                      testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl,
-			"roleBasedAccessControlAAD":                   testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD,
-			"internalNetwork":                             testAccDataSourceAzureRMKubernetesCluster_internalNetwork,
-			"advancedNetworkingAzure":                     testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure,
-			"advancedNetworkingAzureCalicoPolicy":         testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-			"advancedNetworkingAzureNPMPolicy":            testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-			"advancedNetworkingAzureComplete":             testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
-			"advancedNetworkingAzureCalicoPolicyComplete": testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-			"advancedNetworkingAzureNPMPolicyComplete":    testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-			"advancedNetworkingKubenet":                   testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet,
-			"advancedNetworkingKubenetComplete":           testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
-			"addOnProfileOMS":                             testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS,
-			"addOnProfileKubeDashboard":                   testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard,
-			"addOnProfileAzurePolicy":                     testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy,
-			"addOnProfileRouting":                         testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting,
-			"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
-			"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
-			"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
-			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
-			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
-			"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
-		},
+	// NOTE: this test is no longer used, but this assignment kicks around temporarily
+	// to allow us to migrate off this without causing conflicts in open PR's
+	_ = map[string]map[string]func(t *testing.T){
+		"auth":               kubernetesAuthTests,
+		"clusterAddOn":       kubernetesAddOnTests,
+		"datasource":         kubernetesDataSourceTests,
+		"network":            kubernetesNetworkAuthTests,
+		"nodePool":           kubernetesNodePoolTests,
+		"nodePoolDataSource": kubernetesNodePoolDataSourceTests,
+		"other":              kubernetesOtherTests,
+		"scaling":            kubernetesScalingTests,
+		"upgrade":            kubernetesUpgradeTests,
 	}
 
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
+	t.Skip("Skipping since this is being run Individually")
 }
 
 func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
@@ -189,7 +78,6 @@ func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}

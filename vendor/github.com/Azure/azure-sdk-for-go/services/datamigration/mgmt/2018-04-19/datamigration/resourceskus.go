@@ -70,6 +70,10 @@ func (client ResourceSkusClient) ListSkus(ctx context.Context) (result ResourceS
 	result.rsr, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ResourceSkusClient", "ListSkus", resp, "Failure responding to request")
+		return
+	}
+	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -105,7 +109,6 @@ func (client ResourceSkusClient) ListSkusSender(req *http.Request) (*http.Respon
 func (client ResourceSkusClient) ListSkusResponder(resp *http.Response) (result ResourceSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -130,6 +133,7 @@ func (client ResourceSkusClient) listSkusNextResults(ctx context.Context, lastRe
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ResourceSkusClient", "listSkusNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

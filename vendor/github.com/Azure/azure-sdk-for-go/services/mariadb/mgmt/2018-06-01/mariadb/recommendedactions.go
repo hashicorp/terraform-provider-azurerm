@@ -88,6 +88,7 @@ func (client RecommendedActionsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.RecommendedActionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client RecommendedActionsClient) GetSender(req *http.Request) (*http.Respo
 func (client RecommendedActionsClient) GetResponder(resp *http.Response) (result RecommendationAction, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -179,6 +179,10 @@ func (client RecommendedActionsClient) ListByServer(ctx context.Context, resourc
 	result.rarl, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.RecommendedActionsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.rarl.hasNextLink() && result.rarl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -220,7 +224,6 @@ func (client RecommendedActionsClient) ListByServerSender(req *http.Request) (*h
 func (client RecommendedActionsClient) ListByServerResponder(resp *http.Response) (result RecommendationActionsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -245,6 +248,7 @@ func (client RecommendedActionsClient) listByServerNextResults(ctx context.Conte
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.RecommendedActionsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

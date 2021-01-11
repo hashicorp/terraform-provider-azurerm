@@ -128,7 +128,6 @@ func (client VirtualNetworkLinksClient) CreateOrUpdateSender(req *http.Request) 
 func (client VirtualNetworkLinksClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualNetworkLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client VirtualNetworkLinksClient) DeleteSender(req *http.Request) (future 
 func (client VirtualNetworkLinksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -253,6 +251,7 @@ func (client VirtualNetworkLinksClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -291,7 +290,6 @@ func (client VirtualNetworkLinksClient) GetSender(req *http.Request) (*http.Resp
 func (client VirtualNetworkLinksClient) GetResponder(resp *http.Response) (result VirtualNetworkLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -333,6 +331,10 @@ func (client VirtualNetworkLinksClient) List(ctx context.Context, resourceGroupN
 	result.vnllr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.vnllr.hasNextLink() && result.vnllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -373,7 +375,6 @@ func (client VirtualNetworkLinksClient) ListSender(req *http.Request) (*http.Res
 func (client VirtualNetworkLinksClient) ListResponder(resp *http.Response) (result VirtualNetworkLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -398,6 +399,7 @@ func (client VirtualNetworkLinksClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -498,7 +500,6 @@ func (client VirtualNetworkLinksClient) UpdateSender(req *http.Request) (future 
 func (client VirtualNetworkLinksClient) UpdateResponder(resp *http.Response) (result VirtualNetworkLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

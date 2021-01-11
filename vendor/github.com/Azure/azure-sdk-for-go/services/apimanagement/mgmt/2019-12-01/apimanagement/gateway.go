@@ -102,6 +102,7 @@ func (client GatewayClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -146,7 +147,6 @@ func (client GatewayClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client GatewayClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,6 +200,7 @@ func (client GatewayClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,7 +240,6 @@ func (client GatewayClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client GatewayClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -292,6 +292,7 @@ func (client GatewayClient) GenerateToken(ctx context.Context, resourceGroupName
 	result, err = client.GenerateTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "GenerateToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -332,7 +333,6 @@ func (client GatewayClient) GenerateTokenSender(req *http.Request) (*http.Respon
 func (client GatewayClient) GenerateTokenResponder(resp *http.Response) (result GatewayTokenContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -384,6 +384,7 @@ func (client GatewayClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -422,7 +423,6 @@ func (client GatewayClient) GetSender(req *http.Request) (*http.Response, error)
 func (client GatewayClient) GetResponder(resp *http.Response) (result GatewayContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,6 +474,7 @@ func (client GatewayClient) GetEntityTag(ctx context.Context, resourceGroupName 
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -512,7 +513,6 @@ func (client GatewayClient) GetEntityTagSender(req *http.Request) (*http.Respons
 func (client GatewayClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -567,6 +567,10 @@ func (client GatewayClient) ListByService(ctx context.Context, resourceGroupName
 	result.gc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.gc.hasNextLink() && result.gc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -610,7 +614,6 @@ func (client GatewayClient) ListByServiceSender(req *http.Request) (*http.Respon
 func (client GatewayClient) ListByServiceResponder(resp *http.Response) (result GatewayCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -635,6 +638,7 @@ func (client GatewayClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -699,6 +703,7 @@ func (client GatewayClient) ListKeys(ctx context.Context, resourceGroupName stri
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -737,7 +742,6 @@ func (client GatewayClient) ListKeysSender(req *http.Request) (*http.Response, e
 func (client GatewayClient) ListKeysResponder(resp *http.Response) (result GatewayKeysContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -789,6 +793,7 @@ func (client GatewayClient) RegenerateKey(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -829,7 +834,6 @@ func (client GatewayClient) RegenerateKeySender(req *http.Request) (*http.Respon
 func (client GatewayClient) RegenerateKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -882,6 +886,7 @@ func (client GatewayClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -923,7 +928,6 @@ func (client GatewayClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client GatewayClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

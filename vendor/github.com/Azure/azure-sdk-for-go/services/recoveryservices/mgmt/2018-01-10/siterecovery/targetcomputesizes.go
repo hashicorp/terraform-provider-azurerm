@@ -75,6 +75,10 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItems(ctx conte
 	result.tcsc, err = client.ListByReplicationProtectedItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.TargetComputeSizesClient", "ListByReplicationProtectedItems", resp, "Failure responding to request")
+		return
+	}
+	if result.tcsc.hasNextLink() && result.tcsc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -115,7 +119,6 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItemsSender(req
 func (client TargetComputeSizesClient) ListByReplicationProtectedItemsResponder(resp *http.Response) (result TargetComputeSizeCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -140,6 +143,7 @@ func (client TargetComputeSizesClient) listByReplicationProtectedItemsNextResult
 	result, err = client.ListByReplicationProtectedItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.TargetComputeSizesClient", "listByReplicationProtectedItemsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

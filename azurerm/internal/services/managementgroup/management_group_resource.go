@@ -1,6 +1,7 @@
 package managementgroup
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -21,12 +23,12 @@ import (
 
 var managementGroupCacheControl = "no-cache"
 
-func resourceArmManagementGroup() *schema.Resource {
+func resourceManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagementGroupCreateUpdate,
-		Update: resourceArmManagementGroupCreateUpdate,
-		Read:   resourceArmManagementGroupRead,
-		Delete: resourceArmManagementGroupDelete,
+		Create: resourceManagementGroupCreateUpdate,
+		Update: resourceManagementGroupCreateUpdate,
+		Read:   resourceManagementGroupRead,
+		Delete: resourceManagementGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagementGroupID(id)
@@ -83,19 +85,23 @@ func resourceArmManagementGroup() *schema.Resource {
 	}
 }
 
-func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
-	groupName := uuid.New().String()
-	if v, ok := d.GetOk("group_name"); ok {
+	var groupName string
+	if v := d.Get("group_id"); v != "" {
 		groupName = v.(string)
 	}
-	if v, ok := d.GetOk("group_id"); ok {
+	if v := d.Get("name"); v != "" {
 		groupName = v.(string)
+	}
+
+	if groupName == "" {
+		groupName = uuid.New().String()
 	}
 
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
@@ -107,11 +113,11 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
+			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
 				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
-
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
 		}
@@ -131,7 +137,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	if v, ok := d.GetOk("display_name"); ok {
+	if v := d.Get("display_name"); v != "" {
 		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
@@ -142,6 +148,24 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("failed when waiting for creation of Management Group %q: %+v", groupName, err)
+	}
+
+	// We have a potential race condition / consistency issue whereby the implicit role assignment for the SP may not be
+	// completed before the read-back here or an eventually consistent read is creating a temporary 403 error.
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"pending",
+		},
+		Target: []string{
+			"succeeded",
+		},
+		Refresh:                   managementgroupCreateStateRefreshFunc(ctx, client, groupName),
+		Timeout:                   d.Timeout(schema.TimeoutCreate),
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
 	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
@@ -183,10 +207,10 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmManagementGroupRead(d, meta)
+	return resourceManagementGroupRead(d, meta)
 }
 
-func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,10 +220,10 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	recurse := true
-	resp, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
+	recurse := utils.Bool(true)
+	resp, err := client.Get(ctx, id.Name, "children", recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -208,13 +232,13 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("unable to read Management Group %q: %+v", d.Id(), err)
 	}
 
-	d.Set("name", id.GroupId)
-	d.Set("group_id", id.GroupId)
+	d.Set("name", id.Name)
+	d.Set("group_id", id.Name)
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 
-		subscriptionIds, err := flattenArmManagementGroupSubscriptionIds(props.Children)
+		subscriptionIds, err := flattenManagementGroupSubscriptionIds(props.Children)
 		if err != nil {
 			return fmt.Errorf("unable to flatten `subscription_ids`: %+v", err)
 		}
@@ -234,7 +258,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -246,14 +270,14 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	recurse := true
-	group, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
+	group, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(group.Response) {
-			log.Printf("[DEBUG] Management Group %q doesn't exist in Azure - nothing to do!", id.GroupId)
+		if utils.ResponseWasNotFound(group.Response) || utils.ResponseWasForbidden(group.Response) {
+			log.Printf("[DEBUG] Management Group %q doesn't exist in Azure - nothing to do!", id.Name)
 			return nil
 		}
 
-		return fmt.Errorf("unable to retrieve Management Group %q: %+v", id.GroupId, err)
+		return fmt.Errorf("unable to retrieve Management Group %q: %+v", id.Name, err)
 	}
 
 	// before deleting a management group, return any subscriptions to the root management group
@@ -264,27 +288,30 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 					continue
 				}
 
-				subscriptionId := *v.ID
-				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.GroupId)
+				subscriptionId, err := parseManagementGroupSubscriptionID(*v.ID)
+				if err != nil {
+					return fmt.Errorf("unable to parse child Subscription ID %+v", err)
+				}
+				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.Name)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
-				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.GroupId, subscriptionId, managementGroupCacheControl)
+				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.Name, subscriptionId.subscriptionId, managementGroupCacheControl)
 				if err2 != nil {
 					if !response.WasNotFound(deleteResp.Response) {
-						return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", subscriptionId, id.GroupId, err2)
+						return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", subscriptionId.subscriptionId, id.Name, err2)
 					}
 				}
 			}
 		}
 	}
 
-	resp, err := client.Delete(ctx, id.GroupId, managementGroupCacheControl)
+	resp, err := client.Delete(ctx, id.Name, managementGroupCacheControl)
 	if err != nil {
-		return fmt.Errorf("unable to delete Management Group %q: %+v", id.GroupId, err)
+		return fmt.Errorf("unable to delete Management Group %q: %+v", id.Name, err)
 	}
 
 	err = resp.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("failed when waiting for the deletion of Management Group %q: %+v", id.GroupId, err)
+		return fmt.Errorf("failed when waiting for the deletion of Management Group %q: %+v", id.Name, err)
 	}
 
 	return nil
@@ -302,7 +329,7 @@ func expandManagementGroupSubscriptionIds(input *schema.Set) []string {
 	return output
 }
 
-func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
+func flattenManagementGroupSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
 	subscriptionIds := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return subscriptionIds, nil
@@ -390,4 +417,18 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 	}
 
 	return &subscriptionIdsToRemove, nil
+}
+
+func managementgroupCreateStateRefreshFunc(ctx context.Context, client *managementgroups.Client, groupName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, groupName, "children", utils.Bool(true), "", managementGroupCacheControl)
+		if err != nil {
+			if utils.ResponseWasForbidden(resp.Response) {
+				return resp, "pending", nil
+			}
+			return resp, "failed", err
+		}
+
+		return resp, "succeeded", nil
+	}
 }

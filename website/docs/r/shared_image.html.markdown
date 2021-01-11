@@ -60,13 +60,19 @@ The following arguments are supported:
 
 * `identifier` - (Required) An `identifier` block as defined below.
 
-* `os_type` - (Required) The type of Operating System present in this Shared Image. Possible values are `Linux` and `Windows`.
+* `os_type` - (Required) The type of Operating System present in this Shared Image. Possible values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+* `purchase_plan` - (Optional) A `purchase_plan` block as defined below.
 
 ---
 
 * `description` - (Optional) A description of this Shared Image.
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image.
+
+* `specialized` - (Optional) Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run). Defaults to `false`. Changing this forces a new resource to be created.
+
+!> **Note:** It's recommended to Generalize images where possible - Specialized Images reuse the same UUID internally within each Virtual Machine, which can have unintended side-effects.
 
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
@@ -85,6 +91,16 @@ A `identifier` block supports the following:
 * `publisher` - (Required) The Publisher Name for this Gallery Image.
 
 * `sku` - (Required) The Name of the SKU for this Gallery Image.
+
+---
+
+A `purchase_plan` block supports the following:
+
+* `name` - (Required) The Purchase Plan Name for this Shared Image. Changing this forces a new resource to be created.
+
+* `publisher` - (Optional) The Purchase Plan Publisher for this Gallery Image. Changing this forces a new resource to be created.
+
+* `product` - (Optional) The Purchase Plan Product for this Gallery Image. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

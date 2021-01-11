@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -126,7 +125,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			// lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     schema.TypeSet,
-				MaxItems: 1,
+				MaxItems: 10,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -135,7 +134,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			// lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     schema.TypeSet,
-				MaxItems: 1,
+				MaxItems: 10,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -179,7 +178,7 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 	nsgName := d.Get("network_security_group_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, nsgName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -201,8 +200,10 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
 
-	locks.ByName(nsgName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
+		locks.ByName(nsgName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	}
 
 	rule := network.SecurityRule{
 		Name: &name,
@@ -373,8 +374,10 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	nsgName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
 
-	locks.ByName(nsgName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
+		locks.ByName(nsgName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	}
 
 	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
 	if err != nil {

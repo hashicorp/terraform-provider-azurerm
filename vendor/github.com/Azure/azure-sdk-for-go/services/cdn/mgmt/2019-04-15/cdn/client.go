@@ -94,6 +94,7 @@ func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAva
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.BaseClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client BaseClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -173,6 +173,7 @@ func (client BaseClient) CheckNameAvailabilityWithSubscription(ctx context.Conte
 	result, err = client.CheckNameAvailabilityWithSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.BaseClient", "CheckNameAvailabilityWithSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -210,7 +211,6 @@ func (client BaseClient) CheckNameAvailabilityWithSubscriptionSender(req *http.R
 func (client BaseClient) CheckNameAvailabilityWithSubscriptionResponder(resp *http.Response) (result CheckNameAvailabilityOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -256,6 +256,7 @@ func (client BaseClient) ValidateProbe(ctx context.Context, validateProbeInput V
 	result, err = client.ValidateProbeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.BaseClient", "ValidateProbe", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -293,7 +294,6 @@ func (client BaseClient) ValidateProbeSender(req *http.Request) (*http.Response,
 func (client BaseClient) ValidateProbeResponder(resp *http.Response) (result ValidateProbeOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

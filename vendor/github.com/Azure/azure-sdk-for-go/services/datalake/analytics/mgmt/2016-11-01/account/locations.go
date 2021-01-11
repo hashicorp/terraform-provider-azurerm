@@ -71,6 +71,7 @@ func (client LocationsClient) GetCapability(ctx context.Context, location string
 	result, err = client.GetCapabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetCapability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Resp
 func (client LocationsClient) GetCapabilityResponder(resp *http.Response) (result CapabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

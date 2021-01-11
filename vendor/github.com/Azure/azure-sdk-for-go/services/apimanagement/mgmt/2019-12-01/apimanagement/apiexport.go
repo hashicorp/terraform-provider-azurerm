@@ -90,6 +90,7 @@ func (client APIExportClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIExportClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -130,7 +131,6 @@ func (client APIExportClient) GetSender(req *http.Request) (*http.Response, erro
 func (client APIExportClient) GetResponder(resp *http.Response) (result APIExportResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

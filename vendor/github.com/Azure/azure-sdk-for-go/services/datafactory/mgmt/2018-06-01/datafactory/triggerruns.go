@@ -43,6 +43,101 @@ func NewTriggerRunsClientWithBaseURI(baseURI string, subscriptionID string) Trig
 	return TriggerRunsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Cancel cancel a single trigger instance by runId.
+// Parameters:
+// resourceGroupName - the resource group name.
+// factoryName - the factory name.
+// triggerName - the trigger name.
+// runID - the pipeline run identifier.
+func (client TriggerRunsClient) Cancel(ctx context.Context, resourceGroupName string, factoryName string, triggerName string, runID string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TriggerRunsClient.Cancel")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: factoryName,
+			Constraints: []validation.Constraint{{Target: "factoryName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "factoryName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
+		{TargetValue: triggerName,
+			Constraints: []validation.Constraint{{Target: "triggerName", Name: validation.MaxLength, Rule: 260, Chain: nil},
+				{Target: "triggerName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "triggerName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("datafactory.TriggerRunsClient", "Cancel", err.Error())
+	}
+
+	req, err := client.CancelPreparer(ctx, resourceGroupName, factoryName, triggerName, runID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "Cancel", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CancelSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "Cancel", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CancelResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "Cancel", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CancelPreparer prepares the Cancel request.
+func (client TriggerRunsClient) CancelPreparer(ctx context.Context, resourceGroupName string, factoryName string, triggerName string, runID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"factoryName":       autorest.Encode("path", factoryName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"runId":             autorest.Encode("path", runID),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"triggerName":       autorest.Encode("path", triggerName),
+	}
+
+	const APIVersion = "2018-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{factoryName}/triggers/{triggerName}/triggerRuns/{runId}/cancel", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CancelSender sends the Cancel request. The method will close the
+// http.Response Body if it receives an error.
+func (client TriggerRunsClient) CancelSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// CancelResponder handles the response to the Cancel request. The method always
+// closes the http.Response Body.
+func (client TriggerRunsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // QueryByFactory query trigger runs.
 // Parameters:
 // resourceGroupName - the resource group name.
@@ -90,6 +185,7 @@ func (client TriggerRunsClient) QueryByFactory(ctx context.Context, resourceGrou
 	result, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "QueryByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +225,6 @@ func (client TriggerRunsClient) QueryByFactorySender(req *http.Request) (*http.R
 func (client TriggerRunsClient) QueryByFactoryResponder(resp *http.Response) (result TriggerRunsQueryResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,6 +281,7 @@ func (client TriggerRunsClient) Rerun(ctx context.Context, resourceGroupName str
 	result, err = client.RerunResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "Rerun", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -225,7 +321,6 @@ func (client TriggerRunsClient) RerunSender(req *http.Request) (*http.Response, 
 func (client TriggerRunsClient) RerunResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

@@ -74,6 +74,7 @@ func (client RegisteredIdentitiesClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.RegisteredIdentitiesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client RegisteredIdentitiesClient) DeleteSender(req *http.Request) (*http.
 func (client RegisteredIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

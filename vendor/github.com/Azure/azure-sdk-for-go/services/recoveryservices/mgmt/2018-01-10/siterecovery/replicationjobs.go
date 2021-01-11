@@ -109,7 +109,6 @@ func (client ReplicationJobsClient) CancelSender(req *http.Request) (future Repl
 func (client ReplicationJobsClient) CancelResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,7 +185,6 @@ func (client ReplicationJobsClient) ExportSender(req *http.Request) (future Repl
 func (client ReplicationJobsClient) ExportResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -224,6 +222,7 @@ func (client ReplicationJobsClient) Get(ctx context.Context, jobName string) (re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -262,7 +261,6 @@ func (client ReplicationJobsClient) GetSender(req *http.Request) (*http.Response
 func (client ReplicationJobsClient) GetResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,6 +299,10 @@ func (client ReplicationJobsClient) List(ctx context.Context, filter string) (re
 	result.jc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.jc.hasNextLink() && result.jc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -341,7 +343,6 @@ func (client ReplicationJobsClient) ListSender(req *http.Request) (*http.Respons
 func (client ReplicationJobsClient) ListResponder(resp *http.Response) (result JobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,6 +367,7 @@ func (client ReplicationJobsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -454,7 +456,6 @@ func (client ReplicationJobsClient) RestartSender(req *http.Request) (future Rep
 func (client ReplicationJobsClient) RestartResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -533,7 +534,6 @@ func (client ReplicationJobsClient) ResumeSender(req *http.Request) (future Repl
 func (client ReplicationJobsClient) ResumeResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

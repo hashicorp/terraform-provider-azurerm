@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNetAppVolume() *schema.Resource {
+func dataSourceNetAppVolume() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNetAppVolumeRead,
+		Read: dataSourceNetAppVolumeRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -40,6 +40,14 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: ValidateNetAppPoolName,
+			},
+
+			"mount_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"volume_path": {
@@ -71,7 +79,7 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 	}
 }
 
-func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,6 +123,9 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
+		}
+		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
+			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
 	}
 

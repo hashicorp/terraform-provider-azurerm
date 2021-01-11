@@ -86,6 +86,7 @@ func (client ManagementAssociationsClient) CreateOrUpdate(ctx context.Context, r
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementAssociationsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client ManagementAssociationsClient) CreateOrUpdateSender(req *http.Reques
 func (client ManagementAssociationsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagementAssociation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -178,6 +178,7 @@ func (client ManagementAssociationsClient) Delete(ctx context.Context, resourceG
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementAssociationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -218,7 +219,6 @@ func (client ManagementAssociationsClient) DeleteSender(req *http.Request) (*htt
 func (client ManagementAssociationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -264,6 +264,7 @@ func (client ManagementAssociationsClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementAssociationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -304,7 +305,6 @@ func (client ManagementAssociationsClient) GetSender(req *http.Request) (*http.R
 func (client ManagementAssociationsClient) GetResponder(resp *http.Response) (result ManagementAssociation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,6 +340,7 @@ func (client ManagementAssociationsClient) ListBySubscription(ctx context.Contex
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementAssociationsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -375,7 +376,6 @@ func (client ManagementAssociationsClient) ListBySubscriptionSender(req *http.Re
 func (client ManagementAssociationsClient) ListBySubscriptionResponder(resp *http.Response) (result ManagementAssociationPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

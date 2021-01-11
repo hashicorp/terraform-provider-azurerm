@@ -83,6 +83,7 @@ func (client NotificationClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client NotificationClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client NotificationClient) CreateOrUpdateResponder(resp *http.Response) (result NotificationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -173,6 +173,7 @@ func (client NotificationClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client NotificationClient) GetSender(req *http.Request) (*http.Response, e
 func (client NotificationClient) GetResponder(resp *http.Response) (result NotificationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -267,6 +267,10 @@ func (client NotificationClient) ListByService(ctx context.Context, resourceGrou
 	result.nc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.nc.hasNextLink() && result.nc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -310,7 +314,6 @@ func (client NotificationClient) ListByServiceSender(req *http.Request) (*http.R
 func (client NotificationClient) ListByServiceResponder(resp *http.Response) (result NotificationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -335,6 +338,7 @@ func (client NotificationClient) listByServiceNextResults(ctx context.Context, l
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

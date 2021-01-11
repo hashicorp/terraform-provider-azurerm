@@ -104,7 +104,7 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -127,7 +127,6 @@ func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client ConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -177,6 +176,7 @@ func (client ConfigurationsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +199,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -215,7 +215,6 @@ func (client ConfigurationsClient) GetSender(req *http.Request) (*http.Response,
 func (client ConfigurationsClient) GetResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,6 +263,7 @@ func (client ConfigurationsClient) ListByServer(ctx context.Context, resourceGro
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,7 +285,7 @@ func (client ConfigurationsClient) ListByServerPreparer(ctx context.Context, res
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/configurations", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForMariaDB/servers/{serverName}/configurations", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -301,7 +301,6 @@ func (client ConfigurationsClient) ListByServerSender(req *http.Request) (*http.
 func (client ConfigurationsClient) ListByServerResponder(resp *http.Response) (result ConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

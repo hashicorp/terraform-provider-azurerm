@@ -127,7 +127,6 @@ func (client EndpointsClient) CreateSender(req *http.Request) (future EndpointsC
 func (client EndpointsClient) CreateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client EndpointsClient) DeleteSender(req *http.Request) (future EndpointsD
 func (client EndpointsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -262,6 +260,7 @@ func (client EndpointsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -300,7 +299,6 @@ func (client EndpointsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client EndpointsClient) GetResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,6 +346,10 @@ func (client EndpointsClient) ListByProfile(ctx context.Context, resourceGroupNa
 	result.elr, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ListByProfile", resp, "Failure responding to request")
+		return
+	}
+	if result.elr.hasNextLink() && result.elr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -385,7 +387,6 @@ func (client EndpointsClient) ListByProfileSender(req *http.Request) (*http.Resp
 func (client EndpointsClient) ListByProfileResponder(resp *http.Response) (result EndpointListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -410,6 +411,7 @@ func (client EndpointsClient) listByProfileNextResults(ctx context.Context, last
 	result, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "listByProfileNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -471,6 +473,10 @@ func (client EndpointsClient) ListResourceUsage(ctx context.Context, resourceGro
 	result.rulr, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ListResourceUsage", resp, "Failure responding to request")
+		return
+	}
+	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -509,7 +515,6 @@ func (client EndpointsClient) ListResourceUsageSender(req *http.Request) (*http.
 func (client EndpointsClient) ListResourceUsageResponder(resp *http.Response) (result ResourceUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -534,6 +539,7 @@ func (client EndpointsClient) listResourceUsageNextResults(ctx context.Context, 
 	result, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "listResourceUsageNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -638,7 +644,6 @@ func (client EndpointsClient) LoadContentSender(req *http.Request) (future Endpo
 func (client EndpointsClient) LoadContentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -730,7 +735,6 @@ func (client EndpointsClient) PurgeContentSender(req *http.Request) (future Endp
 func (client EndpointsClient) PurgeContentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -815,7 +819,6 @@ func (client EndpointsClient) StartSender(req *http.Request) (future EndpointsSt
 func (client EndpointsClient) StartResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -901,7 +904,6 @@ func (client EndpointsClient) StopSender(req *http.Request) (future EndpointsSto
 func (client EndpointsClient) StopResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -992,7 +994,6 @@ func (client EndpointsClient) UpdateSender(req *http.Request) (future EndpointsU
 func (client EndpointsClient) UpdateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1043,6 +1044,7 @@ func (client EndpointsClient) ValidateCustomDomain(ctx context.Context, resource
 	result, err = client.ValidateCustomDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ValidateCustomDomain", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1083,7 +1085,6 @@ func (client EndpointsClient) ValidateCustomDomainSender(req *http.Request) (*ht
 func (client EndpointsClient) ValidateCustomDomainResponder(resp *http.Response) (result ValidateCustomDomainOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

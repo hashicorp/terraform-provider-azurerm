@@ -126,7 +126,6 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Re
 func (client PrivateEndpointConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (
 func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -244,6 +242,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -282,7 +281,6 @@ func (client PrivateEndpointConnectionsClient) GetSender(req *http.Request) (*ht
 func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -323,6 +321,10 @@ func (client PrivateEndpointConnectionsClient) ListByServer(ctx context.Context,
 	result.peclr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.PrivateEndpointConnectionsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -360,7 +362,6 @@ func (client PrivateEndpointConnectionsClient) ListByServerSender(req *http.Requ
 func (client PrivateEndpointConnectionsClient) ListByServerResponder(resp *http.Response) (result PrivateEndpointConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -385,6 +386,7 @@ func (client PrivateEndpointConnectionsClient) listByServerNextResults(ctx conte
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.PrivateEndpointConnectionsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

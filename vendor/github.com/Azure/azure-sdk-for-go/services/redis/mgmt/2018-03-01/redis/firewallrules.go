@@ -84,6 +84,7 @@ func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client FirewallRulesClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client FirewallRulesClient) CreateOrUpdateResponder(resp *http.Response) (result FirewallRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +164,7 @@ func (client FirewallRulesClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -202,7 +203,6 @@ func (client FirewallRulesClient) DeleteSender(req *http.Request) (*http.Respons
 func (client FirewallRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +241,7 @@ func (client FirewallRulesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,7 +280,6 @@ func (client FirewallRulesClient) GetSender(req *http.Request) (*http.Response, 
 func (client FirewallRulesClient) GetResponder(resp *http.Response) (result FirewallRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +319,10 @@ func (client FirewallRulesClient) ListByRedisResource(ctx context.Context, resou
 	result.frlr, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "ListByRedisResource", resp, "Failure responding to request")
+		return
+	}
+	if result.frlr.hasNextLink() && result.frlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -356,7 +360,6 @@ func (client FirewallRulesClient) ListByRedisResourceSender(req *http.Request) (
 func (client FirewallRulesClient) ListByRedisResourceResponder(resp *http.Response) (result FirewallRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -381,6 +384,7 @@ func (client FirewallRulesClient) listByRedisResourceNextResults(ctx context.Con
 	result, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listByRedisResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

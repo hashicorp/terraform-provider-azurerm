@@ -75,6 +75,7 @@ func (client IntegrationAccountsClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client IntegrationAccountsClient) CreateOrUpdateSender(req *http.Request) 
 func (client IntegrationAccountsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,7 @@ func (client IntegrationAccountsClient) Delete(ctx context.Context, resourceGrou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -190,7 +191,6 @@ func (client IntegrationAccountsClient) DeleteSender(req *http.Request) (*http.R
 func (client IntegrationAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +228,7 @@ func (client IntegrationAccountsClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +266,6 @@ func (client IntegrationAccountsClient) GetSender(req *http.Request) (*http.Resp
 func (client IntegrationAccountsClient) GetResponder(resp *http.Response) (result IntegrationAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,6 +305,10 @@ func (client IntegrationAccountsClient) ListByResourceGroup(ctx context.Context,
 	result.ialr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.ialr.hasNextLink() && result.ialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -344,7 +348,6 @@ func (client IntegrationAccountsClient) ListByResourceGroupSender(req *http.Requ
 func (client IntegrationAccountsClient) ListByResourceGroupResponder(resp *http.Response) (result IntegrationAccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,6 +372,7 @@ func (client IntegrationAccountsClient) listByResourceGroupNextResults(ctx conte
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -420,6 +424,10 @@ func (client IntegrationAccountsClient) ListBySubscription(ctx context.Context, 
 	result.ialr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.ialr.hasNextLink() && result.ialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -458,7 +466,6 @@ func (client IntegrationAccountsClient) ListBySubscriptionSender(req *http.Reque
 func (client IntegrationAccountsClient) ListBySubscriptionResponder(resp *http.Response) (result IntegrationAccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -483,6 +490,7 @@ func (client IntegrationAccountsClient) listBySubscriptionNextResults(ctx contex
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -535,6 +543,7 @@ func (client IntegrationAccountsClient) ListCallbackURL(ctx context.Context, res
 	result, err = client.ListCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -574,7 +583,6 @@ func (client IntegrationAccountsClient) ListCallbackURLSender(req *http.Request)
 func (client IntegrationAccountsClient) ListCallbackURLResponder(resp *http.Response) (result CallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -620,6 +628,7 @@ func (client IntegrationAccountsClient) ListKeyVaultKeys(ctx context.Context, re
 	result, err = client.ListKeyVaultKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListKeyVaultKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -659,7 +668,6 @@ func (client IntegrationAccountsClient) ListKeyVaultKeysSender(req *http.Request
 func (client IntegrationAccountsClient) ListKeyVaultKeysResponder(resp *http.Response) (result KeyVaultKeyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -706,6 +714,7 @@ func (client IntegrationAccountsClient) LogTrackingEvents(ctx context.Context, r
 	result, err = client.LogTrackingEventsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "LogTrackingEvents", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -745,7 +754,6 @@ func (client IntegrationAccountsClient) LogTrackingEventsSender(req *http.Reques
 func (client IntegrationAccountsClient) LogTrackingEventsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -784,6 +792,7 @@ func (client IntegrationAccountsClient) RegenerateAccessKey(ctx context.Context,
 	result, err = client.RegenerateAccessKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "RegenerateAccessKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -823,7 +832,6 @@ func (client IntegrationAccountsClient) RegenerateAccessKeySender(req *http.Requ
 func (client IntegrationAccountsClient) RegenerateAccessKeyResponder(resp *http.Response) (result IntegrationAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -863,6 +871,7 @@ func (client IntegrationAccountsClient) Update(ctx context.Context, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -902,7 +911,6 @@ func (client IntegrationAccountsClient) UpdateSender(req *http.Request) (*http.R
 func (client IntegrationAccountsClient) UpdateResponder(resp *http.Response) (result IntegrationAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

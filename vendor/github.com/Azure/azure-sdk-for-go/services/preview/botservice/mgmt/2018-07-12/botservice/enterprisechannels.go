@@ -73,6 +73,7 @@ func (client EnterpriseChannelsClient) CheckNameAvailability(ctx context.Context
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -106,7 +107,6 @@ func (client EnterpriseChannelsClient) CheckNameAvailabilitySender(req *http.Req
 func (client EnterpriseChannelsClient) CheckNameAvailabilityResponder(resp *http.Response) (result EnterpriseChannelCheckNameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +200,6 @@ func (client EnterpriseChannelsClient) CreateSender(req *http.Request) (future E
 func (client EnterpriseChannelsClient) CreateResponder(resp *http.Response) (result EnterpriseChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,7 +287,6 @@ func (client EnterpriseChannelsClient) DeleteSender(req *http.Request) (future E
 func (client EnterpriseChannelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -338,6 +336,7 @@ func (client EnterpriseChannelsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -375,7 +374,6 @@ func (client EnterpriseChannelsClient) GetSender(req *http.Request) (*http.Respo
 func (client EnterpriseChannelsClient) GetResponder(resp *http.Response) (result EnterpriseChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,6 +420,10 @@ func (client EnterpriseChannelsClient) ListByResourceGroup(ctx context.Context, 
 	result.ecrl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.ecrl.hasNextLink() && result.ecrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -458,7 +460,6 @@ func (client EnterpriseChannelsClient) ListByResourceGroupSender(req *http.Reque
 func (client EnterpriseChannelsClient) ListByResourceGroupResponder(resp *http.Response) (result EnterpriseChannelResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -483,6 +484,7 @@ func (client EnterpriseChannelsClient) listByResourceGroupNextResults(ctx contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -586,7 +588,6 @@ func (client EnterpriseChannelsClient) UpdateSender(req *http.Request) (future E
 func (client EnterpriseChannelsClient) UpdateResponder(resp *http.Response) (result EnterpriseChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

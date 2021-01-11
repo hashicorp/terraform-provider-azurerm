@@ -116,7 +116,6 @@ func (client TriggersClient) CreateSender(req *http.Request) (future TriggersCre
 func (client TriggersClient) CreateResponder(resp *http.Response) (result TriggerModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client TriggersClient) DeleteSender(req *http.Request) (future TriggersDel
 func (client TriggersClient) DeleteResponder(resp *http.Response) (result OperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -237,6 +235,7 @@ func (client TriggersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,7 +275,6 @@ func (client TriggersClient) GetSender(req *http.Request) (*http.Response, error
 func (client TriggersClient) GetResponder(resp *http.Response) (result TriggerModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,6 +316,10 @@ func (client TriggersClient) ListByShareSubscription(ctx context.Context, resour
 	result.tl, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "ListByShareSubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -359,7 +361,6 @@ func (client TriggersClient) ListByShareSubscriptionSender(req *http.Request) (*
 func (client TriggersClient) ListByShareSubscriptionResponder(resp *http.Response) (result TriggerList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -384,6 +385,7 @@ func (client TriggersClient) listByShareSubscriptionNextResults(ctx context.Cont
 	result, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "listByShareSubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

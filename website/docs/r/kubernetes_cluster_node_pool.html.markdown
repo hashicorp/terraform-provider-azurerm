@@ -14,6 +14,9 @@ Manages a Node Pool within a Kubernetes Cluster
 
 ## Example Usage
 
+This example provisions a basic Kubernetes Node Pool. Other examples of the `azurerm_kubernetes_cluster_node_pool` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
+
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -66,7 +69,7 @@ The following arguments are supported:
 
 ---
 
-* `availability_zones` - (Optional) A list of Availability Zones where the Nodes in this Node Pool should be created in.
+* `availability_zones` - (Optional) A list of Availability Zones where the Nodes in this Node Pool should be created in. Changing this forces a new resource to be created.
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Defaults to `false`.
 
@@ -74,15 +77,39 @@ The following arguments are supported:
 
 * `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.
 
+* `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
+
+-> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot`.
+
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
-* `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
+* `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
+* `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool. Changing this forces a new resource to be created.
+
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`). Changing this forces a new resource to be created.
+
+* `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
+
+-> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
+* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
+
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
+
+* `priority` - (Optional) The Priority for Virtual Machines within the Virtual Machine Scale Set that powers this Node Pool. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
+
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group where the Virtual Machine Scale Set that powers this Node Pool will be placed. Changing this forces a new resource to be created.
+
+-> **Note:** When setting `priority` to Spot - you must configure an `eviction_policy`, `spot_max_price` and add the applicable `node_labels` and `node_taints` [as per the Azure Documentation](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool).
+
+~> **Note:** Spot Node Pools are in Preview and must be opted-into - [more information on how to opt into this Preview can be found in the AKS Documentation](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool).
+
+* `spot_max_price` - (Optional) The maximum price you're willing to pay in USD per Virtual Machine. Valid values are `-1` (the current on-demand price for a Virtual Machine) or a positive value with up to five decimal places. Changing this forces a new resource to be created.
+
+~> **Note:** This field can only be configured when `priority` is set to `Spot`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -98,17 +125,17 @@ The following arguments are supported:
 
 If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
-* `max_count` - (Required) The maximum number of nodes which should exist within this Node Pool. Valid values are between `1` and `100` and must be greater than or equal to `min_count`.
+* `max_count` - (Required) The maximum number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` and must be greater than or equal to `min_count`.
 
-* `min_count` - (Required) The minimum number of nodes which should exist within this Node Pool. Valid values are between `1` and `100` and must be less than or equal to `max_count`.
+* `min_count` - (Required) The minimum number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` and must be less than or equal to `max_count`.
 
-* `node_count` - (Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between `1` and `100` and must be a value in the range `min_count` - `max_count`.
+* `node_count` - (Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` and must be a value in the range `min_count` - `max_count`.
 
 -> **NOTE:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
 
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
-* `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `1` and `100`.
+* `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000`.
 
 ## Attributes Reference
 
@@ -117,8 +144,6 @@ The following attributes are exported:
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -92,6 +92,7 @@ func (client TagClient) AssignToAPI(ctx context.Context, resourceGroupName strin
 	result, err = client.AssignToAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "AssignToAPI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client TagClient) AssignToAPISender(req *http.Request) (*http.Response, er
 func (client TagClient) AssignToAPIResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,6 +194,7 @@ func (client TagClient) AssignToOperation(ctx context.Context, resourceGroupName
 	result, err = client.AssignToOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "AssignToOperation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,7 +235,6 @@ func (client TagClient) AssignToOperationSender(req *http.Request) (*http.Respon
 func (client TagClient) AssignToOperationResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -290,6 +290,7 @@ func (client TagClient) AssignToProduct(ctx context.Context, resourceGroupName s
 	result, err = client.AssignToProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "AssignToProduct", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,7 +330,6 @@ func (client TagClient) AssignToProductSender(req *http.Request) (*http.Response
 func (client TagClient) AssignToProductResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -390,6 +390,7 @@ func (client TagClient) CreateOrUpdate(ctx context.Context, resourceGroupName st
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -434,7 +435,6 @@ func (client TagClient) CreateOrUpdateSender(req *http.Request) (*http.Response,
 func (client TagClient) CreateOrUpdateResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -488,6 +488,7 @@ func (client TagClient) Delete(ctx context.Context, resourceGroupName string, se
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -527,7 +528,6 @@ func (client TagClient) DeleteSender(req *http.Request) (*http.Response, error) 
 func (client TagClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -584,6 +584,7 @@ func (client TagClient) DetachFromAPI(ctx context.Context, resourceGroupName str
 	result, err = client.DetachFromAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "DetachFromAPI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -623,7 +624,6 @@ func (client TagClient) DetachFromAPISender(req *http.Request) (*http.Response, 
 func (client TagClient) DetachFromAPIResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -685,6 +685,7 @@ func (client TagClient) DetachFromOperation(ctx context.Context, resourceGroupNa
 	result, err = client.DetachFromOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "DetachFromOperation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -725,7 +726,6 @@ func (client TagClient) DetachFromOperationSender(req *http.Request) (*http.Resp
 func (client TagClient) DetachFromOperationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -780,6 +780,7 @@ func (client TagClient) DetachFromProduct(ctx context.Context, resourceGroupName
 	result, err = client.DetachFromProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "DetachFromProduct", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -819,7 +820,6 @@ func (client TagClient) DetachFromProductSender(req *http.Request) (*http.Respon
 func (client TagClient) DetachFromProductResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -870,6 +870,7 @@ func (client TagClient) Get(ctx context.Context, resourceGroupName string, servi
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -908,7 +909,6 @@ func (client TagClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client TagClient) GetResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -966,6 +966,7 @@ func (client TagClient) GetByAPI(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetByAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetByAPI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1005,7 +1006,6 @@ func (client TagClient) GetByAPISender(req *http.Request) (*http.Response, error
 func (client TagClient) GetByAPIResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1068,6 +1068,7 @@ func (client TagClient) GetByOperation(ctx context.Context, resourceGroupName st
 	result, err = client.GetByOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetByOperation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1108,7 +1109,6 @@ func (client TagClient) GetByOperationSender(req *http.Request) (*http.Response,
 func (client TagClient) GetByOperationResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1164,6 +1164,7 @@ func (client TagClient) GetByProduct(ctx context.Context, resourceGroupName stri
 	result, err = client.GetByProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetByProduct", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1203,7 +1204,6 @@ func (client TagClient) GetByProductSender(req *http.Request) (*http.Response, e
 func (client TagClient) GetByProductResponder(resp *http.Response) (result TagContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1255,6 +1255,7 @@ func (client TagClient) GetEntityState(ctx context.Context, resourceGroupName st
 	result, err = client.GetEntityStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetEntityState", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1293,7 +1294,6 @@ func (client TagClient) GetEntityStateSender(req *http.Request) (*http.Response,
 func (client TagClient) GetEntityStateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1350,6 +1350,7 @@ func (client TagClient) GetEntityStateByAPI(ctx context.Context, resourceGroupNa
 	result, err = client.GetEntityStateByAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetEntityStateByAPI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1389,7 +1390,6 @@ func (client TagClient) GetEntityStateByAPISender(req *http.Request) (*http.Resp
 func (client TagClient) GetEntityStateByAPIResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1451,6 +1451,7 @@ func (client TagClient) GetEntityStateByOperation(ctx context.Context, resourceG
 	result, err = client.GetEntityStateByOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetEntityStateByOperation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1491,7 +1492,6 @@ func (client TagClient) GetEntityStateByOperationSender(req *http.Request) (*htt
 func (client TagClient) GetEntityStateByOperationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1546,6 +1546,7 @@ func (client TagClient) GetEntityStateByProduct(ctx context.Context, resourceGro
 	result, err = client.GetEntityStateByProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "GetEntityStateByProduct", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1585,7 +1586,6 @@ func (client TagClient) GetEntityStateByProductSender(req *http.Request) (*http.
 func (client TagClient) GetEntityStateByProductResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1650,6 +1650,10 @@ func (client TagClient) ListByAPI(ctx context.Context, resourceGroupName string,
 	result.tc, err = client.ListByAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "ListByAPI", resp, "Failure responding to request")
+		return
+	}
+	if result.tc.hasNextLink() && result.tc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1697,7 +1701,6 @@ func (client TagClient) ListByAPISender(req *http.Request) (*http.Response, erro
 func (client TagClient) ListByAPIResponder(resp *http.Response) (result TagCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1722,6 +1725,7 @@ func (client TagClient) listByAPINextResults(ctx context.Context, lastResults Ta
 	result, err = client.ListByAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "listByAPINextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1805,6 +1809,10 @@ func (client TagClient) ListByOperation(ctx context.Context, resourceGroupName s
 	result.tc, err = client.ListByOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "ListByOperation", resp, "Failure responding to request")
+		return
+	}
+	if result.tc.hasNextLink() && result.tc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1853,7 +1861,6 @@ func (client TagClient) ListByOperationSender(req *http.Request) (*http.Response
 func (client TagClient) ListByOperationResponder(resp *http.Response) (result TagCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1878,6 +1885,7 @@ func (client TagClient) listByOperationNextResults(ctx context.Context, lastResu
 	result, err = client.ListByOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "listByOperationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1954,6 +1962,10 @@ func (client TagClient) ListByProduct(ctx context.Context, resourceGroupName str
 	result.tc, err = client.ListByProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "ListByProduct", resp, "Failure responding to request")
+		return
+	}
+	if result.tc.hasNextLink() && result.tc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -2001,7 +2013,6 @@ func (client TagClient) ListByProductSender(req *http.Request) (*http.Response, 
 func (client TagClient) ListByProductResponder(resp *http.Response) (result TagCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2026,6 +2037,7 @@ func (client TagClient) listByProductNextResults(ctx context.Context, lastResult
 	result, err = client.ListByProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "listByProductNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -2099,6 +2111,10 @@ func (client TagClient) ListByService(ctx context.Context, resourceGroupName str
 	result.tc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.tc.hasNextLink() && result.tc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -2148,7 +2164,6 @@ func (client TagClient) ListByServiceSender(req *http.Request) (*http.Response, 
 func (client TagClient) ListByServiceResponder(resp *http.Response) (result TagCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2173,6 +2188,7 @@ func (client TagClient) listByServiceNextResults(ctx context.Context, lastResult
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -2240,6 +2256,7 @@ func (client TagClient) Update(ctx context.Context, resourceGroupName string, se
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2281,7 +2298,6 @@ func (client TagClient) UpdateSender(req *http.Request) (*http.Response, error) 
 func (client TagClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

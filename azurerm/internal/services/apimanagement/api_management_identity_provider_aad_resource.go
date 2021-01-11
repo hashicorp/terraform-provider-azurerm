@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
+func resourceApiManagementIdentityProviderAAD() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderAADCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderAADRead,
-		Update: resourceArmApiManagementIdentityProviderAADCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderAADDelete,
+		Create: resourceApiManagementIdentityProviderAADCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderAADRead,
+		Update: resourceApiManagementIdentityProviderAADCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderAADDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,11 +58,16 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 					ValidateFunc: validation.IsUUID,
 				},
 			},
+			"signin_tenant": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+			},
 		},
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -72,6 +77,7 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 	allowedTenants := d.Get("allowed_tenants").([]interface{})
+	signinTenant := d.Get("signin_tenant").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Aad)
@@ -92,6 +98,7 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 			ClientSecret:   utils.String(clientSecret),
 			Type:           apimanagement.Aad,
 			AllowedTenants: utils.ExpandStringSlice(allowedTenants),
+			SigninTenant:   utils.String(signinTenant),
 		},
 	}
 
@@ -108,10 +115,10 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderAADRead(d, meta)
+	return resourceApiManagementIdentityProviderAADRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,14 +147,14 @@ func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, met
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("client_id", props.ClientID)
-		d.Set("client_secret", props.ClientSecret)
 		d.Set("allowed_tenants", props.AllowedTenants)
+		d.Set("signin_tenant", props.SigninTenant)
 	}
 
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderAADDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

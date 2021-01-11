@@ -21,9 +21,10 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_kubernetes_service_versions": dataSourceArmKubernetesServiceVersions(),
-		"azurerm_container_registry":          dataSourceArmContainerRegistry(),
-		"azurerm_kubernetes_cluster":          dataSourceArmKubernetesCluster(),
+		"azurerm_kubernetes_service_versions":  dataSourceArmKubernetesServiceVersions(),
+		"azurerm_container_registry":           dataSourceArmContainerRegistry(),
+		"azurerm_kubernetes_cluster":           dataSourceArmKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool": dataSourceKubernetesClusterNodePool(),
 	}
 }
 

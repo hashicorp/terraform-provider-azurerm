@@ -75,6 +75,7 @@ func (client PrivateLinkResourcesClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PrivateLinkResourcesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client PrivateLinkResourcesClient) GetSender(req *http.Request) (*http.Res
 func (client PrivateLinkResourcesClient) GetResponder(resp *http.Response) (result PrivateLinkResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -163,6 +163,10 @@ func (client PrivateLinkResourcesClient) ListByResource(ctx context.Context, res
 	result.plrlr, err = client.ListByResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PrivateLinkResourcesClient", "ListByResource", resp, "Failure responding to request")
+		return
+	}
+	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -207,7 +211,6 @@ func (client PrivateLinkResourcesClient) ListByResourceSender(req *http.Request)
 func (client PrivateLinkResourcesClient) ListByResourceResponder(resp *http.Response) (result PrivateLinkResourcesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -232,6 +235,7 @@ func (client PrivateLinkResourcesClient) listByResourceNextResults(ctx context.C
 	result, err = client.ListByResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PrivateLinkResourcesClient", "listByResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

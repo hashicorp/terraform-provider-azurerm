@@ -3,8 +3,8 @@ package compute
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
@@ -126,7 +126,7 @@ func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.Interface
 // retrievePublicIPAddress returns the Public IP Address associated with an Azure Public IP
 // nolint: deadcode unused
 func retrievePublicIPAddress(ctx context.Context, client *network.PublicIPAddressesClient, publicIPAddressID string) (*string, error) {
-	id, err := parse.PublicIPAddressID(publicIPAddressID)
+	id, err := parse.PublicIpAddressID(publicIPAddressID)
 	if err != nil {
 		return nil, err
 	}

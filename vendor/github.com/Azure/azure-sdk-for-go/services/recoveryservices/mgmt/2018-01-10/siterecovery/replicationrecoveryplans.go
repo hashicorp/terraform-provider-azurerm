@@ -124,7 +124,6 @@ func (client ReplicationRecoveryPlansClient) CreateSender(req *http.Request) (fu
 func (client ReplicationRecoveryPlansClient) CreateResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client ReplicationRecoveryPlansClient) DeleteSender(req *http.Request) (fu
 func (client ReplicationRecoveryPlansClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -275,7 +273,6 @@ func (client ReplicationRecoveryPlansClient) FailoverCommitSender(req *http.Requ
 func (client ReplicationRecoveryPlansClient) FailoverCommitResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -313,6 +310,7 @@ func (client ReplicationRecoveryPlansClient) Get(ctx context.Context, recoveryPl
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -351,7 +349,6 @@ func (client ReplicationRecoveryPlansClient) GetSender(req *http.Request) (*http
 func (client ReplicationRecoveryPlansClient) GetResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,6 +385,10 @@ func (client ReplicationRecoveryPlansClient) List(ctx context.Context) (result R
 	result.RPCVar, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.RPCVar.hasNextLink() && result.RPCVar.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -425,7 +426,6 @@ func (client ReplicationRecoveryPlansClient) ListSender(req *http.Request) (*htt
 func (client ReplicationRecoveryPlansClient) ListResponder(resp *http.Response) (result RecoveryPlanCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -450,6 +450,7 @@ func (client ReplicationRecoveryPlansClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -547,7 +548,6 @@ func (client ReplicationRecoveryPlansClient) PlannedFailoverSender(req *http.Req
 func (client ReplicationRecoveryPlansClient) PlannedFailoverResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -623,7 +623,6 @@ func (client ReplicationRecoveryPlansClient) ReprotectSender(req *http.Request) 
 func (client ReplicationRecoveryPlansClient) ReprotectResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -709,7 +708,6 @@ func (client ReplicationRecoveryPlansClient) TestFailoverSender(req *http.Reques
 func (client ReplicationRecoveryPlansClient) TestFailoverResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -794,7 +792,6 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanupSender(req *http
 func (client ReplicationRecoveryPlansClient) TestFailoverCleanupResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -879,7 +876,6 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailoverSender(req *http.R
 func (client ReplicationRecoveryPlansClient) UnplannedFailoverResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -958,7 +954,6 @@ func (client ReplicationRecoveryPlansClient) UpdateSender(req *http.Request) (fu
 func (client ReplicationRecoveryPlansClient) UpdateResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

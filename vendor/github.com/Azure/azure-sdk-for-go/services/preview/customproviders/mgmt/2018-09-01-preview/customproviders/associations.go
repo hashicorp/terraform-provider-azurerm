@@ -116,7 +116,6 @@ func (client AssociationsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client AssociationsClient) CreateOrUpdateResponder(resp *http.Response) (result Association, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,7 +190,6 @@ func (client AssociationsClient) DeleteSender(req *http.Request) (future Associa
 func (client AssociationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -229,6 +227,7 @@ func (client AssociationsClient) Get(ctx context.Context, scope string, associat
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.AssociationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +264,6 @@ func (client AssociationsClient) GetSender(req *http.Request) (*http.Response, e
 func (client AssociationsClient) GetResponder(resp *http.Response) (result Association, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,6 +302,10 @@ func (client AssociationsClient) ListAll(ctx context.Context, scope string) (res
 	result.al, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.AssociationsClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -339,7 +341,6 @@ func (client AssociationsClient) ListAllSender(req *http.Request) (*http.Respons
 func (client AssociationsClient) ListAllResponder(resp *http.Response) (result AssociationsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -364,6 +365,7 @@ func (client AssociationsClient) listAllNextResults(ctx context.Context, lastRes
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.AssociationsClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

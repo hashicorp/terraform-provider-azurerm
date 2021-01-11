@@ -77,6 +77,7 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdate(ctx context.Context,
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerConnectionPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -119,7 +120,6 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdateSender(req *http.Requ
 func (client ServerConnectionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerConnectionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +159,7 @@ func (client ServerConnectionPoliciesClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerConnectionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client ServerConnectionPoliciesClient) GetSender(req *http.Request) (*http
 func (client ServerConnectionPoliciesClient) GetResponder(resp *http.Response) (result ServerConnectionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

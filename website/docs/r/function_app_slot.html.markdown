@@ -39,20 +39,22 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "example" {
-  name                      = "test-azure-functions_slot"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  function_app_name         = azurerm_function_app.example.name
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions_slot"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  function_app_name          = azurerm_function_app.example.name
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 
@@ -62,13 +64,17 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Function App.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Function App Slot.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
 
-* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
+* `function_app_name` - (Required) The name of the Function App within which to create the Function App Slot. Changing this forces a new resource to be created.
+
+* `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs).
+
+* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
@@ -78,7 +84,7 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) An `auth_settings` block as defined below.
 
-* `enable_builtin_logging` - (Optional) Should the built-in logging of this Function App be enabled? Defaults to `true`.
+* `enable_builtin_logging` - (Optional) Should the built-in logging of the Function App be enabled? Defaults to `true`.
 
 * `connection_string` - (Optional) A `connection_string` block as defined below.
 
@@ -135,6 +141,8 @@ The following arguments are supported:
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
 ---
 
@@ -232,17 +240,23 @@ A `microsoft` block supports the following:
 
 A `ip_restriction` block supports the following:
 
-* `ip_address` - (Optional) The IP Address CIDR notation used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
-* `subnet_id` - (Optional) The Subnet ID used for this IP Restriction.
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `subnet_id` must be specified
+-> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
+
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Function App
+* `id` - The ID of the Function App Slot
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 
@@ -250,9 +264,9 @@ The following attributes are exported:
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Function App Slot.
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this Function App Slot.
 
 * `kind` - The Function App kind - such as `functionapp,linux,container`
 

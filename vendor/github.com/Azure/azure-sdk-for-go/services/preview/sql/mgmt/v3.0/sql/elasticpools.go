@@ -126,7 +126,6 @@ func (client ElasticPoolsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client ElasticPoolsClient) CreateOrUpdateResponder(resp *http.Response) (result ElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client ElasticPoolsClient) DeleteSender(req *http.Request) (future Elastic
 func (client ElasticPoolsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,7 +281,6 @@ func (client ElasticPoolsClient) FailoverSender(req *http.Request) (future Elast
 func (client ElasticPoolsClient) FailoverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -323,6 +320,7 @@ func (client ElasticPoolsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -361,7 +359,6 @@ func (client ElasticPoolsClient) GetSender(req *http.Request) (*http.Response, e
 func (client ElasticPoolsClient) GetResponder(resp *http.Response) (result ElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -403,6 +400,10 @@ func (client ElasticPoolsClient) ListByServer(ctx context.Context, resourceGroup
 	result.eplr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.eplr.hasNextLink() && result.eplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -443,7 +444,6 @@ func (client ElasticPoolsClient) ListByServerSender(req *http.Request) (*http.Re
 func (client ElasticPoolsClient) ListByServerResponder(resp *http.Response) (result ElasticPoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -468,6 +468,7 @@ func (client ElasticPoolsClient) listByServerNextResults(ctx context.Context, la
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -521,6 +522,7 @@ func (client ElasticPoolsClient) ListMetricDefinitions(ctx context.Context, reso
 	result, err = client.ListMetricDefinitionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListMetricDefinitions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -559,7 +561,6 @@ func (client ElasticPoolsClient) ListMetricDefinitionsSender(req *http.Request) 
 func (client ElasticPoolsClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -601,6 +602,7 @@ func (client ElasticPoolsClient) ListMetrics(ctx context.Context, resourceGroupN
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -640,7 +642,6 @@ func (client ElasticPoolsClient) ListMetricsSender(req *http.Request) (*http.Res
 func (client ElasticPoolsClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -722,7 +723,6 @@ func (client ElasticPoolsClient) UpdateSender(req *http.Request) (future Elastic
 func (client ElasticPoolsClient) UpdateResponder(resp *http.Response) (result ElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

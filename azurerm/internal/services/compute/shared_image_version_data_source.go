@@ -3,10 +3,9 @@ package compute
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -49,6 +48,16 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 
 			"managed_image_id": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"os_disk_snapshot_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"os_disk_image_size_gb": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -95,15 +104,9 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	image, found, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion)
+	image, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion)
 	if err != nil {
-		d.SetId("")
 		return err
-	}
-
-	if !found {
-		d.SetId("")
-		return nil
 	}
 
 	d.SetId(*image.ID)
@@ -120,8 +123,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 		if profile := props.PublishingProfile; profile != nil {
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
-			flattenedRegions := flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)
-			if err := d.Set("target_region", flattenedRegions); err != nil {
+			if err := d.Set("target_region", flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)); err != nil {
 				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
 		}
@@ -130,66 +132,82 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 			if source := profile.Source; source != nil {
 				d.Set("managed_image_id", source.ID)
 			}
+
+			osDiskSnapShotID := ""
+			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
+				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
+			}
+			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
+
+			osDiskImageSize := 0
+			if profile.OsDiskImage != nil && profile.OsDiskImage.SizeInGB != nil {
+				osDiskImageSize = int(*profile.OsDiskImage.SizeInGB)
+			}
+			d.Set("os_disk_image_size_gb", osDiskImageSize)
 		}
 	}
 
 	return tags.FlattenAndSet(d, image.Tags)
 }
 
-func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context, resourceGroup string, galleryName string, galleryImageName string, galleryImageVersionName string) (compute.GalleryImageVersion, bool, error) {
-	var (
-		image compute.GalleryImageVersion
-		err   error
-		found bool
-	)
+func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context, resourceGroup string, galleryName string, galleryImageName string, galleryImageVersionName string) (*compute.GalleryImageVersion, error) {
+	notFoundError := fmt.Errorf("A Version was not found for Shared Image %q / Gallery %q / Resource Group %q", galleryImageName, galleryName, resourceGroup)
+
 	switch galleryImageVersionName {
 	case "latest":
 		images, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, galleryImageName)
 		if err != nil {
 			if utils.ResponseWasNotFound(images.Response().Response) {
-				log.Printf("[DEBUG] Shared Image Versions (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", galleryImageName, galleryName, resourceGroup)
-				return image, false, nil
+				return nil, notFoundError
 			}
-			return image, false, fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
+			return nil, fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
 		}
+
 		// the last image in the list is the latest version
 		if len(images.Values()) > 0 {
-			image = images.Values()[len(images.Values())-1]
-			found = true
+			image := images.Values()[len(images.Values())-1]
+			return &image, nil
 		}
+
+		return nil, notFoundError
+
 	case "recent":
 		images, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, galleryImageName)
 		if err != nil {
 			if utils.ResponseWasNotFound(images.Response().Response) {
-				log.Printf("[DEBUG] Shared Image Versions (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", galleryImageName, galleryName, resourceGroup)
-				return image, false, nil
+				return nil, notFoundError
 			}
-			return image, false, fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
+			return nil, fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
 		}
-		var recentDate time.Time
+		var image *compute.GalleryImageVersion
+		var recentDate *time.Time
 		// compare dates until we find the image that was updated most recently
 		for _, currImage := range images.Values() {
 			if profile := currImage.PublishingProfile; profile != nil {
-				if profile.PublishedDate != nil && profile.PublishedDate.Time.After(recentDate) {
-					recentDate = profile.PublishedDate.Time
-					image = currImage
-					found = true
+				if profile.PublishedDate != nil && (recentDate == nil || profile.PublishedDate.Time.After(*recentDate)) {
+					recentDate = &profile.PublishedDate.Time
+					image = &currImage
 				}
 			}
 		}
+
+		if image != nil {
+			return image, nil
+		}
+
+		return nil, notFoundError
+
 	default:
-		image, err = client.Get(ctx, resourceGroup, galleryName, galleryImageName, galleryImageVersionName, compute.ReplicationStatusTypesReplicationStatus)
+		image, err := client.Get(ctx, resourceGroup, galleryName, galleryImageName, galleryImageVersionName, compute.ReplicationStatusTypesReplicationStatus)
 		if err != nil {
 			if utils.ResponseWasNotFound(image.Response) {
-				log.Printf("[DEBUG] Shared Image Version %q (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", galleryImageVersionName, galleryImageName, galleryName, resourceGroup)
-				return image, false, nil
+				return nil, notFoundError
 			}
-			return image, false, fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageVersionName, galleryImageName, galleryName, resourceGroup, err)
+			return nil, fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageVersionName, galleryImageName, galleryName, resourceGroup, err)
 		}
-		found = true
-	}
 
-	return image, found, nil
+		return &image, nil
+	}
 }
 
 func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetRegion) []interface{} {

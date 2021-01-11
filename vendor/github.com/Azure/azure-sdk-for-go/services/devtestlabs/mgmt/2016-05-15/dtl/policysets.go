@@ -74,6 +74,7 @@ func (client PolicySetsClient) EvaluatePolicies(ctx context.Context, resourceGro
 	result, err = client.EvaluatePoliciesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.PolicySetsClient", "EvaluatePolicies", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client PolicySetsClient) EvaluatePoliciesSender(req *http.Request) (*http.
 func (client PolicySetsClient) EvaluatePoliciesResponder(resp *http.Response) (result EvaluatePoliciesResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

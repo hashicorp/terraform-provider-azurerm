@@ -7,23 +7,24 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationDscConfiguration() *schema.Resource {
+func resourceAutomationDscConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationDscConfigurationCreateUpdate,
-		Read:   resourceArmAutomationDscConfigurationRead,
-		Update: resourceArmAutomationDscConfigurationCreateUpdate,
-		Delete: resourceArmAutomationDscConfigurationDelete,
+		Create: resourceAutomationDscConfigurationCreateUpdate,
+		Read:   resourceAutomationDscConfigurationRead,
+		Update: resourceAutomationDscConfigurationCreateUpdate,
+		Delete: resourceAutomationDscConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -51,7 +52,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"content_embedded": {
@@ -85,7 +86,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,10 +144,10 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationDscConfigurationRead(d, meta)
+	return resourceAutomationDscConfigurationRead(d, meta)
 }
 
-func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +200,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

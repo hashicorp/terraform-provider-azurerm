@@ -78,6 +78,7 @@ func (client ElasticPoolOperationsClient) Cancel(ctx context.Context, resourceGr
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client ElasticPoolOperationsClient) CancelSender(req *http.Request) (*http
 func (client ElasticPoolOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -157,6 +157,10 @@ func (client ElasticPoolOperationsClient) ListByElasticPool(ctx context.Context,
 	result.epolr, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
+	}
+	if result.epolr.hasNextLink() && result.epolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -195,7 +199,6 @@ func (client ElasticPoolOperationsClient) ListByElasticPoolSender(req *http.Requ
 func (client ElasticPoolOperationsClient) ListByElasticPoolResponder(resp *http.Response) (result ElasticPoolOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,6 +223,7 @@ func (client ElasticPoolOperationsClient) listByElasticPoolNextResults(ctx conte
 	result, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "listByElasticPoolNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -78,6 +78,7 @@ func (client DataMaskingPoliciesClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataMaskingPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client DataMaskingPoliciesClient) CreateOrUpdateSender(req *http.Request) 
 func (client DataMaskingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result DataMaskingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,7 @@ func (client DataMaskingPoliciesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataMaskingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -201,7 +202,6 @@ func (client DataMaskingPoliciesClient) GetSender(req *http.Request) (*http.Resp
 func (client DataMaskingPoliciesClient) GetResponder(resp *http.Response) (result DataMaskingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the allows creation and deletion of Azure Shared Dashboards.
+// OperationsClient is the client for the Operations methods of the Portal service.
 type OperationsClient struct {
 	BaseClient
 }
@@ -70,6 +70,10 @@ func (client OperationsClient) List(ctx context.Context) (result ResourceProvide
 	result.rpol, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.OperationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rpol.hasNextLink() && result.rpol.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -101,7 +105,6 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 func (client OperationsClient) ListResponder(resp *http.Response) (result ResourceProviderOperationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -126,6 +129,7 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

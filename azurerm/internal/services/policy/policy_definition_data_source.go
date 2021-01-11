@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -103,13 +103,13 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	if displayName != "" {
 		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName)
 		if err != nil {
-			return fmt.Errorf("failed to read Policy Definition (Display Name %q): %+v", displayName, err)
+			return fmt.Errorf("reading Policy Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
 	if name != "" {
 		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
-			return fmt.Errorf("failed to read Policy Definition %q: %+v", name, err)
+			return fmt.Errorf("reading Policy Definition %q: %+v", name, err)
 		}
 	}
 
@@ -120,16 +120,21 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	d.Set("type", policyDefinition.Type)
 	d.Set("policy_type", policyDefinition.PolicyType)
 
-	if policyRuleStr := flattenJSON(policyDefinition.PolicyRule); policyRuleStr != "" {
+	policyRule := policyDefinition.PolicyRule.(map[string]interface{})
+	if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
 		d.Set("policy_rule", policyRuleStr)
+	} else {
+		return fmt.Errorf("flattening Policy Definition Rule %q: %+v", name, err)
 	}
 
 	if metadataStr := flattenJSON(policyDefinition.Metadata); metadataStr != "" {
 		d.Set("metadata", metadataStr)
 	}
 
-	if parametersStr := flattenJSON(policyDefinition.Parameters); parametersStr != "" {
+	if parametersStr, err := flattenParameterDefinitionsValueToString(policyDefinition.Parameters); err == nil {
 		d.Set("parameters", parametersStr)
+	} else {
+		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", name, err)
 	}
 
 	return nil

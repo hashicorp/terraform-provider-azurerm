@@ -128,7 +128,6 @@ func (client CustomDomainsClient) CreateSender(req *http.Request) (future Custom
 func (client CustomDomainsClient) CreateResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client CustomDomainsClient) DeleteSender(req *http.Request) (future Custom
 func (client CustomDomainsClient) DeleteResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -265,6 +263,7 @@ func (client CustomDomainsClient) DisableCustomHTTPS(ctx context.Context, resour
 	result, err = client.DisableCustomHTTPSResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "DisableCustomHTTPS", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -304,7 +303,6 @@ func (client CustomDomainsClient) DisableCustomHTTPSSender(req *http.Request) (*
 func (client CustomDomainsClient) DisableCustomHTTPSResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -356,6 +354,7 @@ func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourc
 	result, err = client.EnableCustomHTTPSResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "EnableCustomHTTPS", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -400,7 +399,6 @@ func (client CustomDomainsClient) EnableCustomHTTPSSender(req *http.Request) (*h
 func (client CustomDomainsClient) EnableCustomHTTPSResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -449,6 +447,7 @@ func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -488,7 +487,6 @@ func (client CustomDomainsClient) GetSender(req *http.Request) (*http.Response, 
 func (client CustomDomainsClient) GetResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -537,6 +535,10 @@ func (client CustomDomainsClient) ListByEndpoint(ctx context.Context, resourceGr
 	result.cdlr, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "ListByEndpoint", resp, "Failure responding to request")
+		return
+	}
+	if result.cdlr.hasNextLink() && result.cdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -575,7 +577,6 @@ func (client CustomDomainsClient) ListByEndpointSender(req *http.Request) (*http
 func (client CustomDomainsClient) ListByEndpointResponder(resp *http.Response) (result CustomDomainListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -600,6 +601,7 @@ func (client CustomDomainsClient) listByEndpointNextResults(ctx context.Context,
 	result, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "listByEndpointNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProperty() *schema.Resource {
+func resourceApiManagementProperty() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementPropertyCreateUpdate,
-		Read:   resourceArmApiManagementPropertyRead,
-		Update: resourceArmApiManagementPropertyCreateUpdate,
-		Delete: resourceArmApiManagementPropertyDelete,
+		Create: resourceApiManagementPropertyCreateUpdate,
+		Read:   resourceApiManagementPropertyRead,
+		Update: resourceApiManagementPropertyCreateUpdate,
+		Delete: resourceApiManagementPropertyDelete,
 
 		DeprecationMessage: "This resource has been superseded by `azurerm_api_management_named_value` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
@@ -81,7 +81,7 @@ func resourceArmApiManagementProperty() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,8 +115,13 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 		parameters.NamedValueCreateContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, "")
+	if err != nil {
+		return fmt.Errorf(" creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on creating/updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -128,10 +133,10 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementPropertyRead(d, meta)
+	return resourceApiManagementPropertyRead(d, meta)
 }
 
-func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,14 +167,16 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
-		d.Set("value", properties.Value)
+		if !*properties.Secret {
+			d.Set("value", properties.Value)
+		}
 		d.Set("tags", properties.Tags)
 	}
 
 	return nil
 }
 
-func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

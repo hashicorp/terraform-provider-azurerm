@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -14,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +27,11 @@ func resourceArmSharedImage() *schema.Resource {
 		Read:   resourceArmSharedImageRead,
 		Update: resourceArmSharedImageCreateUpdate,
 		Delete: resourceArmSharedImageDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SharedImageID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -58,6 +62,7 @@ func resourceArmSharedImage() *schema.Resource {
 			"os_type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Linux),
 					string(compute.Windows),
@@ -107,6 +112,34 @@ func resourceArmSharedImage() *schema.Resource {
 				Optional: true,
 			},
 
+			"purchase_plan": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"publisher": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"product": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"privacy_statement_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -115,6 +148,12 @@ func resourceArmSharedImage() *schema.Resource {
 			"release_note_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+
+			"specialized": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"tags": tags.Schema(),
@@ -132,16 +171,6 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	description := d.Get("description").(string)
-	hyperVGeneration := d.Get("hyper_v_generation").(string)
-
-	eula := d.Get("eula").(string)
-	privacyStatementUri := d.Get("privacy_statement_uri").(string)
-	releaseNoteURI := d.Get("release_note_uri").(string)
-
-	osType := d.Get("os_type").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
@@ -156,21 +185,25 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	identifier := expandGalleryImageIdentifier(d)
-
 	image := compute.GalleryImage{
-		Location: utils.String(location),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageProperties: &compute.GalleryImageProperties{
-			Description:         utils.String(description),
-			Eula:                utils.String(eula),
-			Identifier:          identifier,
-			PrivacyStatementURI: utils.String(privacyStatementUri),
-			ReleaseNoteURI:      utils.String(releaseNoteURI),
-			OsType:              compute.OperatingSystemTypes(osType),
-			OsState:             compute.Generalized,
-			HyperVGeneration:    compute.HyperVGeneration(hyperVGeneration),
+			Description:         utils.String(d.Get("description").(string)),
+			Eula:                utils.String(d.Get("eula").(string)),
+			Identifier:          expandGalleryImageIdentifier(d),
+			PrivacyStatementURI: utils.String(d.Get("privacy_statement_uri").(string)),
+			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
+			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
+			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
+			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if d.Get("specialized").(bool) {
+		image.GalleryImageProperties.OsState = compute.Specialized
+	} else {
+		image.GalleryImageProperties.OsState = compute.Generalized
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
@@ -201,29 +234,25 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SharedImageID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	galleryName := id.Path["galleries"]
-	name := id.Path["images"]
-
-	resp, err := client.Get(ctx, resourceGroup, galleryName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", name, galleryName, resourceGroup)
+			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.ImageName, id.GalleryName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("gallery_name", galleryName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -232,13 +261,17 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("specialized", props.OsState == compute.Specialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
 
-		flattenedIdentifier := flattenGalleryImageIdentifier(props.Identifier)
-		if err := d.Set("identifier", flattenedIdentifier); err != nil {
+		if err := d.Set("identifier", flattenGalleryImageIdentifier(props.Identifier)); err != nil {
 			return fmt.Errorf("Error setting `identifier`: %+v", err)
+		}
+
+		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
+			return fmt.Errorf("Error setting `purchase_plan`: %+v", err)
 		}
 	}
 
@@ -250,42 +283,38 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SharedImageID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	galleryName := id.Path["galleries"]
-	name := id.Path["images"]
-
-	future, err := client.Delete(ctx, resourceGroup, galleryName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
-		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", name, galleryName, resourceGroup)
+	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.ImageName, id.GalleryName, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, resourceGroup, name, galleryName),
+		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.GalleryName, id.ImageName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, imageName string, galleryName string) resource.StateRefreshFunc {
+func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, galleryName string, imageName string) resource.StateRefreshFunc {
 	// The resource Shared Image depends on the resource Shared Image Gallery.
 	// Although the delete API returns 404 which means the Shared Image resource has been deleted.
 	// Then it tries to immediately delete Shared Image Gallery but it still throws error `Can not delete resource before nested resources are deleted.`
@@ -325,19 +354,76 @@ func flattenGalleryImageIdentifier(input *compute.GalleryImageIdentifier) []inte
 		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
+	offer := ""
 	if input.Offer != nil {
-		result["offer"] = *input.Offer
+		offer = *input.Offer
 	}
 
+	publisher := ""
 	if input.Publisher != nil {
-		result["publisher"] = *input.Publisher
+		publisher = *input.Publisher
 	}
 
+	sku := ""
 	if input.Sku != nil {
-		result["sku"] = *input.Sku
+		sku = *input.Sku
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"offer":     offer,
+			"publisher": publisher,
+			"sku":       sku,
+		},
+	}
+}
+
+func expandGalleryImagePurchasePlan(input []interface{}) *compute.ImagePurchasePlan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := compute.ImagePurchasePlan{
+		Name: utils.String(v["name"].(string)),
+	}
+
+	if publisher := v["publisher"].(string); publisher != "" {
+		result.Publisher = &publisher
+	}
+
+	if product := v["product"].(string); product != "" {
+		result.Product = &product
+	}
+
+	return &result
+}
+
+func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
+		},
+	}
 }

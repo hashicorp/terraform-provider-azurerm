@@ -111,7 +111,6 @@ func (client VpnServerConfigurationsAssociatedWithVirtualWanClient) ListSender(r
 func (client VpnServerConfigurationsAssociatedWithVirtualWanClient) ListResponder(resp *http.Response) (result VpnServerConfigurationsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

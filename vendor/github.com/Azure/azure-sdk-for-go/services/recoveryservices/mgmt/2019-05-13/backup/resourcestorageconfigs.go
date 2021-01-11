@@ -73,6 +73,7 @@ func (client ResourceStorageConfigsClient) Get(ctx context.Context, vaultName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceStorageConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client ResourceStorageConfigsClient) GetSender(req *http.Request) (*http.R
 func (client ResourceStorageConfigsClient) GetResponder(resp *http.Response) (result ResourceConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +150,7 @@ func (client ResourceStorageConfigsClient) Patch(ctx context.Context, vaultName 
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceStorageConfigsClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,7 +190,6 @@ func (client ResourceStorageConfigsClient) PatchSender(req *http.Request) (*http
 func (client ResourceStorageConfigsClient) PatchResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +228,7 @@ func (client ResourceStorageConfigsClient) Update(ctx context.Context, vaultName
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceStorageConfigsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -267,7 +268,6 @@ func (client ResourceStorageConfigsClient) UpdateSender(req *http.Request) (*htt
 func (client ResourceStorageConfigsClient) UpdateResponder(resp *http.Response) (result ResourceConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

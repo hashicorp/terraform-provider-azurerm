@@ -10,6 +10,8 @@ description: |-
 
 Manages a HDInsight ML Services Cluster.
 
+!> **Note:** [HDInsight 3.6 is deprecated and will be retired on 2020-12-31 - HDInsight 4.0 no longer supports ML Services Clusters](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions) - as such this Terraform resource is deprecated and will be removed in the next major version of the AzureRM Terraform Provider.
+
 ## Example Usage
 
 ```hcl
@@ -28,7 +30,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -116,9 +117,9 @@ The following arguments are supported:
 
 A `gateway` block supports the following:
 
-* `enabled` - (Required) Is the Ambari portal enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
-* `password` - (Required) The password used for the Ambari Portal. Changing this forces a new resource to be created.
+* `password` - (Required) The password used for the Ambari Portal.
 
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
@@ -198,7 +199,7 @@ A `worker_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
 
-* `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
+* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -246,8 +247,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the MLServices HDInsight Cluster.
@@ -260,5 +259,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 HDInsight ML Services Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_ml_services_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_ml_services_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -34,8 +34,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Destroy: false,
+				Config: testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
@@ -44,10 +43,13 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 			{
 				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image", true),
+					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep(
+				"delete_data_disks_on_termination",
+				"delete_os_disk_on_termination",
+			),
 		},
 	})
 }
@@ -67,8 +69,7 @@ func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Destroy: false,
+				Config: testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
@@ -77,10 +78,13 @@ func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 			{
 				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", "V2"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image", true),
+					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep(
+				"delete_data_disks_on_termination",
+				"delete_os_disk_on_termination",
+			),
 		},
 	})
 }
@@ -110,7 +114,7 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 			{
 				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "ZRS", ""),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image", true),
+					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
 			data.ImportStep(),
@@ -134,8 +138,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Destroy: false,
+				Config: testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
@@ -144,7 +147,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image", true),
+					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
 			{
@@ -171,8 +174,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_customImage_fromVHD_setup(data, userName, password, hostName),
-				Destroy: false,
+				Config: testAccAzureRMImage_customImage_fromVHD_setup(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
@@ -483,7 +485,6 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
@@ -548,6 +549,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "%s"
+  allow_blob_public_access = true
 
   tags = {
     environment = "Dev"
@@ -606,106 +608,10 @@ func testAccAzureRMImage_standaloneImage_provision(data acceptance.TestData, use
 		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
 	}
 
+	setup := testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, storageType)
+
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctpip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "%s"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctnicsource-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "%s"
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "testsource"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = "%s"
-    admin_password = "%s"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
+%s
 
 resource "azurerm_image" "test" {
   name                = "accteste"
@@ -728,7 +634,7 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, storageType, userName, password, storageType == "ZRS", hyperVGenAtt)
+`, setup, storageType == "ZRS", hyperVGenAtt)
 }
 
 func testAccAzureRMImage_standaloneImage_requiresImport(data acceptance.TestData, userName string, password string, hostName string) string {
@@ -1359,106 +1265,9 @@ resource "azurerm_virtual_machine" "testsource" {
 }
 
 func testAccAzureRMImageVMSS_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
+	setup := testAccAzureRMImageVMSS_customImage_fromVHD_setup(data, userName, password, hostName)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctpip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "%s"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctnicsource-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "testsource"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = "%s"
-    admin_password = "%s"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
+%s
 
 resource "azurerm_image" "testdestination" {
   name                = "accteste"
@@ -1518,5 +1327,5 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
     id = azurerm_image.testdestination.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password, data.RandomInteger, userName, password, data.RandomInteger)
+`, setup, data.RandomInteger, userName, password, data.RandomInteger)
 }

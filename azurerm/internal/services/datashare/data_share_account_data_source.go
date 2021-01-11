@@ -2,7 +2,6 @@ package datashare
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,7 +15,7 @@ import (
 
 func dataSourceDataShareAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareAccountRead,
+		Read: dataSourceDataShareAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -26,7 +25,7 @@ func dataSourceDataShareAccount() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DataShareAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -57,7 +56,7 @@ func dataSourceDataShareAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -68,9 +67,7 @@ func dataSourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("DataShare Account %q does not exist in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("retrieving DataShare Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

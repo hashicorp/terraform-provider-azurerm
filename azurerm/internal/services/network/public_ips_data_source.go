@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -92,36 +92,26 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 	filteredIPAddresses := make([]network.PublicIPAddress, 0)
 	for _, element := range resp.Values() {
 		nicIsAttached := element.IPConfiguration != nil
-		shouldInclude := true
 
-		if v, ok := d.GetOkExists("name_prefix"); ok {
-			if prefix := v.(string); prefix != "" {
-				if !strings.HasPrefix(*element.Name, prefix) {
-					shouldInclude = false
-				}
+		if prefix := d.Get("name_prefix").(string); prefix != "" {
+			if !strings.HasPrefix(*element.Name, prefix) {
+				continue
 			}
 		}
 
-		if v, ok := d.GetOkExists("attached"); ok {
-			attachedOnly := v.(bool)
+		attachedOnly := d.Get("attached").(bool)
+		if attachedOnly != nicIsAttached {
+			continue
+		}
 
-			if attachedOnly != nicIsAttached {
-				shouldInclude = false
+		if allocationType := d.Get("allocation_type").(string); allocationType != "" {
+			allocation := network.IPAllocationMethod(allocationType)
+			if element.PublicIPAllocationMethod != allocation {
+				continue
 			}
 		}
 
-		if v, ok := d.GetOkExists("allocation_type"); ok {
-			if allocationType := v.(string); allocationType != "" {
-				allocation := network.IPAllocationMethod(allocationType)
-				if element.PublicIPAllocationMethod != allocation {
-					shouldInclude = false
-				}
-			}
-		}
-
-		if shouldInclude {
-			filteredIPAddresses = append(filteredIPAddresses, element)
-		}
+		filteredIPAddresses = append(filteredIPAddresses, element)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -146,31 +136,40 @@ func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
 }
 
 func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
-	output := make(map[string]string)
-
+	id := ""
 	if input.ID != nil {
-		output["id"] = *input.ID
+		id = *input.ID
 	}
 
+	name := ""
 	if input.Name != nil {
-		output["name"] = *input.Name
+		name = *input.Name
 	}
 
+	domainNameLabel := ""
+	fqdn := ""
+	ipAddress := ""
 	if props := input.PublicIPAddressPropertiesFormat; props != nil {
 		if dns := props.DNSSettings; dns != nil {
-			if fqdn := dns.Fqdn; fqdn != nil {
-				output["fqdn"] = *fqdn
+			if dns.Fqdn != nil {
+				fqdn = *dns.Fqdn
 			}
 
-			if label := dns.DomainNameLabel; label != nil {
-				output["domain_name_label"] = *label
+			if dns.DomainNameLabel != nil {
+				domainNameLabel = *dns.DomainNameLabel
 			}
 		}
 
-		if ip := props.IPAddress; ip != nil {
-			output["ip_address"] = *ip
+		if props.IPAddress != nil {
+			ipAddress = *props.IPAddress
 		}
 	}
 
-	return output
+	return map[string]string{
+		"id":                id,
+		"name":              name,
+		"domain_name_label": domainNameLabel,
+		"fqdn":              fqdn,
+		"ip_address":        ipAddress,
+	}
 }

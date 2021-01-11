@@ -32,17 +32,19 @@ The following arguments are supported:
 
 ~> **NOTE:** The field `group_id` has been deprecated in favour of `name`.
 
+* `display_name` - Specifies the display name of this Management Group.
+
+~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.  
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Management Group.
 
-* `display_name` - A friendly name for the Management Group.
-
 * `parent_management_group_id` - The ID of any Parent Management Group.
 
-* `subscription_ids` - A list of Subscription ID's which are assigned to the Management Group.
+* `subscription_ids` - A list of Subscription IDs which are assigned to the Management Group.
 
 ## Timeouts
 

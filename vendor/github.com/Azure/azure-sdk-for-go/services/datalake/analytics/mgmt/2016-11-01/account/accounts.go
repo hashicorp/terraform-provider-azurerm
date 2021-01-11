@@ -80,6 +80,7 @@ func (client AccountsClient) CheckNameAvailability(ctx context.Context, location
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client AccountsClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client AccountsClient) CheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,7 +220,6 @@ func (client AccountsClient) CreateSender(req *http.Request) (future AccountsCre
 func (client AccountsClient) CreateResponder(resp *http.Response) (result DataLakeAnalyticsAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -296,7 +295,6 @@ func (client AccountsClient) DeleteSender(req *http.Request) (future AccountsDel
 func (client AccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -334,6 +332,7 @@ func (client AccountsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,7 +370,6 @@ func (client AccountsClient) GetSender(req *http.Request) (*http.Response, error
 func (client AccountsClient) GetResponder(resp *http.Response) (result DataLakeAnalyticsAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -430,6 +428,10 @@ func (client AccountsClient) List(ctx context.Context, filter string, top *int32
 	result.dlaalr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.dlaalr.hasNextLink() && result.dlaalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -483,7 +485,6 @@ func (client AccountsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client AccountsClient) ListResponder(resp *http.Response) (result DataLakeAnalyticsAccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -508,6 +509,7 @@ func (client AccountsClient) listNextResults(ctx context.Context, lastResults Da
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -580,6 +582,10 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.dlaalr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.dlaalr.hasNextLink() && result.dlaalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -634,7 +640,6 @@ func (client AccountsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client AccountsClient) ListByResourceGroupResponder(resp *http.Response) (result DataLakeAnalyticsAccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -659,6 +664,7 @@ func (client AccountsClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -754,7 +760,6 @@ func (client AccountsClient) UpdateSender(req *http.Request) (future AccountsUpd
 func (client AccountsClient) UpdateResponder(resp *http.Response) (result DataLakeAnalyticsAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

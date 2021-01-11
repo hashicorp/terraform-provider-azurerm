@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementAuthorizationServer() *schema.Resource {
+func resourceApiManagementAuthorizationServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementAuthorizationServerCreateUpdate,
-		Read:   resourceArmApiManagementAuthorizationServerRead,
-		Update: resourceArmApiManagementAuthorizationServerCreateUpdate,
-		Delete: resourceArmApiManagementAuthorizationServerDelete,
+		Create: resourceApiManagementAuthorizationServerCreateUpdate,
+		Read:   resourceApiManagementAuthorizationServerRead,
+		Update: resourceApiManagementAuthorizationServerCreateUpdate,
+		Delete: resourceApiManagementAuthorizationServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -183,7 +183,7 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,10 +274,10 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementAuthorizationServerRead(d, meta)
+	return resourceApiManagementAuthorizationServerRead(d, meta)
 }
 
-func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,7 +310,6 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 		d.Set("authorization_endpoint", props.AuthorizationEndpoint)
 		d.Set("client_id", props.ClientID)
 		d.Set("client_registration_endpoint", props.ClientRegistrationEndpoint)
-		d.Set("client_secret", props.ClientSecret)
 		d.Set("default_scope", props.DefaultScope)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
@@ -343,7 +342,7 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

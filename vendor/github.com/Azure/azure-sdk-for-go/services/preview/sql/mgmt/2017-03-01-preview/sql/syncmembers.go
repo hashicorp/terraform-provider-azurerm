@@ -121,7 +121,6 @@ func (client SyncMembersClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client SyncMembersClient) CreateOrUpdateResponder(resp *http.Response) (result SyncMember, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client SyncMembersClient) DeleteSender(req *http.Request) (future SyncMemb
 func (client SyncMembersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -246,6 +244,7 @@ func (client SyncMembersClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +285,6 @@ func (client SyncMembersClient) GetSender(req *http.Request) (*http.Response, er
 func (client SyncMembersClient) GetResponder(resp *http.Response) (result SyncMember, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -329,6 +327,10 @@ func (client SyncMembersClient) ListBySyncGroup(ctx context.Context, resourceGro
 	result.smlr, err = client.ListBySyncGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "ListBySyncGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.smlr.hasNextLink() && result.smlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -368,7 +370,6 @@ func (client SyncMembersClient) ListBySyncGroupSender(req *http.Request) (*http.
 func (client SyncMembersClient) ListBySyncGroupResponder(resp *http.Response) (result SyncMemberListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,6 +394,7 @@ func (client SyncMembersClient) listBySyncGroupNextResults(ctx context.Context, 
 	result, err = client.ListBySyncGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "listBySyncGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -449,6 +451,10 @@ func (client SyncMembersClient) ListMemberSchemas(ctx context.Context, resourceG
 	result.sfsplr, err = client.ListMemberSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "ListMemberSchemas", resp, "Failure responding to request")
+		return
+	}
+	if result.sfsplr.hasNextLink() && result.sfsplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -489,7 +495,6 @@ func (client SyncMembersClient) ListMemberSchemasSender(req *http.Request) (*htt
 func (client SyncMembersClient) ListMemberSchemasResponder(resp *http.Response) (result SyncFullSchemaPropertiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -514,6 +519,7 @@ func (client SyncMembersClient) listMemberSchemasNextResults(ctx context.Context
 	result, err = client.ListMemberSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "listMemberSchemasNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -609,7 +615,6 @@ func (client SyncMembersClient) RefreshMemberSchemaSender(req *http.Request) (fu
 func (client SyncMembersClient) RefreshMemberSchemaResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -694,7 +699,6 @@ func (client SyncMembersClient) UpdateSender(req *http.Request) (future SyncMemb
 func (client SyncMembersClient) UpdateResponder(resp *http.Response) (result SyncMember, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

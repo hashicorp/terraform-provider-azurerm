@@ -3,7 +3,7 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -104,7 +104,7 @@ func bootDiagnosticsSchema() *schema.Schema {
 				// TODO: should this be `storage_account_endpoint`?
 				"storage_account_uri": {
 					Type:     schema.TypeString,
-					Required: true,
+					Optional: true,
 					// TODO: validation
 				},
 			},
@@ -113,10 +113,20 @@ func bootDiagnosticsSchema() *schema.Schema {
 }
 
 func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return &compute.DiagnosticsProfile{
 			BootDiagnostics: &compute.BootDiagnostics{
 				Enabled:    utils.Bool(false),
+				StorageURI: utils.String(""),
+			},
+		}
+	}
+
+	// this serves the managed boot diagnostics, in this case we only have this empty block without `storage_account_uri` set
+	if input[0] == nil {
+		return &compute.DiagnosticsProfile{
+			BootDiagnostics: &compute.BootDiagnostics{
+				Enabled:    utils.Bool(true),
 				StorageURI: utils.String(""),
 			},
 		}
@@ -337,24 +347,28 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"publisher": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: isVirtualMachine,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     isVirtualMachine,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: isVirtualMachine,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     isVirtualMachine,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: isVirtualMachine,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     isVirtualMachine,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"version": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: isVirtualMachine,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     isVirtualMachine,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},

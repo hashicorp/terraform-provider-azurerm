@@ -95,6 +95,7 @@ func (client OpenIDConnectProviderClient) CreateOrUpdate(ctx context.Context, re
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -139,7 +140,6 @@ func (client OpenIDConnectProviderClient) CreateOrUpdateSender(req *http.Request
 func (client OpenIDConnectProviderClient) CreateOrUpdateResponder(resp *http.Response) (result OpenidConnectProviderContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,6 +192,7 @@ func (client OpenIDConnectProviderClient) Delete(ctx context.Context, resourceGr
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,7 +232,6 @@ func (client OpenIDConnectProviderClient) DeleteSender(req *http.Request) (*http
 func (client OpenIDConnectProviderClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -281,6 +281,7 @@ func (client OpenIDConnectProviderClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -319,7 +320,6 @@ func (client OpenIDConnectProviderClient) GetSender(req *http.Request) (*http.Re
 func (client OpenIDConnectProviderClient) GetResponder(resp *http.Response) (result OpenidConnectProviderContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -370,6 +370,7 @@ func (client OpenIDConnectProviderClient) GetEntityTag(ctx context.Context, reso
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -408,7 +409,6 @@ func (client OpenIDConnectProviderClient) GetEntityTagSender(req *http.Request) 
 func (client OpenIDConnectProviderClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -467,6 +467,10 @@ func (client OpenIDConnectProviderClient) ListByService(ctx context.Context, res
 	result.oicpc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.oicpc.hasNextLink() && result.oicpc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -513,7 +517,6 @@ func (client OpenIDConnectProviderClient) ListByServiceSender(req *http.Request)
 func (client OpenIDConnectProviderClient) ListByServiceResponder(resp *http.Response) (result OpenIDConnectProviderCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -538,6 +541,7 @@ func (client OpenIDConnectProviderClient) listByServiceNextResults(ctx context.C
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -601,6 +605,7 @@ func (client OpenIDConnectProviderClient) ListSecrets(ctx context.Context, resou
 	result, err = client.ListSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "ListSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -639,7 +644,6 @@ func (client OpenIDConnectProviderClient) ListSecretsSender(req *http.Request) (
 func (client OpenIDConnectProviderClient) ListSecretsResponder(resp *http.Response) (result ClientSecretContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -693,6 +697,7 @@ func (client OpenIDConnectProviderClient) Update(ctx context.Context, resourceGr
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OpenIDConnectProviderClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -734,7 +739,6 @@ func (client OpenIDConnectProviderClient) UpdateSender(req *http.Request) (*http
 func (client OpenIDConnectProviderClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

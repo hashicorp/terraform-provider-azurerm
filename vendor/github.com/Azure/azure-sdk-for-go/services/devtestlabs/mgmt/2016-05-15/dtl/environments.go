@@ -123,7 +123,6 @@ func (client EnvironmentsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client EnvironmentsClient) CreateOrUpdateResponder(resp *http.Response) (result Environment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client EnvironmentsClient) DeleteSender(req *http.Request) (future Environ
 func (client EnvironmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -244,6 +242,7 @@ func (client EnvironmentsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +285,6 @@ func (client EnvironmentsClient) GetSender(req *http.Request) (*http.Response, e
 func (client EnvironmentsClient) GetResponder(resp *http.Response) (result Environment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -331,6 +329,10 @@ func (client EnvironmentsClient) List(ctx context.Context, resourceGroupName str
 	result.rwcde, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcde.hasNextLink() && result.rwcde.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -381,7 +383,6 @@ func (client EnvironmentsClient) ListSender(req *http.Request) (*http.Response, 
 func (client EnvironmentsClient) ListResponder(resp *http.Response) (result ResponseWithContinuationDtlEnvironment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -406,6 +407,7 @@ func (client EnvironmentsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

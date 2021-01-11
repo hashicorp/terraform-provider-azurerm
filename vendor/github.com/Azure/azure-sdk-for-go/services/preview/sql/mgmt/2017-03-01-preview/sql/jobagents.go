@@ -127,7 +127,6 @@ func (client JobAgentsClient) CreateOrUpdateSender(req *http.Request) (future Jo
 func (client JobAgentsClient) CreateOrUpdateResponder(resp *http.Response) (result JobAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client JobAgentsClient) DeleteSender(req *http.Request) (future JobAgentsD
 func (client JobAgentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -246,6 +244,7 @@ func (client JobAgentsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,7 +283,6 @@ func (client JobAgentsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client JobAgentsClient) GetResponder(resp *http.Response) (result JobAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +323,10 @@ func (client JobAgentsClient) ListByServer(ctx context.Context, resourceGroupNam
 	result.jalr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.jalr.hasNextLink() && result.jalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -362,7 +364,6 @@ func (client JobAgentsClient) ListByServerSender(req *http.Request) (*http.Respo
 func (client JobAgentsClient) ListByServerResponder(resp *http.Response) (result JobAgentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,6 +388,7 @@ func (client JobAgentsClient) listByServerNextResults(ctx context.Context, lastR
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -481,7 +483,6 @@ func (client JobAgentsClient) UpdateSender(req *http.Request) (future JobAgentsU
 func (client JobAgentsClient) UpdateResponder(resp *http.Response) (result JobAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

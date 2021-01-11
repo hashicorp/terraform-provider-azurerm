@@ -75,6 +75,7 @@ func (client TasksClient) Cancel(ctx context.Context, groupName string, serviceN
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client TasksClient) CancelSender(req *http.Request) (*http.Response, error
 func (client TasksClient) CancelResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +158,7 @@ func (client TasksClient) CreateOrUpdate(ctx context.Context, parameters Project
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +200,6 @@ func (client TasksClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client TasksClient) CreateOrUpdateResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -242,6 +242,7 @@ func (client TasksClient) Delete(ctx context.Context, groupName string, serviceN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,7 +285,6 @@ func (client TasksClient) DeleteSender(req *http.Request) (*http.Response, error
 func (client TasksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -326,6 +326,7 @@ func (client TasksClient) Get(ctx context.Context, groupName string, serviceName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -368,7 +369,6 @@ func (client TasksClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client TasksClient) GetResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -412,6 +412,10 @@ func (client TasksClient) List(ctx context.Context, groupName string, serviceNam
 	result.tl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -453,7 +457,6 @@ func (client TasksClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client TasksClient) ListResponder(resp *http.Response) (result TaskList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -478,6 +481,7 @@ func (client TasksClient) listNextResults(ctx context.Context, lastResults TaskL
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -533,6 +537,7 @@ func (client TasksClient) Update(ctx context.Context, parameters ProjectTask, gr
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -574,7 +579,6 @@ func (client TasksClient) UpdateSender(req *http.Request) (*http.Response, error
 func (client TasksClient) UpdateResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

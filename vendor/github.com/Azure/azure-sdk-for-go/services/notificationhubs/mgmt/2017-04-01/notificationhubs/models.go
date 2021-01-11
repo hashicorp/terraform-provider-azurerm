@@ -31,55 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 
-// AccessRights enumerates the values for access rights.
-type AccessRights string
-
-const (
-	// Listen ...
-	Listen AccessRights = "Listen"
-	// Manage ...
-	Manage AccessRights = "Manage"
-	// SendEnumValue ...
-	SendEnumValue AccessRights = "Send"
-)
-
-// PossibleAccessRightsValues returns an array of possible values for the AccessRights const type.
-func PossibleAccessRightsValues() []AccessRights {
-	return []AccessRights{Listen, Manage, SendEnumValue}
-}
-
-// NamespaceType enumerates the values for namespace type.
-type NamespaceType string
-
-const (
-	// Messaging ...
-	Messaging NamespaceType = "Messaging"
-	// NotificationHub ...
-	NotificationHub NamespaceType = "NotificationHub"
-)
-
-// PossibleNamespaceTypeValues returns an array of possible values for the NamespaceType const type.
-func PossibleNamespaceTypeValues() []NamespaceType {
-	return []NamespaceType{Messaging, NotificationHub}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Free ...
-	Free SkuName = "Free"
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Free, Standard}
-}
-
 // AdmCredential description of a NotificationHub AdmCredential.
 type AdmCredential struct {
 	// AdmCredentialProperties - Properties of NotificationHub AdmCredential.
@@ -168,23 +119,25 @@ func (ac *ApnsCredential) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ApnsCredentialProperties description of a NotificationHub ApnsCredential.
+// ApnsCredentialProperties description of a NotificationHub ApnsCredential. Note that there is no explicit
+// switch between Certificate and Token Authentication Modes. The mode is determined based on the
+// properties passed in.
 type ApnsCredentialProperties struct {
-	// ApnsCertificate - The APNS certificate.
+	// ApnsCertificate - The APNS certificate. Specify if using Certificate Authentication Mode.
 	ApnsCertificate *string `json:"apnsCertificate,omitempty"`
-	// CertificateKey - The certificate key.
+	// CertificateKey - The APNS certificate password if it exists.
 	CertificateKey *string `json:"certificateKey,omitempty"`
-	// Endpoint - The endpoint of this credential.
+	// Endpoint - The APNS endpoint of this credential. If using Certificate Authentication Mode and Sandbox specify 'gateway.sandbox.push.apple.com'. If using Certificate Authentication Mode and Production specify 'gateway.push.apple.com'. If using Token Authentication Mode and Sandbox specify 'https://api.development.push.apple.com:443/3/device'. If using Token Authentication Mode and Production specify 'https://api.push.apple.com:443/3/device'.
 	Endpoint *string `json:"endpoint,omitempty"`
-	// Thumbprint - The APNS certificate Thumbprint
+	// Thumbprint - The APNS certificate thumbprint. Specify if using Certificate Authentication Mode.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// KeyID - A 10-character key identifier (kid) key, obtained from your developer account
+	// KeyID - A 10-character key identifier (kid) key, obtained from your developer account. Specify if using Token Authentication Mode.
 	KeyID *string `json:"keyId,omitempty"`
-	// AppName - The name of the application
+	// AppName - The name of the application or BundleId. Specify if using Token Authentication Mode.
 	AppName *string `json:"appName,omitempty"`
-	// AppID - The issuer (iss) registered claim key, whose value is your 10-character Team ID, obtained from your developer account
+	// AppID - The issuer (iss) registered claim key. The value is a 10-character TeamId, obtained from your developer account. Specify if using Token Authentication Mode.
 	AppID *string `json:"appId,omitempty"`
-	// Token - Provider Authentication Token, obtained through your developer account
+	// Token - Provider Authentication Token, obtained through your developer account. Specify if using Token Authentication Mode.
 	Token *string `json:"token,omitempty"`
 }
 
@@ -603,7 +556,7 @@ func (gc *GcmCredential) UnmarshalJSON(body []byte) error {
 
 // GcmCredentialProperties description of a NotificationHub GcmCredential.
 type GcmCredentialProperties struct {
-	// GcmEndpoint - The GCM endpoint.
+	// GcmEndpoint - The FCM legacy endpoint. Default value is 'https://fcm.googleapis.com/fcm/send'
 	GcmEndpoint *string `json:"gcmEndpoint,omitempty"`
 	// GoogleAPIKey - The Google API key.
 	GoogleAPIKey *string `json:"googleApiKey,omitempty"`
@@ -686,10 +639,15 @@ func (lr ListResult) IsEmpty() bool {
 	return lr.Value == nil || len(*lr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lr ListResult) hasNextLink() bool {
+	return lr.NextLink != nil && len(*lr.NextLink) != 0
+}
+
 // listResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lr ListResult) listResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lr.NextLink == nil || len(to.String(lr.NextLink)) < 1 {
+	if !lr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -717,11 +675,16 @@ func (page *ListResultPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lr)
+		if err != nil {
+			return err
+		}
+		page.lr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lr = next
 	return nil
 }
 
@@ -751,8 +714,11 @@ func (page ListResultPage) Values() []ResourceType {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
 // MpnsCredential description of a NotificationHub MpnsCredential.
@@ -995,10 +961,15 @@ func (nlr NamespaceListResult) IsEmpty() bool {
 	return nlr.Value == nil || len(*nlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (nlr NamespaceListResult) hasNextLink() bool {
+	return nlr.NextLink != nil && len(*nlr.NextLink) != 0
+}
+
 // namespaceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (nlr NamespaceListResult) namespaceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if nlr.NextLink == nil || len(to.String(nlr.NextLink)) < 1 {
+	if !nlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1026,11 +997,16 @@ func (page *NamespaceListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.nlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.nlr)
+		if err != nil {
+			return err
+		}
+		page.nlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.nlr = next
 	return nil
 }
 
@@ -1060,8 +1036,11 @@ func (page NamespaceListResultPage) Values() []NamespaceResource {
 }
 
 // Creates a new instance of the NamespaceListResultPage type.
-func NewNamespaceListResultPage(getNextPage func(context.Context, NamespaceListResult) (NamespaceListResult, error)) NamespaceListResultPage {
-	return NamespaceListResultPage{fn: getNextPage}
+func NewNamespaceListResultPage(cur NamespaceListResult, getNextPage func(context.Context, NamespaceListResult) (NamespaceListResult, error)) NamespaceListResultPage {
+	return NamespaceListResultPage{
+		fn:  getNextPage,
+		nlr: cur,
+	}
 }
 
 // NamespacePatchParameters parameters supplied to the Patch Namespace operation.
@@ -1114,6 +1093,51 @@ type NamespaceProperties struct {
 	DataCenter *string `json:"dataCenter,omitempty"`
 	// NamespaceType - The namespace type. Possible values include: 'Messaging', 'NotificationHub'
 	NamespaceType NamespaceType `json:"namespaceType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NamespaceProperties.
+func (np NamespaceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if np.Name != nil {
+		objectMap["name"] = np.Name
+	}
+	if np.ProvisioningState != nil {
+		objectMap["provisioningState"] = np.ProvisioningState
+	}
+	if np.Region != nil {
+		objectMap["region"] = np.Region
+	}
+	if np.Status != nil {
+		objectMap["status"] = np.Status
+	}
+	if np.CreatedAt != nil {
+		objectMap["createdAt"] = np.CreatedAt
+	}
+	if np.UpdatedAt != nil {
+		objectMap["updatedAt"] = np.UpdatedAt
+	}
+	if np.ServiceBusEndpoint != nil {
+		objectMap["serviceBusEndpoint"] = np.ServiceBusEndpoint
+	}
+	if np.SubscriptionID != nil {
+		objectMap["subscriptionId"] = np.SubscriptionID
+	}
+	if np.ScaleUnit != nil {
+		objectMap["scaleUnit"] = np.ScaleUnit
+	}
+	if np.Enabled != nil {
+		objectMap["enabled"] = np.Enabled
+	}
+	if np.Critical != nil {
+		objectMap["critical"] = np.Critical
+	}
+	if np.DataCenter != nil {
+		objectMap["dataCenter"] = np.DataCenter
+	}
+	if np.NamespaceType != "" {
+		objectMap["namespaceType"] = np.NamespaceType
+	}
+	return json.Marshal(objectMap)
 }
 
 // NamespaceResource description of a Namespace resource.
@@ -1262,6 +1286,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; Service provider: Microsoft.NotificationHubs
@@ -1350,10 +1383,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1381,11 +1419,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1415,8 +1458,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PatchParameters parameters supplied to the patch NotificationHub operation.
@@ -1938,10 +1984,15 @@ func (saarlr SharedAccessAuthorizationRuleListResult) IsEmpty() bool {
 	return saarlr.Value == nil || len(*saarlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (saarlr SharedAccessAuthorizationRuleListResult) hasNextLink() bool {
+	return saarlr.NextLink != nil && len(*saarlr.NextLink) != 0
+}
+
 // sharedAccessAuthorizationRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (saarlr SharedAccessAuthorizationRuleListResult) sharedAccessAuthorizationRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if saarlr.NextLink == nil || len(to.String(saarlr.NextLink)) < 1 {
+	if !saarlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1970,11 +2021,16 @@ func (page *SharedAccessAuthorizationRuleListResultPage) NextWithContext(ctx con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.saarlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.saarlr)
+		if err != nil {
+			return err
+		}
+		page.saarlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.saarlr = next
 	return nil
 }
 
@@ -2004,8 +2060,11 @@ func (page SharedAccessAuthorizationRuleListResultPage) Values() []SharedAccessA
 }
 
 // Creates a new instance of the SharedAccessAuthorizationRuleListResultPage type.
-func NewSharedAccessAuthorizationRuleListResultPage(getNextPage func(context.Context, SharedAccessAuthorizationRuleListResult) (SharedAccessAuthorizationRuleListResult, error)) SharedAccessAuthorizationRuleListResultPage {
-	return SharedAccessAuthorizationRuleListResultPage{fn: getNextPage}
+func NewSharedAccessAuthorizationRuleListResultPage(cur SharedAccessAuthorizationRuleListResult, getNextPage func(context.Context, SharedAccessAuthorizationRuleListResult) (SharedAccessAuthorizationRuleListResult, error)) SharedAccessAuthorizationRuleListResultPage {
+	return SharedAccessAuthorizationRuleListResultPage{
+		fn:     getNextPage,
+		saarlr: cur,
+	}
 }
 
 // SharedAccessAuthorizationRuleProperties sharedAccessAuthorizationRule properties.
@@ -2028,6 +2087,15 @@ type SharedAccessAuthorizationRuleProperties struct {
 	CreatedTime *string `json:"createdTime,omitempty"`
 	// Revision - READ-ONLY; The revision number for the rule
 	Revision *int32 `json:"revision,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SharedAccessAuthorizationRuleProperties.
+func (saarp SharedAccessAuthorizationRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if saarp.Rights != nil {
+		objectMap["rights"] = saarp.Rights
+	}
+	return json.Marshal(objectMap)
 }
 
 // SharedAccessAuthorizationRuleResource description of a Namespace AuthorizationRules.

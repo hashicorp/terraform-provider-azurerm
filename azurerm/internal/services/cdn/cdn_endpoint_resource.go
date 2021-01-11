@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -20,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCdnEndpoint() *schema.Resource {
+func resourceCdnEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCdnEndpointCreate,
-		Read:   resourceArmCdnEndpointRead,
-		Update: resourceArmCdnEndpointUpdate,
-		Delete: resourceArmCdnEndpointDelete,
+		Create: resourceCdnEndpointCreate,
+		Read:   resourceCdnEndpointRead,
+		Update: resourceCdnEndpointUpdate,
+		Delete: resourceCdnEndpointDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +37,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnEndpointID(id)
+			_, err := parse.EndpointID(id)
 			return err
 		}),
 
@@ -59,7 +61,6 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			"origin_host_header": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"is_http_allowed": {
@@ -140,7 +141,6 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			"is_compression_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"probe_path": {
@@ -202,10 +202,19 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.CdnEndpointV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.CdnEndpointV0ToV1,
+				Version: 0,
+			},
+		},
 	}
 }
 
-func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -231,28 +240,36 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
-	compressionEnabled := d.Get("is_compression_enabled").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
 	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
-	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	geoFilters := expandCdnEndpointGeoFilters(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	endpoint := cdn.Endpoint{
 		Location: &location,
 		EndpointProperties: &cdn.EndpointProperties{
-			ContentTypesToCompress:     &contentTypes,
-			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
-			IsCompressionEnabled:       &compressionEnabled,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if _, ok := d.GetOk("content_types_to_compress"); ok {
+		contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
+		endpoint.EndpointProperties.ContentTypesToCompress = &contentTypes
+	}
+
+	if _, ok := d.GetOk("geo_filter"); ok {
+		geoFilters := expandCdnEndpointGeoFilters(d)
+		endpoint.EndpointProperties.GeoFilters = geoFilters
+	}
+
+	if v, ok := d.GetOk("is_compression_enabled"); ok {
+		endpoint.EndpointProperties.IsCompressionEnabled = utils.Bool(v.(bool))
 	}
 
 	if optimizationType != "" {
@@ -284,10 +301,12 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
-			return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
+			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 		}
 
-		endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
+		if profile.Sku.Name == cdn.StandardMicrosoft {
+			endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
+		}
 	}
 
 	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
@@ -304,46 +323,58 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.EndpointID(*read.ID)
+	if err != nil {
+		return err
+	}
 
-	return resourceArmCdnEndpointRead(d, meta)
+	d.SetId(id.ID())
+
+	return resourceCdnEndpointRead(d, meta)
 }
 
-func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
-	compressionEnabled := d.Get("is_compression_enabled").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
 	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
-	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	geoFilters := expandCdnEndpointGeoFilters(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
-			ContentTypesToCompress:     &contentTypes,
-			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
-			IsCompressionEnabled:       utils.Bool(compressionEnabled),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
 		},
 		Tags: tags.Expand(t),
 	}
 
+	if _, ok := d.GetOk("content_types_to_compress"); ok {
+		contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
+		endpoint.EndpointPropertiesUpdateParameters.ContentTypesToCompress = &contentTypes
+	}
+
+	if _, ok := d.GetOk("geo_filter"); ok {
+		geoFilters := expandCdnEndpointGeoFilters(d)
+		endpoint.EndpointPropertiesUpdateParameters.GeoFilters = geoFilters
+	}
+
+	if v, ok := d.GetOk("is_compression_enabled"); ok {
+		endpoint.EndpointPropertiesUpdateParameters.IsCompressionEnabled = utils.Bool(v.(bool))
+	}
 	if optimizationType != "" {
 		endpoint.EndpointPropertiesUpdateParameters.OptimizationType = cdn.OptimizationType(optimizationType)
 	}
@@ -372,10 +403,12 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
-			return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
+			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 		}
 
-		endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
+		if profile.Sku.Name == cdn.StandardMicrosoft {
+			endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
+		}
 	}
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
@@ -387,15 +420,15 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
-	return resourceArmCdnEndpointRead(d, meta)
+	return resourceCdnEndpointRead(d, meta)
 }
 
-func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -422,7 +455,6 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("host_name", props.HostName)
-		d.Set("is_compression_enabled", props.IsCompressionEnabled)
 		d.Set("is_http_allowed", props.IsHTTPAllowed)
 		d.Set("is_https_allowed", props.IsHTTPSAllowed)
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
@@ -430,6 +462,12 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("origin_path", props.OriginPath)
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
+
+		if _, ok := d.GetOk("is_compression_enabled"); ok {
+			if compressionEnabled := props.IsCompressionEnabled; compressionEnabled != nil {
+				d.Set("is_compression_enabled", compressionEnabled)
+			}
+		}
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
@@ -461,12 +499,12 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}

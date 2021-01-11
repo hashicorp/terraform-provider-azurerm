@@ -115,7 +115,6 @@ func (client ReplicationvCentersClient) CreateSender(req *http.Request) (future 
 func (client ReplicationvCentersClient) CreateResponder(resp *http.Response) (result VCenter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -193,7 +192,6 @@ func (client ReplicationvCentersClient) DeleteSender(req *http.Request) (future 
 func (client ReplicationvCentersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -231,6 +229,7 @@ func (client ReplicationvCentersClient) Get(ctx context.Context, fabricName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -270,7 +269,6 @@ func (client ReplicationvCentersClient) GetSender(req *http.Request) (*http.Resp
 func (client ReplicationvCentersClient) GetResponder(resp *http.Response) (result VCenter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,6 +305,10 @@ func (client ReplicationvCentersClient) List(ctx context.Context) (result VCente
 	result.vcc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.vcc.hasNextLink() && result.vcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -344,7 +346,6 @@ func (client ReplicationvCentersClient) ListSender(req *http.Request) (*http.Res
 func (client ReplicationvCentersClient) ListResponder(resp *http.Response) (result VCenterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,6 +370,7 @@ func (client ReplicationvCentersClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -420,6 +422,10 @@ func (client ReplicationvCentersClient) ListByReplicationFabrics(ctx context.Con
 	result.vcc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
+	}
+	if result.vcc.hasNextLink() && result.vcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -458,7 +464,6 @@ func (client ReplicationvCentersClient) ListByReplicationFabricsSender(req *http
 func (client ReplicationvCentersClient) ListByReplicationFabricsResponder(resp *http.Response) (result VCenterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -483,6 +488,7 @@ func (client ReplicationvCentersClient) listByReplicationFabricsNextResults(ctx 
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -576,7 +582,6 @@ func (client ReplicationvCentersClient) UpdateSender(req *http.Request) (future 
 func (client ReplicationvCentersClient) UpdateResponder(resp *http.Response) (result VCenter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -34,6 +34,25 @@ func TestAccAzureRMDedicatedHost_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDedicatedHost_basicNewSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDedicatedHost_basicNewSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDedicatedHostExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMDedicatedHost_autoReplaceOnFailure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
@@ -189,9 +208,9 @@ func testCheckAzureRMDedicatedHostExists(resourceName string) resource.TestCheck
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DedicatedHostsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", id.Name, id.HostGroup, id.ResourceGroup)
+				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", id.HostName, id.HostGroupName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
 		}
@@ -214,7 +233,7 @@ func testCheckAzureRMDedicatedHostDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
 			}
@@ -236,6 +255,21 @@ resource "azurerm_dedicated_host" "test" {
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMDedicatedHost_basicNewSku(data acceptance.TestData) string {
+	template := testAccAzureRMDedicatedHost_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctest-DH-%d"
+  location                = azurerm_resource_group.test.location
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  sku_name                = "DCSv2-Type1"
   platform_fault_domain   = 1
 }
 `, template, data.RandomInteger)

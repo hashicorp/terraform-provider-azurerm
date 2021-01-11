@@ -113,7 +113,6 @@ func (client LoadBalancersClient) CreateOrUpdateSender(req *http.Request) (futur
 func (client LoadBalancersClient) CreateOrUpdateResponder(resp *http.Response) (result LoadBalancer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client LoadBalancersClient) DeleteSender(req *http.Request) (future LoadBa
 func (client LoadBalancersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +226,7 @@ func (client LoadBalancersClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,7 +267,6 @@ func (client LoadBalancersClient) GetSender(req *http.Request) (*http.Response, 
 func (client LoadBalancersClient) GetResponder(resp *http.Response) (result LoadBalancer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,6 +305,10 @@ func (client LoadBalancersClient) List(ctx context.Context, resourceGroupName st
 	result.lblr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lblr.hasNextLink() && result.lblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -343,7 +345,6 @@ func (client LoadBalancersClient) ListSender(req *http.Request) (*http.Response,
 func (client LoadBalancersClient) ListResponder(resp *http.Response) (result LoadBalancerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -368,6 +369,7 @@ func (client LoadBalancersClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -417,6 +419,10 @@ func (client LoadBalancersClient) ListAll(ctx context.Context) (result LoadBalan
 	result.lblr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.lblr.hasNextLink() && result.lblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -452,7 +458,6 @@ func (client LoadBalancersClient) ListAllSender(req *http.Request) (*http.Respon
 func (client LoadBalancersClient) ListAllResponder(resp *http.Response) (result LoadBalancerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,6 +482,7 @@ func (client LoadBalancersClient) listAllNextResults(ctx context.Context, lastRe
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -529,6 +535,7 @@ func (client LoadBalancersClient) UpdateTags(ctx context.Context, resourceGroupN
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -568,7 +575,6 @@ func (client LoadBalancersClient) UpdateTagsSender(req *http.Request) (*http.Res
 func (client LoadBalancersClient) UpdateTagsResponder(resp *http.Response) (result LoadBalancer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

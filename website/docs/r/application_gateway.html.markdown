@@ -29,14 +29,14 @@ resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.0.0/24"
+  address_prefixes     = ["10.254.0.0/24"]
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.2.0/24"
+  address_prefixes     = ["10.254.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -93,7 +93,7 @@ resource "azurerm_application_gateway" "network" {
     path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
-    request_timeout       = 1
+    request_timeout       = 60
   }
 
   http_listener {
@@ -167,7 +167,7 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
@@ -252,7 +252,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
 
-* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
+* `subnet_id` - (Optional) The ID of the Subnet.
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
@@ -276,7 +276,7 @@ A `gateway_ip_configuration` block supports the following:
 
 * `name` - (Required) The Name of this Gateway IP Configuration.
 
-* `subnet_id` - (Required) The ID of a Subnet.
+* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
 
 ---
 
@@ -288,7 +288,7 @@ A `http_listener` block supports the following:
 
 * `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
 
-* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
+* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener. Setting this value changes Listener Type to 'Multi site'.
 
 * `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
 
@@ -301,6 +301,8 @@ A `http_listener` block supports the following:
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
 
 ---
 
@@ -352,6 +354,8 @@ A `probe` block support the following:
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
 
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+
 * `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
@@ -375,6 +379,8 @@ A `request_routing_rule` block supports the following:
 * `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
+
+-> **NOTE:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
@@ -453,13 +459,13 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall.
+* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
 

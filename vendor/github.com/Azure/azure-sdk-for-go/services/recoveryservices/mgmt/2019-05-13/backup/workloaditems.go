@@ -79,6 +79,10 @@ func (client WorkloadItemsClient) List(ctx context.Context, vaultName string, re
 	result.wirl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.WorkloadItemsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wirl.hasNextLink() && result.wirl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -124,7 +128,6 @@ func (client WorkloadItemsClient) ListSender(req *http.Request) (*http.Response,
 func (client WorkloadItemsClient) ListResponder(resp *http.Response) (result WorkloadItemResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -149,6 +152,7 @@ func (client WorkloadItemsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.WorkloadItemsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

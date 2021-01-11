@@ -15,21 +15,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementUser() *schema.Resource {
+func resourceApiManagementUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementUserCreateUpdate,
-		Read:   resourceArmApiManagementUserRead,
-		Update: resourceArmApiManagementUserCreateUpdate,
-		Delete: resourceArmApiManagementUserDelete,
+		Create: resourceApiManagementUserCreateUpdate,
+		Read:   resourceApiManagementUserRead,
+		Update: resourceApiManagementUserCreateUpdate,
+		Delete: resourceApiManagementUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(45 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(45 * time.Minute),
+			Delete: schema.DefaultTimeout(45 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -92,7 +92,7 @@ func resourceArmApiManagementUser() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementUserCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,8 @@ func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta inter
 		properties.UserCreateParameterProperties.State = apimanagement.UserState(state)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, userId, properties, ""); err != nil {
+	notify := utils.Bool(false)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, userId, properties, notify, ""); err != nil {
 		return fmt.Errorf("creating/updating User %q (API Management Service %q / Resource Group %q): %+v", userId, serviceName, resourceGroup, err)
 	}
 
@@ -160,10 +161,10 @@ func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmApiManagementUserRead(d, meta)
+	return resourceApiManagementUserRead(d, meta)
 }
 
-func resourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +204,7 @@ func resourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmApiManagementUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +220,7 @@ func resourceArmApiManagementUserDelete(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Deleting User %q (API Management Service %q / Resource Grouo %q)", userId, serviceName, resourceGroup)
 	deleteSubscriptions := utils.Bool(true)
 	notify := utils.Bool(false)
-	resp, err := client.Delete(ctx, resourceGroup, serviceName, userId, "", deleteSubscriptions, notify)
+	resp, err := client.Delete(ctx, resourceGroup, serviceName, userId, "", deleteSubscriptions, notify, apimanagement.DeveloperPortal)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting User %q (API Management Service %q / Resource Group %q): %+v", userId, serviceName, resourceGroup, err)

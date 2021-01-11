@@ -139,7 +139,6 @@ func (client PoolsClient) CreateOrUpdateSender(req *http.Request) (future PoolsC
 func (client PoolsClient) CreateOrUpdateResponder(resp *http.Response) (result CapacityPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -225,7 +224,6 @@ func (client PoolsClient) DeleteSender(req *http.Request) (future PoolsDeleteFut
 func (client PoolsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,6 +270,7 @@ func (client PoolsClient) Get(ctx context.Context, resourceGroupName string, acc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,7 +309,6 @@ func (client PoolsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client PoolsClient) GetResponder(resp *http.Response) (result CapacityPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,6 +355,7 @@ func (client PoolsClient) List(ctx context.Context, resourceGroupName string, ac
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -394,7 +393,6 @@ func (client PoolsClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client PoolsClient) ListResponder(resp *http.Response) (result CapacityPoolList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -443,6 +441,7 @@ func (client PoolsClient) Update(ctx context.Context, body CapacityPoolPatch, re
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -486,7 +485,6 @@ func (client PoolsClient) UpdateSender(req *http.Request) (*http.Response, error
 func (client PoolsClient) UpdateResponder(resp *http.Response) (result CapacityPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

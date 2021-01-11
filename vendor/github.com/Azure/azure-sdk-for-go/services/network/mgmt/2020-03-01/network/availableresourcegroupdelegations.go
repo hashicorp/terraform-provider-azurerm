@@ -75,6 +75,10 @@ func (client AvailableResourceGroupDelegationsClient) List(ctx context.Context, 
 	result.adr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableResourceGroupDelegationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.adr.hasNextLink() && result.adr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -112,7 +116,6 @@ func (client AvailableResourceGroupDelegationsClient) ListSender(req *http.Reque
 func (client AvailableResourceGroupDelegationsClient) ListResponder(resp *http.Response) (result AvailableDelegationsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -137,6 +140,7 @@ func (client AvailableResourceGroupDelegationsClient) listNextResults(ctx contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableResourceGroupDelegationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

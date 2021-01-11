@@ -93,6 +93,7 @@ func (client IntegrationRuntimeObjectMetadataClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimeObjectMetadataClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -136,7 +137,6 @@ func (client IntegrationRuntimeObjectMetadataClient) GetSender(req *http.Request
 func (client IntegrationRuntimeObjectMetadataClient) GetResponder(resp *http.Response) (result SsisObjectMetadataListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -230,7 +230,6 @@ func (client IntegrationRuntimeObjectMetadataClient) RefreshSender(req *http.Req
 func (client IntegrationRuntimeObjectMetadataClient) RefreshResponder(resp *http.Response) (result SsisObjectMetadataStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

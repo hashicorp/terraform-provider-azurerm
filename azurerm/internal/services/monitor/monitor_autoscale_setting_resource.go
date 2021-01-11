@@ -16,18 +16,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorAutoScaleSetting() *schema.Resource {
+func resourceMonitorAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Read:   resourceArmMonitorAutoScaleSettingRead,
-		Update: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Delete: resourceArmMonitorAutoScaleSettingDelete,
+		Create: resourceMonitorAutoScaleSettingCreateUpdate,
+		Read:   resourceMonitorAutoScaleSettingRead,
+		Update: resourceMonitorAutoScaleSettingCreateUpdate,
+		Delete: resourceMonitorAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -151,6 +150,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 														string(insights.TimeAggregationTypeMaximum),
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
+														string(insights.TimeAggregationTypeLast),
 													}, true),
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
@@ -355,7 +355,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -363,7 +363,7 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -417,10 +417,10 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorAutoScaleSettingRead(d, meta)
+	return resourceMonitorAutoScaleSettingRead(d, meta)
 }
 
-func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -470,7 +470,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, tagMap)
 }
 
-func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -645,18 +645,19 @@ func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]i
 	for _, v := range input {
 		notificationRaw := v.(map[string]interface{})
 
-		emailsRaw := notificationRaw["email"].([]interface{})
-		emailRaw := emailsRaw[0].(map[string]interface{})
-		email := expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailRaw)
-
 		configsRaw := notificationRaw["webhook"].([]interface{})
 		webhooks := expandAzureRmMonitorAutoScaleSettingNotificationWebhook(configsRaw)
 
 		notification := insights.AutoscaleNotification{
-			Email:     email,
 			Operation: utils.String("scale"),
 			Webhooks:  webhooks,
 		}
+
+		emailsRaw := notificationRaw["email"].([]interface{})
+		if len(emailsRaw) > 0 && emailsRaw[0] != nil {
+			notification.Email = expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailsRaw[0].(map[string]interface{}))
+		}
+
 		notifications = append(notifications, notification)
 	}
 
@@ -684,6 +685,9 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	webhooks := make([]insights.WebhookNotification, 0)
 
 	for _, v := range input {
+		if v == nil {
+			continue
+		}
 		webhookRaw := v.(map[string]interface{})
 
 		webhook := insights.WebhookNotification{

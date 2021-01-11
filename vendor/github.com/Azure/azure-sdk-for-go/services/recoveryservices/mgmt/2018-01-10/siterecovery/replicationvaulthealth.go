@@ -70,6 +70,7 @@ func (client ReplicationVaultHealthClient) Get(ctx context.Context) (result Vaul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client ReplicationVaultHealthClient) GetSender(req *http.Request) (*http.R
 func (client ReplicationVaultHealthClient) GetResponder(resp *http.Response) (result VaultHealthDetails, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -180,7 +180,6 @@ func (client ReplicationVaultHealthClient) RefreshSender(req *http.Request) (fut
 func (client ReplicationVaultHealthClient) RefreshResponder(resp *http.Response) (result VaultHealthDetails, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

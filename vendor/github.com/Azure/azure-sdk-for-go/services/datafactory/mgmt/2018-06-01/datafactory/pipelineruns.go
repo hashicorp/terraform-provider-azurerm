@@ -88,6 +88,7 @@ func (client PipelineRunsClient) Cancel(ctx context.Context, resourceGroupName s
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelineRunsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client PipelineRunsClient) CancelSender(req *http.Request) (*http.Response
 func (client PipelineRunsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -180,6 +180,7 @@ func (client PipelineRunsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelineRunsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -218,7 +219,6 @@ func (client PipelineRunsClient) GetSender(req *http.Request) (*http.Response, e
 func (client PipelineRunsClient) GetResponder(resp *http.Response) (result PipelineRun, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -273,6 +273,7 @@ func (client PipelineRunsClient) QueryByFactory(ctx context.Context, resourceGro
 	result, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelineRunsClient", "QueryByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,7 +313,6 @@ func (client PipelineRunsClient) QueryByFactorySender(req *http.Request) (*http.
 func (client PipelineRunsClient) QueryByFactoryResponder(resp *http.Response) (result PipelineRunsQueryResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

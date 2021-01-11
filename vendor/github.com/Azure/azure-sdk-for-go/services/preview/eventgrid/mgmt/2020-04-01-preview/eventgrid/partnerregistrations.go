@@ -74,6 +74,7 @@ func (client PartnerRegistrationsClient) CreateOrUpdate(ctx context.Context, res
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client PartnerRegistrationsClient) CreateOrUpdateSender(req *http.Request)
 func (client PartnerRegistrationsClient) CreateOrUpdateResponder(resp *http.Response) (result PartnerRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +152,7 @@ func (client PartnerRegistrationsClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,7 +190,6 @@ func (client PartnerRegistrationsClient) DeleteSender(req *http.Request) (*http.
 func (client PartnerRegistrationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,6 +227,7 @@ func (client PartnerRegistrationsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +265,6 @@ func (client PartnerRegistrationsClient) GetSender(req *http.Request) (*http.Res
 func (client PartnerRegistrationsClient) GetResponder(resp *http.Response) (result PartnerRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -300,6 +300,7 @@ func (client PartnerRegistrationsClient) List(ctx context.Context) (result Partn
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -331,7 +332,6 @@ func (client PartnerRegistrationsClient) ListSender(req *http.Request) (*http.Re
 func (client PartnerRegistrationsClient) ListResponder(resp *http.Response) (result PartnerRegistrationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -378,6 +378,10 @@ func (client PartnerRegistrationsClient) ListByResourceGroup(ctx context.Context
 	result.prlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.prlr.hasNextLink() && result.prlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -420,7 +424,6 @@ func (client PartnerRegistrationsClient) ListByResourceGroupSender(req *http.Req
 func (client PartnerRegistrationsClient) ListByResourceGroupResponder(resp *http.Response) (result PartnerRegistrationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -445,6 +448,7 @@ func (client PartnerRegistrationsClient) listByResourceGroupNextResults(ctx cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -503,6 +507,10 @@ func (client PartnerRegistrationsClient) ListBySubscription(ctx context.Context,
 	result.prlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.prlr.hasNextLink() && result.prlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -544,7 +552,6 @@ func (client PartnerRegistrationsClient) ListBySubscriptionSender(req *http.Requ
 func (client PartnerRegistrationsClient) ListBySubscriptionResponder(resp *http.Response) (result PartnerRegistrationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -569,6 +576,7 @@ func (client PartnerRegistrationsClient) listBySubscriptionNextResults(ctx conte
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -621,6 +629,7 @@ func (client PartnerRegistrationsClient) Update(ctx context.Context, resourceGro
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -660,7 +669,6 @@ func (client PartnerRegistrationsClient) UpdateSender(req *http.Request) (*http.
 func (client PartnerRegistrationsClient) UpdateResponder(resp *http.Response) (result PartnerRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

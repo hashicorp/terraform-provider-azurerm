@@ -34,7 +34,7 @@ resource "azurerm_subnet" "example" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_local_network_gateway" "onpremise" {
@@ -106,7 +106,7 @@ resource "azurerm_subnet" "us_gateway" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.us.name
   virtual_network_name = azurerm_virtual_network.us.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "us" {
@@ -148,7 +148,7 @@ resource "azurerm_subnet" "europe_gateway" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.europe.name
   virtual_network_name = azurerm_virtual_network.europe.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_public_ip" "europe" {
@@ -226,6 +226,8 @@ The following arguments are supported:
     Express Route Circuit. This field is required only if the type is an
     ExpressRoute connection.
 
+* `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Changing this forces a new resource to be created.
+
 * `express_route_circuit_id` - (Optional) The ID of the Express Route Circuit
     when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`).
     The Express Route Circuit can be in the same or in a different subscription.
@@ -234,6 +236,8 @@ The following arguments are supported:
     network gateway when creating a VNet-to-VNet connection (i.e. when `type`
     is `Vnet2Vnet`). The peer Virtual Network Gateway can be in the same or
     in a different subscription.
+
+* `local_azure_ip_address_enabled` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
 
 * `local_network_gateway_id` - (Optional) The ID of the local network gateway
     when creating Site-to-Site connection (i.e. when `type` is `IPsec`).
@@ -260,6 +264,10 @@ The following arguments are supported:
 * `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
+
+* `traffic_selector_policy` A `traffic_selector_policy` which allows to specify traffic selector policy proposal to be used in a virtual network gateway connection.
+    Only one block can be defined for a connection.
+    For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

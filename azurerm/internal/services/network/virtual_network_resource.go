@@ -8,15 +8,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -64,6 +65,12 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
+			"bgp_community": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.VirtualNetworkBgpCommunity,
+			},
+
 			"ddos_protection_plan": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -91,6 +98,12 @@ func resourceArmVirtualNetwork() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+			},
+
+			"vm_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"guid": {
@@ -146,7 +159,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -184,7 +197,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 
 			networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
-			if !azure.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
+			if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
 				networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
 			}
 		}
@@ -261,6 +274,18 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 		}
+
+		bgpCommunity := ""
+		if p := props.BgpCommunities; p != nil {
+			if v := p.VirtualNetworkCommunity; v != nil {
+				bgpCommunity = *v
+			}
+		}
+		if err := d.Set("bgp_community", bgpCommunity); err != nil {
+			return fmt.Errorf("Error setting `bgp_community`: %+v", err)
+		}
+
+		d.Set("vm_protection_enabled", props.EnableVMProtection)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -346,7 +371,8 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
-		Subnets: &subnets,
+		EnableVMProtection: utils.Bool(d.Get("vm_protection_enabled").(bool)),
+		Subnets:            &subnets,
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
@@ -368,6 +394,10 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			enable := v.(bool)
 			properties.EnableDdosProtection = &enable
 		}
+	}
+
+	if v, ok := d.GetOk("bgp_community"); ok {
+		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
 	}
 
 	return properties, nil
@@ -457,7 +487,6 @@ func resourceAzureSubnetHash(v interface{}) int {
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
 	subnetClient := meta.(*clients.Client).Network.SubnetsClient
 	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
-
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return &network.Subnet{}, nil
@@ -490,7 +519,7 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.Resou
 
 				networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
-				if !azure.SliceContainsValue(nsgNames, networkSecurityGroupName) {
+				if !utils.SliceContainsValue(nsgNames, networkSecurityGroupName) {
 					nsgNames = append(nsgNames, networkSecurityGroupName)
 				}
 			}

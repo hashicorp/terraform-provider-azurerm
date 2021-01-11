@@ -96,6 +96,7 @@ func (client IncidentRelationsClient) CreateOrUpdateRelation(ctx context.Context
 	result, err = client.CreateOrUpdateRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "CreateOrUpdateRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -138,7 +139,6 @@ func (client IncidentRelationsClient) CreateOrUpdateRelationSender(req *http.Req
 func (client IncidentRelationsClient) CreateOrUpdateRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,6 +195,7 @@ func (client IncidentRelationsClient) DeleteRelation(ctx context.Context, resour
 	result, err = client.DeleteRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "DeleteRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,7 +236,6 @@ func (client IncidentRelationsClient) DeleteRelationSender(req *http.Request) (*
 func (client IncidentRelationsClient) DeleteRelationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -291,6 +291,7 @@ func (client IncidentRelationsClient) GetRelation(ctx context.Context, resourceG
 	result, err = client.GetRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "GetRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -331,7 +332,6 @@ func (client IncidentRelationsClient) GetRelationSender(req *http.Request) (*htt
 func (client IncidentRelationsClient) GetRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -394,6 +394,10 @@ func (client IncidentRelationsClient) List(ctx context.Context, resourceGroupNam
 	result.rl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rl.hasNextLink() && result.rl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -445,7 +449,6 @@ func (client IncidentRelationsClient) ListSender(req *http.Request) (*http.Respo
 func (client IncidentRelationsClient) ListResponder(resp *http.Response) (result RelationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -470,6 +473,7 @@ func (client IncidentRelationsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

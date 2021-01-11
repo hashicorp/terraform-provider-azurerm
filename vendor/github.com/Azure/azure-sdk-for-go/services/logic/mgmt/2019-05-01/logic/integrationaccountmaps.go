@@ -82,6 +82,7 @@ func (client IntegrationAccountMapsClient) CreateOrUpdate(ctx context.Context, r
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client IntegrationAccountMapsClient) CreateOrUpdateSender(req *http.Reques
 func (client IntegrationAccountMapsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountMap, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,7 @@ func (client IntegrationAccountMapsClient) Delete(ctx context.Context, resourceG
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +201,6 @@ func (client IntegrationAccountMapsClient) DeleteSender(req *http.Request) (*htt
 func (client IntegrationAccountMapsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +239,7 @@ func (client IntegrationAccountMapsClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,7 +278,6 @@ func (client IntegrationAccountMapsClient) GetSender(req *http.Request) (*http.R
 func (client IntegrationAccountMapsClient) GetResponder(resp *http.Response) (result IntegrationAccountMap, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +319,10 @@ func (client IntegrationAccountMapsClient) List(ctx context.Context, resourceGro
 	result.iamlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.iamlr.hasNextLink() && result.iamlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -362,7 +366,6 @@ func (client IntegrationAccountMapsClient) ListSender(req *http.Request) (*http.
 func (client IntegrationAccountMapsClient) ListResponder(resp *http.Response) (result IntegrationAccountMapListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,6 +390,7 @@ func (client IntegrationAccountMapsClient) listNextResults(ctx context.Context, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -439,6 +443,7 @@ func (client IntegrationAccountMapsClient) ListContentCallbackURL(ctx context.Co
 	result, err = client.ListContentCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "ListContentCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -479,7 +484,6 @@ func (client IntegrationAccountMapsClient) ListContentCallbackURLSender(req *htt
 func (client IntegrationAccountMapsClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

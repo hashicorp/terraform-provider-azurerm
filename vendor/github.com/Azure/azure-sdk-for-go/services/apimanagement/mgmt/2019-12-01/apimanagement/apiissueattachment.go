@@ -104,6 +104,7 @@ func (client APIIssueAttachmentClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -150,7 +151,6 @@ func (client APIIssueAttachmentClient) CreateOrUpdateSender(req *http.Request) (
 func (client APIIssueAttachmentClient) CreateOrUpdateResponder(resp *http.Response) (result IssueAttachmentContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,6 +213,7 @@ func (client APIIssueAttachmentClient) Delete(ctx context.Context, resourceGroup
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -254,7 +255,6 @@ func (client APIIssueAttachmentClient) DeleteSender(req *http.Request) (*http.Re
 func (client APIIssueAttachmentClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -314,6 +314,7 @@ func (client APIIssueAttachmentClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -354,7 +355,6 @@ func (client APIIssueAttachmentClient) GetSender(req *http.Request) (*http.Respo
 func (client APIIssueAttachmentClient) GetResponder(resp *http.Response) (result IssueAttachmentContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -415,6 +415,7 @@ func (client APIIssueAttachmentClient) GetEntityTag(ctx context.Context, resourc
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -455,7 +456,6 @@ func (client APIIssueAttachmentClient) GetEntityTagSender(req *http.Request) (*h
 func (client APIIssueAttachmentClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -523,6 +523,10 @@ func (client APIIssueAttachmentClient) ListByService(ctx context.Context, resour
 	result.iac, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.iac.hasNextLink() && result.iac.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -571,7 +575,6 @@ func (client APIIssueAttachmentClient) ListByServiceSender(req *http.Request) (*
 func (client APIIssueAttachmentClient) ListByServiceResponder(resp *http.Response) (result IssueAttachmentCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -596,6 +599,7 @@ func (client APIIssueAttachmentClient) listByServiceNextResults(ctx context.Cont
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

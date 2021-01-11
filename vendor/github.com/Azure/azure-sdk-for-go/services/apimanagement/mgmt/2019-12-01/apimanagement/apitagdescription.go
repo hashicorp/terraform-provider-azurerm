@@ -101,6 +101,7 @@ func (client APITagDescriptionClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -146,7 +147,6 @@ func (client APITagDescriptionClient) CreateOrUpdateSender(req *http.Request) (*
 func (client APITagDescriptionClient) CreateOrUpdateResponder(resp *http.Response) (result TagDescriptionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,6 +207,7 @@ func (client APITagDescriptionClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -247,7 +248,6 @@ func (client APITagDescriptionClient) DeleteSender(req *http.Request) (*http.Res
 func (client APITagDescriptionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -305,6 +305,7 @@ func (client APITagDescriptionClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -344,7 +345,6 @@ func (client APITagDescriptionClient) GetSender(req *http.Request) (*http.Respon
 func (client APITagDescriptionClient) GetResponder(resp *http.Response) (result TagDescriptionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -403,6 +403,7 @@ func (client APITagDescriptionClient) GetEntityTag(ctx context.Context, resource
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -442,7 +443,6 @@ func (client APITagDescriptionClient) GetEntityTagSender(req *http.Request) (*ht
 func (client APITagDescriptionClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -508,6 +508,10 @@ func (client APITagDescriptionClient) ListByService(ctx context.Context, resourc
 	result.tdc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.tdc.hasNextLink() && result.tdc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -555,7 +559,6 @@ func (client APITagDescriptionClient) ListByServiceSender(req *http.Request) (*h
 func (client APITagDescriptionClient) ListByServiceResponder(resp *http.Response) (result TagDescriptionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -580,6 +583,7 @@ func (client APITagDescriptionClient) listByServiceNextResults(ctx context.Conte
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

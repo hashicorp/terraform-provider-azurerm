@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -106,6 +105,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.WebApplicationFirewallOperatorIPMatch),
+											string(network.WebApplicationFirewallOperatorGeoMatch),
 											string(network.WebApplicationFirewallOperatorEqual),
 											string(network.WebApplicationFirewallOperatorContains),
 											string(network.WebApplicationFirewallOperatorLessThan),
@@ -120,6 +120,21 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 									"negation_condition": {
 										Type:     schema.TypeBool,
 										Optional: true,
+									},
+									"transforms": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(network.HTMLEntityDecode),
+												string(network.Lowercase),
+												string(network.RemoveNulls),
+												string(network.Trim),
+												string(network.URLDecode),
+												string(network.URLEncode),
+											}, false),
+										},
 									},
 								},
 							},
@@ -246,6 +261,23 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 							}, false),
 							Default: string(network.Prevention),
 						},
+						"request_body_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"file_upload_limit_in_mb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 750),
+							Default:      100,
+						},
+						"max_request_body_size_in_kb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(8, 128),
+							Default:      128,
+						},
 					},
 				},
 			},
@@ -263,7 +295,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -415,10 +447,16 @@ func expandArmWebApplicationFirewallPolicyPolicySettings(input []interface{}) *n
 		enabled = network.WebApplicationFirewallEnabledStateEnabled
 	}
 	mode := v["mode"].(string)
+	requestBodyCheck := v["request_body_check"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
+	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := network.PolicySettings{
-		State: enabled,
-		Mode:  network.WebApplicationFirewallMode(mode),
+		State:                  enabled,
+		Mode:                   network.WebApplicationFirewallMode(mode),
+		RequestBodyCheck:       utils.Bool(requestBodyCheck),
+		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
 	}
 	return &result
 }
@@ -521,12 +559,18 @@ func expandArmWebApplicationFirewallPolicyMatchCondition(input []interface{}) *[
 		operator := v["operator"].(string)
 		negationCondition := v["negation_condition"].(bool)
 		matchValues := v["match_values"].([]interface{})
+		transformsRaw := v["transforms"].(*schema.Set).List()
 
+		var transforms []network.WebApplicationFirewallTransform
+		for _, trans := range transformsRaw {
+			transforms = append(transforms, network.WebApplicationFirewallTransform(trans.(string)))
+		}
 		result := network.MatchCondition{
 			MatchValues:      utils.ExpandStringSlice(matchValues),
 			MatchVariables:   expandArmWebApplicationFirewallPolicyMatchVariable(matchVariables),
 			NegationConditon: utils.Bool(negationCondition),
 			Operator:         network.WebApplicationFirewallOperator(operator),
+			Transforms:       &transforms,
 		}
 
 		results = append(results, result)
@@ -585,6 +629,9 @@ func flattenArmWebApplicationFirewallPolicyPolicySettings(input *network.PolicyS
 
 	result["enabled"] = input.State == network.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(input.Mode)
+	result["request_body_check"] = input.RequestBodyCheck
+	result["max_request_body_size_in_kb"] = int(*input.MaxRequestBodySizeInKb)
+	result["file_upload_limit_in_mb"] = int(*input.FileUploadLimitInMb)
 
 	return []interface{}{result}
 }
@@ -688,12 +735,19 @@ func flattenArmWebApplicationFirewallPolicyMatchCondition(input *[]network.Match
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
+		var transforms []interface{}
+		if item.Transforms != nil {
+			for _, trans := range *item.Transforms {
+				transforms = append(transforms, string(trans))
+			}
+		}
 		v["match_values"] = utils.FlattenStringSlice(item.MatchValues)
 		v["match_variables"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition
 		}
 		v["operator"] = string(item.Operator)
+		v["transforms"] = transforms
 
 		results = append(results, v)
 	}

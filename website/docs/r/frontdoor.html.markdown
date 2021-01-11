@@ -27,6 +27,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
+  location                                     = "EastUS2"
   resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -74,7 +75,9 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
+
+* `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
@@ -110,7 +113,7 @@ The `backend_pool` block supports the following:
 
 * `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
 
-* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block whithin this resource to use for this `Backend Pool`.
+* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block within this resource to use for this `Backend Pool`.
 
 ---
 
@@ -136,7 +139,7 @@ The `frontend_endpoint` block supports the following:
 
 * `name` - (Required) Specifies the name of the `frontend_endpoint`.
 
-* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name.
+* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
@@ -186,7 +189,7 @@ The `routing_rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the Routing Rule.
 
-* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
+* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 
@@ -208,9 +211,9 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
 
-* `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
+* `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behaviour preserves the URL path.
 
 * `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `HttpsOnly`.
 
@@ -222,7 +225,7 @@ The `redirect_configuration` block supports the following:
 
 * `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
-* `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
+* `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 
 * `custom_fragment` - (Optional) The destination fragment in the portion of URL after '#'. Set this to add a fragment to the redirect URL.
 
@@ -246,23 +249,27 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
+-> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
+
 ---
 
 ## Attributes Reference
 
 `backend_pool` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Pool.
+* `id` - The ID of the Azure Front Door Backend Pool.
 
+---
 
 `backend` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend.
+* `id` - The ID of the Azure Front Door Backend.
 
+---
 
 `frontend_endpoint` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
+* `id` - The ID of the Azure Front Door Frontend Endpoint.
 
 * `provisioning_state` - Provisioning state of the Front Door.
 
@@ -270,25 +277,31 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 [//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
+---
 
 `backend_pool_health_probe` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Health Probe.
+* `id` - The ID of the Azure Front Door Backend Health Probe.
 
+---
 
 `backend_pool_load_balancing` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
+* `id` - The ID of the Azure Front Door Backend Load Balancer.
 
+---
 
 `routing_rule` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
+* `id` - The ID of the Azure Front Door Backend Routing Rule.
+
+---
 
 `custom_https_configuration` exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
 
+---
 
 The following attributes are exported:
 
@@ -304,7 +317,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
 * `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
-* `read` - (Defaults to 6 hours) Used when retrieving the FrontDoor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor.
 * `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
 
 ## Import
@@ -312,5 +325,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Doors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
+terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1
 ```

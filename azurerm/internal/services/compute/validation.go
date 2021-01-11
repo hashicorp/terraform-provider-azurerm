@@ -35,7 +35,7 @@ func ValidateVmName(i interface{}, k string) (warnings []string, errors []error)
 		errors = append(errors, fmt.Errorf("%q must begin with an alphanumeric character", k))
 	}
 
-	if matched := regexp.MustCompile(`[a-z0-9_]$`).Match([]byte(v)); !matched {
+	if matched := regexp.MustCompile(`\w$`).Match([]byte(v)); !matched {
 		errors = append(errors, fmt.Errorf("%q must end with an alphanumeric character or underscore", k))
 	}
 
@@ -49,15 +49,19 @@ func ValidateVmName(i interface{}, k string) (warnings []string, errors []error)
 
 func ValidateLinuxComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
 	// Linux host name cannot exceed 64 characters in length
-	return ValidateLinuxComputerName(i, k, 64)
+	return ValidateLinuxComputerName(i, k, 64, false)
 }
 
 func ValidateLinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
 	// Linux host name prefix cannot exceed 58 characters in length
-	return ValidateLinuxComputerName(i, k, 58)
+	return ValidateLinuxComputerName(i, k, 58, true)
 }
 
-func ValidateLinuxComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {
+func ValidateOrchestratedVMSSName(i interface{}, k string) (warnings []string, errors []error) {
+	return ValidateVmName(i, k)
+}
+
+func ValidateLinuxComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
@@ -78,8 +82,12 @@ func ValidateLinuxComputerName(i interface{}, k string, maxLength int) (warnings
 		errors = append(errors, fmt.Errorf("%q cannot begin with an underscore", k))
 	}
 
-	if strings.HasSuffix(v, ".") || strings.HasSuffix(v, "-") {
-		errors = append(errors, fmt.Errorf("%q cannot end with an period or dash", k))
+	if strings.HasSuffix(v, ".") {
+		errors = append(errors, fmt.Errorf("%q cannot end with a period", k))
+	}
+
+	if !allowDashSuffix && strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q cannot end with a dash", k))
 	}
 
 	// Linux host name cannot contain the following characters
@@ -164,9 +172,9 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 
 func validateManagedDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
-	if value < 0 || value > 32767 {
+	if value < 0 || value > 65536 {
 		errors = append(errors, fmt.Errorf(
-			"The `disk_size_gb` can only be between 0 and 32767"))
+			"The `disk_size_gb` can only be between 0 and 65536"))
 	}
 	return warnings, errors
 }

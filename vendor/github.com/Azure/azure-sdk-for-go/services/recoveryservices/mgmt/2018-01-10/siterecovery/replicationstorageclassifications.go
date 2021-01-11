@@ -75,6 +75,7 @@ func (client ReplicationStorageClassificationsClient) Get(ctx context.Context, f
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client ReplicationStorageClassificationsClient) GetSender(req *http.Reques
 func (client ReplicationStorageClassificationsClient) GetResponder(resp *http.Response) (result StorageClassification, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,10 @@ func (client ReplicationStorageClassificationsClient) List(ctx context.Context) 
 	result.scc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.scc.hasNextLink() && result.scc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -188,7 +192,6 @@ func (client ReplicationStorageClassificationsClient) ListSender(req *http.Reque
 func (client ReplicationStorageClassificationsClient) ListResponder(resp *http.Response) (result StorageClassificationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,6 +216,7 @@ func (client ReplicationStorageClassificationsClient) listNextResults(ctx contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -264,6 +268,10 @@ func (client ReplicationStorageClassificationsClient) ListByReplicationFabrics(c
 	result.scc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
+	}
+	if result.scc.hasNextLink() && result.scc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -302,7 +310,6 @@ func (client ReplicationStorageClassificationsClient) ListByReplicationFabricsSe
 func (client ReplicationStorageClassificationsClient) ListByReplicationFabricsResponder(resp *http.Response) (result StorageClassificationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -327,6 +334,7 @@ func (client ReplicationStorageClassificationsClient) listByReplicationFabricsNe
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -91,6 +91,7 @@ func (client GatewayHostnameConfigurationClient) CreateOrUpdate(ctx context.Cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -132,7 +133,6 @@ func (client GatewayHostnameConfigurationClient) CreateOrUpdateSender(req *http.
 func (client GatewayHostnameConfigurationClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayHostnameConfigurationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,6 +188,7 @@ func (client GatewayHostnameConfigurationClient) Delete(ctx context.Context, res
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -227,7 +228,6 @@ func (client GatewayHostnameConfigurationClient) DeleteSender(req *http.Request)
 func (client GatewayHostnameConfigurationClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -282,6 +282,7 @@ func (client GatewayHostnameConfigurationClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,7 +322,6 @@ func (client GatewayHostnameConfigurationClient) GetSender(req *http.Request) (*
 func (client GatewayHostnameConfigurationClient) GetResponder(resp *http.Response) (result GatewayHostnameConfigurationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -377,6 +377,7 @@ func (client GatewayHostnameConfigurationClient) GetEntityTag(ctx context.Contex
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -416,7 +417,6 @@ func (client GatewayHostnameConfigurationClient) GetEntityTagSender(req *http.Re
 func (client GatewayHostnameConfigurationClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -476,6 +476,10 @@ func (client GatewayHostnameConfigurationClient) ListByService(ctx context.Conte
 	result.ghcc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.ghcc.hasNextLink() && result.ghcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -520,7 +524,6 @@ func (client GatewayHostnameConfigurationClient) ListByServiceSender(req *http.R
 func (client GatewayHostnameConfigurationClient) ListByServiceResponder(resp *http.Response) (result GatewayHostnameConfigurationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -545,6 +548,7 @@ func (client GatewayHostnameConfigurationClient) listByServiceNextResults(ctx co
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

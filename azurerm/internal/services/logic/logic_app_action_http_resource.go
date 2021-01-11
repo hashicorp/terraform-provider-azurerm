@@ -7,18 +7,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-func resourceArmLogicAppActionHTTP() *schema.Resource {
+func resourceLogicAppActionHTTP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppActionHTTPCreateUpdate,
-		Read:   resourceArmLogicAppActionHTTPRead,
-		Update: resourceArmLogicAppActionHTTPCreateUpdate,
-		Delete: resourceArmLogicAppActionHTTPDelete,
+		Create: resourceLogicAppActionHTTPCreateUpdate,
+		Read:   resourceLogicAppActionHTTPRead,
+		Update: resourceLogicAppActionHTTPCreateUpdate,
+		Delete: resourceLogicAppActionHTTPDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,11 +74,34 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"run_after": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"action_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"action_result": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(logic.WorkflowStatusSucceeded),
+								string(logic.WorkflowStatusFailed),
+								string(logic.WorkflowStatusSkipped),
+								string(logic.WorkflowStatusTimedOut),
+							}, false),
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
 	if err != nil {
@@ -99,6 +123,10 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 		"type":   "http",
 	}
 
+	if v, ok := d.GetOk("run_after"); ok {
+		action["runAfter"] = expandLogicAppActionRunAfter(v.(*schema.Set).List())
+	}
+
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
 	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action, "azurerm_logic_app_action_http")
@@ -106,10 +134,10 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	return resourceArmLogicAppActionHTTPRead(d, meta)
+	return resourceLogicAppActionHTTPRead(d, meta)
 }
 
-func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -169,10 +197,21 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	v = action["runAfter"]
+	if v != nil {
+		runAfter, ok := v.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("Error parsing `runAfter` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		}
+		if err := d.Set("run_after", flattenLogicAppActionRunAfter(runAfter)); err != nil {
+			return fmt.Errorf("Error setting `runAfter` for HTTP Action %q: %+v", name, err)
+		}
+	}
+
 	return nil
 }
 
-func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

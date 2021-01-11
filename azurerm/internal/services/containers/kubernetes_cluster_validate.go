@@ -1,11 +1,15 @@
 package containers
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice.ManagedCluster, resourceGroup, name string) error {
@@ -101,7 +105,7 @@ func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice
 
 		hasIdentity := false
 		if identity := cluster.Identity; identity != nil {
-			hasIdentity = identity.Type != containerservice.None
+			hasIdentity = identity.Type != containerservice.ResourceIdentityTypeNone
 		}
 
 		if hasIdentity {
@@ -217,3 +221,72 @@ Principal or Managed Identity for Cluster Authentication - but not both.
 In order to create this Kubernetes Cluster, please remove either the 'identity' block or the
 'service_principal' block.
 `)
+
+// returned when the Control Plane for the AKS Cluster must be upgraded in order to deploy this version to the Node Pool
+var clusterControlPlaneMustBeUpgradedError = func(resourceGroup, clusterName, nodePoolName string, clusterVersion *string, desiredNodePoolVersion string, availableVersions []string) error {
+	versions := make([]string, 0)
+	for _, version := range availableVersions {
+		versions = append(versions, fmt.Sprintf(" * %s", version))
+	}
+	versionsList := strings.Join(versions, "\n")
+	clusterVersionDetails := "We were unable to determine the version of Kubernetes available on the Kubernetes Cluster."
+	if clusterVersion != nil {
+		clusterVersionDetails = fmt.Sprintf("The Kubernetes Cluster is running version %q.", *clusterVersion)
+	}
+
+	return fmt.Errorf(`
+The Kubernetes/Orchestrator Version %q is not available for Node Pool %q.
+
+Please confirm that this version is supported by the Kubernetes Cluster %q
+(Resource Group %q) - which may need to be upgraded first.
+
+%s
+
+The supported Orchestrator Versions for this Node Pool/supported by this Kubernetes Cluster are:
+%s
+
+Node Pools cannot use a version of Kubernetes that is not supported on the Control Plane. More
+details can be found at https://aka.ms/version-skew-policy.
+`, desiredNodePoolVersion, nodePoolName, clusterName, resourceGroup, clusterVersionDetails, versionsList)
+}
+
+func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, resourceGroup, clusterName, nodePoolName, desiredNodePoolVersion string) error {
+	// confirm the version being used is >= the version of the control plane
+	versions, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, resourceGroup, clusterName)
+	if err != nil {
+		return fmt.Errorf("retrieving Available Agent Pool Versions for Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+	}
+	versionExists := false
+	supportedVersions := make([]string, 0)
+	if versions.AgentPoolAvailableVersionsProperties != nil && versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions != nil {
+		for _, version := range *versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions {
+			if version.KubernetesVersion == nil {
+				continue
+			}
+
+			supportedVersions = append(supportedVersions, *version.KubernetesVersion)
+			if *version.KubernetesVersion == desiredNodePoolVersion {
+				versionExists = true
+			}
+		}
+	}
+
+	if !versionExists {
+		cluster, err := client.KubernetesClustersClient.Get(ctx, resourceGroup, clusterName)
+		if err != nil {
+			if !utils.ResponseWasStatusCode(cluster.Response, http.StatusUnauthorized) {
+				return fmt.Errorf("retrieving Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+			}
+		}
+
+		// nilable since a user may not necessarily have access, and this is trying to be helpful
+		var clusterVersion *string
+		if props := cluster.ManagedClusterProperties; props != nil {
+			clusterVersion = props.KubernetesVersion
+		}
+
+		return clusterControlPlaneMustBeUpgradedError(resourceGroup, clusterName, nodePoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)
+	}
+
+	return nil
+}

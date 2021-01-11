@@ -74,9 +74,7 @@ func (client TriggersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 		{TargetValue: triggerName,
 			Constraints: []validation.Constraint{{Target: "triggerName", Name: validation.MaxLength, Rule: 260, Chain: nil},
 				{Target: "triggerName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "triggerName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}},
-		{TargetValue: trigger,
-			Constraints: []validation.Constraint{{Target: "trigger.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+				{Target: "triggerName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("datafactory.TriggersClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -96,6 +94,7 @@ func (client TriggersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -140,7 +139,6 @@ func (client TriggersClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client TriggersClient) CreateOrUpdateResponder(resp *http.Response) (result TriggerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,6 +194,7 @@ func (client TriggersClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,7 +233,6 @@ func (client TriggersClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client TriggersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -291,6 +289,7 @@ func (client TriggersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -333,7 +332,6 @@ func (client TriggersClient) GetSender(req *http.Request) (*http.Response, error
 func (client TriggersClient) GetResponder(resp *http.Response) (result TriggerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -389,6 +387,7 @@ func (client TriggersClient) GetEventSubscriptionStatus(ctx context.Context, res
 	result, err = client.GetEventSubscriptionStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "GetEventSubscriptionStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -427,7 +426,6 @@ func (client TriggersClient) GetEventSubscriptionStatusSender(req *http.Request)
 func (client TriggersClient) GetEventSubscriptionStatusResponder(resp *http.Response) (result TriggerSubscriptionOperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -479,6 +477,11 @@ func (client TriggersClient) ListByFactory(ctx context.Context, resourceGroupNam
 	result.tlr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "ListByFactory", resp, "Failure responding to request")
+		return
+	}
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -516,7 +519,6 @@ func (client TriggersClient) ListByFactorySender(req *http.Request) (*http.Respo
 func (client TriggersClient) ListByFactoryResponder(resp *http.Response) (result TriggerListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -605,6 +607,7 @@ func (client TriggersClient) QueryByFactory(ctx context.Context, resourceGroupNa
 	result, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggersClient", "QueryByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -644,7 +647,6 @@ func (client TriggersClient) QueryByFactorySender(req *http.Request) (*http.Resp
 func (client TriggersClient) QueryByFactoryResponder(resp *http.Response) (result TriggerQueryResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -738,7 +740,6 @@ func (client TriggersClient) StartSender(req *http.Request) (future TriggersStar
 func (client TriggersClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -831,7 +832,6 @@ func (client TriggersClient) StopSender(req *http.Request) (future TriggersStopF
 func (client TriggersClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -924,7 +924,6 @@ func (client TriggersClient) SubscribeToEventsSender(req *http.Request) (future 
 func (client TriggersClient) SubscribeToEventsResponder(resp *http.Response) (result TriggerSubscriptionOperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1018,7 +1017,6 @@ func (client TriggersClient) UnsubscribeFromEventsSender(req *http.Request) (fut
 func (client TriggersClient) UnsubscribeFromEventsResponder(resp *http.Response) (result TriggerSubscriptionOperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

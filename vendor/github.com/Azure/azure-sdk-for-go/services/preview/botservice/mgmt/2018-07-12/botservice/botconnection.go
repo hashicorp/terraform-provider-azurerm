@@ -91,6 +91,7 @@ func (client BotConnectionClient) Create(ctx context.Context, resourceGroupName 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client BotConnectionClient) CreateSender(req *http.Request) (*http.Respons
 func (client BotConnectionClient) CreateResponder(resp *http.Response) (result ConnectionSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -187,6 +187,7 @@ func (client BotConnectionClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -225,7 +226,6 @@ func (client BotConnectionClient) DeleteSender(req *http.Request) (*http.Respons
 func (client BotConnectionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,6 +280,7 @@ func (client BotConnectionClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,7 +319,6 @@ func (client BotConnectionClient) GetSender(req *http.Request) (*http.Response, 
 func (client BotConnectionClient) GetResponder(resp *http.Response) (result ConnectionSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -370,6 +370,10 @@ func (client BotConnectionClient) ListByBotService(ctx context.Context, resource
 	result.csrl, err = client.ListByBotServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListByBotService", resp, "Failure responding to request")
+		return
+	}
+	if result.csrl.hasNextLink() && result.csrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -407,7 +411,6 @@ func (client BotConnectionClient) ListByBotServiceSender(req *http.Request) (*ht
 func (client BotConnectionClient) ListByBotServiceResponder(resp *http.Response) (result ConnectionSettingResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -432,6 +435,7 @@ func (client BotConnectionClient) listByBotServiceNextResults(ctx context.Contex
 	result, err = client.ListByBotServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "listByBotServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -480,6 +484,7 @@ func (client BotConnectionClient) ListServiceProviders(ctx context.Context) (res
 	result, err = client.ListServiceProvidersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListServiceProviders", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -515,7 +520,6 @@ func (client BotConnectionClient) ListServiceProvidersSender(req *http.Request) 
 func (client BotConnectionClient) ListServiceProvidersResponder(resp *http.Response) (result ServiceProviderResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -571,6 +575,7 @@ func (client BotConnectionClient) ListWithSecrets(ctx context.Context, resourceG
 	result, err = client.ListWithSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListWithSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -609,7 +614,6 @@ func (client BotConnectionClient) ListWithSecretsSender(req *http.Request) (*htt
 func (client BotConnectionClient) ListWithSecretsResponder(resp *http.Response) (result ConnectionSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -666,6 +670,7 @@ func (client BotConnectionClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -706,7 +711,6 @@ func (client BotConnectionClient) UpdateSender(req *http.Request) (*http.Respons
 func (client BotConnectionClient) UpdateResponder(resp *http.Response) (result ConnectionSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

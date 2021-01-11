@@ -1,12 +1,16 @@
 API Management
+Advisor
 Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Attestation
 Authorization
 Automation
+Azure Stack HCI
 Base
 Batch
+Blueprints
 Bot
 CDN
 Cognitive Services
@@ -23,13 +27,17 @@ Data Share
 Database
 Database Migration
 Databricks
+Desktop Virtualization
 Dev Test
 DevSpace
+Digital Twins
 HDInsight
+Hardware Security Module
 Healthcare
 IoT Central
 IoT Hub
 Key Vault
+Lighthouse
 Load Balancer
 Log Analytics
 Logic App
@@ -54,7 +62,10 @@ Search
 Security Center
 Sentinel
 Service Fabric
+Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics
+Synapse
 Template
+Time Series Insights

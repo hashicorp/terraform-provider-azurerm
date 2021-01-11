@@ -51,6 +51,48 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T
 	})
 }
 
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Enabled
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Removed
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnosticsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Enabled
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
@@ -568,6 +610,239 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *te
 	})
 }
 
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherUpgradeMode(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsOnlySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsOnlySettings(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsForceUpdateTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsForceUpdateTag(data, "first"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsForceUpdateTag(data, "second"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsMultiple(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHostWithCMK(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHostWithCMK(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPlatformFaultDomainCount(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
 func testAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnostics(data acceptance.TestData) string {
 	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
@@ -618,6 +893,58 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  boot_diagnostics {}
 }
 `, template, data.RandomString, data.RandomInteger)
 }
@@ -1189,6 +1516,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "purge",
       "update",
     ]
 
@@ -1864,4 +2192,534 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   depends_on = [azurerm_lb_rule.test]
 }
 `, template, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherUpgradeMode(data acceptance.TestData, enabled bool) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  upgrade_mode                    = "Automatic"
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    disk_size_gb         = 30
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  terminate_notification {
+    enabled = %t
+  }
+}
+`, template, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsOnlySettings(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensions(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
+
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsForceUpdateTag(data acceptance.TestData, updateTag string) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+    force_update_tag           = %q
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, template, data.RandomInteger, updateTag)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsMultiple(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    provision_after_extensions = ["VMAccessForLinux"]
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
+
+  }
+
+  extension {
+    name                       = "VMAccessForLinux"
+    publisher                  = "Microsoft.OSTCExtensions"
+    type                       = "VMAccessForLinux"
+    type_handler_version       = "1.5"
+    auto_upgrade_minor_version = true
+
+    protected_settings = jsonencode({
+      "reset_ssh" = "True"
+    })
+
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $(date)"
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(data acceptance.TestData, enabled bool) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS3_V2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  encryption_at_host_enabled = %t
+}
+`, template, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHostWithCMK(data acceptance.TestData, enabled bool) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS3_V2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type   = "Standard_LRS"
+    caching                = "ReadWrite"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  encryption_at_host_enabled = %t
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
+}
+`, template, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherPlatformFaultDomainCount(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  platform_fault_domain_count = 3
+}
+`, template, data.RandomInteger)
 }

@@ -92,6 +92,7 @@ func (client IdentityProviderClient) CreateOrUpdate(ctx context.Context, resourc
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -136,7 +137,6 @@ func (client IdentityProviderClient) CreateOrUpdateSender(req *http.Request) (*h
 func (client IdentityProviderClient) CreateOrUpdateResponder(resp *http.Response) (result IdentityProviderContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,6 +186,7 @@ func (client IdentityProviderClient) Delete(ctx context.Context, resourceGroupNa
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -225,7 +226,6 @@ func (client IdentityProviderClient) DeleteSender(req *http.Request) (*http.Resp
 func (client IdentityProviderClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,6 +272,7 @@ func (client IdentityProviderClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,7 +311,6 @@ func (client IdentityProviderClient) GetSender(req *http.Request) (*http.Respons
 func (client IdentityProviderClient) GetResponder(resp *http.Response) (result IdentityProviderContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,6 +358,7 @@ func (client IdentityProviderClient) GetEntityTag(ctx context.Context, resourceG
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -396,7 +397,6 @@ func (client IdentityProviderClient) GetEntityTagSender(req *http.Request) (*htt
 func (client IdentityProviderClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -443,6 +443,10 @@ func (client IdentityProviderClient) ListByService(ctx context.Context, resource
 	result.ipl, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.ipl.hasNextLink() && result.ipl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -480,7 +484,6 @@ func (client IdentityProviderClient) ListByServiceSender(req *http.Request) (*ht
 func (client IdentityProviderClient) ListByServiceResponder(resp *http.Response) (result IdentityProviderList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -505,6 +508,7 @@ func (client IdentityProviderClient) listByServiceNextResults(ctx context.Contex
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -565,6 +569,7 @@ func (client IdentityProviderClient) ListSecrets(ctx context.Context, resourceGr
 	result, err = client.ListSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "ListSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -603,7 +608,6 @@ func (client IdentityProviderClient) ListSecretsSender(req *http.Request) (*http
 func (client IdentityProviderClient) ListSecretsResponder(resp *http.Response) (result ClientSecretContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -654,6 +658,7 @@ func (client IdentityProviderClient) Update(ctx context.Context, resourceGroupNa
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -695,7 +700,6 @@ func (client IdentityProviderClient) UpdateSender(req *http.Request) (*http.Resp
 func (client IdentityProviderClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

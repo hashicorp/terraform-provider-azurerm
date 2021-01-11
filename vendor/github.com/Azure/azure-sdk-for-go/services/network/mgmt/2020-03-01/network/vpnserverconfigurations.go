@@ -115,7 +115,6 @@ func (client VpnServerConfigurationsClient) CreateOrUpdateSender(req *http.Reque
 func (client VpnServerConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result VpnServerConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,7 +190,6 @@ func (client VpnServerConfigurationsClient) DeleteSender(req *http.Request) (fut
 func (client VpnServerConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -229,6 +227,7 @@ func (client VpnServerConfigurationsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -266,7 +265,6 @@ func (client VpnServerConfigurationsClient) GetSender(req *http.Request) (*http.
 func (client VpnServerConfigurationsClient) GetResponder(resp *http.Response) (result VpnServerConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -303,6 +301,10 @@ func (client VpnServerConfigurationsClient) List(ctx context.Context) (result Li
 	result.lvscr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -338,7 +340,6 @@ func (client VpnServerConfigurationsClient) ListSender(req *http.Request) (*http
 func (client VpnServerConfigurationsClient) ListResponder(resp *http.Response) (result ListVpnServerConfigurationsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -363,6 +364,7 @@ func (client VpnServerConfigurationsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -414,6 +416,10 @@ func (client VpnServerConfigurationsClient) ListByResourceGroup(ctx context.Cont
 	result.lvscr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -450,7 +456,6 @@ func (client VpnServerConfigurationsClient) ListByResourceGroupSender(req *http.
 func (client VpnServerConfigurationsClient) ListByResourceGroupResponder(resp *http.Response) (result ListVpnServerConfigurationsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,6 +480,7 @@ func (client VpnServerConfigurationsClient) listByResourceGroupNextResults(ctx c
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -527,6 +533,7 @@ func (client VpnServerConfigurationsClient) UpdateTags(ctx context.Context, reso
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -566,7 +573,6 @@ func (client VpnServerConfigurationsClient) UpdateTagsSender(req *http.Request) 
 func (client VpnServerConfigurationsClient) UpdateTagsResponder(resp *http.Response) (result VpnServerConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

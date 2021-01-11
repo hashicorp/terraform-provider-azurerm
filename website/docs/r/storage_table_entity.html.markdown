@@ -37,10 +37,10 @@ resource "azurerm_storage_table_entity" "example" {
   table_name           = azurerm_storage_table.example.name
 
   partition_key = "examplepartition"
-  row_key       = "exmamplerow"
+  row_key       = "examplerow"
 
   entity = {
-    example = "sample"
+    example = "example"
   }
 }
 ```

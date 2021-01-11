@@ -62,10 +62,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) 
 					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMVirtualMachineScaleSetExtension_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_scale_set_extension"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMVirtualMachineScaleSetExtension_requiresImport),
 		},
 	})
 }
@@ -216,10 +213,10 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup)
+				return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
 		}
@@ -242,7 +239,7 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) 
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Compute.VMScaleSetExtensionsClient: %+v", err)
 			}

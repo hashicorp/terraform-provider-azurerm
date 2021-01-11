@@ -129,7 +129,6 @@ func (client VirtualRouterPeeringsClient) CreateOrUpdateSender(req *http.Request
 func (client VirtualRouterPeeringsClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualRouterPeering, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client VirtualRouterPeeringsClient) DeleteSender(req *http.Request) (futur
 func (client VirtualRouterPeeringsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -246,6 +244,7 @@ func (client VirtualRouterPeeringsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRouterPeeringsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,7 +283,6 @@ func (client VirtualRouterPeeringsClient) GetSender(req *http.Request) (*http.Re
 func (client VirtualRouterPeeringsClient) GetResponder(resp *http.Response) (result VirtualRouterPeering, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +322,10 @@ func (client VirtualRouterPeeringsClient) List(ctx context.Context, resourceGrou
 	result.vrplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRouterPeeringsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.vrplr.hasNextLink() && result.vrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -361,7 +363,6 @@ func (client VirtualRouterPeeringsClient) ListSender(req *http.Request) (*http.R
 func (client VirtualRouterPeeringsClient) ListResponder(resp *http.Response) (result VirtualRouterPeeringListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +387,7 @@ func (client VirtualRouterPeeringsClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRouterPeeringsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -90,12 +89,10 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if features.ShouldResourcesBeImported() {
-			if rt := props.RouteTable; rt != nil {
-				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
-				if rt.ID != nil && subnet.ID != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *subnet.ID)
-				}
+		if rt := props.RouteTable; rt != nil {
+			// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
+			if rt.ID != nil && subnet.ID != nil {
+				return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *subnet.ID)
 			}
 		}
 
@@ -137,7 +134,6 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 	subnetName := id.Path["subnets"]
 
 	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)

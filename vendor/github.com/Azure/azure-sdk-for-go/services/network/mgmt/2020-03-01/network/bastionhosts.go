@@ -113,7 +113,6 @@ func (client BastionHostsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client BastionHostsClient) CreateOrUpdateResponder(resp *http.Response) (result BastionHost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client BastionHostsClient) DeleteSender(req *http.Request) (future Bastion
 func (client BastionHostsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,6 +225,7 @@ func (client BastionHostsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +263,6 @@ func (client BastionHostsClient) GetSender(req *http.Request) (*http.Response, e
 func (client BastionHostsClient) GetResponder(resp *http.Response) (result BastionHost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,6 +299,10 @@ func (client BastionHostsClient) List(ctx context.Context) (result BastionHostLi
 	result.bhlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.bhlr.hasNextLink() && result.bhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -336,7 +338,6 @@ func (client BastionHostsClient) ListSender(req *http.Request) (*http.Response, 
 func (client BastionHostsClient) ListResponder(resp *http.Response) (result BastionHostListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,6 +362,7 @@ func (client BastionHostsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -412,6 +414,10 @@ func (client BastionHostsClient) ListByResourceGroup(ctx context.Context, resour
 	result.bhlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.bhlr.hasNextLink() && result.bhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -448,7 +454,6 @@ func (client BastionHostsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client BastionHostsClient) ListByResourceGroupResponder(resp *http.Response) (result BastionHostListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,6 +478,7 @@ func (client BastionHostsClient) listByResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

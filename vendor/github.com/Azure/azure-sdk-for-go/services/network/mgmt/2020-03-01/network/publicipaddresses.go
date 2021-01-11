@@ -126,7 +126,6 @@ func (client PublicIPAddressesClient) CreateOrUpdateSender(req *http.Request) (f
 func (client PublicIPAddressesClient) CreateOrUpdateResponder(resp *http.Response) (result PublicIPAddress, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client PublicIPAddressesClient) DeleteSender(req *http.Request) (future Pu
 func (client PublicIPAddressesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +239,7 @@ func (client PublicIPAddressesClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,7 +280,6 @@ func (client PublicIPAddressesClient) GetSender(req *http.Request) (*http.Respon
 func (client PublicIPAddressesClient) GetResponder(resp *http.Response) (result PublicIPAddress, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +323,7 @@ func (client PublicIPAddressesClient) GetVirtualMachineScaleSetPublicIPAddress(c
 	result, err = client.GetVirtualMachineScaleSetPublicIPAddressResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "GetVirtualMachineScaleSetPublicIPAddress", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -369,7 +368,6 @@ func (client PublicIPAddressesClient) GetVirtualMachineScaleSetPublicIPAddressSe
 func (client PublicIPAddressesClient) GetVirtualMachineScaleSetPublicIPAddressResponder(resp *http.Response) (result PublicIPAddress, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -408,6 +406,10 @@ func (client PublicIPAddressesClient) List(ctx context.Context, resourceGroupNam
 	result.pialr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pialr.hasNextLink() && result.pialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -444,7 +446,6 @@ func (client PublicIPAddressesClient) ListSender(req *http.Request) (*http.Respo
 func (client PublicIPAddressesClient) ListResponder(resp *http.Response) (result PublicIPAddressListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -469,6 +470,7 @@ func (client PublicIPAddressesClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -518,6 +520,10 @@ func (client PublicIPAddressesClient) ListAll(ctx context.Context) (result Publi
 	result.pialr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.pialr.hasNextLink() && result.pialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -553,7 +559,6 @@ func (client PublicIPAddressesClient) ListAllSender(req *http.Request) (*http.Re
 func (client PublicIPAddressesClient) ListAllResponder(resp *http.Response) (result PublicIPAddressListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -578,6 +583,7 @@ func (client PublicIPAddressesClient) listAllNextResults(ctx context.Context, la
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -631,6 +637,10 @@ func (client PublicIPAddressesClient) ListVirtualMachineScaleSetPublicIPAddresse
 	result.pialr, err = client.ListVirtualMachineScaleSetPublicIPAddressesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "ListVirtualMachineScaleSetPublicIPAddresses", resp, "Failure responding to request")
+		return
+	}
+	if result.pialr.hasNextLink() && result.pialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -668,7 +678,6 @@ func (client PublicIPAddressesClient) ListVirtualMachineScaleSetPublicIPAddresse
 func (client PublicIPAddressesClient) ListVirtualMachineScaleSetPublicIPAddressesResponder(resp *http.Response) (result PublicIPAddressListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -693,6 +702,7 @@ func (client PublicIPAddressesClient) listVirtualMachineScaleSetPublicIPAddresse
 	result, err = client.ListVirtualMachineScaleSetPublicIPAddressesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "listVirtualMachineScaleSetPublicIPAddressesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -749,6 +759,10 @@ func (client PublicIPAddressesClient) ListVirtualMachineScaleSetVMPublicIPAddres
 	result.pialr, err = client.ListVirtualMachineScaleSetVMPublicIPAddressesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "ListVirtualMachineScaleSetVMPublicIPAddresses", resp, "Failure responding to request")
+		return
+	}
+	if result.pialr.hasNextLink() && result.pialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -789,7 +803,6 @@ func (client PublicIPAddressesClient) ListVirtualMachineScaleSetVMPublicIPAddres
 func (client PublicIPAddressesClient) ListVirtualMachineScaleSetVMPublicIPAddressesResponder(resp *http.Response) (result PublicIPAddressListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -814,6 +827,7 @@ func (client PublicIPAddressesClient) listVirtualMachineScaleSetVMPublicIPAddres
 	result, err = client.ListVirtualMachineScaleSetVMPublicIPAddressesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "listVirtualMachineScaleSetVMPublicIPAddressesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -866,6 +880,7 @@ func (client PublicIPAddressesClient) UpdateTags(ctx context.Context, resourceGr
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPAddressesClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -905,7 +920,6 @@ func (client PublicIPAddressesClient) UpdateTagsSender(req *http.Request) (*http
 func (client PublicIPAddressesClient) UpdateTagsResponder(resp *http.Response) (result PublicIPAddress, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

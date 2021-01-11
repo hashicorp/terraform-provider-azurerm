@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
+func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppTriggerHttpRequestCreateUpdate,
-		Read:   resourceArmLogicAppTriggerHttpRequestRead,
-		Update: resourceArmLogicAppTriggerHttpRequestCreateUpdate,
-		Delete: resourceArmLogicAppTriggerHttpRequestDelete,
+		Create: resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Read:   resourceLogicAppTriggerHttpRequestRead,
+		Update: resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Delete: resourceLogicAppTriggerHttpRequestDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -85,7 +85,7 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	schemaRaw := d.Get("schema").(string)
 	var schema map[string]interface{}
 	if err := json.Unmarshal([]byte(schemaRaw), &schema); err != nil {
@@ -116,10 +116,10 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	return resourceArmLogicAppTriggerHttpRequestRead(d, meta)
+	return resourceLogicAppTriggerHttpRequestRead(d, meta)
 }
 
-func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

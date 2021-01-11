@@ -31,7 +31,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=2.0.0"
+  version = "=2.40.0"
   features {}
 }
 
@@ -69,10 +69,10 @@ If you have a bug or feature request without an existing issue
 The provider maintainers will often use the assignee field on an issue to mark
 who is working on it.
 
-* An issue assigned to an individual maintainer indicates that maintainer is working
+* An issue assigned to an individual maintainer indicates that the maintainer is working
 on the issue
 
-* If you're interested in working on an issue please leave a comment in that issue
+* If you're interested in working on an issue please leave a comment on that issue
 
 ---
 
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
 
-* `tenant_id` - (Optional) The Tenant ID which should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
+* `tenant_id` - (Optional) The Tenant ID should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
 
 ---
 
@@ -117,7 +117,7 @@ More information on [how to configure a Service Principal using a Client Secret 
 
 When authenticating using Managed Service Identity, the following fields can be set:
 
-* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. This can also be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
+* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances, this should be detected automatically. This can also, be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
 
 * `use_msi` - (Optional) Should Managed Service Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
 
@@ -129,13 +129,19 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `disable_terraform_partner_id` - (Optional) Disable sending the Terraform Partner ID if a custom `partner_id` isn't specified, which allows Microsoft to better understand the usage of Terraform. The Partner ID does not give HashiCorp any direct access to usage information. This can also be sourced from the `ARM_DISABLE_TERRAFORM_PARTNER_ID` environment variable. Defaults to `false`.
 
+* `metadata_host` - (Optional) The Hostname of the Azure Metadata Service (for example `management.azure.com`), used to obtain the Cloud Environment when using a Custom Azure Environment. This can also be sourced from the `ARM_METADATA_HOST` Environment Variable.
+
+~> **Note:** `environment` must be set to the requested environment name in the list of available environments held in the `metadata_host`.
+
 * `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
 
 * `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
 
+~> **Note:** if `skip_credentials_validation` is false, AzureRM Provider will send a request to list all available providers.
+
 * `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering the Resource Providers it supports? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
 
--> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
+-> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however, please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
 
 * `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
 
@@ -143,17 +149,17 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
 
-It's also possible to use multiple Provider blocks within a single Terraform configuration, for example to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
+It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
-## Features
+## Features
 
 It's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
-
-## Features
 
 The `features` block supports the following:
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
+
+* `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
@@ -163,13 +169,19 @@ The `features` block supports the following:
 
 The `key_vault` block supports the following:
 
-* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Key Vault which has previously been Soft Deleted? Defaults to `true`. 
+* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources recover a Soft-Deleted Key Vault/Item? Defaults to `true`.
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`. 
+~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
-~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
-~> **Note:** When recovering soft deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
+~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period (7-90 days) has passed.
+
+---
+
+The `template_deployment` block supports the following:
+
+* `delete_nested_items_during_deletion` - (Optional) Should the `azurerm_resource_group_template_deployment` resource attempt to delete resources that have been provisioned by the ARM Template, when the Resource Group Template Deployment is deleted? Defaults to `true`.
 
 ---
 
@@ -177,7 +189,11 @@ The `virtual_machine` block supports the following:
 
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
-~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has it's own flags for managing this within the resource.
+~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
+
+* `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
+
+~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 
 ---
 

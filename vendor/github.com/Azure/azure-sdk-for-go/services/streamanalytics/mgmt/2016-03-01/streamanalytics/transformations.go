@@ -81,6 +81,7 @@ func (client TransformationsClient) CreateOrReplace(ctx context.Context, transfo
 	result, err = client.CreateOrReplaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.TransformationsClient", "CreateOrReplace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client TransformationsClient) CreateOrReplaceSender(req *http.Request) (*h
 func (client TransformationsClient) CreateOrReplaceResponder(resp *http.Response) (result Transformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -170,6 +170,7 @@ func (client TransformationsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.TransformationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,7 +209,6 @@ func (client TransformationsClient) GetSender(req *http.Request) (*http.Response
 func (client TransformationsClient) GetResponder(resp *http.Response) (result Transformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -256,6 +256,7 @@ func (client TransformationsClient) Update(ctx context.Context, transformation T
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.TransformationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -300,7 +301,6 @@ func (client TransformationsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client TransformationsClient) UpdateResponder(resp *http.Response) (result Transformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

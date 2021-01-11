@@ -12,19 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActionGroup() *schema.Resource {
+func resourceMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionGroupCreateUpdate,
-		Read:   resourceArmMonitorActionGroupRead,
-		Update: resourceArmMonitorActionGroupCreateUpdate,
-		Delete: resourceArmMonitorActionGroupDelete,
+		Create: resourceMonitorActionGroupCreateUpdate,
+		Read:   resourceMonitorActionGroupRead,
+		Update: resourceMonitorActionGroupCreateUpdate,
+		Delete: resourceMonitorActionGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -338,7 +337,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -346,7 +345,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -390,7 +389,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 			VoiceReceivers:             expandMonitorActionGroupVoiceReceiver(voiceReceiversRaw),
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
-			ArmRoleReceivers:           expandMonitorActionGroupArmRoleReceiver(armRoleReceiversRaw),
+			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
 		},
 		Tags: expandedTags,
 	}
@@ -409,10 +408,10 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorActionGroupRead(d, meta)
+	return resourceMonitorActionGroupRead(d, meta)
 }
 
-func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -475,14 +474,14 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
 			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
 		}
-		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupArmRoleReceiver(group.ArmRoleReceivers)); err != nil {
+		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -638,7 +637,7 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]insights.
 	return &receivers
 }
 
-func expandMonitorActionGroupArmRoleReceiver(v []interface{}) *[]insights.ArmRoleReceiver {
+func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleReceiver {
 	receivers := make([]insights.ArmRoleReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -858,7 +857,7 @@ func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]insights.AzureF
 	return result
 }
 
-func flattenMonitorActionGroupArmRoleReceiver(receivers *[]insights.ArmRoleReceiver) []interface{} {
+func flattenMonitorActionGroupRoleReceiver(receivers *[]insights.ArmRoleReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {

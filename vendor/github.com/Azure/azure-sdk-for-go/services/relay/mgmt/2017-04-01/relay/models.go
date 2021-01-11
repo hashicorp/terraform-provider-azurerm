@@ -31,112 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 
-// AccessRights enumerates the values for access rights.
-type AccessRights string
-
-const (
-	// Listen ...
-	Listen AccessRights = "Listen"
-	// Manage ...
-	Manage AccessRights = "Manage"
-	// SendEnumValue ...
-	SendEnumValue AccessRights = "Send"
-)
-
-// PossibleAccessRightsValues returns an array of possible values for the AccessRights const type.
-func PossibleAccessRightsValues() []AccessRights {
-	return []AccessRights{Listen, Manage, SendEnumValue}
-}
-
-// KeyType enumerates the values for key type.
-type KeyType string
-
-const (
-	// PrimaryKey ...
-	PrimaryKey KeyType = "PrimaryKey"
-	// SecondaryKey ...
-	SecondaryKey KeyType = "SecondaryKey"
-)
-
-// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
-func PossibleKeyTypeValues() []KeyType {
-	return []KeyType{PrimaryKey, SecondaryKey}
-}
-
-// ProvisioningStateEnum enumerates the values for provisioning state enum.
-type ProvisioningStateEnum string
-
-const (
-	// Created ...
-	Created ProvisioningStateEnum = "Created"
-	// Deleted ...
-	Deleted ProvisioningStateEnum = "Deleted"
-	// Failed ...
-	Failed ProvisioningStateEnum = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningStateEnum = "Succeeded"
-	// Unknown ...
-	Unknown ProvisioningStateEnum = "Unknown"
-	// Updating ...
-	Updating ProvisioningStateEnum = "Updating"
-)
-
-// PossibleProvisioningStateEnumValues returns an array of possible values for the ProvisioningStateEnum const type.
-func PossibleProvisioningStateEnumValues() []ProvisioningStateEnum {
-	return []ProvisioningStateEnum{Created, Deleted, Failed, Succeeded, Unknown, Updating}
-}
-
-// RelaytypeEnum enumerates the values for relaytype enum.
-type RelaytypeEnum string
-
-const (
-	// HTTP ...
-	HTTP RelaytypeEnum = "Http"
-	// NetTCP ...
-	NetTCP RelaytypeEnum = "NetTcp"
-)
-
-// PossibleRelaytypeEnumValues returns an array of possible values for the RelaytypeEnum const type.
-func PossibleRelaytypeEnumValues() []RelaytypeEnum {
-	return []RelaytypeEnum{HTTP, NetTCP}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// Standard ...
-	Standard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Standard}
-}
-
-// UnavailableReason enumerates the values for unavailable reason.
-type UnavailableReason string
-
-const (
-	// InvalidName ...
-	InvalidName UnavailableReason = "InvalidName"
-	// NameInLockdown ...
-	NameInLockdown UnavailableReason = "NameInLockdown"
-	// NameInUse ...
-	NameInUse UnavailableReason = "NameInUse"
-	// None ...
-	None UnavailableReason = "None"
-	// SubscriptionIsDisabled ...
-	SubscriptionIsDisabled UnavailableReason = "SubscriptionIsDisabled"
-	// TooManyNamespaceInCurrentSubscription ...
-	TooManyNamespaceInCurrentSubscription UnavailableReason = "TooManyNamespaceInCurrentSubscription"
-)
-
-// PossibleUnavailableReasonValues returns an array of possible values for the UnavailableReason const type.
-func PossibleUnavailableReasonValues() []UnavailableReason {
-	return []UnavailableReason{InvalidName, NameInLockdown, NameInUse, None, SubscriptionIsDisabled, TooManyNamespaceInCurrentSubscription}
-}
-
 // AccessKeys namespace/Relay Connection String
 type AccessKeys struct {
 	autorest.Response `json:"-"`
@@ -302,10 +196,15 @@ func (arlr AuthorizationRuleListResult) IsEmpty() bool {
 	return arlr.Value == nil || len(*arlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (arlr AuthorizationRuleListResult) hasNextLink() bool {
+	return arlr.NextLink != nil && len(*arlr.NextLink) != 0
+}
+
 // authorizationRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (arlr AuthorizationRuleListResult) authorizationRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if arlr.NextLink == nil || len(to.String(arlr.NextLink)) < 1 {
+	if !arlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -333,11 +232,16 @@ func (page *AuthorizationRuleListResultPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.arlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.arlr)
+		if err != nil {
+			return err
+		}
+		page.arlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.arlr = next
 	return nil
 }
 
@@ -367,8 +271,11 @@ func (page AuthorizationRuleListResultPage) Values() []AuthorizationRule {
 }
 
 // Creates a new instance of the AuthorizationRuleListResultPage type.
-func NewAuthorizationRuleListResultPage(getNextPage func(context.Context, AuthorizationRuleListResult) (AuthorizationRuleListResult, error)) AuthorizationRuleListResultPage {
-	return AuthorizationRuleListResultPage{fn: getNextPage}
+func NewAuthorizationRuleListResultPage(cur AuthorizationRuleListResult, getNextPage func(context.Context, AuthorizationRuleListResult) (AuthorizationRuleListResult, error)) AuthorizationRuleListResultPage {
+	return AuthorizationRuleListResultPage{
+		fn:   getNextPage,
+		arlr: cur,
+	}
 }
 
 // AuthorizationRuleProperties authorization rule properties.
@@ -392,6 +299,18 @@ type CheckNameAvailabilityResult struct {
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
 	// Reason - The reason for unavailability of a namespace. Possible values include: 'None', 'InvalidName', 'SubscriptionIsDisabled', 'NameInUse', 'NameInLockdown', 'TooManyNamespaceInCurrentSubscription'
 	Reason UnavailableReason `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResult.
+func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cnar.NameAvailable != nil {
+		objectMap["nameAvailable"] = cnar.NameAvailable
+	}
+	if cnar.Reason != "" {
+		objectMap["reason"] = cnar.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ErrorResponse error reponse indicates Relay service is not able to process the incoming request. The
@@ -553,10 +472,15 @@ func (hclr HybridConnectionListResult) IsEmpty() bool {
 	return hclr.Value == nil || len(*hclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (hclr HybridConnectionListResult) hasNextLink() bool {
+	return hclr.NextLink != nil && len(*hclr.NextLink) != 0
+}
+
 // hybridConnectionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (hclr HybridConnectionListResult) hybridConnectionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if hclr.NextLink == nil || len(to.String(hclr.NextLink)) < 1 {
+	if !hclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -584,11 +508,16 @@ func (page *HybridConnectionListResultPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.hclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.hclr)
+		if err != nil {
+			return err
+		}
+		page.hclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.hclr = next
 	return nil
 }
 
@@ -618,8 +547,11 @@ func (page HybridConnectionListResultPage) Values() []HybridConnection {
 }
 
 // Creates a new instance of the HybridConnectionListResultPage type.
-func NewHybridConnectionListResultPage(getNextPage func(context.Context, HybridConnectionListResult) (HybridConnectionListResult, error)) HybridConnectionListResultPage {
-	return HybridConnectionListResultPage{fn: getNextPage}
+func NewHybridConnectionListResultPage(cur HybridConnectionListResult, getNextPage func(context.Context, HybridConnectionListResult) (HybridConnectionListResult, error)) HybridConnectionListResultPage {
+	return HybridConnectionListResultPage{
+		fn:   getNextPage,
+		hclr: cur,
+	}
 }
 
 // HybridConnectionProperties properties of the HybridConnection.
@@ -634,6 +566,18 @@ type HybridConnectionProperties struct {
 	RequiresClientAuthorization *bool `json:"requiresClientAuthorization,omitempty"`
 	// UserMetadata - The usermetadata is a placeholder to store user-defined string data for the hybrid connection endpoint. For example, it can be used to store descriptive data, such as a list of teams and their contact information. Also, user-defined configuration settings can be stored.
 	UserMetadata *string `json:"userMetadata,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HybridConnectionProperties.
+func (hc HybridConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hc.RequiresClientAuthorization != nil {
+		objectMap["requiresClientAuthorization"] = hc.RequiresClientAuthorization
+	}
+	if hc.UserMetadata != nil {
+		objectMap["userMetadata"] = hc.UserMetadata
+	}
+	return json.Marshal(objectMap)
 }
 
 // Namespace description of a namespace resource.
@@ -828,10 +772,15 @@ func (nlr NamespaceListResult) IsEmpty() bool {
 	return nlr.Value == nil || len(*nlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (nlr NamespaceListResult) hasNextLink() bool {
+	return nlr.NextLink != nil && len(*nlr.NextLink) != 0
+}
+
 // namespaceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (nlr NamespaceListResult) namespaceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if nlr.NextLink == nil || len(to.String(nlr.NextLink)) < 1 {
+	if !nlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -859,11 +808,16 @@ func (page *NamespaceListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.nlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.nlr)
+		if err != nil {
+			return err
+		}
+		page.nlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.nlr = next
 	return nil
 }
 
@@ -893,8 +847,11 @@ func (page NamespaceListResultPage) Values() []Namespace {
 }
 
 // Creates a new instance of the NamespaceListResultPage type.
-func NewNamespaceListResultPage(getNextPage func(context.Context, NamespaceListResult) (NamespaceListResult, error)) NamespaceListResultPage {
-	return NamespaceListResultPage{fn: getNextPage}
+func NewNamespaceListResultPage(cur NamespaceListResult, getNextPage func(context.Context, NamespaceListResult) (NamespaceListResult, error)) NamespaceListResultPage {
+	return NamespaceListResultPage{
+		fn:  getNextPage,
+		nlr: cur,
+	}
 }
 
 // NamespaceProperties properties of the namespace.
@@ -969,6 +926,15 @@ type Operation struct {
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay the object that represents the operation.
@@ -1059,10 +1025,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1090,11 +1061,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1124,8 +1100,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // RegenerateAccessKeyParameters parameters supplied to the regenerate authorization rule operation,
@@ -1395,6 +1374,24 @@ type WcfRelayProperties struct {
 	UserMetadata *string `json:"userMetadata,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for WcfRelayProperties.
+func (wr WcfRelayProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wr.RelayType != "" {
+		objectMap["relayType"] = wr.RelayType
+	}
+	if wr.RequiresClientAuthorization != nil {
+		objectMap["requiresClientAuthorization"] = wr.RequiresClientAuthorization
+	}
+	if wr.RequiresTransportSecurity != nil {
+		objectMap["requiresTransportSecurity"] = wr.RequiresTransportSecurity
+	}
+	if wr.UserMetadata != nil {
+		objectMap["userMetadata"] = wr.UserMetadata
+	}
+	return json.Marshal(objectMap)
+}
+
 // WcfRelaysListResult the response of the list WCF relay operation.
 type WcfRelaysListResult struct {
 	autorest.Response `json:"-"`
@@ -1472,10 +1469,15 @@ func (wrlr WcfRelaysListResult) IsEmpty() bool {
 	return wrlr.Value == nil || len(*wrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wrlr WcfRelaysListResult) hasNextLink() bool {
+	return wrlr.NextLink != nil && len(*wrlr.NextLink) != 0
+}
+
 // wcfRelaysListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wrlr WcfRelaysListResult) wcfRelaysListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wrlr.NextLink == nil || len(to.String(wrlr.NextLink)) < 1 {
+	if !wrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1503,11 +1505,16 @@ func (page *WcfRelaysListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wrlr)
+		if err != nil {
+			return err
+		}
+		page.wrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wrlr = next
 	return nil
 }
 
@@ -1537,6 +1544,9 @@ func (page WcfRelaysListResultPage) Values() []WcfRelay {
 }
 
 // Creates a new instance of the WcfRelaysListResultPage type.
-func NewWcfRelaysListResultPage(getNextPage func(context.Context, WcfRelaysListResult) (WcfRelaysListResult, error)) WcfRelaysListResultPage {
-	return WcfRelaysListResultPage{fn: getNextPage}
+func NewWcfRelaysListResultPage(cur WcfRelaysListResult, getNextPage func(context.Context, WcfRelaysListResult) (WcfRelaysListResult, error)) WcfRelaysListResultPage {
+	return WcfRelaysListResultPage{
+		fn:   getNextPage,
+		wrlr: cur,
+	}
 }

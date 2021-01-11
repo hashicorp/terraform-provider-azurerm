@@ -95,6 +95,7 @@ func (client CaseCommentsClient) CreateComment(ctx context.Context, resourceGrou
 	result, err = client.CreateCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseCommentsClient", "CreateComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -137,7 +138,6 @@ func (client CaseCommentsClient) CreateCommentSender(req *http.Request) (*http.R
 func (client CaseCommentsClient) CreateCommentResponder(resp *http.Response) (result CaseComment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

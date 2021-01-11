@@ -76,6 +76,7 @@ func (client DataLakeStoreAccountsClient) Add(ctx context.Context, resourceGroup
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -119,7 +120,6 @@ func (client DataLakeStoreAccountsClient) AddSender(req *http.Request) (*http.Re
 func (client DataLakeStoreAccountsClient) AddResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -158,6 +158,7 @@ func (client DataLakeStoreAccountsClient) Delete(ctx context.Context, resourceGr
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -196,7 +197,6 @@ func (client DataLakeStoreAccountsClient) DeleteSender(req *http.Request) (*http
 func (client DataLakeStoreAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -235,6 +235,7 @@ func (client DataLakeStoreAccountsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -273,7 +274,6 @@ func (client DataLakeStoreAccountsClient) GetSender(req *http.Request) (*http.Re
 func (client DataLakeStoreAccountsClient) GetResponder(resp *http.Response) (result DataLakeStoreAccountInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -334,6 +334,10 @@ func (client DataLakeStoreAccountsClient) ListByAccount(ctx context.Context, res
 	result.dlsailr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.dlsailr.hasNextLink() && result.dlsailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -389,7 +393,6 @@ func (client DataLakeStoreAccountsClient) ListByAccountSender(req *http.Request)
 func (client DataLakeStoreAccountsClient) ListByAccountResponder(resp *http.Response) (result DataLakeStoreAccountInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -414,6 +417,7 @@ func (client DataLakeStoreAccountsClient) listByAccountNextResults(ctx context.C
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

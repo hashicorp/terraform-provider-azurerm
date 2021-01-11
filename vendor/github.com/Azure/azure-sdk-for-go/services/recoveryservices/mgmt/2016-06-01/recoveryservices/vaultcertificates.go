@@ -75,6 +75,7 @@ func (client VaultCertificatesClient) Create(ctx context.Context, resourceGroupN
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultCertificatesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client VaultCertificatesClient) CreateSender(req *http.Request) (*http.Res
 func (client VaultCertificatesClient) CreateResponder(resp *http.Response) (result VaultCertificateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

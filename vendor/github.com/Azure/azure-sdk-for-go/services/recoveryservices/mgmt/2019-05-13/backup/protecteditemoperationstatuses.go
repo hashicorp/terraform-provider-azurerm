@@ -80,6 +80,7 @@ func (client ProtectedItemOperationStatusesClient) Get(ctx context.Context, vaul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemOperationStatusesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client ProtectedItemOperationStatusesClient) GetSender(req *http.Request) 
 func (client ProtectedItemOperationStatusesClient) GetResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

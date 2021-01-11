@@ -484,7 +484,6 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
-
 		if err != nil {
 			return nil
 		}
@@ -546,6 +545,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Standard"
   zones               = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -99,6 +99,11 @@ func dataSourceApiManagementApi() *schema.Resource {
 				},
 			},
 
+			"subscription_required": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -147,6 +152,7 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("revision", props.APIRevision)
 		d.Set("service_url", props.ServiceURL)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 
@@ -174,6 +180,7 @@ func flattenApiManagementApiDataSourceProtocols(input *[]apimanagement.Protocol)
 
 	return results
 }
+
 func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *apimanagement.SubscriptionKeyParameterNamesContract) []interface{} {
 	if paramNames == nil {
 		return make([]interface{}, 0)

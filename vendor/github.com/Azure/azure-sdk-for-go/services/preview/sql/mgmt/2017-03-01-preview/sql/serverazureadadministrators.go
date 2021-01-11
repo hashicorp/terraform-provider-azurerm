@@ -130,7 +130,6 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdateSender(req *http.R
 func (client ServerAzureADAdministratorsClient) CreateOrUpdateResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client ServerAzureADAdministratorsClient) DeleteSender(req *http.Request) 
 func (client ServerAzureADAdministratorsClient) DeleteResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -248,6 +246,7 @@ func (client ServerAzureADAdministratorsClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +285,6 @@ func (client ServerAzureADAdministratorsClient) GetSender(req *http.Request) (*h
 func (client ServerAzureADAdministratorsClient) GetResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -326,6 +324,7 @@ func (client ServerAzureADAdministratorsClient) ListByServer(ctx context.Context
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -363,7 +362,6 @@ func (client ServerAzureADAdministratorsClient) ListByServerSender(req *http.Req
 func (client ServerAzureADAdministratorsClient) ListByServerResponder(resp *http.Response) (result ServerAdministratorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

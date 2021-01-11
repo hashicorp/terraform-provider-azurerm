@@ -95,6 +95,7 @@ func (client APIVersionSetClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -139,7 +140,6 @@ func (client APIVersionSetClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client APIVersionSetClient) CreateOrUpdateResponder(resp *http.Response) (result APIVersionSetContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -193,6 +193,7 @@ func (client APIVersionSetClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -232,7 +233,6 @@ func (client APIVersionSetClient) DeleteSender(req *http.Request) (*http.Respons
 func (client APIVersionSetClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,6 +283,7 @@ func (client APIVersionSetClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,7 +322,6 @@ func (client APIVersionSetClient) GetSender(req *http.Request) (*http.Response, 
 func (client APIVersionSetClient) GetResponder(resp *http.Response) (result APIVersionSetContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -373,6 +373,7 @@ func (client APIVersionSetClient) GetEntityTag(ctx context.Context, resourceGrou
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -411,7 +412,6 @@ func (client APIVersionSetClient) GetEntityTagSender(req *http.Request) (*http.R
 func (client APIVersionSetClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -468,6 +468,10 @@ func (client APIVersionSetClient) ListByService(ctx context.Context, resourceGro
 	result.avsc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.avsc.hasNextLink() && result.avsc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -514,7 +518,6 @@ func (client APIVersionSetClient) ListByServiceSender(req *http.Request) (*http.
 func (client APIVersionSetClient) ListByServiceResponder(resp *http.Response) (result APIVersionSetCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -539,6 +542,7 @@ func (client APIVersionSetClient) listByServiceNextResults(ctx context.Context, 
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -606,6 +610,7 @@ func (client APIVersionSetClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -647,7 +652,6 @@ func (client APIVersionSetClient) UpdateSender(req *http.Request) (*http.Respons
 func (client APIVersionSetClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

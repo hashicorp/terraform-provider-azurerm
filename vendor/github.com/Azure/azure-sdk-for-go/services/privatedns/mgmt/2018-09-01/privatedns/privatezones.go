@@ -125,7 +125,6 @@ func (client PrivateZonesClient) CreateOrUpdateSender(req *http.Request) (future
 func (client PrivateZonesClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client PrivateZonesClient) DeleteSender(req *http.Request) (future Private
 func (client PrivateZonesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -247,6 +245,7 @@ func (client PrivateZonesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,7 +283,6 @@ func (client PrivateZonesClient) GetSender(req *http.Request) (*http.Response, e
 func (client PrivateZonesClient) GetResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -323,6 +321,10 @@ func (client PrivateZonesClient) List(ctx context.Context, top *int32) (result P
 	result.pzlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -361,7 +363,6 @@ func (client PrivateZonesClient) ListSender(req *http.Request) (*http.Response, 
 func (client PrivateZonesClient) ListResponder(resp *http.Response) (result PrivateZoneListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +387,7 @@ func (client PrivateZonesClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -438,6 +440,10 @@ func (client PrivateZonesClient) ListByResourceGroup(ctx context.Context, resour
 	result.pzlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -477,7 +483,6 @@ func (client PrivateZonesClient) ListByResourceGroupSender(req *http.Request) (*
 func (client PrivateZonesClient) ListByResourceGroupResponder(resp *http.Response) (result PrivateZoneListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -502,6 +507,7 @@ func (client PrivateZonesClient) listByResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -599,7 +605,6 @@ func (client PrivateZonesClient) UpdateSender(req *http.Request) (future Private
 func (client PrivateZonesClient) UpdateResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

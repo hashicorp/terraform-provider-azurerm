@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceEventHubAuthorizationRule() *schema.Resource {
+func EventHubAuthorizationRuleDataSource() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceEventHubAuthorizationRuleRead,
+		Read: EventHubAuthorizationRuleDataSourceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -69,7 +69,7 @@ func dataSourceEventHubAuthorizationRule() *schema.Resource {
 	}
 }
 
-func dataSourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func EventHubAuthorizationRuleDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

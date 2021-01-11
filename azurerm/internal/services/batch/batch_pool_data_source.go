@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBatchPool() *schema.Resource {
+func dataSourceBatchPool() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBatchPoolRead,
+		Read: dataSourceBatchPoolRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -24,7 +24,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
+				ValidateFunc: ValidateAzureRMBatchPoolName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"account_name": {
@@ -125,6 +125,15 @@ func dataSourceArmBatchPool() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"container_image_names": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
 						"container_registries": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -350,7 +359,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 	}
 }
 
-func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -378,21 +387,21 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("max_tasks_per_node", props.MaxTasksPerNode)
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
-			if err := d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
+			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
 				return fmt.Errorf("Error flattening `auto_scale`: %+v", err)
 			}
-			if err := d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
 			}
 		}
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
+				if err := d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
 					return fmt.Errorf("error setting `container_configuration`: %v", err)
 				}
 
-				if err := d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
+				if err := d.Set("storage_image_reference", flattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
 					return fmt.Errorf("error setting `storage_image_reference`: %v", err)
 				}
 
@@ -402,14 +411,14 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 
-		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
 			return fmt.Errorf("error setting `certificate`: %v", err)
 		}
 
-		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
-		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
+		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if err := d.Set("network_configuration", azure.FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 			return fmt.Errorf("error setting `network_configuration`: %v", err)
 		}
 	}

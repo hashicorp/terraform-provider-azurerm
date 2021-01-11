@@ -34,10 +34,11 @@ resource "azurerm_mariadb_server" "example" {
   storage_mb = 5120
   version    = "10.2"
 
-  auto_grow_enabled            = true
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  ssl_enforcement_enabled      = true
+  auto_grow_enabled             = true
+  backup_retention_days         = 7
+  geo_redundant_backup_enabled  = false
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
 }
 ```
 
@@ -68,6 +69,8 @@ The following arguments are supported:
 * `creation_source_server_id` - (Optional) For creation modes other than `Default`, the source server ID to use.
 
 * `geo_redundant_backup_enabled` - (Optional) Turn Geo-redundant server backups on/off. This allows you to choose between locally redundant or geo-redundant backup storage in the General Purpose and Memory Optimized tiers. When the backups are stored in geo-redundant backup storage, they are not only stored within the region in which your server is hosted, but are also replicated to a paired data center. This provides better protection and ability to restore your server in a different region in the event of a disaster. This is not supported for the Basic tier.
+
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore`, specifies the point in time to restore from `creation_source_server_id`.
 

@@ -114,7 +114,6 @@ func (client ApplicationSecurityGroupsClient) CreateOrUpdateSender(req *http.Req
 func (client ApplicationSecurityGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ApplicationSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client ApplicationSecurityGroupsClient) DeleteSender(req *http.Request) (f
 func (client ApplicationSecurityGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +226,7 @@ func (client ApplicationSecurityGroupsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +264,6 @@ func (client ApplicationSecurityGroupsClient) GetSender(req *http.Request) (*htt
 func (client ApplicationSecurityGroupsClient) GetResponder(resp *http.Response) (result ApplicationSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,6 +302,10 @@ func (client ApplicationSecurityGroupsClient) List(ctx context.Context, resource
 	result.asglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.asglr.hasNextLink() && result.asglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -340,7 +342,6 @@ func (client ApplicationSecurityGroupsClient) ListSender(req *http.Request) (*ht
 func (client ApplicationSecurityGroupsClient) ListResponder(resp *http.Response) (result ApplicationSecurityGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -365,6 +366,7 @@ func (client ApplicationSecurityGroupsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -414,6 +416,10 @@ func (client ApplicationSecurityGroupsClient) ListAll(ctx context.Context) (resu
 	result.asglr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.asglr.hasNextLink() && result.asglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -449,7 +455,6 @@ func (client ApplicationSecurityGroupsClient) ListAllSender(req *http.Request) (
 func (client ApplicationSecurityGroupsClient) ListAllResponder(resp *http.Response) (result ApplicationSecurityGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,6 +479,7 @@ func (client ApplicationSecurityGroupsClient) listAllNextResults(ctx context.Con
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -526,6 +532,7 @@ func (client ApplicationSecurityGroupsClient) UpdateTags(ctx context.Context, re
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -565,7 +572,6 @@ func (client ApplicationSecurityGroupsClient) UpdateTagsSender(req *http.Request
 func (client ApplicationSecurityGroupsClient) UpdateTagsResponder(resp *http.Response) (result ApplicationSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

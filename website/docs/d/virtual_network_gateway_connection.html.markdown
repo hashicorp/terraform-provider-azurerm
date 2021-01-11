@@ -45,12 +45,16 @@ output "virtual_network_gateway_connection_id" {
     Express Route Circuit. This field is present only if the type is an
     ExpressRoute connection.
 
+* `dpd_timeout_seconds` - The dead peer detection timeout of this connection in seconds.
+
 * `express_route_circuit_id` - The ID of the Express Route Circuit
     (i.e. when `type` is `ExpressRoute`).
 
 * `peer_virtual_network_gateway_id` - The ID of the peer virtual
     network gateway when a VNet-to-VNet connection (i.e. when `type`
     is `Vnet2Vnet`). 
+
+* `local_azure_ip_address_enabled` - Use private local Azure IP for the connection. 
 
 * `local_network_gateway_id` - The ID of the local network gateway
     when a Site-to-Site connection (i.e. when `type` is `IPsec`).
@@ -71,6 +75,10 @@ output "virtual_network_gateway_connection_id" {
 * `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
+
+* `traffic_selector_policy` A `traffic_selector_policy` which allows to specify traffic selector policy proposal to be used in a virtual network gateway connection.
+    Only one block can be defined for a connection.
+    For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - A mapping of tags to assign to the resource.
 
@@ -101,6 +109,12 @@ The `ipsec_policy` block supports:
 
 * `sa_lifetime` - The IPSec SA lifetime in seconds. Must be at least
     `300` seconds.
+
+The `traffic_selector_policy` block supports:
+
+* `local_address_cidrs` - List of local CIDRs.
+
+* `remote_address_cidrs` - List of remote CIDRs.
 
 ## Timeouts
 

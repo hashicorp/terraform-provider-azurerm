@@ -2,10 +2,9 @@ package compute
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -106,9 +105,7 @@ func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface
 	resp, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, imageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
-			log.Printf("[DEBUG] Shared Image Versions (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", imageName, galleryName, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Shared Image Versions (Image %q / Gallery %q / Resource Group %q) was not found", imageName, galleryName, resourceGroup)
 		}
 		return fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", imageName, galleryName, resourceGroup, err)
 	}

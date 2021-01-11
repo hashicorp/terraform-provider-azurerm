@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementLogger() *schema.Resource {
+func resourceApiManagementLogger() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementLoggerCreate,
-		Read:   resourceArmApiManagementLoggerRead,
-		Update: resourceArmApiManagementLoggerUpdate,
-		Delete: resourceArmApiManagementLoggerDelete,
+		Create: resourceApiManagementLoggerCreate,
+		Read:   resourceApiManagementLoggerRead,
+		Update: resourceApiManagementLoggerUpdate,
+		Delete: resourceApiManagementLoggerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -96,7 +96,7 @@ func resourceArmApiManagementLogger() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,10 +134,10 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 
 	if len(eventHubRaw) > 0 {
 		parameters.LoggerType = apimanagement.AzureEventHub
-		parameters.Credentials = expandArmApiManagementLoggerEventHub(eventHubRaw)
+		parameters.Credentials = expandApiManagementLoggerEventHub(eventHubRaw)
 	} else if len(appInsightsRaw) > 0 {
 		parameters.LoggerType = apimanagement.ApplicationInsights
-		parameters.Credentials = expandArmApiManagementLoggerApplicationInsights(appInsightsRaw)
+		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
@@ -153,10 +153,10 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementLoggerRead(d, meta)
+	return resourceApiManagementLoggerRead(d, meta)
 }
 
-func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 	if properties := resp.LoggerContractProperties; properties != nil {
 		d.Set("buffered", properties.IsBuffered)
 		d.Set("description", properties.Description)
-		if err := d.Set("eventhub", flattenArmApiManagementLoggerEventHub(d, properties)); err != nil {
+		if err := d.Set("eventhub", flattenApiManagementLoggerEventHub(d, properties)); err != nil {
 			return fmt.Errorf("setting `eventhub`: %s", err)
 		}
 	}
@@ -194,7 +194,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,20 +215,20 @@ func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface
 
 	if hasEventHub {
 		parameters.LoggerType = apimanagement.AzureEventHub
-		parameters.Credentials = expandArmApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+		parameters.Credentials = expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
 	} else if hasAppInsights {
 		parameters.LoggerType = apimanagement.ApplicationInsights
-		parameters.Credentials = expandArmApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
+		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
 		return fmt.Errorf("updating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
-	return resourceArmApiManagementLoggerRead(d, meta)
+	return resourceApiManagementLoggerRead(d, meta)
 }
 
-func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +251,7 @@ func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandArmApiManagementLoggerEventHub(input []interface{}) map[string]*string {
+func expandApiManagementLoggerEventHub(input []interface{}) map[string]*string {
 	credentials := make(map[string]*string)
 	eventHub := input[0].(map[string]interface{})
 	credentials["name"] = utils.String(eventHub["name"].(string))
@@ -259,14 +259,14 @@ func expandArmApiManagementLoggerEventHub(input []interface{}) map[string]*strin
 	return credentials
 }
 
-func expandArmApiManagementLoggerApplicationInsights(input []interface{}) map[string]*string {
+func expandApiManagementLoggerApplicationInsights(input []interface{}) map[string]*string {
 	credentials := make(map[string]*string)
 	ai := input[0].(map[string]interface{})
 	credentials["instrumentationKey"] = utils.String(ai["instrumentation_key"].(string))
 	return credentials
 }
 
-func flattenArmApiManagementLoggerEventHub(d *schema.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
+func flattenApiManagementLoggerEventHub(d *schema.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
 	result := make([]interface{}, 0)
 	if name := properties.Credentials["name"]; name != nil {
 		eventHub := make(map[string]interface{})

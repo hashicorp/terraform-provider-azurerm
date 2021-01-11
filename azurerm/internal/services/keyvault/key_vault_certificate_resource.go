@@ -2,57 +2,38 @@ package keyvault
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// todo refactor and find a home for this wayward func
-func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseKeyVaultChildID(d.Id())
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
-	}
-
-	kvid, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, id.KeyVaultBaseUrl)
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-
-	d.Set("key_vault_id", kvid)
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func resourceArmKeyVaultCertificate() *schema.Resource {
+func resourceKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
 		// TODO: support Updating once we have more information about what can be updated
-		Create: resourceArmKeyVaultCertificateCreate,
-		Read:   resourceArmKeyVaultCertificateRead,
-		Delete: resourceArmKeyVaultCertificateDelete,
+		Create: resourceKeyVaultCertificateCreate,
+		Read:   resourceKeyVaultCertificateRead,
+		Delete: resourceKeyVaultCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -137,6 +118,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
 											2048,
+											3072,
 											4096,
 										}),
 									},
@@ -186,17 +168,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 													Type:     schema.TypeInt,
 													Optional: true,
 													ForceNew: true,
-													ConflictsWith: []string{
-														"certificate_policy.0.lifetime_action.0.trigger.0.lifetime_percentage",
-													},
 												},
 												"lifetime_percentage": {
 													Type:     schema.TypeInt,
 													Optional: true,
 													ForceNew: true,
-													ConflictsWith: []string{
-														"certificate_policy.0.lifetime_action.0.trigger.0.days_before_expiry",
-													},
 												},
 											},
 										},
@@ -239,6 +215,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 									"key_usage": {
 										Type:     schema.TypeList,
 										Required: true,
+										ForceNew: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -310,6 +287,44 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 			},
 
 			// Computed
+			"certificate_attribute": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"created": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"expires": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"not_before": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"recovery_level": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"updated": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -335,7 +350,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -349,17 +364,15 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
-			}
+	existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -419,6 +432,13 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
+		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
+		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
+		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
+		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+			stateConf.PollInterval = 30 * time.Second
+			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
+		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
@@ -432,7 +452,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKeyVaultCertificateRead(d, meta)
+	return resourceKeyVaultCertificateRead(d, meta)
 }
 
 func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
@@ -440,6 +460,13 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 		res, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
+		}
+
+		if res.Policy != nil &&
+			res.Policy.IssuerParameters != nil &&
+			res.Policy.IssuerParameters.Name != nil &&
+			strings.EqualFold(*(res.Policy.IssuerParameters.Name), "unknown") {
+			return res, "Ready", nil
 		}
 
 		if res.Sid == nil || *res.Sid == "" {
@@ -450,7 +477,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 	}
 }
 
-func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -494,31 +521,40 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
+	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
+	}
+
+	if err := d.Set("certificate_attribute", flattenKeyVaultCertificateAttribute(cert.Attributes)); err != nil {
+		return fmt.Errorf("setting Key Vault Certificate Attributes: %+v", err)
 	}
 
 	// Computed
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
 
+	certificateData := ""
 	if contents := cert.Cer; contents != nil {
-		d.Set("certificate_data", strings.ToUpper(hex.EncodeToString(*contents)))
+		certificateData = strings.ToUpper(hex.EncodeToString(*contents))
 	}
+	d.Set("certificate_data", certificateData)
 
+	thumbprint := ""
 	if v := cert.X509Thumbprint; v != nil {
 		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
 		if err != nil {
 			return err
 		}
-		d.Set("thumbprint", strings.ToUpper(hex.EncodeToString(x509Thumbprint)))
+
+		thumbprint = strings.ToUpper(hex.EncodeToString(x509Thumbprint))
 	}
+	d.Set("thumbprint", thumbprint)
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -547,16 +583,45 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	resp, err := client.DeleteCertificate(ctx, id.KeyVaultBaseUrl, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("Error deleting Certificate %q from Key Vault: %+v", id.Name, err)
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeCertificate{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+var _ deleteAndPurgeNestedItem = deleteAndPurgeCertificate{}
+
+type deleteAndPurgeCertificate struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeCertificate) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteCertificate(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeCertificate) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetCertificate(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeCertificate) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedCertificate(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedCertificate(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }
 
 func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.CertificatePolicy {
@@ -668,7 +733,11 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	return policy
 }
 
-func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
+func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
@@ -747,6 +816,17 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 			}
 
 			sanOutputs = append(sanOutputs, sanOutput)
+		} else if certData != nil && len(*certData) > 0 {
+			sanOutput := make(map[string]interface{})
+			cert, err := x509.ParseCertificate(*certData)
+			if err != nil {
+				log.Printf("[DEBUG] Unable to read certificate data: %v", err)
+			} else {
+				sanOutput["emails"] = set.FromStringSlice(cert.EmailAddresses)
+				sanOutput["dns_names"] = set.FromStringSlice(cert.DNSNames)
+				sanOutput["upns"] = set.FromStringSlice([]string{})
+				sanOutputs = append(sanOutputs, sanOutput)
+			}
 		}
 
 		certProps["key_usage"] = usages
@@ -760,6 +840,43 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	}
 
 	return []interface{}{policy}
+}
+
+func flattenKeyVaultCertificateAttribute(input *keyvault.CertificateAttributes) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	created := ""
+	expires := ""
+	notBefore := ""
+	updated := ""
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	if input.Created != nil {
+		created = time.Time(*input.Created).Format(time.RFC3339)
+	}
+	if input.Expires != nil {
+		expires = time.Time(*input.Expires).Format(time.RFC3339)
+	}
+	if input.NotBefore != nil {
+		notBefore = time.Time(*input.NotBefore).Format(time.RFC3339)
+	}
+	if input.Updated != nil {
+		updated = time.Time(*input.Updated).Format(time.RFC3339)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"created":        created,
+			"enabled":        enabled,
+			"expires":        expires,
+			"not_before":     notBefore,
+			"recovery_level": string(input.RecoveryLevel),
+			"updated":        updated,
+		},
+	}
 }
 
 type KeyVaultCertificateImportParameters struct {

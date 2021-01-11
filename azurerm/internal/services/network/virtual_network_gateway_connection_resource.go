@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -74,6 +73,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"dpd_timeout_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"express_route_circuit_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -86,6 +91,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			},
+
+			"local_azure_ip_address_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"local_network_gateway_id": {
@@ -134,6 +145,30 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 					string(network.IKEv1),
 					string(network.IKEv2),
 				}, false),
+			},
+
+			"traffic_selector_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"local_address_cidrs": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"remote_address_cidrs": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
 			},
 
 			"ipsec_policy": {
@@ -263,7 +298,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -352,12 +387,20 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("authorization_key", conn.AuthorizationKey)
 	}
 
+	if conn.DpdTimeoutSeconds != nil {
+		d.Set("dpd_timeout_seconds", conn.DpdTimeoutSeconds)
+	}
+
 	if conn.Peer != nil {
 		d.Set("express_route_circuit_id", conn.Peer.ID)
 	}
 
 	if conn.VirtualNetworkGateway2 != nil {
 		d.Set("peer_virtual_network_gateway_id", conn.VirtualNetworkGateway2.ID)
+	}
+
+	if conn.UseLocalAzureIPAddress != nil {
+		d.Set("local_azure_ip_address_enabled", conn.UseLocalAzureIPAddress)
 	}
 
 	if conn.LocalNetworkGateway2 != nil {
@@ -392,6 +435,11 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
 			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
 		}
+	}
+
+	trafficSelectorPolicies := flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
+	if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
+		return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -451,6 +499,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		props.AuthorizationKey = &authorizationKey
 	}
 
+	if v, ok := d.GetOk("dpd_timeout_seconds"); ok {
+		props.DpdTimeoutSeconds = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := d.GetOk("express_route_circuit_id"); ok {
 		expressRouteCircuitId := v.(string)
 		props.Peer = &network.SubResource{
@@ -472,6 +524,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 				IPConfigurations: &[]network.VirtualNetworkGatewayIPConfiguration{},
 			},
 		}
+	}
+
+	if v, ok := d.GetOk("local_azure_ip_address_enabled"); ok {
+		props.UseLocalAzureIPAddress = utils.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("local_network_gateway_id"); ok {
@@ -502,6 +558,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	if v, ok := d.GetOk("connection_protocol"); ok {
 		connectionProtocol := v.(string)
 		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
+	}
+
+	if v, ok := d.GetOk("traffic_selector_policy"); ok {
+		props.TrafficSelectorPolicies = expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
@@ -587,6 +647,25 @@ func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies [
 	return &ipsecPolicies
 }
 
+func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []interface{}) *[]network.TrafficSelectorPolicy {
+	trafficSelectorPolicies := make([]network.TrafficSelectorPolicy, 0, len(schemaTrafficSelectorPolicies))
+
+	for _, d := range schemaTrafficSelectorPolicies {
+		schemaTrafficSelectorPolicy := d.(map[string]interface{})
+		trafficSelectorPolicy := &network.TrafficSelectorPolicy{}
+		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]interface{}); ok {
+			trafficSelectorPolicy.LocalAddressRanges = utils.ExpandStringSlice(localAddressRanges)
+		}
+		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]interface{}); ok {
+			trafficSelectorPolicy.RemoteAddressRanges = utils.ExpandStringSlice(remoteAddressRanges)
+		}
+
+		trafficSelectorPolicies = append(trafficSelectorPolicies, *trafficSelectorPolicy)
+	}
+
+	return &trafficSelectorPolicies
+}
+
 func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
 	schemaIpsecPolicies := make([]interface{}, 0)
 
@@ -614,4 +693,19 @@ func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]net
 	}
 
 	return schemaIpsecPolicies
+}
+
+func flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
+	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+
+	if trafficSelectorPolicies != nil {
+		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
+				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
+				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			})
+		}
+	}
+
+	return schemaTrafficSelectorPolicies
 }

@@ -114,7 +114,6 @@ func (client SecurityPartnerProvidersClient) CreateOrUpdateSender(req *http.Requ
 func (client SecurityPartnerProvidersClient) CreateOrUpdateResponder(resp *http.Response) (result SecurityPartnerProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client SecurityPartnerProvidersClient) DeleteSender(req *http.Request) (fu
 func (client SecurityPartnerProvidersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +226,7 @@ func (client SecurityPartnerProvidersClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityPartnerProvidersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +264,6 @@ func (client SecurityPartnerProvidersClient) GetSender(req *http.Request) (*http
 func (client SecurityPartnerProvidersClient) GetResponder(resp *http.Response) (result SecurityPartnerProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -302,6 +300,10 @@ func (client SecurityPartnerProvidersClient) List(ctx context.Context) (result S
 	result.spplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityPartnerProvidersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.spplr.hasNextLink() && result.spplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -337,7 +339,6 @@ func (client SecurityPartnerProvidersClient) ListSender(req *http.Request) (*htt
 func (client SecurityPartnerProvidersClient) ListResponder(resp *http.Response) (result SecurityPartnerProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,6 +363,7 @@ func (client SecurityPartnerProvidersClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityPartnerProvidersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -413,6 +415,10 @@ func (client SecurityPartnerProvidersClient) ListByResourceGroup(ctx context.Con
 	result.spplr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityPartnerProvidersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.spplr.hasNextLink() && result.spplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -449,7 +455,6 @@ func (client SecurityPartnerProvidersClient) ListByResourceGroupSender(req *http
 func (client SecurityPartnerProvidersClient) ListByResourceGroupResponder(resp *http.Response) (result SecurityPartnerProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,6 +479,7 @@ func (client SecurityPartnerProvidersClient) listByResourceGroupNextResults(ctx 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityPartnerProvidersClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -526,6 +532,7 @@ func (client SecurityPartnerProvidersClient) UpdateTags(ctx context.Context, res
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityPartnerProvidersClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -565,7 +572,6 @@ func (client SecurityPartnerProvidersClient) UpdateTagsSender(req *http.Request)
 func (client SecurityPartnerProvidersClient) UpdateTagsResponder(resp *http.Response) (result SecurityPartnerProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

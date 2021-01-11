@@ -117,7 +117,6 @@ func (client ServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Re
 func (client ServerBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +156,7 @@ func (client ServerBlobAuditingPoliciesClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -195,7 +195,6 @@ func (client ServerBlobAuditingPoliciesClient) GetSender(req *http.Request) (*ht
 func (client ServerBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result ServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -236,6 +235,10 @@ func (client ServerBlobAuditingPoliciesClient) ListByServer(ctx context.Context,
 	result.sbaplr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.sbaplr.hasNextLink() && result.sbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -273,7 +276,6 @@ func (client ServerBlobAuditingPoliciesClient) ListByServerSender(req *http.Requ
 func (client ServerBlobAuditingPoliciesClient) ListByServerResponder(resp *http.Response) (result ServerBlobAuditingPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -298,6 +300,7 @@ func (client ServerBlobAuditingPoliciesClient) listByServerNextResults(ctx conte
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

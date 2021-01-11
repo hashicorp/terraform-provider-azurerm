@@ -32,7 +32,7 @@ output "query_rule_id" {
 
 * `id` - The ID of the scheduled query rule.
 * `action` - An `action` block as defined below.
-* `authorized_resource_ids` - List of Resource IDs referred into query.
+* `authorized_resource_ids` - The list of Resource IDs referred into query.
 * `data_source_id` - The resource URI over which log search query is to be run.
 * `description` - The description of the scheduled query rule.
 * `enabled` - Whether this scheduled query rule is enabled.

@@ -143,7 +143,6 @@ func (client NamedValueClient) CreateOrUpdateSender(req *http.Request) (future N
 func (client NamedValueClient) CreateOrUpdateResponder(resp *http.Response) (result NamedValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,6 +195,7 @@ func (client NamedValueClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,7 +235,6 @@ func (client NamedValueClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client NamedValueClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,6 +284,7 @@ func (client NamedValueClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,7 +323,6 @@ func (client NamedValueClient) GetSender(req *http.Request) (*http.Response, err
 func (client NamedValueClient) GetResponder(resp *http.Response) (result NamedValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,6 +373,7 @@ func (client NamedValueClient) GetEntityTag(ctx context.Context, resourceGroupNa
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -412,7 +412,6 @@ func (client NamedValueClient) GetEntityTagSender(req *http.Request) (*http.Resp
 func (client NamedValueClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -471,6 +470,10 @@ func (client NamedValueClient) ListByService(ctx context.Context, resourceGroupN
 	result.nvc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.nvc.hasNextLink() && result.nvc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -517,7 +520,6 @@ func (client NamedValueClient) ListByServiceSender(req *http.Request) (*http.Res
 func (client NamedValueClient) ListByServiceResponder(resp *http.Response) (result NamedValueCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -542,6 +544,7 @@ func (client NamedValueClient) listByServiceNextResults(ctx context.Context, las
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -605,6 +608,7 @@ func (client NamedValueClient) ListValue(ctx context.Context, resourceGroupName 
 	result, err = client.ListValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "ListValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -643,7 +647,6 @@ func (client NamedValueClient) ListValueSender(req *http.Request) (*http.Respons
 func (client NamedValueClient) ListValueResponder(resp *http.Response) (result PropertyValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -738,7 +741,6 @@ func (client NamedValueClient) UpdateSender(req *http.Request) (future NamedValu
 func (client NamedValueClient) UpdateResponder(resp *http.Response) (result NamedValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

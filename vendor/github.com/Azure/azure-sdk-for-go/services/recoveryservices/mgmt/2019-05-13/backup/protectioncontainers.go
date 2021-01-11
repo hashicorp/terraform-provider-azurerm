@@ -75,6 +75,7 @@ func (client ProtectionContainersClient) Get(ctx context.Context, vaultName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client ProtectionContainersClient) GetSender(req *http.Request) (*http.Res
 func (client ProtectionContainersClient) GetResponder(resp *http.Response) (result ProtectionContainerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +156,7 @@ func (client ProtectionContainersClient) Inquire(ctx context.Context, vaultName 
 	result, err = client.InquireResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Inquire", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -198,7 +199,6 @@ func (client ProtectionContainersClient) InquireSender(req *http.Request) (*http
 func (client ProtectionContainersClient) InquireResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -240,6 +240,7 @@ func (client ProtectionContainersClient) Refresh(ctx context.Context, vaultName 
 	result, err = client.RefreshResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Refresh", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,7 +282,6 @@ func (client ProtectionContainersClient) RefreshSender(req *http.Request) (*http
 func (client ProtectionContainersClient) RefreshResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -324,6 +324,7 @@ func (client ProtectionContainersClient) Register(ctx context.Context, vaultName
 	result, err = client.RegisterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Register", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -365,7 +366,6 @@ func (client ProtectionContainersClient) RegisterSender(req *http.Request) (*htt
 func (client ProtectionContainersClient) RegisterResponder(resp *http.Response) (result ProtectionContainerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -408,6 +408,7 @@ func (client ProtectionContainersClient) Unregister(ctx context.Context, vaultNa
 	result, err = client.UnregisterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Unregister", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -447,7 +448,6 @@ func (client ProtectionContainersClient) UnregisterSender(req *http.Request) (*h
 func (client ProtectionContainersClient) UnregisterResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

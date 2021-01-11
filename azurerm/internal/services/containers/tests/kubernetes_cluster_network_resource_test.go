@@ -2,12 +2,34 @@ package tests
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
+
+var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
+	"enableNodePublicIP":                            testAccAzureRMKubernetesCluster_enableNodePublicIP,
+	"internalNetwork":                               testAccAzureRMKubernetesCluster_internalNetwork,
+	"changingLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
+	"prefixedLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
+	"standardLoadBalancer":                          testAccAzureRMKubernetesCluster_standardLoadBalancer,
+	"standardLoadBalancerComplete":                  testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
+	"standardLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
+	"standardLoadBalancerProfileComplete":           testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
+	"advancedNetworkingKubenet":                     testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
+	"advancedNetworkingKubenetComplete":             testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
+	"advancedNetworkingAzure":                       testAccAzureRMKubernetesCluster_advancedNetworkingAzure,
+	"advancedNetworkingAzureComplete":               testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
+	"advancedNetworkingAzureCalicoPolicy":           testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
+	"advancedNetworkingAzureCalicoPolicyComplete":   testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
+	"advancedNetworkingAzureNPMPolicy":              testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
+	"advancedNetworkingAzureNPMPolicyComplete":      testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
+	"basicLoadBalancerProfile":                      testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
+	"standardLoadBalancerProfileWithPortAndTimeout": testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout,
+}
 
 func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
@@ -306,30 +328,6 @@ func testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t)
-}
-
-func testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRoutingConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_privateClusterOn(t)
@@ -451,6 +449,8 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes", "30"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ports_allocated", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -481,6 +481,34 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *test
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t)
+}
+
+func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                  func() { acceptance.PreCheck(t) },
+		Providers:                 acceptance.SupportedProviders,
+		CheckDestroy:              testCheckAzureRMKubernetesClusterDestroy,
+		PreventPostDestroyRefresh: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeoutConfig(data, clientId, clientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ports_allocated", "8000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes", "10"),
+				),
+			},
 		},
 	})
 }
@@ -657,19 +685,6 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_route_table" "test" {
-  name                = "akc-routetable-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  route {
-    name                   = "akc-route-%d"
-    address_prefix         = "10.100.0.0/14"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
-  }
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
@@ -682,11 +697,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = azurerm_subnet.test.id
-  route_table_id = azurerm_route_table.test.id
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -721,7 +731,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
 // nolint unparam
@@ -989,89 +999,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRoutingConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-
-
-resource "azurerm_route_table" "test" {
-  name                = "akc-routetable-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  route {
-    name                   = "first"
-    address_prefix         = "10.100.0.0/14"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
-  }
-
-  route {
-    name                   = "second"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
-  }
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.1.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = azurerm_subnet.test.id
-  route_table_id = azurerm_route_table.test.id
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
-    max_pods       = 60
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
-    pod_cidr           = "10.244.0.0/16"
-    service_cidr       = "10.0.0.0/16"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    outbound_type      = "userDefinedRouting"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func testAccAzureRMKubernetesCluster_privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1223,7 +1150,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "%s"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1252,7 +1178,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku  = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -1385,6 +1311,56 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "Standard"
+    load_balancer_profile {
+      managed_outbound_ip_count = 2
+      outbound_ports_allocated  = 8000
+      idle_timeout_in_minutes   = 10
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data acceptance.TestData) string {

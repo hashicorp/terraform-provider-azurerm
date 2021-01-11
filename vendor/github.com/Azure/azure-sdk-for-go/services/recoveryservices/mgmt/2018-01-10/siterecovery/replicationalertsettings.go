@@ -73,6 +73,7 @@ func (client ReplicationAlertSettingsClient) Create(ctx context.Context, alertSe
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client ReplicationAlertSettingsClient) CreateSender(req *http.Request) (*h
 func (client ReplicationAlertSettingsClient) CreateResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,7 @@ func (client ReplicationAlertSettingsClient) Get(ctx context.Context, alertSetti
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,7 +190,6 @@ func (client ReplicationAlertSettingsClient) GetSender(req *http.Request) (*http
 func (client ReplicationAlertSettingsClient) GetResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -226,6 +226,10 @@ func (client ReplicationAlertSettingsClient) List(ctx context.Context) (result A
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -263,7 +267,6 @@ func (client ReplicationAlertSettingsClient) ListSender(req *http.Request) (*htt
 func (client ReplicationAlertSettingsClient) ListResponder(resp *http.Response) (result AlertCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,6 +291,7 @@ func (client ReplicationAlertSettingsClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

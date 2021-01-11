@@ -32,814 +32,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 
-// AlwaysLog enumerates the values for always log.
-type AlwaysLog string
-
-const (
-	// AllErrors Always log all erroneous request regardless of sampling settings.
-	AllErrors AlwaysLog = "allErrors"
-)
-
-// PossibleAlwaysLogValues returns an array of possible values for the AlwaysLog const type.
-func PossibleAlwaysLogValues() []AlwaysLog {
-	return []AlwaysLog{AllErrors}
-}
-
-// ApimIdentityType enumerates the values for apim identity type.
-type ApimIdentityType string
-
-const (
-	// None ...
-	None ApimIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ApimIdentityType = "SystemAssigned"
-	// SystemAssignedUserAssigned ...
-	SystemAssignedUserAssigned ApimIdentityType = "SystemAssigned, UserAssigned"
-	// UserAssigned ...
-	UserAssigned ApimIdentityType = "UserAssigned"
-)
-
-// PossibleApimIdentityTypeValues returns an array of possible values for the ApimIdentityType const type.
-func PossibleApimIdentityTypeValues() []ApimIdentityType {
-	return []ApimIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
-}
-
-// APIType enumerates the values for api type.
-type APIType string
-
-const (
-	// HTTP ...
-	HTTP APIType = "http"
-	// Soap ...
-	Soap APIType = "soap"
-)
-
-// PossibleAPITypeValues returns an array of possible values for the APIType const type.
-func PossibleAPITypeValues() []APIType {
-	return []APIType{HTTP, Soap}
-}
-
-// AppType enumerates the values for app type.
-type AppType string
-
-const (
-	// DeveloperPortal User create request was sent by new developer portal.
-	DeveloperPortal AppType = "developerPortal"
-)
-
-// PossibleAppTypeValues returns an array of possible values for the AppType const type.
-func PossibleAppTypeValues() []AppType {
-	return []AppType{DeveloperPortal}
-}
-
-// AsyncOperationStatus enumerates the values for async operation status.
-type AsyncOperationStatus string
-
-const (
-	// Failed ...
-	Failed AsyncOperationStatus = "Failed"
-	// InProgress ...
-	InProgress AsyncOperationStatus = "InProgress"
-	// Started ...
-	Started AsyncOperationStatus = "Started"
-	// Succeeded ...
-	Succeeded AsyncOperationStatus = "Succeeded"
-)
-
-// PossibleAsyncOperationStatusValues returns an array of possible values for the AsyncOperationStatus const type.
-func PossibleAsyncOperationStatusValues() []AsyncOperationStatus {
-	return []AsyncOperationStatus{Failed, InProgress, Started, Succeeded}
-}
-
-// AuthorizationMethod enumerates the values for authorization method.
-type AuthorizationMethod string
-
-const (
-	// DELETE ...
-	DELETE AuthorizationMethod = "DELETE"
-	// GET ...
-	GET AuthorizationMethod = "GET"
-	// HEAD ...
-	HEAD AuthorizationMethod = "HEAD"
-	// OPTIONS ...
-	OPTIONS AuthorizationMethod = "OPTIONS"
-	// PATCH ...
-	PATCH AuthorizationMethod = "PATCH"
-	// POST ...
-	POST AuthorizationMethod = "POST"
-	// PUT ...
-	PUT AuthorizationMethod = "PUT"
-	// TRACE ...
-	TRACE AuthorizationMethod = "TRACE"
-)
-
-// PossibleAuthorizationMethodValues returns an array of possible values for the AuthorizationMethod const type.
-func PossibleAuthorizationMethodValues() []AuthorizationMethod {
-	return []AuthorizationMethod{DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE}
-}
-
-// BackendProtocol enumerates the values for backend protocol.
-type BackendProtocol string
-
-const (
-	// BackendProtocolHTTP The Backend is a RESTful service.
-	BackendProtocolHTTP BackendProtocol = "http"
-	// BackendProtocolSoap The Backend is a SOAP service.
-	BackendProtocolSoap BackendProtocol = "soap"
-)
-
-// PossibleBackendProtocolValues returns an array of possible values for the BackendProtocol const type.
-func PossibleBackendProtocolValues() []BackendProtocol {
-	return []BackendProtocol{BackendProtocolHTTP, BackendProtocolSoap}
-}
-
-// BearerTokenSendingMethod enumerates the values for bearer token sending method.
-type BearerTokenSendingMethod string
-
-const (
-	// AuthorizationHeader ...
-	AuthorizationHeader BearerTokenSendingMethod = "authorizationHeader"
-	// Query ...
-	Query BearerTokenSendingMethod = "query"
-)
-
-// PossibleBearerTokenSendingMethodValues returns an array of possible values for the BearerTokenSendingMethod const type.
-func PossibleBearerTokenSendingMethodValues() []BearerTokenSendingMethod {
-	return []BearerTokenSendingMethod{AuthorizationHeader, Query}
-}
-
-// BearerTokenSendingMethods enumerates the values for bearer token sending methods.
-type BearerTokenSendingMethods string
-
-const (
-	// BearerTokenSendingMethodsAuthorizationHeader Access token will be transmitted in the Authorization
-	// header using Bearer schema
-	BearerTokenSendingMethodsAuthorizationHeader BearerTokenSendingMethods = "authorizationHeader"
-	// BearerTokenSendingMethodsQuery Access token will be transmitted as query parameters.
-	BearerTokenSendingMethodsQuery BearerTokenSendingMethods = "query"
-)
-
-// PossibleBearerTokenSendingMethodsValues returns an array of possible values for the BearerTokenSendingMethods const type.
-func PossibleBearerTokenSendingMethodsValues() []BearerTokenSendingMethods {
-	return []BearerTokenSendingMethods{BearerTokenSendingMethodsAuthorizationHeader, BearerTokenSendingMethodsQuery}
-}
-
-// ClientAuthenticationMethod enumerates the values for client authentication method.
-type ClientAuthenticationMethod string
-
-const (
-	// Basic Basic Client Authentication method.
-	Basic ClientAuthenticationMethod = "Basic"
-	// Body Body based Authentication method.
-	Body ClientAuthenticationMethod = "Body"
-)
-
-// PossibleClientAuthenticationMethodValues returns an array of possible values for the ClientAuthenticationMethod const type.
-func PossibleClientAuthenticationMethodValues() []ClientAuthenticationMethod {
-	return []ClientAuthenticationMethod{Basic, Body}
-}
-
-// Confirmation enumerates the values for confirmation.
-type Confirmation string
-
-const (
-	// Invite Send an e-mail inviting the user to sign-up and complete registration.
-	Invite Confirmation = "invite"
-	// Signup Send an e-mail to the user confirming they have successfully signed up.
-	Signup Confirmation = "signup"
-)
-
-// PossibleConfirmationValues returns an array of possible values for the Confirmation const type.
-func PossibleConfirmationValues() []Confirmation {
-	return []Confirmation{Invite, Signup}
-}
-
-// ConnectivityStatusType enumerates the values for connectivity status type.
-type ConnectivityStatusType string
-
-const (
-	// Failure ...
-	Failure ConnectivityStatusType = "failure"
-	// Initializing ...
-	Initializing ConnectivityStatusType = "initializing"
-	// Success ...
-	Success ConnectivityStatusType = "success"
-)
-
-// PossibleConnectivityStatusTypeValues returns an array of possible values for the ConnectivityStatusType const type.
-func PossibleConnectivityStatusTypeValues() []ConnectivityStatusType {
-	return []ConnectivityStatusType{Failure, Initializing, Success}
-}
-
-// ContentFormat enumerates the values for content format.
-type ContentFormat string
-
-const (
-	// Openapi The contents are inline and Content Type is a OpenApi 3.0 Document in YAML format.
-	Openapi ContentFormat = "openapi"
-	// Openapijson The contents are inline and Content Type is a OpenApi 3.0 Document in JSON format.
-	Openapijson ContentFormat = "openapi+json"
-	// OpenapijsonLink The Open Api 3.0 Json document is hosted on a publicly accessible internet address.
-	OpenapijsonLink ContentFormat = "openapi+json-link"
-	// OpenapiLink The Open Api 3.0 document is hosted on a publicly accessible internet address.
-	OpenapiLink ContentFormat = "openapi-link"
-	// SwaggerJSON The contents are inline and Content Type is a OpenApi 2.0 Document.
-	SwaggerJSON ContentFormat = "swagger-json"
-	// SwaggerLinkJSON The Open Api 2.0 document is hosted on a publicly accessible internet address.
-	SwaggerLinkJSON ContentFormat = "swagger-link-json"
-	// WadlLinkJSON The WADL document is hosted on a publicly accessible internet address.
-	WadlLinkJSON ContentFormat = "wadl-link-json"
-	// WadlXML The contents are inline and Content type is a WADL document.
-	WadlXML ContentFormat = "wadl-xml"
-	// Wsdl The contents are inline and the document is a WSDL/Soap document.
-	Wsdl ContentFormat = "wsdl"
-	// WsdlLink The WSDL document is hosted on a publicly accessible internet address.
-	WsdlLink ContentFormat = "wsdl-link"
-)
-
-// PossibleContentFormatValues returns an array of possible values for the ContentFormat const type.
-func PossibleContentFormatValues() []ContentFormat {
-	return []ContentFormat{Openapi, Openapijson, OpenapijsonLink, OpenapiLink, SwaggerJSON, SwaggerLinkJSON, WadlLinkJSON, WadlXML, Wsdl, WsdlLink}
-}
-
-// ExportFormat enumerates the values for export format.
-type ExportFormat string
-
-const (
-	// ExportFormatOpenapi Export the Api Definition in OpenApi Specification 3.0 to Storage Blob.
-	ExportFormatOpenapi ExportFormat = "openapi-link"
-	// ExportFormatOpenapiJSON Export the Api Definition in OpenApi Specification 3.0 as JSON document to
-	// Storage Blob.
-	ExportFormatOpenapiJSON ExportFormat = "openapi+json-link"
-	// ExportFormatSwagger Export the Api Definition in OpenApi Specification 2.0 format to the Storage Blob.
-	ExportFormatSwagger ExportFormat = "swagger-link"
-	// ExportFormatWadl Export the Api Definition in WADL Schema to Storage Blob.
-	ExportFormatWadl ExportFormat = "wadl-link"
-	// ExportFormatWsdl Export the Api Definition in WSDL Schema to Storage Blob. This is only supported for
-	// APIs of Type `soap`
-	ExportFormatWsdl ExportFormat = "wsdl-link"
-)
-
-// PossibleExportFormatValues returns an array of possible values for the ExportFormat const type.
-func PossibleExportFormatValues() []ExportFormat {
-	return []ExportFormat{ExportFormatOpenapi, ExportFormatOpenapiJSON, ExportFormatSwagger, ExportFormatWadl, ExportFormatWsdl}
-}
-
-// ExportResultFormat enumerates the values for export result format.
-type ExportResultFormat string
-
-const (
-	// ExportResultFormatOpenAPI Export the Api Definition in OpenApi Specification 3.0 to Storage Blob.
-	ExportResultFormatOpenAPI ExportResultFormat = "openapi-link"
-	// ExportResultFormatSwagger The Api Definition is exported in OpenApi Specification 2.0 format to the
-	// Storage Blob.
-	ExportResultFormatSwagger ExportResultFormat = "swagger-link-json"
-	// ExportResultFormatWadl Export the Api Definition in WADL Schema to Storage Blob.
-	ExportResultFormatWadl ExportResultFormat = "wadl-link-json"
-	// ExportResultFormatWsdl The Api Definition is exported in WSDL Schema to Storage Blob. This is only
-	// supported for APIs of Type `soap`
-	ExportResultFormatWsdl ExportResultFormat = "wsdl-link+xml"
-)
-
-// PossibleExportResultFormatValues returns an array of possible values for the ExportResultFormat const type.
-func PossibleExportResultFormatValues() []ExportResultFormat {
-	return []ExportResultFormat{ExportResultFormatOpenAPI, ExportResultFormatSwagger, ExportResultFormatWadl, ExportResultFormatWsdl}
-}
-
-// GrantType enumerates the values for grant type.
-type GrantType string
-
-const (
-	// AuthorizationCode Authorization Code Grant flow as described
-	// https://tools.ietf.org/html/rfc6749#section-4.1.
-	AuthorizationCode GrantType = "authorizationCode"
-	// ClientCredentials Client Credentials Grant flow as described
-	// https://tools.ietf.org/html/rfc6749#section-4.4.
-	ClientCredentials GrantType = "clientCredentials"
-	// Implicit Implicit Code Grant flow as described https://tools.ietf.org/html/rfc6749#section-4.2.
-	Implicit GrantType = "implicit"
-	// ResourceOwnerPassword Resource Owner Password Grant flow as described
-	// https://tools.ietf.org/html/rfc6749#section-4.3.
-	ResourceOwnerPassword GrantType = "resourceOwnerPassword"
-)
-
-// PossibleGrantTypeValues returns an array of possible values for the GrantType const type.
-func PossibleGrantTypeValues() []GrantType {
-	return []GrantType{AuthorizationCode, ClientCredentials, Implicit, ResourceOwnerPassword}
-}
-
-// GroupType enumerates the values for group type.
-type GroupType string
-
-const (
-	// Custom ...
-	Custom GroupType = "custom"
-	// External ...
-	External GroupType = "external"
-	// System ...
-	System GroupType = "system"
-)
-
-// PossibleGroupTypeValues returns an array of possible values for the GroupType const type.
-func PossibleGroupTypeValues() []GroupType {
-	return []GroupType{Custom, External, System}
-}
-
-// HostnameType enumerates the values for hostname type.
-type HostnameType string
-
-const (
-	// HostnameTypeDeveloperPortal ...
-	HostnameTypeDeveloperPortal HostnameType = "DeveloperPortal"
-	// HostnameTypeManagement ...
-	HostnameTypeManagement HostnameType = "Management"
-	// HostnameTypePortal ...
-	HostnameTypePortal HostnameType = "Portal"
-	// HostnameTypeProxy ...
-	HostnameTypeProxy HostnameType = "Proxy"
-	// HostnameTypeScm ...
-	HostnameTypeScm HostnameType = "Scm"
-)
-
-// PossibleHostnameTypeValues returns an array of possible values for the HostnameType const type.
-func PossibleHostnameTypeValues() []HostnameType {
-	return []HostnameType{HostnameTypeDeveloperPortal, HostnameTypeManagement, HostnameTypePortal, HostnameTypeProxy, HostnameTypeScm}
-}
-
-// HTTPCorrelationProtocol enumerates the values for http correlation protocol.
-type HTTPCorrelationProtocol string
-
-const (
-	// HTTPCorrelationProtocolLegacy Inject Request-Id and Request-Context headers with request correlation
-	// data. See
-	// https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md.
-	HTTPCorrelationProtocolLegacy HTTPCorrelationProtocol = "Legacy"
-	// HTTPCorrelationProtocolNone Do not read and inject correlation headers.
-	HTTPCorrelationProtocolNone HTTPCorrelationProtocol = "None"
-	// HTTPCorrelationProtocolW3C Inject Trace Context headers. See https://w3c.github.io/trace-context.
-	HTTPCorrelationProtocolW3C HTTPCorrelationProtocol = "W3C"
-)
-
-// PossibleHTTPCorrelationProtocolValues returns an array of possible values for the HTTPCorrelationProtocol const type.
-func PossibleHTTPCorrelationProtocolValues() []HTTPCorrelationProtocol {
-	return []HTTPCorrelationProtocol{HTTPCorrelationProtocolLegacy, HTTPCorrelationProtocolNone, HTTPCorrelationProtocolW3C}
-}
-
-// IdentityProviderType enumerates the values for identity provider type.
-type IdentityProviderType string
-
-const (
-	// Aad Azure Active Directory as Identity provider.
-	Aad IdentityProviderType = "aad"
-	// AadB2C Azure Active Directory B2C as Identity provider.
-	AadB2C IdentityProviderType = "aadB2C"
-	// Facebook Facebook as Identity provider.
-	Facebook IdentityProviderType = "facebook"
-	// Google Google as Identity provider.
-	Google IdentityProviderType = "google"
-	// Microsoft Microsoft Live as Identity provider.
-	Microsoft IdentityProviderType = "microsoft"
-	// Twitter Twitter as Identity provider.
-	Twitter IdentityProviderType = "twitter"
-)
-
-// PossibleIdentityProviderTypeValues returns an array of possible values for the IdentityProviderType const type.
-func PossibleIdentityProviderTypeValues() []IdentityProviderType {
-	return []IdentityProviderType{Aad, AadB2C, Facebook, Google, Microsoft, Twitter}
-}
-
-// KeyType enumerates the values for key type.
-type KeyType string
-
-const (
-	// Primary ...
-	Primary KeyType = "primary"
-	// Secondary ...
-	Secondary KeyType = "secondary"
-)
-
-// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
-func PossibleKeyTypeValues() []KeyType {
-	return []KeyType{Primary, Secondary}
-}
-
-// LoggerType enumerates the values for logger type.
-type LoggerType string
-
-const (
-	// ApplicationInsights Azure Application Insights as log destination.
-	ApplicationInsights LoggerType = "applicationInsights"
-	// AzureEventHub Azure Event Hub as log destination.
-	AzureEventHub LoggerType = "azureEventHub"
-)
-
-// PossibleLoggerTypeValues returns an array of possible values for the LoggerType const type.
-func PossibleLoggerTypeValues() []LoggerType {
-	return []LoggerType{ApplicationInsights, AzureEventHub}
-}
-
-// NameAvailabilityReason enumerates the values for name availability reason.
-type NameAvailabilityReason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists NameAvailabilityReason = "AlreadyExists"
-	// Invalid ...
-	Invalid NameAvailabilityReason = "Invalid"
-	// Valid ...
-	Valid NameAvailabilityReason = "Valid"
-)
-
-// PossibleNameAvailabilityReasonValues returns an array of possible values for the NameAvailabilityReason const type.
-func PossibleNameAvailabilityReasonValues() []NameAvailabilityReason {
-	return []NameAvailabilityReason{AlreadyExists, Invalid, Valid}
-}
-
-// NotificationName enumerates the values for notification name.
-type NotificationName string
-
-const (
-	// AccountClosedPublisher The following email recipients and users will receive email notifications when
-	// developer closes his account.
-	AccountClosedPublisher NotificationName = "AccountClosedPublisher"
-	// BCC The following recipients will receive blind carbon copies of all emails sent to developers.
-	BCC NotificationName = "BCC"
-	// NewApplicationNotificationMessage The following email recipients and users will receive email
-	// notifications when new applications are submitted to the application gallery.
-	NewApplicationNotificationMessage NotificationName = "NewApplicationNotificationMessage"
-	// NewIssuePublisherNotificationMessage The following email recipients and users will receive email
-	// notifications when a new issue or comment is submitted on the developer portal.
-	NewIssuePublisherNotificationMessage NotificationName = "NewIssuePublisherNotificationMessage"
-	// PurchasePublisherNotificationMessage The following email recipients and users will receive email
-	// notifications about new API product subscriptions.
-	PurchasePublisherNotificationMessage NotificationName = "PurchasePublisherNotificationMessage"
-	// QuotaLimitApproachingPublisherNotificationMessage The following email recipients and users will receive
-	// email notifications when subscription usage gets close to usage quota.
-	QuotaLimitApproachingPublisherNotificationMessage NotificationName = "QuotaLimitApproachingPublisherNotificationMessage"
-	// RequestPublisherNotificationMessage The following email recipients and users will receive email
-	// notifications about subscription requests for API products requiring approval.
-	RequestPublisherNotificationMessage NotificationName = "RequestPublisherNotificationMessage"
-)
-
-// PossibleNotificationNameValues returns an array of possible values for the NotificationName const type.
-func PossibleNotificationNameValues() []NotificationName {
-	return []NotificationName{AccountClosedPublisher, BCC, NewApplicationNotificationMessage, NewIssuePublisherNotificationMessage, PurchasePublisherNotificationMessage, QuotaLimitApproachingPublisherNotificationMessage, RequestPublisherNotificationMessage}
-}
-
-// PolicyContentFormat enumerates the values for policy content format.
-type PolicyContentFormat string
-
-const (
-	// Rawxml The contents are inline and Content type is a non XML encoded policy document.
-	Rawxml PolicyContentFormat = "rawxml"
-	// RawxmlLink The policy document is not Xml encoded and is hosted on a http endpoint accessible from the
-	// API Management service.
-	RawxmlLink PolicyContentFormat = "rawxml-link"
-	// XML The contents are inline and Content type is an XML document.
-	XML PolicyContentFormat = "xml"
-	// XMLLink The policy XML document is hosted on a http endpoint accessible from the API Management service.
-	XMLLink PolicyContentFormat = "xml-link"
-)
-
-// PossiblePolicyContentFormatValues returns an array of possible values for the PolicyContentFormat const type.
-func PossiblePolicyContentFormatValues() []PolicyContentFormat {
-	return []PolicyContentFormat{Rawxml, RawxmlLink, XML, XMLLink}
-}
-
-// PolicyExportFormat enumerates the values for policy export format.
-type PolicyExportFormat string
-
-const (
-	// PolicyExportFormatRawxml The contents are inline and Content type is a non XML encoded policy document.
-	PolicyExportFormatRawxml PolicyExportFormat = "rawxml"
-	// PolicyExportFormatXML The contents are inline and Content type is an XML document.
-	PolicyExportFormatXML PolicyExportFormat = "xml"
-)
-
-// PossiblePolicyExportFormatValues returns an array of possible values for the PolicyExportFormat const type.
-func PossiblePolicyExportFormatValues() []PolicyExportFormat {
-	return []PolicyExportFormat{PolicyExportFormatRawxml, PolicyExportFormatXML}
-}
-
-// PolicyScopeContract enumerates the values for policy scope contract.
-type PolicyScopeContract string
-
-const (
-	// PolicyScopeContractAll ...
-	PolicyScopeContractAll PolicyScopeContract = "All"
-	// PolicyScopeContractAPI ...
-	PolicyScopeContractAPI PolicyScopeContract = "Api"
-	// PolicyScopeContractOperation ...
-	PolicyScopeContractOperation PolicyScopeContract = "Operation"
-	// PolicyScopeContractProduct ...
-	PolicyScopeContractProduct PolicyScopeContract = "Product"
-	// PolicyScopeContractTenant ...
-	PolicyScopeContractTenant PolicyScopeContract = "Tenant"
-)
-
-// PossiblePolicyScopeContractValues returns an array of possible values for the PolicyScopeContract const type.
-func PossiblePolicyScopeContractValues() []PolicyScopeContract {
-	return []PolicyScopeContract{PolicyScopeContractAll, PolicyScopeContractAPI, PolicyScopeContractOperation, PolicyScopeContractProduct, PolicyScopeContractTenant}
-}
-
-// ProductState enumerates the values for product state.
-type ProductState string
-
-const (
-	// NotPublished ...
-	NotPublished ProductState = "notPublished"
-	// Published ...
-	Published ProductState = "published"
-)
-
-// PossibleProductStateValues returns an array of possible values for the ProductState const type.
-func PossibleProductStateValues() []ProductState {
-	return []ProductState{NotPublished, Published}
-}
-
-// Protocol enumerates the values for protocol.
-type Protocol string
-
-const (
-	// ProtocolHTTP ...
-	ProtocolHTTP Protocol = "http"
-	// ProtocolHTTPS ...
-	ProtocolHTTPS Protocol = "https"
-)
-
-// PossibleProtocolValues returns an array of possible values for the Protocol const type.
-func PossibleProtocolValues() []Protocol {
-	return []Protocol{ProtocolHTTP, ProtocolHTTPS}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Created ...
-	Created ProvisioningState = "created"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Created}
-}
-
-// ResourceSkuCapacityScaleType enumerates the values for resource sku capacity scale type.
-type ResourceSkuCapacityScaleType string
-
-const (
-	// ResourceSkuCapacityScaleTypeAutomatic Supported scale type automatic.
-	ResourceSkuCapacityScaleTypeAutomatic ResourceSkuCapacityScaleType = "automatic"
-	// ResourceSkuCapacityScaleTypeManual Supported scale type manual.
-	ResourceSkuCapacityScaleTypeManual ResourceSkuCapacityScaleType = "manual"
-	// ResourceSkuCapacityScaleTypeNone Scaling not supported.
-	ResourceSkuCapacityScaleTypeNone ResourceSkuCapacityScaleType = "none"
-)
-
-// PossibleResourceSkuCapacityScaleTypeValues returns an array of possible values for the ResourceSkuCapacityScaleType const type.
-func PossibleResourceSkuCapacityScaleTypeValues() []ResourceSkuCapacityScaleType {
-	return []ResourceSkuCapacityScaleType{ResourceSkuCapacityScaleTypeAutomatic, ResourceSkuCapacityScaleTypeManual, ResourceSkuCapacityScaleTypeNone}
-}
-
-// SamplingType enumerates the values for sampling type.
-type SamplingType string
-
-const (
-	// Fixed Fixed-rate sampling.
-	Fixed SamplingType = "fixed"
-)
-
-// PossibleSamplingTypeValues returns an array of possible values for the SamplingType const type.
-func PossibleSamplingTypeValues() []SamplingType {
-	return []SamplingType{Fixed}
-}
-
-// SkuType enumerates the values for sku type.
-type SkuType string
-
-const (
-	// SkuTypeBasic Basic SKU of Api Management.
-	SkuTypeBasic SkuType = "Basic"
-	// SkuTypeConsumption Consumption SKU of Api Management.
-	SkuTypeConsumption SkuType = "Consumption"
-	// SkuTypeDeveloper Developer SKU of Api Management.
-	SkuTypeDeveloper SkuType = "Developer"
-	// SkuTypePremium Premium SKU of Api Management.
-	SkuTypePremium SkuType = "Premium"
-	// SkuTypeStandard Standard SKU of Api Management.
-	SkuTypeStandard SkuType = "Standard"
-)
-
-// PossibleSkuTypeValues returns an array of possible values for the SkuType const type.
-func PossibleSkuTypeValues() []SkuType {
-	return []SkuType{SkuTypeBasic, SkuTypeConsumption, SkuTypeDeveloper, SkuTypePremium, SkuTypeStandard}
-}
-
-// SoapAPIType enumerates the values for soap api type.
-type SoapAPIType string
-
-const (
-	// SoapPassThrough Imports the Soap API having a SOAP front end.
-	SoapPassThrough SoapAPIType = "soap"
-	// SoapToRest Imports a SOAP API having a RESTful front end.
-	SoapToRest SoapAPIType = "http"
-)
-
-// PossibleSoapAPITypeValues returns an array of possible values for the SoapAPIType const type.
-func PossibleSoapAPITypeValues() []SoapAPIType {
-	return []SoapAPIType{SoapPassThrough, SoapToRest}
-}
-
-// State enumerates the values for state.
-type State string
-
-const (
-	// Closed The issue was closed.
-	Closed State = "closed"
-	// Open The issue is opened.
-	Open State = "open"
-	// Proposed The issue is proposed.
-	Proposed State = "proposed"
-	// Removed The issue was removed.
-	Removed State = "removed"
-	// Resolved The issue is now resolved.
-	Resolved State = "resolved"
-)
-
-// PossibleStateValues returns an array of possible values for the State const type.
-func PossibleStateValues() []State {
-	return []State{Closed, Open, Proposed, Removed, Resolved}
-}
-
-// StoreName enumerates the values for store name.
-type StoreName string
-
-const (
-	// CertificateAuthority ...
-	CertificateAuthority StoreName = "CertificateAuthority"
-	// Root ...
-	Root StoreName = "Root"
-)
-
-// PossibleStoreNameValues returns an array of possible values for the StoreName const type.
-func PossibleStoreNameValues() []StoreName {
-	return []StoreName{CertificateAuthority, Root}
-}
-
-// SubscriptionState enumerates the values for subscription state.
-type SubscriptionState string
-
-const (
-	// Active ...
-	Active SubscriptionState = "active"
-	// Cancelled ...
-	Cancelled SubscriptionState = "cancelled"
-	// Expired ...
-	Expired SubscriptionState = "expired"
-	// Rejected ...
-	Rejected SubscriptionState = "rejected"
-	// Submitted ...
-	Submitted SubscriptionState = "submitted"
-	// Suspended ...
-	Suspended SubscriptionState = "suspended"
-)
-
-// PossibleSubscriptionStateValues returns an array of possible values for the SubscriptionState const type.
-func PossibleSubscriptionStateValues() []SubscriptionState {
-	return []SubscriptionState{Active, Cancelled, Expired, Rejected, Submitted, Suspended}
-}
-
-// TemplateName enumerates the values for template name.
-type TemplateName string
-
-const (
-	// AccountClosedDeveloper ...
-	AccountClosedDeveloper TemplateName = "accountClosedDeveloper"
-	// ApplicationApprovedNotificationMessage ...
-	ApplicationApprovedNotificationMessage TemplateName = "applicationApprovedNotificationMessage"
-	// ConfirmSignUpIdentityDefault ...
-	ConfirmSignUpIdentityDefault TemplateName = "confirmSignUpIdentityDefault"
-	// EmailChangeIdentityDefault ...
-	EmailChangeIdentityDefault TemplateName = "emailChangeIdentityDefault"
-	// InviteUserNotificationMessage ...
-	InviteUserNotificationMessage TemplateName = "inviteUserNotificationMessage"
-	// NewCommentNotificationMessage ...
-	NewCommentNotificationMessage TemplateName = "newCommentNotificationMessage"
-	// NewDeveloperNotificationMessage ...
-	NewDeveloperNotificationMessage TemplateName = "newDeveloperNotificationMessage"
-	// NewIssueNotificationMessage ...
-	NewIssueNotificationMessage TemplateName = "newIssueNotificationMessage"
-	// PasswordResetByAdminNotificationMessage ...
-	PasswordResetByAdminNotificationMessage TemplateName = "passwordResetByAdminNotificationMessage"
-	// PasswordResetIdentityDefault ...
-	PasswordResetIdentityDefault TemplateName = "passwordResetIdentityDefault"
-	// PurchaseDeveloperNotificationMessage ...
-	PurchaseDeveloperNotificationMessage TemplateName = "purchaseDeveloperNotificationMessage"
-	// QuotaLimitApproachingDeveloperNotificationMessage ...
-	QuotaLimitApproachingDeveloperNotificationMessage TemplateName = "quotaLimitApproachingDeveloperNotificationMessage"
-	// RejectDeveloperNotificationMessage ...
-	RejectDeveloperNotificationMessage TemplateName = "rejectDeveloperNotificationMessage"
-	// RequestDeveloperNotificationMessage ...
-	RequestDeveloperNotificationMessage TemplateName = "requestDeveloperNotificationMessage"
-)
-
-// PossibleTemplateNameValues returns an array of possible values for the TemplateName const type.
-func PossibleTemplateNameValues() []TemplateName {
-	return []TemplateName{AccountClosedDeveloper, ApplicationApprovedNotificationMessage, ConfirmSignUpIdentityDefault, EmailChangeIdentityDefault, InviteUserNotificationMessage, NewCommentNotificationMessage, NewDeveloperNotificationMessage, NewIssueNotificationMessage, PasswordResetByAdminNotificationMessage, PasswordResetIdentityDefault, PurchaseDeveloperNotificationMessage, QuotaLimitApproachingDeveloperNotificationMessage, RejectDeveloperNotificationMessage, RequestDeveloperNotificationMessage}
-}
-
-// UserState enumerates the values for user state.
-type UserState string
-
-const (
-	// UserStateActive User state is active.
-	UserStateActive UserState = "active"
-	// UserStateBlocked User is blocked. Blocked users cannot authenticate at developer portal or call API.
-	UserStateBlocked UserState = "blocked"
-	// UserStateDeleted User account is closed. All identities and related entities are removed.
-	UserStateDeleted UserState = "deleted"
-	// UserStatePending User account is pending. Requires identity confirmation before it can be made active.
-	UserStatePending UserState = "pending"
-)
-
-// PossibleUserStateValues returns an array of possible values for the UserState const type.
-func PossibleUserStateValues() []UserState {
-	return []UserState{UserStateActive, UserStateBlocked, UserStateDeleted, UserStatePending}
-}
-
-// Verbosity enumerates the values for verbosity.
-type Verbosity string
-
-const (
-	// Error Only traces with 'severity' set to 'error' will be sent to the logger attached to this diagnostic
-	// instance.
-	Error Verbosity = "error"
-	// Information Traces with 'severity' set to 'information' and 'error' will be sent to the logger attached
-	// to this diagnostic instance.
-	Information Verbosity = "information"
-	// Verbose All the traces emitted by trace policies will be sent to the logger attached to this diagnostic
-	// instance.
-	Verbose Verbosity = "verbose"
-)
-
-// PossibleVerbosityValues returns an array of possible values for the Verbosity const type.
-func PossibleVerbosityValues() []Verbosity {
-	return []Verbosity{Error, Information, Verbose}
-}
-
-// VersioningScheme enumerates the values for versioning scheme.
-type VersioningScheme string
-
-const (
-	// VersioningSchemeHeader The API Version is passed in a HTTP header.
-	VersioningSchemeHeader VersioningScheme = "Header"
-	// VersioningSchemeQuery The API Version is passed in a query parameter.
-	VersioningSchemeQuery VersioningScheme = "Query"
-	// VersioningSchemeSegment The API Version is passed in a path segment.
-	VersioningSchemeSegment VersioningScheme = "Segment"
-)
-
-// PossibleVersioningSchemeValues returns an array of possible values for the VersioningScheme const type.
-func PossibleVersioningSchemeValues() []VersioningScheme {
-	return []VersioningScheme{VersioningSchemeHeader, VersioningSchemeQuery, VersioningSchemeSegment}
-}
-
-// VersioningScheme1 enumerates the values for versioning scheme 1.
-type VersioningScheme1 string
-
-const (
-	// VersioningScheme1Header ...
-	VersioningScheme1Header VersioningScheme1 = "Header"
-	// VersioningScheme1Query ...
-	VersioningScheme1Query VersioningScheme1 = "Query"
-	// VersioningScheme1Segment ...
-	VersioningScheme1Segment VersioningScheme1 = "Segment"
-)
-
-// PossibleVersioningScheme1Values returns an array of possible values for the VersioningScheme1 const type.
-func PossibleVersioningScheme1Values() []VersioningScheme1 {
-	return []VersioningScheme1{VersioningScheme1Header, VersioningScheme1Query, VersioningScheme1Segment}
-}
-
-// VirtualNetworkType enumerates the values for virtual network type.
-type VirtualNetworkType string
-
-const (
-	// VirtualNetworkTypeExternal The service is part of Virtual Network and it is accessible from Internet.
-	VirtualNetworkTypeExternal VirtualNetworkType = "External"
-	// VirtualNetworkTypeInternal The service is part of Virtual Network and it is only accessible from within
-	// the virtual network.
-	VirtualNetworkTypeInternal VirtualNetworkType = "Internal"
-	// VirtualNetworkTypeNone The service is not part of any Virtual Network.
-	VirtualNetworkTypeNone VirtualNetworkType = "None"
-)
-
-// PossibleVirtualNetworkTypeValues returns an array of possible values for the VirtualNetworkType const type.
-func PossibleVirtualNetworkTypeValues() []VirtualNetworkType {
-	return []VirtualNetworkType{VirtualNetworkTypeExternal, VirtualNetworkTypeInternal, VirtualNetworkTypeNone}
-}
-
 // AccessInformationContract tenant access information contract of the API Management service.
 type AccessInformationContract struct {
 	autorest.Response `json:"-"`
@@ -915,6 +107,24 @@ type AdditionalLocation struct {
 	GatewayRegionalURL *string `json:"gatewayRegionalUrl,omitempty"`
 	// DisableGateway - Property only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
 	DisableGateway *bool `json:"disableGateway,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AdditionalLocation.
+func (al AdditionalLocation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Location != nil {
+		objectMap["location"] = al.Location
+	}
+	if al.Sku != nil {
+		objectMap["sku"] = al.Sku
+	}
+	if al.VirtualNetworkConfiguration != nil {
+		objectMap["virtualNetworkConfiguration"] = al.VirtualNetworkConfiguration
+	}
+	if al.DisableGateway != nil {
+		objectMap["disableGateway"] = al.DisableGateway
+	}
+	return json.Marshal(objectMap)
 }
 
 // APICollection paged Api list representation.
@@ -994,10 +204,15 @@ func (ac APICollection) IsEmpty() bool {
 	return ac.Value == nil || len(*ac.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ac APICollection) hasNextLink() bool {
+	return ac.NextLink != nil && len(*ac.NextLink) != 0
+}
+
 // aPICollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ac APICollection) aPICollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if ac.NextLink == nil || len(to.String(ac.NextLink)) < 1 {
+	if !ac.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1025,11 +240,16 @@ func (page *APICollectionPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ac)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ac)
+		if err != nil {
+			return err
+		}
+		page.ac = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ac = next
 	return nil
 }
 
@@ -1059,8 +279,11 @@ func (page APICollectionPage) Values() []APIContract {
 }
 
 // Creates a new instance of the APICollectionPage type.
-func NewAPICollectionPage(getNextPage func(context.Context, APICollection) (APICollection, error)) APICollectionPage {
-	return APICollectionPage{fn: getNextPage}
+func NewAPICollectionPage(cur APICollection, getNextPage func(context.Context, APICollection) (APICollection, error)) APICollectionPage {
+	return APICollectionPage{
+		fn: getNextPage,
+		ac: cur,
+	}
 }
 
 // APIContract api details.
@@ -1176,6 +399,63 @@ type APIContractProperties struct {
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for APIContractProperties.
+func (acp APIContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if acp.SourceAPIID != nil {
+		objectMap["sourceApiId"] = acp.SourceAPIID
+	}
+	if acp.DisplayName != nil {
+		objectMap["displayName"] = acp.DisplayName
+	}
+	if acp.ServiceURL != nil {
+		objectMap["serviceUrl"] = acp.ServiceURL
+	}
+	if acp.Path != nil {
+		objectMap["path"] = acp.Path
+	}
+	if acp.Protocols != nil {
+		objectMap["protocols"] = acp.Protocols
+	}
+	if acp.APIVersionSet != nil {
+		objectMap["apiVersionSet"] = acp.APIVersionSet
+	}
+	if acp.Description != nil {
+		objectMap["description"] = acp.Description
+	}
+	if acp.AuthenticationSettings != nil {
+		objectMap["authenticationSettings"] = acp.AuthenticationSettings
+	}
+	if acp.SubscriptionKeyParameterNames != nil {
+		objectMap["subscriptionKeyParameterNames"] = acp.SubscriptionKeyParameterNames
+	}
+	if acp.APIType != "" {
+		objectMap["type"] = acp.APIType
+	}
+	if acp.APIRevision != nil {
+		objectMap["apiRevision"] = acp.APIRevision
+	}
+	if acp.APIVersion != nil {
+		objectMap["apiVersion"] = acp.APIVersion
+	}
+	if acp.IsCurrent != nil {
+		objectMap["isCurrent"] = acp.IsCurrent
+	}
+	if acp.APIRevisionDescription != nil {
+		objectMap["apiRevisionDescription"] = acp.APIRevisionDescription
+	}
+	if acp.APIVersionDescription != nil {
+		objectMap["apiVersionDescription"] = acp.APIVersionDescription
+	}
+	if acp.APIVersionSetID != nil {
+		objectMap["apiVersionSetId"] = acp.APIVersionSetID
+	}
+	if acp.SubscriptionRequired != nil {
+		objectMap["subscriptionRequired"] = acp.SubscriptionRequired
+	}
+	return json.Marshal(objectMap)
+}
+
 // APIContractUpdateProperties API update contract properties.
 type APIContractUpdateProperties struct {
 	// DisplayName - API name.
@@ -1210,6 +490,57 @@ type APIContractUpdateProperties struct {
 	APIVersionSetID *string `json:"apiVersionSetId,omitempty"`
 	// SubscriptionRequired - Specifies whether an API or Product subscription is required for accessing the API.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIContractUpdateProperties.
+func (acup APIContractUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if acup.DisplayName != nil {
+		objectMap["displayName"] = acup.DisplayName
+	}
+	if acup.ServiceURL != nil {
+		objectMap["serviceUrl"] = acup.ServiceURL
+	}
+	if acup.Path != nil {
+		objectMap["path"] = acup.Path
+	}
+	if acup.Protocols != nil {
+		objectMap["protocols"] = acup.Protocols
+	}
+	if acup.Description != nil {
+		objectMap["description"] = acup.Description
+	}
+	if acup.AuthenticationSettings != nil {
+		objectMap["authenticationSettings"] = acup.AuthenticationSettings
+	}
+	if acup.SubscriptionKeyParameterNames != nil {
+		objectMap["subscriptionKeyParameterNames"] = acup.SubscriptionKeyParameterNames
+	}
+	if acup.APIType != "" {
+		objectMap["type"] = acup.APIType
+	}
+	if acup.APIRevision != nil {
+		objectMap["apiRevision"] = acup.APIRevision
+	}
+	if acup.APIVersion != nil {
+		objectMap["apiVersion"] = acup.APIVersion
+	}
+	if acup.IsCurrent != nil {
+		objectMap["isCurrent"] = acup.IsCurrent
+	}
+	if acup.APIRevisionDescription != nil {
+		objectMap["apiRevisionDescription"] = acup.APIRevisionDescription
+	}
+	if acup.APIVersionDescription != nil {
+		objectMap["apiVersionDescription"] = acup.APIVersionDescription
+	}
+	if acup.APIVersionSetID != nil {
+		objectMap["apiVersionSetId"] = acup.APIVersionSetID
+	}
+	if acup.SubscriptionRequired != nil {
+		objectMap["subscriptionRequired"] = acup.SubscriptionRequired
+	}
+	return json.Marshal(objectMap)
 }
 
 // APICreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -1330,6 +661,75 @@ type APICreateOrUpdateProperties struct {
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for APICreateOrUpdateProperties.
+func (acoup APICreateOrUpdateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if acoup.Value != nil {
+		objectMap["value"] = acoup.Value
+	}
+	if acoup.Format != "" {
+		objectMap["format"] = acoup.Format
+	}
+	if acoup.WsdlSelector != nil {
+		objectMap["wsdlSelector"] = acoup.WsdlSelector
+	}
+	if acoup.SoapAPIType != "" {
+		objectMap["apiType"] = acoup.SoapAPIType
+	}
+	if acoup.SourceAPIID != nil {
+		objectMap["sourceApiId"] = acoup.SourceAPIID
+	}
+	if acoup.DisplayName != nil {
+		objectMap["displayName"] = acoup.DisplayName
+	}
+	if acoup.ServiceURL != nil {
+		objectMap["serviceUrl"] = acoup.ServiceURL
+	}
+	if acoup.Path != nil {
+		objectMap["path"] = acoup.Path
+	}
+	if acoup.Protocols != nil {
+		objectMap["protocols"] = acoup.Protocols
+	}
+	if acoup.APIVersionSet != nil {
+		objectMap["apiVersionSet"] = acoup.APIVersionSet
+	}
+	if acoup.Description != nil {
+		objectMap["description"] = acoup.Description
+	}
+	if acoup.AuthenticationSettings != nil {
+		objectMap["authenticationSettings"] = acoup.AuthenticationSettings
+	}
+	if acoup.SubscriptionKeyParameterNames != nil {
+		objectMap["subscriptionKeyParameterNames"] = acoup.SubscriptionKeyParameterNames
+	}
+	if acoup.APIType != "" {
+		objectMap["type"] = acoup.APIType
+	}
+	if acoup.APIRevision != nil {
+		objectMap["apiRevision"] = acoup.APIRevision
+	}
+	if acoup.APIVersion != nil {
+		objectMap["apiVersion"] = acoup.APIVersion
+	}
+	if acoup.IsCurrent != nil {
+		objectMap["isCurrent"] = acoup.IsCurrent
+	}
+	if acoup.APIRevisionDescription != nil {
+		objectMap["apiRevisionDescription"] = acoup.APIRevisionDescription
+	}
+	if acoup.APIVersionDescription != nil {
+		objectMap["apiVersionDescription"] = acoup.APIVersionDescription
+	}
+	if acoup.APIVersionSetID != nil {
+		objectMap["apiVersionSetId"] = acoup.APIVersionSetID
+	}
+	if acoup.SubscriptionRequired != nil {
+		objectMap["subscriptionRequired"] = acoup.SubscriptionRequired
+	}
+	return json.Marshal(objectMap)
+}
+
 // APICreateOrUpdatePropertiesWsdlSelector criteria to limit import of WSDL to a subset of the document.
 type APICreateOrUpdatePropertiesWsdlSelector struct {
 	// WsdlServiceName - Name of service to import from WSDL
@@ -1364,6 +764,45 @@ type APIEntityBaseContract struct {
 	APIVersionSetID *string `json:"apiVersionSetId,omitempty"`
 	// SubscriptionRequired - Specifies whether an API or Product subscription is required for accessing the API.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIEntityBaseContract.
+func (aebc APIEntityBaseContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aebc.Description != nil {
+		objectMap["description"] = aebc.Description
+	}
+	if aebc.AuthenticationSettings != nil {
+		objectMap["authenticationSettings"] = aebc.AuthenticationSettings
+	}
+	if aebc.SubscriptionKeyParameterNames != nil {
+		objectMap["subscriptionKeyParameterNames"] = aebc.SubscriptionKeyParameterNames
+	}
+	if aebc.APIType != "" {
+		objectMap["type"] = aebc.APIType
+	}
+	if aebc.APIRevision != nil {
+		objectMap["apiRevision"] = aebc.APIRevision
+	}
+	if aebc.APIVersion != nil {
+		objectMap["apiVersion"] = aebc.APIVersion
+	}
+	if aebc.IsCurrent != nil {
+		objectMap["isCurrent"] = aebc.IsCurrent
+	}
+	if aebc.APIRevisionDescription != nil {
+		objectMap["apiRevisionDescription"] = aebc.APIRevisionDescription
+	}
+	if aebc.APIVersionDescription != nil {
+		objectMap["apiVersionDescription"] = aebc.APIVersionDescription
+	}
+	if aebc.APIVersionSetID != nil {
+		objectMap["apiVersionSetId"] = aebc.APIVersionSetID
+	}
+	if aebc.SubscriptionRequired != nil {
+		objectMap["subscriptionRequired"] = aebc.SubscriptionRequired
+	}
+	return json.Marshal(objectMap)
 }
 
 // APIExportResult API Export result.
@@ -1481,10 +920,15 @@ func (arc APIReleaseCollection) IsEmpty() bool {
 	return arc.Value == nil || len(*arc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (arc APIReleaseCollection) hasNextLink() bool {
+	return arc.NextLink != nil && len(*arc.NextLink) != 0
+}
+
 // aPIReleaseCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (arc APIReleaseCollection) aPIReleaseCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if arc.NextLink == nil || len(to.String(arc.NextLink)) < 1 {
+	if !arc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1512,11 +956,16 @@ func (page *APIReleaseCollectionPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.arc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.arc)
+		if err != nil {
+			return err
+		}
+		page.arc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.arc = next
 	return nil
 }
 
@@ -1546,8 +995,11 @@ func (page APIReleaseCollectionPage) Values() []APIReleaseContract {
 }
 
 // Creates a new instance of the APIReleaseCollectionPage type.
-func NewAPIReleaseCollectionPage(getNextPage func(context.Context, APIReleaseCollection) (APIReleaseCollection, error)) APIReleaseCollectionPage {
-	return APIReleaseCollectionPage{fn: getNextPage}
+func NewAPIReleaseCollectionPage(cur APIReleaseCollection, getNextPage func(context.Context, APIReleaseCollection) (APIReleaseCollection, error)) APIReleaseCollectionPage {
+	return APIReleaseCollectionPage{
+		fn:  getNextPage,
+		arc: cur,
+	}
 }
 
 // APIReleaseContract apiRelease details.
@@ -1635,6 +1087,18 @@ type APIReleaseContractProperties struct {
 	Notes *string `json:"notes,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for APIReleaseContractProperties.
+func (arcp APIReleaseContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if arcp.APIID != nil {
+		objectMap["apiId"] = arcp.APIID
+	}
+	if arcp.Notes != nil {
+		objectMap["notes"] = arcp.Notes
+	}
+	return json.Marshal(objectMap)
+}
+
 // APIRevisionCollection paged Api Revision list representation.
 type APIRevisionCollection struct {
 	autorest.Response `json:"-"`
@@ -1712,10 +1176,15 @@ func (arc APIRevisionCollection) IsEmpty() bool {
 	return arc.Value == nil || len(*arc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (arc APIRevisionCollection) hasNextLink() bool {
+	return arc.NextLink != nil && len(*arc.NextLink) != 0
+}
+
 // aPIRevisionCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (arc APIRevisionCollection) aPIRevisionCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if arc.NextLink == nil || len(to.String(arc.NextLink)) < 1 {
+	if !arc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1743,11 +1212,16 @@ func (page *APIRevisionCollectionPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.arc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.arc)
+		if err != nil {
+			return err
+		}
+		page.arc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.arc = next
 	return nil
 }
 
@@ -1777,8 +1251,11 @@ func (page APIRevisionCollectionPage) Values() []APIRevisionContract {
 }
 
 // Creates a new instance of the APIRevisionCollectionPage type.
-func NewAPIRevisionCollectionPage(getNextPage func(context.Context, APIRevisionCollection) (APIRevisionCollection, error)) APIRevisionCollectionPage {
-	return APIRevisionCollectionPage{fn: getNextPage}
+func NewAPIRevisionCollectionPage(cur APIRevisionCollection, getNextPage func(context.Context, APIRevisionCollection) (APIRevisionCollection, error)) APIRevisionCollectionPage {
+	return APIRevisionCollectionPage{
+		fn:  getNextPage,
+		arc: cur,
+	}
 }
 
 // APIRevisionContract summary of revision metadata.
@@ -1879,6 +1356,60 @@ type APITagResourceContractProperties struct {
 	APIVersionSetID *string `json:"apiVersionSetId,omitempty"`
 	// SubscriptionRequired - Specifies whether an API or Product subscription is required for accessing the API.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APITagResourceContractProperties.
+func (atrcp APITagResourceContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if atrcp.ID != nil {
+		objectMap["id"] = atrcp.ID
+	}
+	if atrcp.Name != nil {
+		objectMap["name"] = atrcp.Name
+	}
+	if atrcp.ServiceURL != nil {
+		objectMap["serviceUrl"] = atrcp.ServiceURL
+	}
+	if atrcp.Path != nil {
+		objectMap["path"] = atrcp.Path
+	}
+	if atrcp.Protocols != nil {
+		objectMap["protocols"] = atrcp.Protocols
+	}
+	if atrcp.Description != nil {
+		objectMap["description"] = atrcp.Description
+	}
+	if atrcp.AuthenticationSettings != nil {
+		objectMap["authenticationSettings"] = atrcp.AuthenticationSettings
+	}
+	if atrcp.SubscriptionKeyParameterNames != nil {
+		objectMap["subscriptionKeyParameterNames"] = atrcp.SubscriptionKeyParameterNames
+	}
+	if atrcp.APIType != "" {
+		objectMap["type"] = atrcp.APIType
+	}
+	if atrcp.APIRevision != nil {
+		objectMap["apiRevision"] = atrcp.APIRevision
+	}
+	if atrcp.APIVersion != nil {
+		objectMap["apiVersion"] = atrcp.APIVersion
+	}
+	if atrcp.IsCurrent != nil {
+		objectMap["isCurrent"] = atrcp.IsCurrent
+	}
+	if atrcp.APIRevisionDescription != nil {
+		objectMap["apiRevisionDescription"] = atrcp.APIRevisionDescription
+	}
+	if atrcp.APIVersionDescription != nil {
+		objectMap["apiVersionDescription"] = atrcp.APIVersionDescription
+	}
+	if atrcp.APIVersionSetID != nil {
+		objectMap["apiVersionSetId"] = atrcp.APIVersionSetID
+	}
+	if atrcp.SubscriptionRequired != nil {
+		objectMap["subscriptionRequired"] = atrcp.SubscriptionRequired
+	}
+	return json.Marshal(objectMap)
 }
 
 // APIUpdateContract API update contract details.
@@ -2003,10 +1534,15 @@ func (avsc APIVersionSetCollection) IsEmpty() bool {
 	return avsc.Value == nil || len(*avsc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (avsc APIVersionSetCollection) hasNextLink() bool {
+	return avsc.NextLink != nil && len(*avsc.NextLink) != 0
+}
+
 // aPIVersionSetCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (avsc APIVersionSetCollection) aPIVersionSetCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if avsc.NextLink == nil || len(to.String(avsc.NextLink)) < 1 {
+	if !avsc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2034,11 +1570,16 @@ func (page *APIVersionSetCollectionPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.avsc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.avsc)
+		if err != nil {
+			return err
+		}
+		page.avsc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.avsc = next
 	return nil
 }
 
@@ -2068,8 +1609,11 @@ func (page APIVersionSetCollectionPage) Values() []APIVersionSetContract {
 }
 
 // Creates a new instance of the APIVersionSetCollectionPage type.
-func NewAPIVersionSetCollectionPage(getNextPage func(context.Context, APIVersionSetCollection) (APIVersionSetCollection, error)) APIVersionSetCollectionPage {
-	return APIVersionSetCollectionPage{fn: getNextPage}
+func NewAPIVersionSetCollectionPage(cur APIVersionSetCollection, getNextPage func(context.Context, APIVersionSetCollection) (APIVersionSetCollection, error)) APIVersionSetCollectionPage {
+	return APIVersionSetCollectionPage{
+		fn:   getNextPage,
+		avsc: cur,
+	}
 }
 
 // APIVersionSetContract api Version Set Contract details.
@@ -2405,10 +1949,15 @@ func (asc AuthorizationServerCollection) IsEmpty() bool {
 	return asc.Value == nil || len(*asc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (asc AuthorizationServerCollection) hasNextLink() bool {
+	return asc.NextLink != nil && len(*asc.NextLink) != 0
+}
+
 // authorizationServerCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (asc AuthorizationServerCollection) authorizationServerCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if asc.NextLink == nil || len(to.String(asc.NextLink)) < 1 {
+	if !asc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2436,11 +1985,16 @@ func (page *AuthorizationServerCollectionPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.asc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.asc)
+		if err != nil {
+			return err
+		}
+		page.asc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.asc = next
 	return nil
 }
 
@@ -2470,8 +2024,11 @@ func (page AuthorizationServerCollectionPage) Values() []AuthorizationServerCont
 }
 
 // Creates a new instance of the AuthorizationServerCollectionPage type.
-func NewAuthorizationServerCollectionPage(getNextPage func(context.Context, AuthorizationServerCollection) (AuthorizationServerCollection, error)) AuthorizationServerCollectionPage {
-	return AuthorizationServerCollectionPage{fn: getNextPage}
+func NewAuthorizationServerCollectionPage(cur AuthorizationServerCollection, getNextPage func(context.Context, AuthorizationServerCollection) (AuthorizationServerCollection, error)) AuthorizationServerCollectionPage {
+	return AuthorizationServerCollectionPage{
+		fn:  getNextPage,
+		asc: cur,
+	}
 }
 
 // AuthorizationServerContract external OAuth authorization server settings.
@@ -2819,10 +2376,15 @@ func (bc BackendCollection) IsEmpty() bool {
 	return bc.Value == nil || len(*bc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (bc BackendCollection) hasNextLink() bool {
+	return bc.NextLink != nil && len(*bc.NextLink) != 0
+}
+
 // backendCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (bc BackendCollection) backendCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if bc.NextLink == nil || len(to.String(bc.NextLink)) < 1 {
+	if !bc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2850,11 +2412,16 @@ func (page *BackendCollectionPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.bc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.bc)
+		if err != nil {
+			return err
+		}
+		page.bc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.bc = next
 	return nil
 }
 
@@ -2884,8 +2451,11 @@ func (page BackendCollectionPage) Values() []BackendContract {
 }
 
 // Creates a new instance of the BackendCollectionPage type.
-func NewBackendCollectionPage(getNextPage func(context.Context, BackendCollection) (BackendCollection, error)) BackendCollectionPage {
-	return BackendCollectionPage{fn: getNextPage}
+func NewBackendCollectionPage(cur BackendCollection, getNextPage func(context.Context, BackendCollection) (BackendCollection, error)) BackendCollectionPage {
+	return BackendCollectionPage{
+		fn: getNextPage,
+		bc: cur,
+	}
 }
 
 // BackendContract backend details.
@@ -3273,10 +2843,15 @@ func (cc CacheCollection) IsEmpty() bool {
 	return cc.Value == nil || len(*cc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cc CacheCollection) hasNextLink() bool {
+	return cc.NextLink != nil && len(*cc.NextLink) != 0
+}
+
 // cacheCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cc CacheCollection) cacheCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if cc.NextLink == nil || len(to.String(cc.NextLink)) < 1 {
+	if !cc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3304,11 +2879,16 @@ func (page *CacheCollectionPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cc)
+		if err != nil {
+			return err
+		}
+		page.cc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cc = next
 	return nil
 }
 
@@ -3338,8 +2918,11 @@ func (page CacheCollectionPage) Values() []CacheContract {
 }
 
 // Creates a new instance of the CacheCollectionPage type.
-func NewCacheCollectionPage(getNextPage func(context.Context, CacheCollection) (CacheCollection, error)) CacheCollectionPage {
-	return CacheCollectionPage{fn: getNextPage}
+func NewCacheCollectionPage(cur CacheCollection, getNextPage func(context.Context, CacheCollection) (CacheCollection, error)) CacheCollectionPage {
+	return CacheCollectionPage{
+		fn: getNextPage,
+		cc: cur,
+	}
 }
 
 // CacheContract cache details.
@@ -3551,10 +3134,15 @@ func (cc CertificateCollection) IsEmpty() bool {
 	return cc.Value == nil || len(*cc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cc CertificateCollection) hasNextLink() bool {
+	return cc.NextLink != nil && len(*cc.NextLink) != 0
+}
+
 // certificateCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cc CertificateCollection) certificateCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if cc.NextLink == nil || len(to.String(cc.NextLink)) < 1 {
+	if !cc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3582,11 +3170,16 @@ func (page *CertificateCollectionPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cc)
+		if err != nil {
+			return err
+		}
+		page.cc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cc = next
 	return nil
 }
 
@@ -3616,8 +3209,11 @@ func (page CertificateCollectionPage) Values() []CertificateContract {
 }
 
 // Creates a new instance of the CertificateCollectionPage type.
-func NewCertificateCollectionPage(getNextPage func(context.Context, CertificateCollection) (CertificateCollection, error)) CertificateCollectionPage {
-	return CertificateCollectionPage{fn: getNextPage}
+func NewCertificateCollectionPage(cur CertificateCollection, getNextPage func(context.Context, CertificateCollection) (CertificateCollection, error)) CertificateCollectionPage {
+	return CertificateCollectionPage{
+		fn: getNextPage,
+		cc: cur,
+	}
 }
 
 // CertificateConfiguration certificate configuration which consist of non-trusted intermediates and root
@@ -3794,6 +3390,433 @@ type ConnectivityStatusContract struct {
 	LastStatusChange *date.Time `json:"lastStatusChange,omitempty"`
 }
 
+// ContentItemCollection paged list of content items.
+type ContentItemCollection struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Collection of content items.
+	Value *[]ContentItemContract `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Next page link, if any.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ContentItemCollectionIterator provides access to a complete listing of ContentItemContract values.
+type ContentItemCollectionIterator struct {
+	i    int
+	page ContentItemCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ContentItemCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContentItemCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ContentItemCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ContentItemCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ContentItemCollectionIterator) Response() ContentItemCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ContentItemCollectionIterator) Value() ContentItemContract {
+	if !iter.page.NotDone() {
+		return ContentItemContract{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ContentItemCollectionIterator type.
+func NewContentItemCollectionIterator(page ContentItemCollectionPage) ContentItemCollectionIterator {
+	return ContentItemCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (cic ContentItemCollection) IsEmpty() bool {
+	return cic.Value == nil || len(*cic.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (cic ContentItemCollection) hasNextLink() bool {
+	return cic.NextLink != nil && len(*cic.NextLink) != 0
+}
+
+// contentItemCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (cic ContentItemCollection) contentItemCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !cic.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(cic.NextLink)))
+}
+
+// ContentItemCollectionPage contains a page of ContentItemContract values.
+type ContentItemCollectionPage struct {
+	fn  func(context.Context, ContentItemCollection) (ContentItemCollection, error)
+	cic ContentItemCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ContentItemCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContentItemCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.cic)
+		if err != nil {
+			return err
+		}
+		page.cic = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ContentItemCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ContentItemCollectionPage) NotDone() bool {
+	return !page.cic.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ContentItemCollectionPage) Response() ContentItemCollection {
+	return page.cic
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ContentItemCollectionPage) Values() []ContentItemContract {
+	if page.cic.IsEmpty() {
+		return nil
+	}
+	return *page.cic.Value
+}
+
+// Creates a new instance of the ContentItemCollectionPage type.
+func NewContentItemCollectionPage(cur ContentItemCollection, getNextPage func(context.Context, ContentItemCollection) (ContentItemCollection, error)) ContentItemCollectionPage {
+	return ContentItemCollectionPage{
+		fn:  getNextPage,
+		cic: cur,
+	}
+}
+
+// ContentItemContract content type contract details.
+type ContentItemContract struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the content item.
+	Properties map[string]interface{} `json:"properties"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type for API Management resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContentItemContract.
+func (cic ContentItemContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cic.Properties != nil {
+		objectMap["properties"] = cic.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// ContentTypeCollection paged list of content types.
+type ContentTypeCollection struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Collection of content types.
+	Value *[]ContentTypeContract `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Next page link, if any.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ContentTypeCollectionIterator provides access to a complete listing of ContentTypeContract values.
+type ContentTypeCollectionIterator struct {
+	i    int
+	page ContentTypeCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ContentTypeCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContentTypeCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ContentTypeCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ContentTypeCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ContentTypeCollectionIterator) Response() ContentTypeCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ContentTypeCollectionIterator) Value() ContentTypeContract {
+	if !iter.page.NotDone() {
+		return ContentTypeContract{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ContentTypeCollectionIterator type.
+func NewContentTypeCollectionIterator(page ContentTypeCollectionPage) ContentTypeCollectionIterator {
+	return ContentTypeCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ctc ContentTypeCollection) IsEmpty() bool {
+	return ctc.Value == nil || len(*ctc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (ctc ContentTypeCollection) hasNextLink() bool {
+	return ctc.NextLink != nil && len(*ctc.NextLink) != 0
+}
+
+// contentTypeCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ctc ContentTypeCollection) contentTypeCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !ctc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ctc.NextLink)))
+}
+
+// ContentTypeCollectionPage contains a page of ContentTypeContract values.
+type ContentTypeCollectionPage struct {
+	fn  func(context.Context, ContentTypeCollection) (ContentTypeCollection, error)
+	ctc ContentTypeCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ContentTypeCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContentTypeCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.ctc)
+		if err != nil {
+			return err
+		}
+		page.ctc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ContentTypeCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ContentTypeCollectionPage) NotDone() bool {
+	return !page.ctc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ContentTypeCollectionPage) Response() ContentTypeCollection {
+	return page.ctc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ContentTypeCollectionPage) Values() []ContentTypeContract {
+	if page.ctc.IsEmpty() {
+		return nil
+	}
+	return *page.ctc.Value
+}
+
+// Creates a new instance of the ContentTypeCollectionPage type.
+func NewContentTypeCollectionPage(cur ContentTypeCollection, getNextPage func(context.Context, ContentTypeCollection) (ContentTypeCollection, error)) ContentTypeCollectionPage {
+	return ContentTypeCollectionPage{
+		fn:  getNextPage,
+		ctc: cur,
+	}
+}
+
+// ContentTypeContract content type contract details.
+type ContentTypeContract struct {
+	autorest.Response `json:"-"`
+	// ContentTypeContractProperties - Properties of the content type.
+	*ContentTypeContractProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type for API Management resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContentTypeContract.
+func (ctc ContentTypeContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ctc.ContentTypeContractProperties != nil {
+		objectMap["properties"] = ctc.ContentTypeContractProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ContentTypeContract struct.
+func (ctc *ContentTypeContract) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var contentTypeContractProperties ContentTypeContractProperties
+				err = json.Unmarshal(*v, &contentTypeContractProperties)
+				if err != nil {
+					return err
+				}
+				ctc.ContentTypeContractProperties = &contentTypeContractProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ctc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ctc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ctc.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ContentTypeContractProperties ...
+type ContentTypeContractProperties struct {
+	// ID - Content type identifier
+	ID *string `json:"id,omitempty"`
+	// Name - Content type name. Must be 1 to 250 characters long.
+	Name *string `json:"name,omitempty"`
+	// Description - Content type description.
+	Description *string `json:"description,omitempty"`
+	// Schema - Content type schema.
+	Schema interface{} `json:"schema,omitempty"`
+	// Version - Content type version.
+	Version *string `json:"version,omitempty"`
+}
+
 // DeployConfigurationParameterProperties parameters supplied to the Deploy Configuration operation.
 type DeployConfigurationParameterProperties struct {
 	// Branch - The name of the Git branch from which the configuration is to be deployed to the configuration database.
@@ -3918,10 +3941,15 @@ func (dc DiagnosticCollection) IsEmpty() bool {
 	return dc.Value == nil || len(*dc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dc DiagnosticCollection) hasNextLink() bool {
+	return dc.NextLink != nil && len(*dc.NextLink) != 0
+}
+
 // diagnosticCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dc DiagnosticCollection) diagnosticCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if dc.NextLink == nil || len(to.String(dc.NextLink)) < 1 {
+	if !dc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3949,11 +3977,16 @@ func (page *DiagnosticCollectionPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dc)
+		if err != nil {
+			return err
+		}
+		page.dc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dc = next
 	return nil
 }
 
@@ -3983,8 +4016,11 @@ func (page DiagnosticCollectionPage) Values() []DiagnosticContract {
 }
 
 // Creates a new instance of the DiagnosticCollectionPage type.
-func NewDiagnosticCollectionPage(getNextPage func(context.Context, DiagnosticCollection) (DiagnosticCollection, error)) DiagnosticCollectionPage {
-	return DiagnosticCollectionPage{fn: getNextPage}
+func NewDiagnosticCollectionPage(cur DiagnosticCollection, getNextPage func(context.Context, DiagnosticCollection) (DiagnosticCollection, error)) DiagnosticCollectionPage {
+	return DiagnosticCollectionPage{
+		fn: getNextPage,
+		dc: cur,
+	}
 }
 
 // DiagnosticContract diagnostic details.
@@ -4157,10 +4193,15 @@ func (etc EmailTemplateCollection) IsEmpty() bool {
 	return etc.Value == nil || len(*etc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (etc EmailTemplateCollection) hasNextLink() bool {
+	return etc.NextLink != nil && len(*etc.NextLink) != 0
+}
+
 // emailTemplateCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (etc EmailTemplateCollection) emailTemplateCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if etc.NextLink == nil || len(to.String(etc.NextLink)) < 1 {
+	if !etc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4188,11 +4229,16 @@ func (page *EmailTemplateCollectionPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.etc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.etc)
+		if err != nil {
+			return err
+		}
+		page.etc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.etc = next
 	return nil
 }
 
@@ -4222,8 +4268,11 @@ func (page EmailTemplateCollectionPage) Values() []EmailTemplateContract {
 }
 
 // Creates a new instance of the EmailTemplateCollectionPage type.
-func NewEmailTemplateCollectionPage(getNextPage func(context.Context, EmailTemplateCollection) (EmailTemplateCollection, error)) EmailTemplateCollectionPage {
-	return EmailTemplateCollectionPage{fn: getNextPage}
+func NewEmailTemplateCollectionPage(cur EmailTemplateCollection, getNextPage func(context.Context, EmailTemplateCollection) (EmailTemplateCollection, error)) EmailTemplateCollectionPage {
+	return EmailTemplateCollectionPage{
+		fn:  getNextPage,
+		etc: cur,
+	}
 }
 
 // EmailTemplateContract email Template details.
@@ -4313,6 +4362,27 @@ type EmailTemplateContractProperties struct {
 	IsDefault *bool `json:"isDefault,omitempty"`
 	// Parameters - Email Template Parameter values.
 	Parameters *[]EmailTemplateParametersContractProperties `json:"parameters,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EmailTemplateContractProperties.
+func (etcp EmailTemplateContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if etcp.Subject != nil {
+		objectMap["subject"] = etcp.Subject
+	}
+	if etcp.Body != nil {
+		objectMap["body"] = etcp.Body
+	}
+	if etcp.Title != nil {
+		objectMap["title"] = etcp.Title
+	}
+	if etcp.Description != nil {
+		objectMap["description"] = etcp.Description
+	}
+	if etcp.Parameters != nil {
+		objectMap["parameters"] = etcp.Parameters
+	}
+	return json.Marshal(objectMap)
 }
 
 // EmailTemplateParametersContractProperties email Template Parameter contract.
@@ -4514,10 +4584,15 @@ func (gc GatewayCollection) IsEmpty() bool {
 	return gc.Value == nil || len(*gc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (gc GatewayCollection) hasNextLink() bool {
+	return gc.NextLink != nil && len(*gc.NextLink) != 0
+}
+
 // gatewayCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (gc GatewayCollection) gatewayCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if gc.NextLink == nil || len(to.String(gc.NextLink)) < 1 {
+	if !gc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4545,11 +4620,16 @@ func (page *GatewayCollectionPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.gc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.gc)
+		if err != nil {
+			return err
+		}
+		page.gc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.gc = next
 	return nil
 }
 
@@ -4579,8 +4659,11 @@ func (page GatewayCollectionPage) Values() []GatewayContract {
 }
 
 // Creates a new instance of the GatewayCollectionPage type.
-func NewGatewayCollectionPage(getNextPage func(context.Context, GatewayCollection) (GatewayCollection, error)) GatewayCollectionPage {
-	return GatewayCollectionPage{fn: getNextPage}
+func NewGatewayCollectionPage(cur GatewayCollection, getNextPage func(context.Context, GatewayCollection) (GatewayCollection, error)) GatewayCollectionPage {
+	return GatewayCollectionPage{
+		fn: getNextPage,
+		gc: cur,
+	}
 }
 
 // GatewayContract gateway details.
@@ -4742,10 +4825,15 @@ func (ghcc GatewayHostnameConfigurationCollection) IsEmpty() bool {
 	return ghcc.Value == nil || len(*ghcc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ghcc GatewayHostnameConfigurationCollection) hasNextLink() bool {
+	return ghcc.NextLink != nil && len(*ghcc.NextLink) != 0
+}
+
 // gatewayHostnameConfigurationCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ghcc GatewayHostnameConfigurationCollection) gatewayHostnameConfigurationCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if ghcc.NextLink == nil || len(to.String(ghcc.NextLink)) < 1 {
+	if !ghcc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4774,11 +4862,16 @@ func (page *GatewayHostnameConfigurationCollectionPage) NextWithContext(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ghcc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ghcc)
+		if err != nil {
+			return err
+		}
+		page.ghcc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ghcc = next
 	return nil
 }
 
@@ -4808,8 +4901,11 @@ func (page GatewayHostnameConfigurationCollectionPage) Values() []GatewayHostnam
 }
 
 // Creates a new instance of the GatewayHostnameConfigurationCollectionPage type.
-func NewGatewayHostnameConfigurationCollectionPage(getNextPage func(context.Context, GatewayHostnameConfigurationCollection) (GatewayHostnameConfigurationCollection, error)) GatewayHostnameConfigurationCollectionPage {
-	return GatewayHostnameConfigurationCollectionPage{fn: getNextPage}
+func NewGatewayHostnameConfigurationCollectionPage(cur GatewayHostnameConfigurationCollection, getNextPage func(context.Context, GatewayHostnameConfigurationCollection) (GatewayHostnameConfigurationCollection, error)) GatewayHostnameConfigurationCollectionPage {
+	return GatewayHostnameConfigurationCollectionPage{
+		fn:   getNextPage,
+		ghcc: cur,
+	}
 }
 
 // GatewayHostnameConfigurationContract gateway hostname configuration details.
@@ -5009,10 +5105,15 @@ func (gc GroupCollection) IsEmpty() bool {
 	return gc.Value == nil || len(*gc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (gc GroupCollection) hasNextLink() bool {
+	return gc.NextLink != nil && len(*gc.NextLink) != 0
+}
+
 // groupCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (gc GroupCollection) groupCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if gc.NextLink == nil || len(to.String(gc.NextLink)) < 1 {
+	if !gc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5040,11 +5141,16 @@ func (page *GroupCollectionPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.gc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.gc)
+		if err != nil {
+			return err
+		}
+		page.gc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.gc = next
 	return nil
 }
 
@@ -5074,8 +5180,11 @@ func (page GroupCollectionPage) Values() []GroupContract {
 }
 
 // Creates a new instance of the GroupCollectionPage type.
-func NewGroupCollectionPage(getNextPage func(context.Context, GroupCollection) (GroupCollection, error)) GroupCollectionPage {
-	return GroupCollectionPage{fn: getNextPage}
+func NewGroupCollectionPage(cur GroupCollection, getNextPage func(context.Context, GroupCollection) (GroupCollection, error)) GroupCollectionPage {
+	return GroupCollectionPage{
+		fn: getNextPage,
+		gc: cur,
+	}
 }
 
 // GroupContract contract details.
@@ -5163,6 +5272,24 @@ type GroupContractProperties struct {
 	Type GroupType `json:"type,omitempty"`
 	// ExternalID - For external groups, this property contains the id of the group from the external identity provider, e.g. for Azure Active Directory `aad://<tenant>.onmicrosoft.com/groups/<group object id>`; otherwise the value is null.
 	ExternalID *string `json:"externalId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupContractProperties.
+func (gcp GroupContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gcp.DisplayName != nil {
+		objectMap["displayName"] = gcp.DisplayName
+	}
+	if gcp.Description != nil {
+		objectMap["description"] = gcp.Description
+	}
+	if gcp.Type != "" {
+		objectMap["type"] = gcp.Type
+	}
+	if gcp.ExternalID != nil {
+		objectMap["externalId"] = gcp.ExternalID
+	}
+	return json.Marshal(objectMap)
 }
 
 // GroupCreateParameters parameters supplied to the Create Group operation.
@@ -5589,10 +5716,15 @@ func (ipl IdentityProviderList) IsEmpty() bool {
 	return ipl.Value == nil || len(*ipl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ipl IdentityProviderList) hasNextLink() bool {
+	return ipl.NextLink != nil && len(*ipl.NextLink) != 0
+}
+
 // identityProviderListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ipl IdentityProviderList) identityProviderListPreparer(ctx context.Context) (*http.Request, error) {
-	if ipl.NextLink == nil || len(to.String(ipl.NextLink)) < 1 {
+	if !ipl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5620,11 +5752,16 @@ func (page *IdentityProviderListPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ipl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ipl)
+		if err != nil {
+			return err
+		}
+		page.ipl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ipl = next
 	return nil
 }
 
@@ -5654,8 +5791,11 @@ func (page IdentityProviderListPage) Values() []IdentityProviderContract {
 }
 
 // Creates a new instance of the IdentityProviderListPage type.
-func NewIdentityProviderListPage(getNextPage func(context.Context, IdentityProviderList) (IdentityProviderList, error)) IdentityProviderListPage {
-	return IdentityProviderListPage{fn: getNextPage}
+func NewIdentityProviderListPage(cur IdentityProviderList, getNextPage func(context.Context, IdentityProviderList) (IdentityProviderList, error)) IdentityProviderListPage {
+	return IdentityProviderListPage{
+		fn:  getNextPage,
+		ipl: cur,
+	}
 }
 
 // IdentityProviderUpdateParameters parameters supplied to update Identity Provider
@@ -5799,10 +5939,15 @@ func (iac IssueAttachmentCollection) IsEmpty() bool {
 	return iac.Value == nil || len(*iac.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (iac IssueAttachmentCollection) hasNextLink() bool {
+	return iac.NextLink != nil && len(*iac.NextLink) != 0
+}
+
 // issueAttachmentCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (iac IssueAttachmentCollection) issueAttachmentCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if iac.NextLink == nil || len(to.String(iac.NextLink)) < 1 {
+	if !iac.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5830,11 +5975,16 @@ func (page *IssueAttachmentCollectionPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.iac)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.iac)
+		if err != nil {
+			return err
+		}
+		page.iac = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.iac = next
 	return nil
 }
 
@@ -5864,8 +6014,11 @@ func (page IssueAttachmentCollectionPage) Values() []IssueAttachmentContract {
 }
 
 // Creates a new instance of the IssueAttachmentCollectionPage type.
-func NewIssueAttachmentCollectionPage(getNextPage func(context.Context, IssueAttachmentCollection) (IssueAttachmentCollection, error)) IssueAttachmentCollectionPage {
-	return IssueAttachmentCollectionPage{fn: getNextPage}
+func NewIssueAttachmentCollectionPage(cur IssueAttachmentCollection, getNextPage func(context.Context, IssueAttachmentCollection) (IssueAttachmentCollection, error)) IssueAttachmentCollectionPage {
+	return IssueAttachmentCollectionPage{
+		fn:  getNextPage,
+		iac: cur,
+	}
 }
 
 // IssueAttachmentContract issue Attachment Contract details.
@@ -6028,10 +6181,15 @@ func (ic IssueCollection) IsEmpty() bool {
 	return ic.Value == nil || len(*ic.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ic IssueCollection) hasNextLink() bool {
+	return ic.NextLink != nil && len(*ic.NextLink) != 0
+}
+
 // issueCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ic IssueCollection) issueCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if ic.NextLink == nil || len(to.String(ic.NextLink)) < 1 {
+	if !ic.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6059,11 +6217,16 @@ func (page *IssueCollectionPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ic)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ic)
+		if err != nil {
+			return err
+		}
+		page.ic = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ic = next
 	return nil
 }
 
@@ -6093,8 +6256,11 @@ func (page IssueCollectionPage) Values() []IssueContract {
 }
 
 // Creates a new instance of the IssueCollectionPage type.
-func NewIssueCollectionPage(getNextPage func(context.Context, IssueCollection) (IssueCollection, error)) IssueCollectionPage {
-	return IssueCollectionPage{fn: getNextPage}
+func NewIssueCollectionPage(cur IssueCollection, getNextPage func(context.Context, IssueCollection) (IssueCollection, error)) IssueCollectionPage {
+	return IssueCollectionPage{
+		fn: getNextPage,
+		ic: cur,
+	}
 }
 
 // IssueCommentCollection paged Issue Comment list representation.
@@ -6174,10 +6340,15 @@ func (icc IssueCommentCollection) IsEmpty() bool {
 	return icc.Value == nil || len(*icc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (icc IssueCommentCollection) hasNextLink() bool {
+	return icc.NextLink != nil && len(*icc.NextLink) != 0
+}
+
 // issueCommentCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (icc IssueCommentCollection) issueCommentCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if icc.NextLink == nil || len(to.String(icc.NextLink)) < 1 {
+	if !icc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6205,11 +6376,16 @@ func (page *IssueCommentCollectionPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.icc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.icc)
+		if err != nil {
+			return err
+		}
+		page.icc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.icc = next
 	return nil
 }
 
@@ -6239,8 +6415,11 @@ func (page IssueCommentCollectionPage) Values() []IssueCommentContract {
 }
 
 // Creates a new instance of the IssueCommentCollectionPage type.
-func NewIssueCommentCollectionPage(getNextPage func(context.Context, IssueCommentCollection) (IssueCommentCollection, error)) IssueCommentCollectionPage {
-	return IssueCommentCollectionPage{fn: getNextPage}
+func NewIssueCommentCollectionPage(cur IssueCommentCollection, getNextPage func(context.Context, IssueCommentCollection) (IssueCommentCollection, error)) IssueCommentCollectionPage {
+	return IssueCommentCollectionPage{
+		fn:  getNextPage,
+		icc: cur,
+	}
 }
 
 // IssueCommentContract issue Comment Contract details.
@@ -6565,10 +6744,15 @@ func (lc LoggerCollection) IsEmpty() bool {
 	return lc.Value == nil || len(*lc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lc LoggerCollection) hasNextLink() bool {
+	return lc.NextLink != nil && len(*lc.NextLink) != 0
+}
+
 // loggerCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lc LoggerCollection) loggerCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if lc.NextLink == nil || len(to.String(lc.NextLink)) < 1 {
+	if !lc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6596,11 +6780,16 @@ func (page *LoggerCollectionPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lc)
+		if err != nil {
+			return err
+		}
+		page.lc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lc = next
 	return nil
 }
 
@@ -6630,8 +6819,11 @@ func (page LoggerCollectionPage) Values() []LoggerContract {
 }
 
 // Creates a new instance of the LoggerCollectionPage type.
-func NewLoggerCollectionPage(getNextPage func(context.Context, LoggerCollection) (LoggerCollection, error)) LoggerCollectionPage {
-	return LoggerCollectionPage{fn: getNextPage}
+func NewLoggerCollectionPage(cur LoggerCollection, getNextPage func(context.Context, LoggerCollection) (LoggerCollection, error)) LoggerCollectionPage {
+	return LoggerCollectionPage{
+		fn: getNextPage,
+		lc: cur,
+	}
 }
 
 // LoggerContract logger details.
@@ -6891,10 +7083,15 @@ func (nvc NamedValueCollection) IsEmpty() bool {
 	return nvc.Value == nil || len(*nvc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (nvc NamedValueCollection) hasNextLink() bool {
+	return nvc.NextLink != nil && len(*nvc.NextLink) != 0
+}
+
 // namedValueCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (nvc NamedValueCollection) namedValueCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if nvc.NextLink == nil || len(to.String(nvc.NextLink)) < 1 {
+	if !nvc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6922,11 +7119,16 @@ func (page *NamedValueCollectionPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.nvc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.nvc)
+		if err != nil {
+			return err
+		}
+		page.nvc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.nvc = next
 	return nil
 }
 
@@ -6956,8 +7158,11 @@ func (page NamedValueCollectionPage) Values() []NamedValueContract {
 }
 
 // Creates a new instance of the NamedValueCollectionPage type.
-func NewNamedValueCollectionPage(getNextPage func(context.Context, NamedValueCollection) (NamedValueCollection, error)) NamedValueCollectionPage {
-	return NamedValueCollectionPage{fn: getNextPage}
+func NewNamedValueCollectionPage(cur NamedValueCollection, getNextPage func(context.Context, NamedValueCollection) (NamedValueCollection, error)) NamedValueCollectionPage {
+	return NamedValueCollectionPage{
+		fn:  getNextPage,
+		nvc: cur,
+	}
 }
 
 // NamedValueContract namedValue details.
@@ -7340,10 +7545,15 @@ func (nc NotificationCollection) IsEmpty() bool {
 	return nc.Value == nil || len(*nc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (nc NotificationCollection) hasNextLink() bool {
+	return nc.NextLink != nil && len(*nc.NextLink) != 0
+}
+
 // notificationCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (nc NotificationCollection) notificationCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if nc.NextLink == nil || len(to.String(nc.NextLink)) < 1 {
+	if !nc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7371,11 +7581,16 @@ func (page *NotificationCollectionPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.nc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.nc)
+		if err != nil {
+			return err
+		}
+		page.nc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.nc = next
 	return nil
 }
 
@@ -7405,8 +7620,11 @@ func (page NotificationCollectionPage) Values() []NotificationContract {
 }
 
 // Creates a new instance of the NotificationCollectionPage type.
-func NewNotificationCollectionPage(getNextPage func(context.Context, NotificationCollection) (NotificationCollection, error)) NotificationCollectionPage {
-	return NotificationCollectionPage{fn: getNextPage}
+func NewNotificationCollectionPage(cur NotificationCollection, getNextPage func(context.Context, NotificationCollection) (NotificationCollection, error)) NotificationCollectionPage {
+	return NotificationCollectionPage{
+		fn: getNextPage,
+		nc: cur,
+	}
 }
 
 // NotificationContract notification details.
@@ -7586,10 +7804,15 @@ func (oicpc OpenIDConnectProviderCollection) IsEmpty() bool {
 	return oicpc.Value == nil || len(*oicpc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (oicpc OpenIDConnectProviderCollection) hasNextLink() bool {
+	return oicpc.NextLink != nil && len(*oicpc.NextLink) != 0
+}
+
 // openIDConnectProviderCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (oicpc OpenIDConnectProviderCollection) openIDConnectProviderCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if oicpc.NextLink == nil || len(to.String(oicpc.NextLink)) < 1 {
+	if !oicpc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7617,11 +7840,16 @@ func (page *OpenIDConnectProviderCollectionPage) NextWithContext(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.oicpc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.oicpc)
+		if err != nil {
+			return err
+		}
+		page.oicpc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.oicpc = next
 	return nil
 }
 
@@ -7651,8 +7879,11 @@ func (page OpenIDConnectProviderCollectionPage) Values() []OpenidConnectProvider
 }
 
 // Creates a new instance of the OpenIDConnectProviderCollectionPage type.
-func NewOpenIDConnectProviderCollectionPage(getNextPage func(context.Context, OpenIDConnectProviderCollection) (OpenIDConnectProviderCollection, error)) OpenIDConnectProviderCollectionPage {
-	return OpenIDConnectProviderCollectionPage{fn: getNextPage}
+func NewOpenIDConnectProviderCollectionPage(cur OpenIDConnectProviderCollection, getNextPage func(context.Context, OpenIDConnectProviderCollection) (OpenIDConnectProviderCollection, error)) OpenIDConnectProviderCollectionPage {
+	return OpenIDConnectProviderCollectionPage{
+		fn:    getNextPage,
+		oicpc: cur,
+	}
 }
 
 // OpenidConnectProviderContract openId Connect Provider details.
@@ -7885,10 +8116,15 @@ func (oc OperationCollection) IsEmpty() bool {
 	return oc.Value == nil || len(*oc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (oc OperationCollection) hasNextLink() bool {
+	return oc.NextLink != nil && len(*oc.NextLink) != 0
+}
+
 // operationCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (oc OperationCollection) operationCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if oc.NextLink == nil || len(to.String(oc.NextLink)) < 1 {
+	if !oc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7916,11 +8152,16 @@ func (page *OperationCollectionPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.oc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.oc)
+		if err != nil {
+			return err
+		}
+		page.oc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.oc = next
 	return nil
 }
 
@@ -7950,8 +8191,11 @@ func (page OperationCollectionPage) Values() []OperationContract {
 }
 
 // Creates a new instance of the OperationCollectionPage type.
-func NewOperationCollectionPage(getNextPage func(context.Context, OperationCollection) (OperationCollection, error)) OperationCollectionPage {
-	return OperationCollectionPage{fn: getNextPage}
+func NewOperationCollectionPage(cur OperationCollection, getNextPage func(context.Context, OperationCollection) (OperationCollection, error)) OperationCollectionPage {
+	return OperationCollectionPage{
+		fn: getNextPage,
+		oc: cur,
+	}
 }
 
 // OperationContract api Operation details.
@@ -8151,10 +8395,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8182,11 +8431,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -8216,8 +8470,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResultContract operation Result.
@@ -8237,6 +8494,30 @@ type OperationResultContract struct {
 	Error *ErrorResponseBody `json:"error,omitempty"`
 	// ActionLog - READ-ONLY; This property if only provided as part of the TenantConfiguration_Validate operation. It contains the log the entities which will be updated/created/deleted as part of the TenantConfiguration_Deploy operation.
 	ActionLog *[]OperationResultLogItemContract `json:"actionLog,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationResultContract.
+func (orc OperationResultContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if orc.ID != nil {
+		objectMap["id"] = orc.ID
+	}
+	if orc.Status != "" {
+		objectMap["status"] = orc.Status
+	}
+	if orc.Started != nil {
+		objectMap["started"] = orc.Started
+	}
+	if orc.Updated != nil {
+		objectMap["updated"] = orc.Updated
+	}
+	if orc.ResultInfo != nil {
+		objectMap["resultInfo"] = orc.ResultInfo
+	}
+	if orc.Error != nil {
+		objectMap["error"] = orc.Error
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationResultLogItemContract log of the entity being created, updated or deleted.
@@ -8267,6 +8548,15 @@ type OperationTagResourceContractProperties struct {
 	Method *string `json:"method,omitempty"`
 	// URLTemplate - READ-ONLY; Relative URL template identifying the target resource for this operation. May include parameters. Example: /customers/{cid}/orders/{oid}/?date={date}
 	URLTemplate *string `json:"urlTemplate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationTagResourceContractProperties.
+func (otrcp OperationTagResourceContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if otrcp.ID != nil {
+		objectMap["id"] = otrcp.ID
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationUpdateContract api Operation Update Contract details.
@@ -8860,10 +9150,15 @@ func (pc ProductCollection) IsEmpty() bool {
 	return pc.Value == nil || len(*pc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pc ProductCollection) hasNextLink() bool {
+	return pc.NextLink != nil && len(*pc.NextLink) != 0
+}
+
 // productCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pc ProductCollection) productCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if pc.NextLink == nil || len(to.String(pc.NextLink)) < 1 {
+	if !pc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8891,11 +9186,16 @@ func (page *ProductCollectionPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pc)
+		if err != nil {
+			return err
+		}
+		page.pc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pc = next
 	return nil
 }
 
@@ -8925,8 +9225,11 @@ func (page ProductCollectionPage) Values() []ProductContract {
 }
 
 // Creates a new instance of the ProductCollectionPage type.
-func NewProductCollectionPage(getNextPage func(context.Context, ProductCollection) (ProductCollection, error)) ProductCollectionPage {
-	return ProductCollectionPage{fn: getNextPage}
+func NewProductCollectionPage(cur ProductCollection, getNextPage func(context.Context, ProductCollection) (ProductCollection, error)) ProductCollectionPage {
+	return ProductCollectionPage{
+		fn: getNextPage,
+		pc: cur,
+	}
 }
 
 // ProductContract product details.
@@ -9012,9 +9315,9 @@ type ProductContractProperties struct {
 	Terms *string `json:"terms,omitempty"`
 	// SubscriptionRequired - Whether a product subscription is required for accessing APIs included in this product. If true, the product is referred to as "protected" and a valid subscription key is required for a request to an API included in the product to succeed. If false, the product is referred to as "open" and requests to an API included in the product can be made without a subscription key. If property is omitted when creating a new product it's value is assumed to be true.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
-	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of false.
+	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of true.
 	ApprovalRequired *bool `json:"approvalRequired,omitempty"`
-	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of false.
+	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of true.
 	SubscriptionsLimit *int32 `json:"subscriptionsLimit,omitempty"`
 	// State - whether product is published or not. Published products are discoverable by users of developer portal. Non published products are visible only to administrators. Default state of Product is notPublished. Possible values include: 'NotPublished', 'Published'
 	State ProductState `json:"state,omitempty"`
@@ -9028,9 +9331,9 @@ type ProductEntityBaseParameters struct {
 	Terms *string `json:"terms,omitempty"`
 	// SubscriptionRequired - Whether a product subscription is required for accessing APIs included in this product. If true, the product is referred to as "protected" and a valid subscription key is required for a request to an API included in the product to succeed. If false, the product is referred to as "open" and requests to an API included in the product can be made without a subscription key. If property is omitted when creating a new product it's value is assumed to be true.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
-	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of false.
+	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of true.
 	ApprovalRequired *bool `json:"approvalRequired,omitempty"`
-	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of false.
+	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of true.
 	SubscriptionsLimit *int32 `json:"subscriptionsLimit,omitempty"`
 	// State - whether product is published or not. Published products are discoverable by users of developer portal. Non published products are visible only to administrators. Default state of Product is notPublished. Possible values include: 'NotPublished', 'Published'
 	State ProductState `json:"state,omitempty"`
@@ -9048,9 +9351,9 @@ type ProductTagResourceContractProperties struct {
 	Terms *string `json:"terms,omitempty"`
 	// SubscriptionRequired - Whether a product subscription is required for accessing APIs included in this product. If true, the product is referred to as "protected" and a valid subscription key is required for a request to an API included in the product to succeed. If false, the product is referred to as "open" and requests to an API included in the product can be made without a subscription key. If property is omitted when creating a new product it's value is assumed to be true.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
-	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of false.
+	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of true.
 	ApprovalRequired *bool `json:"approvalRequired,omitempty"`
-	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of false.
+	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of true.
 	SubscriptionsLimit *int32 `json:"subscriptionsLimit,omitempty"`
 	// State - whether product is published or not. Published products are discoverable by users of developer portal. Non published products are visible only to administrators. Default state of Product is notPublished. Possible values include: 'NotPublished', 'Published'
 	State ProductState `json:"state,omitempty"`
@@ -9105,9 +9408,9 @@ type ProductUpdateProperties struct {
 	Terms *string `json:"terms,omitempty"`
 	// SubscriptionRequired - Whether a product subscription is required for accessing APIs included in this product. If true, the product is referred to as "protected" and a valid subscription key is required for a request to an API included in the product to succeed. If false, the product is referred to as "open" and requests to an API included in the product can be made without a subscription key. If property is omitted when creating a new product it's value is assumed to be true.
 	SubscriptionRequired *bool `json:"subscriptionRequired,omitempty"`
-	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of false.
+	// ApprovalRequired - whether subscription approval is required. If false, new subscriptions will be approved automatically enabling developers to call the product’s APIs immediately after subscribing. If true, administrators must manually approve the subscription before the developer can any of the product’s APIs. Can be present only if subscriptionRequired property is present and has a value of true.
 	ApprovalRequired *bool `json:"approvalRequired,omitempty"`
-	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of false.
+	// SubscriptionsLimit - Whether the number of subscriptions a user can have to this product at the same time. Set to null or omit to allow unlimited per user subscriptions. Can be present only if subscriptionRequired property is present and has a value of true.
 	SubscriptionsLimit *int32 `json:"subscriptionsLimit,omitempty"`
 	// State - whether product is published or not. Published products are discoverable by users of developer portal. Non published products are visible only to administrators. Default state of Product is notPublished. Possible values include: 'NotPublished', 'Published'
 	State ProductState `json:"state,omitempty"`
@@ -9191,6 +9494,45 @@ type QuotaCounterValueContractProperties struct {
 	CallsCount *int32 `json:"callsCount,omitempty"`
 	// KbTransferred - Data Transferred in KiloBytes.
 	KbTransferred *float64 `json:"kbTransferred,omitempty"`
+}
+
+// QuotaCounterValueUpdateContract quota counter value details.
+type QuotaCounterValueUpdateContract struct {
+	// QuotaCounterValueContractProperties - Quota counter value details.
+	*QuotaCounterValueContractProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QuotaCounterValueUpdateContract.
+func (qcvuc QuotaCounterValueUpdateContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if qcvuc.QuotaCounterValueContractProperties != nil {
+		objectMap["properties"] = qcvuc.QuotaCounterValueContractProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for QuotaCounterValueUpdateContract struct.
+func (qcvuc *QuotaCounterValueUpdateContract) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var quotaCounterValueContractProperties QuotaCounterValueContractProperties
+				err = json.Unmarshal(*v, &quotaCounterValueContractProperties)
+				if err != nil {
+					return err
+				}
+				qcvuc.QuotaCounterValueContractProperties = &quotaCounterValueContractProperties
+			}
+		}
+	}
+
+	return nil
 }
 
 // RecipientEmailCollection paged Recipient User list representation.
@@ -9387,6 +9729,18 @@ type RegionContract struct {
 	IsDeleted *bool `json:"isDeleted,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegionContract.
+func (rc RegionContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rc.IsMasterRegion != nil {
+		objectMap["isMasterRegion"] = rc.IsMasterRegion
+	}
+	if rc.IsDeleted != nil {
+		objectMap["isDeleted"] = rc.IsDeleted
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegionListResult lists Regions operation response details.
 type RegionListResult struct {
 	autorest.Response `json:"-"`
@@ -9466,10 +9820,15 @@ func (rlr RegionListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rlr RegionListResult) hasNextLink() bool {
+	return rlr.NextLink != nil && len(*rlr.NextLink) != 0
+}
+
 // regionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rlr RegionListResult) regionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
+	if !rlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9497,11 +9856,16 @@ func (page *RegionListResultPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rlr)
+		if err != nil {
+			return err
+		}
+		page.rlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rlr = next
 	return nil
 }
 
@@ -9531,8 +9895,11 @@ func (page RegionListResultPage) Values() []RegionContract {
 }
 
 // Creates a new instance of the RegionListResultPage type.
-func NewRegionListResultPage(getNextPage func(context.Context, RegionListResult) (RegionListResult, error)) RegionListResultPage {
-	return RegionListResultPage{fn: getNextPage}
+func NewRegionListResultPage(cur RegionListResult, getNextPage func(context.Context, RegionListResult) (RegionListResult, error)) RegionListResultPage {
+	return RegionListResultPage{
+		fn:  getNextPage,
+		rlr: cur,
+	}
 }
 
 // RegistrationDelegationSettingsProperties user registration delegation settings properties.
@@ -9620,10 +9987,15 @@ func (rc ReportCollection) IsEmpty() bool {
 	return rc.Value == nil || len(*rc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rc ReportCollection) hasNextLink() bool {
+	return rc.NextLink != nil && len(*rc.NextLink) != 0
+}
+
 // reportCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rc ReportCollection) reportCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if rc.NextLink == nil || len(to.String(rc.NextLink)) < 1 {
+	if !rc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9651,11 +10023,16 @@ func (page *ReportCollectionPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rc)
+		if err != nil {
+			return err
+		}
+		page.rc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rc = next
 	return nil
 }
 
@@ -9685,8 +10062,11 @@ func (page ReportCollectionPage) Values() []ReportRecordContract {
 }
 
 // Creates a new instance of the ReportCollectionPage type.
-func NewReportCollectionPage(getNextPage func(context.Context, ReportCollection) (ReportCollection, error)) ReportCollectionPage {
-	return ReportCollectionPage{fn: getNextPage}
+func NewReportCollectionPage(cur ReportCollection, getNextPage func(context.Context, ReportCollection) (ReportCollection, error)) ReportCollectionPage {
+	return ReportCollectionPage{
+		fn: getNextPage,
+		rc: cur,
+	}
 }
 
 // ReportRecordContract report data.
@@ -9743,6 +10123,84 @@ type ReportRecordContract struct {
 	ServiceTimeMin *float64 `json:"serviceTimeMin,omitempty"`
 	// ServiceTimeMax - Maximum time it took to process request on backend.
 	ServiceTimeMax *float64 `json:"serviceTimeMax,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReportRecordContract.
+func (rrc ReportRecordContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rrc.Name != nil {
+		objectMap["name"] = rrc.Name
+	}
+	if rrc.Timestamp != nil {
+		objectMap["timestamp"] = rrc.Timestamp
+	}
+	if rrc.Interval != nil {
+		objectMap["interval"] = rrc.Interval
+	}
+	if rrc.Country != nil {
+		objectMap["country"] = rrc.Country
+	}
+	if rrc.Region != nil {
+		objectMap["region"] = rrc.Region
+	}
+	if rrc.Zip != nil {
+		objectMap["zip"] = rrc.Zip
+	}
+	if rrc.APIID != nil {
+		objectMap["apiId"] = rrc.APIID
+	}
+	if rrc.OperationID != nil {
+		objectMap["operationId"] = rrc.OperationID
+	}
+	if rrc.APIRegion != nil {
+		objectMap["apiRegion"] = rrc.APIRegion
+	}
+	if rrc.SubscriptionID != nil {
+		objectMap["subscriptionId"] = rrc.SubscriptionID
+	}
+	if rrc.CallCountSuccess != nil {
+		objectMap["callCountSuccess"] = rrc.CallCountSuccess
+	}
+	if rrc.CallCountBlocked != nil {
+		objectMap["callCountBlocked"] = rrc.CallCountBlocked
+	}
+	if rrc.CallCountFailed != nil {
+		objectMap["callCountFailed"] = rrc.CallCountFailed
+	}
+	if rrc.CallCountOther != nil {
+		objectMap["callCountOther"] = rrc.CallCountOther
+	}
+	if rrc.CallCountTotal != nil {
+		objectMap["callCountTotal"] = rrc.CallCountTotal
+	}
+	if rrc.Bandwidth != nil {
+		objectMap["bandwidth"] = rrc.Bandwidth
+	}
+	if rrc.CacheHitCount != nil {
+		objectMap["cacheHitCount"] = rrc.CacheHitCount
+	}
+	if rrc.CacheMissCount != nil {
+		objectMap["cacheMissCount"] = rrc.CacheMissCount
+	}
+	if rrc.APITimeAvg != nil {
+		objectMap["apiTimeAvg"] = rrc.APITimeAvg
+	}
+	if rrc.APITimeMin != nil {
+		objectMap["apiTimeMin"] = rrc.APITimeMin
+	}
+	if rrc.APITimeMax != nil {
+		objectMap["apiTimeMax"] = rrc.APITimeMax
+	}
+	if rrc.ServiceTimeAvg != nil {
+		objectMap["serviceTimeAvg"] = rrc.ServiceTimeAvg
+	}
+	if rrc.ServiceTimeMin != nil {
+		objectMap["serviceTimeMin"] = rrc.ServiceTimeMin
+	}
+	if rrc.ServiceTimeMax != nil {
+		objectMap["serviceTimeMax"] = rrc.ServiceTimeMax
+	}
+	return json.Marshal(objectMap)
 }
 
 // RepresentationContract operation request/response representation details.
@@ -9818,6 +10276,60 @@ type RequestReportRecordContract struct {
 	RequestID *string `json:"requestId,omitempty"`
 	// RequestSize - The size of this request..
 	RequestSize *int32 `json:"requestSize,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RequestReportRecordContract.
+func (rrrc RequestReportRecordContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rrrc.APIID != nil {
+		objectMap["apiId"] = rrrc.APIID
+	}
+	if rrrc.OperationID != nil {
+		objectMap["operationId"] = rrrc.OperationID
+	}
+	if rrrc.Method != nil {
+		objectMap["method"] = rrrc.Method
+	}
+	if rrrc.URL != nil {
+		objectMap["url"] = rrrc.URL
+	}
+	if rrrc.IPAddress != nil {
+		objectMap["ipAddress"] = rrrc.IPAddress
+	}
+	if rrrc.BackendResponseCode != nil {
+		objectMap["backendResponseCode"] = rrrc.BackendResponseCode
+	}
+	if rrrc.ResponseCode != nil {
+		objectMap["responseCode"] = rrrc.ResponseCode
+	}
+	if rrrc.ResponseSize != nil {
+		objectMap["responseSize"] = rrrc.ResponseSize
+	}
+	if rrrc.Timestamp != nil {
+		objectMap["timestamp"] = rrrc.Timestamp
+	}
+	if rrrc.Cache != nil {
+		objectMap["cache"] = rrrc.Cache
+	}
+	if rrrc.APITime != nil {
+		objectMap["apiTime"] = rrrc.APITime
+	}
+	if rrrc.ServiceTime != nil {
+		objectMap["serviceTime"] = rrrc.ServiceTime
+	}
+	if rrrc.APIRegion != nil {
+		objectMap["apiRegion"] = rrrc.APIRegion
+	}
+	if rrrc.SubscriptionID != nil {
+		objectMap["subscriptionId"] = rrrc.SubscriptionID
+	}
+	if rrrc.RequestID != nil {
+		objectMap["requestId"] = rrrc.RequestID
+	}
+	if rrrc.RequestSize != nil {
+		objectMap["requestSize"] = rrrc.RequestSize
+	}
+	return json.Marshal(objectMap)
 }
 
 // Resource the Resource definition.
@@ -9947,10 +10459,15 @@ func (rsr ResourceSkuResults) IsEmpty() bool {
 	return rsr.Value == nil || len(*rsr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rsr ResourceSkuResults) hasNextLink() bool {
+	return rsr.NextLink != nil && len(*rsr.NextLink) != 0
+}
+
 // resourceSkuResultsPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rsr ResourceSkuResults) resourceSkuResultsPreparer(ctx context.Context) (*http.Request, error) {
-	if rsr.NextLink == nil || len(to.String(rsr.NextLink)) < 1 {
+	if !rsr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9978,11 +10495,16 @@ func (page *ResourceSkuResultsPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rsr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rsr)
+		if err != nil {
+			return err
+		}
+		page.rsr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rsr = next
 	return nil
 }
 
@@ -10012,8 +10534,11 @@ func (page ResourceSkuResultsPage) Values() []ResourceSkuResult {
 }
 
 // Creates a new instance of the ResourceSkuResultsPage type.
-func NewResourceSkuResultsPage(getNextPage func(context.Context, ResourceSkuResults) (ResourceSkuResults, error)) ResourceSkuResultsPage {
-	return ResourceSkuResultsPage{fn: getNextPage}
+func NewResourceSkuResultsPage(cur ResourceSkuResults, getNextPage func(context.Context, ResourceSkuResults) (ResourceSkuResults, error)) ResourceSkuResultsPage {
+	return ResourceSkuResultsPage{
+		fn:  getNextPage,
+		rsr: cur,
+	}
 }
 
 // ResponseContract operation response details.
@@ -10160,10 +10685,15 @@ func (sc SchemaCollection) IsEmpty() bool {
 	return sc.Value == nil || len(*sc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sc SchemaCollection) hasNextLink() bool {
+	return sc.NextLink != nil && len(*sc.NextLink) != 0
+}
+
 // schemaCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sc SchemaCollection) schemaCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if sc.NextLink == nil || len(to.String(sc.NextLink)) < 1 {
+	if !sc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10191,11 +10721,16 @@ func (page *SchemaCollectionPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sc)
+		if err != nil {
+			return err
+		}
+		page.sc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sc = next
 	return nil
 }
 
@@ -10225,8 +10760,11 @@ func (page SchemaCollectionPage) Values() []SchemaContract {
 }
 
 // Creates a new instance of the SchemaCollectionPage type.
-func NewSchemaCollectionPage(getNextPage func(context.Context, SchemaCollection) (SchemaCollection, error)) SchemaCollectionPage {
-	return SchemaCollectionPage{fn: getNextPage}
+func NewSchemaCollectionPage(cur SchemaCollection, getNextPage func(context.Context, SchemaCollection) (SchemaCollection, error)) SchemaCollectionPage {
+	return SchemaCollectionPage{
+		fn: getNextPage,
+		sc: cur,
+	}
 }
 
 // SchemaContract schema Contract details.
@@ -10473,7 +11011,7 @@ type ServiceBaseProperties struct {
 	VirtualNetworkConfiguration *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration,omitempty"`
 	// AdditionalLocations - Additional datacenter locations of the API Management service.
 	AdditionalLocations *[]AdditionalLocation `json:"additionalLocations,omitempty"`
-	// CustomProperties - Custom properties of the API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` will disable the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS(1.0, 1.1 and 1.2).</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` can be used to disable just TLS 1.1.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` can be used to disable TLS 1.0 on an API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` can be used to disable just TLS 1.1 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` can be used to disable TLS 1.0 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2` can be used to enable HTTP2 protocol on an API Management service.</br>Not specifying any of these properties on PATCH operation will reset omitted properties' values to their defaults. For all the settings except Http2 the default value is `True` if the service was created on or before April 1st 2018 and `False` otherwise. Http2 setting's default value is `False`.</br></br>You can disable any of next ciphers by using settings `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.[cipher_name]`: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA. For example, `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256`:`false`. The default value is `true` for them.  Note: next ciphers can't be disabled since they are required by Azure CloudService internal components: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384
+	// CustomProperties - Custom properties of the API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` will disable the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS(1.0, 1.1 and 1.2).</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` can be used to disable just TLS 1.1.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` can be used to disable TLS 1.0 on an API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` can be used to disable just TLS 1.1 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` can be used to disable TLS 1.0 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2` can be used to enable HTTP2 protocol on an API Management service.</br></br>Not specifying any of these properties on PATCH operation will reset omitted properties' values to their defaults. For all the settings except Http2 the default value is `True` if the service was created on or before April 1st 2018 and `False` otherwise. Http2 setting's default value is `False`.</br></br>You can disable any of next ciphers by using settings `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.[cipher_name]`:</br>TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA</br>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA</br>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA</br>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA</br>TLS_RSA_WITH_AES_128_GCM_SHA256</br>TLS_RSA_WITH_AES_256_CBC_SHA256<br/>TLS_RSA_WITH_AES_128_CBC_SHA256<br/>TLS_RSA_WITH_AES_256_CBC_SHA<br/>TLS_RSA_WITH_AES_128_CBC_SHA.<br/><br/>For example: `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256`:`false`. The default value is `true` for all of them.<br/><br/>Note: next ciphers can't be disabled since they are required by Azure CloudService internal components:<br/>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384<br/>TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256<br/>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384<br/>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256<br/>TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384<br/>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256<br/>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384<br/>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256<br/>TLS_RSA_WITH_AES_256_GCM_SHA384
 	CustomProperties map[string]*string `json:"customProperties"`
 	// Certificates - List of Certificates that need to be installed in the API Management service. Max supported certificates that can be installed is 10.
 	Certificates *[]CertificateConfiguration `json:"certificates,omitempty"`
@@ -10698,10 +11236,15 @@ func (slr ServiceListResult) IsEmpty() bool {
 	return slr.Value == nil || len(*slr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (slr ServiceListResult) hasNextLink() bool {
+	return slr.NextLink != nil && len(*slr.NextLink) != 0
+}
+
 // serviceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (slr ServiceListResult) serviceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if slr.NextLink == nil || len(to.String(slr.NextLink)) < 1 {
+	if !slr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10729,11 +11272,16 @@ func (page *ServiceListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.slr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.slr)
+		if err != nil {
+			return err
+		}
+		page.slr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.slr = next
 	return nil
 }
 
@@ -10763,8 +11311,11 @@ func (page ServiceListResultPage) Values() []ServiceResource {
 }
 
 // Creates a new instance of the ServiceListResultPage type.
-func NewServiceListResultPage(getNextPage func(context.Context, ServiceListResult) (ServiceListResult, error)) ServiceListResultPage {
-	return ServiceListResultPage{fn: getNextPage}
+func NewServiceListResultPage(cur ServiceListResult, getNextPage func(context.Context, ServiceListResult) (ServiceListResult, error)) ServiceListResultPage {
+	return ServiceListResultPage{
+		fn:  getNextPage,
+		slr: cur,
+	}
 }
 
 // ServiceNameAvailabilityResult response of the CheckNameAvailability operation.
@@ -10776,6 +11327,15 @@ type ServiceNameAvailabilityResult struct {
 	Message *string `json:"message,omitempty"`
 	// Reason - Invalid indicates the name provided does not match the resource provider’s naming requirements (incorrect length, unsupported characters, etc.)  AlreadyExists indicates that the name is already in use and is therefore unavailable. Possible values include: 'Valid', 'Invalid', 'AlreadyExists'
 	Reason NameAvailabilityReason `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceNameAvailabilityResult.
+func (snar ServiceNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if snar.Reason != "" {
+		objectMap["reason"] = snar.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServiceProperties properties of an API Management service resource description.
@@ -10814,7 +11374,7 @@ type ServiceProperties struct {
 	VirtualNetworkConfiguration *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration,omitempty"`
 	// AdditionalLocations - Additional datacenter locations of the API Management service.
 	AdditionalLocations *[]AdditionalLocation `json:"additionalLocations,omitempty"`
-	// CustomProperties - Custom properties of the API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` will disable the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS(1.0, 1.1 and 1.2).</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` can be used to disable just TLS 1.1.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` can be used to disable TLS 1.0 on an API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` can be used to disable just TLS 1.1 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` can be used to disable TLS 1.0 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2` can be used to enable HTTP2 protocol on an API Management service.</br>Not specifying any of these properties on PATCH operation will reset omitted properties' values to their defaults. For all the settings except Http2 the default value is `True` if the service was created on or before April 1st 2018 and `False` otherwise. Http2 setting's default value is `False`.</br></br>You can disable any of next ciphers by using settings `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.[cipher_name]`: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA. For example, `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256`:`false`. The default value is `true` for them.  Note: next ciphers can't be disabled since they are required by Azure CloudService internal components: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384
+	// CustomProperties - Custom properties of the API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` will disable the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS(1.0, 1.1 and 1.2).</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` can be used to disable just TLS 1.1.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` can be used to disable TLS 1.0 on an API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` can be used to disable just TLS 1.1 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` can be used to disable TLS 1.0 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2` can be used to enable HTTP2 protocol on an API Management service.</br></br>Not specifying any of these properties on PATCH operation will reset omitted properties' values to their defaults. For all the settings except Http2 the default value is `True` if the service was created on or before April 1st 2018 and `False` otherwise. Http2 setting's default value is `False`.</br></br>You can disable any of next ciphers by using settings `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.[cipher_name]`:</br>TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA</br>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA</br>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA</br>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA</br>TLS_RSA_WITH_AES_128_GCM_SHA256</br>TLS_RSA_WITH_AES_256_CBC_SHA256<br/>TLS_RSA_WITH_AES_128_CBC_SHA256<br/>TLS_RSA_WITH_AES_256_CBC_SHA<br/>TLS_RSA_WITH_AES_128_CBC_SHA.<br/><br/>For example: `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256`:`false`. The default value is `true` for all of them.<br/><br/>Note: next ciphers can't be disabled since they are required by Azure CloudService internal components:<br/>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384<br/>TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256<br/>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384<br/>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256<br/>TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384<br/>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256<br/>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384<br/>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256<br/>TLS_RSA_WITH_AES_256_GCM_SHA384
 	CustomProperties map[string]*string `json:"customProperties"`
 	// Certificates - List of Certificates that need to be installed in the API Management service. Max supported certificates that can be installed is 10.
 	Certificates *[]CertificateConfiguration `json:"certificates,omitempty"`
@@ -11237,7 +11797,7 @@ type ServiceUpdateProperties struct {
 	VirtualNetworkConfiguration *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration,omitempty"`
 	// AdditionalLocations - Additional datacenter locations of the API Management service.
 	AdditionalLocations *[]AdditionalLocation `json:"additionalLocations,omitempty"`
-	// CustomProperties - Custom properties of the API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` will disable the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS(1.0, 1.1 and 1.2).</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` can be used to disable just TLS 1.1.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` can be used to disable TLS 1.0 on an API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` can be used to disable just TLS 1.1 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` can be used to disable TLS 1.0 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2` can be used to enable HTTP2 protocol on an API Management service.</br>Not specifying any of these properties on PATCH operation will reset omitted properties' values to their defaults. For all the settings except Http2 the default value is `True` if the service was created on or before April 1st 2018 and `False` otherwise. Http2 setting's default value is `False`.</br></br>You can disable any of next ciphers by using settings `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.[cipher_name]`: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA. For example, `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256`:`false`. The default value is `true` for them.  Note: next ciphers can't be disabled since they are required by Azure CloudService internal components: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384
+	// CustomProperties - Custom properties of the API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` will disable the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS(1.0, 1.1 and 1.2).</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` can be used to disable just TLS 1.1.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` can be used to disable TLS 1.0 on an API Management service.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` can be used to disable just TLS 1.1 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` can be used to disable TLS 1.0 for communications with backends.</br>Setting `Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2` can be used to enable HTTP2 protocol on an API Management service.</br></br>Not specifying any of these properties on PATCH operation will reset omitted properties' values to their defaults. For all the settings except Http2 the default value is `True` if the service was created on or before April 1st 2018 and `False` otherwise. Http2 setting's default value is `False`.</br></br>You can disable any of next ciphers by using settings `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.[cipher_name]`:</br>TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA</br>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA</br>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA</br>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA</br>TLS_RSA_WITH_AES_128_GCM_SHA256</br>TLS_RSA_WITH_AES_256_CBC_SHA256<br/>TLS_RSA_WITH_AES_128_CBC_SHA256<br/>TLS_RSA_WITH_AES_256_CBC_SHA<br/>TLS_RSA_WITH_AES_128_CBC_SHA.<br/><br/>For example: `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256`:`false`. The default value is `true` for all of them.<br/><br/>Note: next ciphers can't be disabled since they are required by Azure CloudService internal components:<br/>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384<br/>TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256<br/>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384<br/>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256<br/>TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384<br/>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256<br/>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384<br/>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256<br/>TLS_RSA_WITH_AES_256_GCM_SHA384
 	CustomProperties map[string]*string `json:"customProperties"`
 	// Certificates - List of Certificates that need to be installed in the API Management service. Max supported certificates that can be installed is 10.
 	Certificates *[]CertificateConfiguration `json:"certificates,omitempty"`
@@ -11370,10 +11930,15 @@ func (sc SubscriptionCollection) IsEmpty() bool {
 	return sc.Value == nil || len(*sc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sc SubscriptionCollection) hasNextLink() bool {
+	return sc.NextLink != nil && len(*sc.NextLink) != 0
+}
+
 // subscriptionCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sc SubscriptionCollection) subscriptionCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if sc.NextLink == nil || len(to.String(sc.NextLink)) < 1 {
+	if !sc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11401,11 +11966,16 @@ func (page *SubscriptionCollectionPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sc)
+		if err != nil {
+			return err
+		}
+		page.sc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sc = next
 	return nil
 }
 
@@ -11435,8 +12005,11 @@ func (page SubscriptionCollectionPage) Values() []SubscriptionContract {
 }
 
 // Creates a new instance of the SubscriptionCollectionPage type.
-func NewSubscriptionCollectionPage(getNextPage func(context.Context, SubscriptionCollection) (SubscriptionCollection, error)) SubscriptionCollectionPage {
-	return SubscriptionCollectionPage{fn: getNextPage}
+func NewSubscriptionCollectionPage(cur SubscriptionCollection, getNextPage func(context.Context, SubscriptionCollection) (SubscriptionCollection, error)) SubscriptionCollectionPage {
+	return SubscriptionCollectionPage{
+		fn: getNextPage,
+		sc: cur,
+	}
 }
 
 // SubscriptionContract subscription details.
@@ -11536,10 +12109,52 @@ type SubscriptionContractProperties struct {
 	PrimaryKey *string `json:"primaryKey,omitempty"`
 	// SecondaryKey - Subscription secondary key. This property will not be filled on 'GET' operations! Use '/listSecrets' POST request to get the value.
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
-	// StateComment - Optional subscription comment added by an administrator.
+	// StateComment - Optional subscription comment added by an administrator when the state is changed to the 'rejected'.
 	StateComment *string `json:"stateComment,omitempty"`
 	// AllowTracing - Determines whether tracing is enabled
 	AllowTracing *bool `json:"allowTracing,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubscriptionContractProperties.
+func (scp SubscriptionContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scp.OwnerID != nil {
+		objectMap["ownerId"] = scp.OwnerID
+	}
+	if scp.Scope != nil {
+		objectMap["scope"] = scp.Scope
+	}
+	if scp.DisplayName != nil {
+		objectMap["displayName"] = scp.DisplayName
+	}
+	if scp.State != "" {
+		objectMap["state"] = scp.State
+	}
+	if scp.StartDate != nil {
+		objectMap["startDate"] = scp.StartDate
+	}
+	if scp.ExpirationDate != nil {
+		objectMap["expirationDate"] = scp.ExpirationDate
+	}
+	if scp.EndDate != nil {
+		objectMap["endDate"] = scp.EndDate
+	}
+	if scp.NotificationDate != nil {
+		objectMap["notificationDate"] = scp.NotificationDate
+	}
+	if scp.PrimaryKey != nil {
+		objectMap["primaryKey"] = scp.PrimaryKey
+	}
+	if scp.SecondaryKey != nil {
+		objectMap["secondaryKey"] = scp.SecondaryKey
+	}
+	if scp.StateComment != nil {
+		objectMap["stateComment"] = scp.StateComment
+	}
+	if scp.AllowTracing != nil {
+		objectMap["allowTracing"] = scp.AllowTracing
+	}
+	return json.Marshal(objectMap)
 }
 
 // SubscriptionCreateParameterProperties parameters supplied to the Create subscription operation.
@@ -11638,7 +12253,7 @@ type SubscriptionUpdateParameterProperties struct {
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
 	// State - Subscription state. Possible states are * active – the subscription is active, * suspended – the subscription is blocked, and the subscriber cannot call any APIs of the product, * submitted – the subscription request has been made by the developer, but has not yet been approved or rejected, * rejected – the subscription request has been denied by an administrator, * cancelled – the subscription has been cancelled by the developer or administrator, * expired – the subscription reached its expiration date and was deactivated. Possible values include: 'Suspended', 'Active', 'Expired', 'Submitted', 'Rejected', 'Cancelled'
 	State SubscriptionState `json:"state,omitempty"`
-	// StateComment - Comments describing subscription state change by the administrator.
+	// StateComment - Comments describing subscription state change by the administrator when the state is changed to the 'rejected'.
 	StateComment *string `json:"stateComment,omitempty"`
 	// AllowTracing - Determines whether tracing can be enabled
 	AllowTracing *bool `json:"allowTracing,omitempty"`
@@ -11760,10 +12375,15 @@ func (tc TagCollection) IsEmpty() bool {
 	return tc.Value == nil || len(*tc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tc TagCollection) hasNextLink() bool {
+	return tc.NextLink != nil && len(*tc.NextLink) != 0
+}
+
 // tagCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tc TagCollection) tagCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if tc.NextLink == nil || len(to.String(tc.NextLink)) < 1 {
+	if !tc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11791,11 +12411,16 @@ func (page *TagCollectionPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tc)
+		if err != nil {
+			return err
+		}
+		page.tc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tc = next
 	return nil
 }
 
@@ -11825,8 +12450,11 @@ func (page TagCollectionPage) Values() []TagContract {
 }
 
 // Creates a new instance of the TagCollectionPage type.
-func NewTagCollectionPage(getNextPage func(context.Context, TagCollection) (TagCollection, error)) TagCollectionPage {
-	return TagCollectionPage{fn: getNextPage}
+func NewTagCollectionPage(cur TagCollection, getNextPage func(context.Context, TagCollection) (TagCollection, error)) TagCollectionPage {
+	return TagCollectionPage{
+		fn: getNextPage,
+		tc: cur,
+	}
 }
 
 // TagContract tag Contract details.
@@ -12034,10 +12662,15 @@ func (tdc TagDescriptionCollection) IsEmpty() bool {
 	return tdc.Value == nil || len(*tdc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tdc TagDescriptionCollection) hasNextLink() bool {
+	return tdc.NextLink != nil && len(*tdc.NextLink) != 0
+}
+
 // tagDescriptionCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tdc TagDescriptionCollection) tagDescriptionCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if tdc.NextLink == nil || len(to.String(tdc.NextLink)) < 1 {
+	if !tdc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12065,11 +12698,16 @@ func (page *TagDescriptionCollectionPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tdc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tdc)
+		if err != nil {
+			return err
+		}
+		page.tdc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tdc = next
 	return nil
 }
 
@@ -12099,8 +12737,11 @@ func (page TagDescriptionCollectionPage) Values() []TagDescriptionContract {
 }
 
 // Creates a new instance of the TagDescriptionCollectionPage type.
-func NewTagDescriptionCollectionPage(getNextPage func(context.Context, TagDescriptionCollection) (TagDescriptionCollection, error)) TagDescriptionCollectionPage {
-	return TagDescriptionCollectionPage{fn: getNextPage}
+func NewTagDescriptionCollectionPage(cur TagDescriptionCollection, getNextPage func(context.Context, TagDescriptionCollection) (TagDescriptionCollection, error)) TagDescriptionCollectionPage {
+	return TagDescriptionCollectionPage{
+		fn:  getNextPage,
+		tdc: cur,
+	}
 }
 
 // TagDescriptionContract contract details.
@@ -12306,10 +12947,15 @@ func (trc TagResourceCollection) IsEmpty() bool {
 	return trc.Value == nil || len(*trc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (trc TagResourceCollection) hasNextLink() bool {
+	return trc.NextLink != nil && len(*trc.NextLink) != 0
+}
+
 // tagResourceCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (trc TagResourceCollection) tagResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if trc.NextLink == nil || len(to.String(trc.NextLink)) < 1 {
+	if !trc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12337,11 +12983,16 @@ func (page *TagResourceCollectionPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.trc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.trc)
+		if err != nil {
+			return err
+		}
+		page.trc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.trc = next
 	return nil
 }
 
@@ -12371,8 +13022,11 @@ func (page TagResourceCollectionPage) Values() []TagResourceContract {
 }
 
 // Creates a new instance of the TagResourceCollectionPage type.
-func NewTagResourceCollectionPage(getNextPage func(context.Context, TagResourceCollection) (TagResourceCollection, error)) TagResourceCollectionPage {
-	return TagResourceCollectionPage{fn: getNextPage}
+func NewTagResourceCollectionPage(cur TagResourceCollection, getNextPage func(context.Context, TagResourceCollection) (TagResourceCollection, error)) TagResourceCollectionPage {
+	return TagResourceCollectionPage{
+		fn:  getNextPage,
+		trc: cur,
+	}
 }
 
 // TagResourceContract tagResource contract properties.
@@ -12596,10 +13250,15 @@ func (uc UserCollection) IsEmpty() bool {
 	return uc.Value == nil || len(*uc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (uc UserCollection) hasNextLink() bool {
+	return uc.NextLink != nil && len(*uc.NextLink) != 0
+}
+
 // userCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (uc UserCollection) userCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if uc.NextLink == nil || len(to.String(uc.NextLink)) < 1 {
+	if !uc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12627,11 +13286,16 @@ func (page *UserCollectionPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.uc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.uc)
+		if err != nil {
+			return err
+		}
+		page.uc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.uc = next
 	return nil
 }
 
@@ -12661,8 +13325,11 @@ func (page UserCollectionPage) Values() []UserContract {
 }
 
 // Creates a new instance of the UserCollectionPage type.
-func NewUserCollectionPage(getNextPage func(context.Context, UserCollection) (UserCollection, error)) UserCollectionPage {
-	return UserCollectionPage{fn: getNextPage}
+func NewUserCollectionPage(cur UserCollection, getNextPage func(context.Context, UserCollection) (UserCollection, error)) UserCollectionPage {
+	return UserCollectionPage{
+		fn: getNextPage,
+		uc: cur,
+	}
 }
 
 // UserContract user details.
@@ -12758,6 +13425,33 @@ type UserContractProperties struct {
 	Identities *[]UserIdentityContract `json:"identities,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UserContractProperties.
+func (ucp UserContractProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ucp.FirstName != nil {
+		objectMap["firstName"] = ucp.FirstName
+	}
+	if ucp.LastName != nil {
+		objectMap["lastName"] = ucp.LastName
+	}
+	if ucp.Email != nil {
+		objectMap["email"] = ucp.Email
+	}
+	if ucp.RegistrationDate != nil {
+		objectMap["registrationDate"] = ucp.RegistrationDate
+	}
+	if ucp.State != "" {
+		objectMap["state"] = ucp.State
+	}
+	if ucp.Note != nil {
+		objectMap["note"] = ucp.Note
+	}
+	if ucp.Identities != nil {
+		objectMap["identities"] = ucp.Identities
+	}
+	return json.Marshal(objectMap)
+}
+
 // UserCreateParameterProperties parameters supplied to the Create User operation.
 type UserCreateParameterProperties struct {
 	// Email - Email address. Must not be empty and must be unique within the service instance.
@@ -12768,7 +13462,7 @@ type UserCreateParameterProperties struct {
 	LastName *string `json:"lastName,omitempty"`
 	// Password - User Password. If no value is provided, a default password is generated.
 	Password *string `json:"password,omitempty"`
-	// AppType - Determines the type of application which send the create user request. Default is old publisher portal. Possible values include: 'DeveloperPortal'
+	// AppType - Determines the type of application which send the create user request. Default is legacy portal. Possible values include: 'Portal', 'DeveloperPortal'
 	AppType AppType `json:"appType,omitempty"`
 	// Confirmation - Determines the type of confirmation e-mail that will be sent to the newly created user. Possible values include: 'Signup', 'Invite'
 	Confirmation Confirmation `json:"confirmation,omitempty"`
@@ -12908,10 +13602,15 @@ func (uic UserIdentityCollection) IsEmpty() bool {
 	return uic.Value == nil || len(*uic.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (uic UserIdentityCollection) hasNextLink() bool {
+	return uic.NextLink != nil && len(*uic.NextLink) != 0
+}
+
 // userIdentityCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (uic UserIdentityCollection) userIdentityCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if uic.NextLink == nil || len(to.String(uic.NextLink)) < 1 {
+	if !uic.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12939,11 +13638,16 @@ func (page *UserIdentityCollectionPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.uic)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.uic)
+		if err != nil {
+			return err
+		}
+		page.uic = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.uic = next
 	return nil
 }
 
@@ -12973,8 +13677,11 @@ func (page UserIdentityCollectionPage) Values() []UserIdentityContract {
 }
 
 // Creates a new instance of the UserIdentityCollectionPage type.
-func NewUserIdentityCollectionPage(getNextPage func(context.Context, UserIdentityCollection) (UserIdentityCollection, error)) UserIdentityCollectionPage {
-	return UserIdentityCollectionPage{fn: getNextPage}
+func NewUserIdentityCollectionPage(cur UserIdentityCollection, getNextPage func(context.Context, UserIdentityCollection) (UserIdentityCollection, error)) UserIdentityCollectionPage {
+	return UserIdentityCollectionPage{
+		fn:  getNextPage,
+		uic: cur,
+	}
 }
 
 // UserIdentityContract user identity details.
@@ -13113,6 +13820,15 @@ type VirtualNetworkConfiguration struct {
 	Subnetname *string `json:"subnetname,omitempty"`
 	// SubnetResourceID - The full resource ID of a subnet in a virtual network to deploy the API Management service in.
 	SubnetResourceID *string `json:"subnetResourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkConfiguration.
+func (vnc VirtualNetworkConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnc.SubnetResourceID != nil {
+		objectMap["subnetResourceId"] = vnc.SubnetResourceID
+	}
+	return json.Marshal(objectMap)
 }
 
 // X509CertificateName properties of server X509Names.

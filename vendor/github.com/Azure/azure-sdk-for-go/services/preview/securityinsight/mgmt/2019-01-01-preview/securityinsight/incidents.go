@@ -94,6 +94,7 @@ func (client IncidentsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -135,7 +136,6 @@ func (client IncidentsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client IncidentsClient) CreateOrUpdateResponder(resp *http.Response) (result Incident, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,6 +191,7 @@ func (client IncidentsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -230,7 +231,6 @@ func (client IncidentsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client IncidentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,6 +285,7 @@ func (client IncidentsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -324,7 +325,6 @@ func (client IncidentsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client IncidentsClient) GetResponder(resp *http.Response) (result Incident, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +386,10 @@ func (client IncidentsClient) List(ctx context.Context, resourceGroupName string
 	result.il, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.il.hasNextLink() && result.il.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -436,7 +440,6 @@ func (client IncidentsClient) ListSender(req *http.Request) (*http.Response, err
 func (client IncidentsClient) ListResponder(resp *http.Response) (result IncidentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -461,6 +464,7 @@ func (client IncidentsClient) listNextResults(ctx context.Context, lastResults I
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -478,5 +482,290 @@ func (client IncidentsClient) ListComplete(ctx context.Context, resourceGroupNam
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, filter, orderby, top, skipToken)
+	return
+}
+
+// ListOfAlerts gets all incident alerts.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
+// workspaceName - the name of the workspace.
+// incidentID - incident ID
+func (client IncidentsClient) ListOfAlerts(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string) (result IncidentAlertList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IncidentsClient.ListOfAlerts")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("securityinsight.IncidentsClient", "ListOfAlerts", err.Error())
+	}
+
+	req, err := client.ListOfAlertsPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, incidentID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfAlerts", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListOfAlertsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfAlerts", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListOfAlertsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfAlerts", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListOfAlertsPreparer prepares the ListOfAlerts request.
+func (client IncidentsClient) ListOfAlertsPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"incidentId":                          autorest.Encode("path", incidentID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/incidents/{incidentId}/alerts", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListOfAlertsSender sends the ListOfAlerts request. The method will close the
+// http.Response Body if it receives an error.
+func (client IncidentsClient) ListOfAlertsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListOfAlertsResponder handles the response to the ListOfAlerts request. The method always
+// closes the http.Response Body.
+func (client IncidentsClient) ListOfAlertsResponder(resp *http.Response) (result IncidentAlertList, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListOfBookmarks gets all incident bookmarks.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
+// workspaceName - the name of the workspace.
+// incidentID - incident ID
+func (client IncidentsClient) ListOfBookmarks(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string) (result IncidentBookmarkList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IncidentsClient.ListOfBookmarks")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("securityinsight.IncidentsClient", "ListOfBookmarks", err.Error())
+	}
+
+	req, err := client.ListOfBookmarksPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, incidentID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfBookmarks", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListOfBookmarksSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfBookmarks", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListOfBookmarksResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfBookmarks", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListOfBookmarksPreparer prepares the ListOfBookmarks request.
+func (client IncidentsClient) ListOfBookmarksPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"incidentId":                          autorest.Encode("path", incidentID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/incidents/{incidentId}/bookmarks", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListOfBookmarksSender sends the ListOfBookmarks request. The method will close the
+// http.Response Body if it receives an error.
+func (client IncidentsClient) ListOfBookmarksSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListOfBookmarksResponder handles the response to the ListOfBookmarks request. The method always
+// closes the http.Response Body.
+func (client IncidentsClient) ListOfBookmarksResponder(resp *http.Response) (result IncidentBookmarkList, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListOfEntities gets all incident related entities.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
+// workspaceName - the name of the workspace.
+// incidentID - incident ID
+func (client IncidentsClient) ListOfEntities(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string) (result IncidentEntitiesResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IncidentsClient.ListOfEntities")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("securityinsight.IncidentsClient", "ListOfEntities", err.Error())
+	}
+
+	req, err := client.ListOfEntitiesPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, incidentID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfEntities", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListOfEntitiesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfEntities", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListOfEntitiesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "ListOfEntities", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListOfEntitiesPreparer prepares the ListOfEntities request.
+func (client IncidentsClient) ListOfEntitiesPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"incidentId":                          autorest.Encode("path", incidentID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/incidents/{incidentId}/entities", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListOfEntitiesSender sends the ListOfEntities request. The method will close the
+// http.Response Body if it receives an error.
+func (client IncidentsClient) ListOfEntitiesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListOfEntitiesResponder handles the response to the ListOfEntities request. The method always
+// closes the http.Response Body.
+func (client IncidentsClient) ListOfEntitiesResponder(resp *http.Response) (result IncidentEntitiesResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

@@ -35,13 +35,15 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Shared Image.
+* `id` - The ID of the Shared Image.
 
 * `description` - The description of this Shared Image.
 
 * `eula` - The End User Licence Agreement for the Shared Image.
 
 * `location` - The supported Azure location where the Shared Image Gallery exists.
+
+* `specialized` - Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run).
 
 * `identifier` - An `identifier` block as defined below.
 

@@ -89,6 +89,7 @@ func (client GroupUserClient) CheckEntityExists(ctx context.Context, resourceGro
 	result, err = client.CheckEntityExistsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "CheckEntityExists", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -128,7 +129,6 @@ func (client GroupUserClient) CheckEntityExistsSender(req *http.Request) (*http.
 func (client GroupUserClient) CheckEntityExistsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -182,6 +182,7 @@ func (client GroupUserClient) Create(ctx context.Context, resourceGroupName stri
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -221,7 +222,6 @@ func (client GroupUserClient) CreateSender(req *http.Request) (*http.Response, e
 func (client GroupUserClient) CreateResponder(resp *http.Response) (result UserContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -276,6 +276,7 @@ func (client GroupUserClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,7 +316,6 @@ func (client GroupUserClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client GroupUserClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -381,6 +381,10 @@ func (client GroupUserClient) List(ctx context.Context, resourceGroupName string
 	result.uc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.uc.hasNextLink() && result.uc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -428,7 +432,6 @@ func (client GroupUserClient) ListSender(req *http.Request) (*http.Response, err
 func (client GroupUserClient) ListResponder(resp *http.Response) (result UserCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -453,6 +456,7 @@ func (client GroupUserClient) listNextResults(ctx context.Context, lastResults U
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

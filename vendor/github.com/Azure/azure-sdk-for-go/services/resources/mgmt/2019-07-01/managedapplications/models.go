@@ -31,242 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
 
-// ApplicationArtifactName enumerates the values for application artifact name.
-type ApplicationArtifactName string
-
-const (
-	// Authorizations ...
-	Authorizations ApplicationArtifactName = "Authorizations"
-	// CustomRoleDefinition ...
-	CustomRoleDefinition ApplicationArtifactName = "CustomRoleDefinition"
-	// NotSpecified ...
-	NotSpecified ApplicationArtifactName = "NotSpecified"
-	// ViewDefinition ...
-	ViewDefinition ApplicationArtifactName = "ViewDefinition"
-)
-
-// PossibleApplicationArtifactNameValues returns an array of possible values for the ApplicationArtifactName const type.
-func PossibleApplicationArtifactNameValues() []ApplicationArtifactName {
-	return []ApplicationArtifactName{Authorizations, CustomRoleDefinition, NotSpecified, ViewDefinition}
-}
-
-// ApplicationArtifactType enumerates the values for application artifact type.
-type ApplicationArtifactType string
-
-const (
-	// ApplicationArtifactTypeCustom ...
-	ApplicationArtifactTypeCustom ApplicationArtifactType = "Custom"
-	// ApplicationArtifactTypeNotSpecified ...
-	ApplicationArtifactTypeNotSpecified ApplicationArtifactType = "NotSpecified"
-	// ApplicationArtifactTypeTemplate ...
-	ApplicationArtifactTypeTemplate ApplicationArtifactType = "Template"
-)
-
-// PossibleApplicationArtifactTypeValues returns an array of possible values for the ApplicationArtifactType const type.
-func PossibleApplicationArtifactTypeValues() []ApplicationArtifactType {
-	return []ApplicationArtifactType{ApplicationArtifactTypeCustom, ApplicationArtifactTypeNotSpecified, ApplicationArtifactTypeTemplate}
-}
-
-// ApplicationDefinitionArtifactName enumerates the values for application definition artifact name.
-type ApplicationDefinitionArtifactName string
-
-const (
-	// ApplicationDefinitionArtifactNameApplicationResourceTemplate ...
-	ApplicationDefinitionArtifactNameApplicationResourceTemplate ApplicationDefinitionArtifactName = "ApplicationResourceTemplate"
-	// ApplicationDefinitionArtifactNameCreateUIDefinition ...
-	ApplicationDefinitionArtifactNameCreateUIDefinition ApplicationDefinitionArtifactName = "CreateUiDefinition"
-	// ApplicationDefinitionArtifactNameMainTemplateParameters ...
-	ApplicationDefinitionArtifactNameMainTemplateParameters ApplicationDefinitionArtifactName = "MainTemplateParameters"
-	// ApplicationDefinitionArtifactNameNotSpecified ...
-	ApplicationDefinitionArtifactNameNotSpecified ApplicationDefinitionArtifactName = "NotSpecified"
-)
-
-// PossibleApplicationDefinitionArtifactNameValues returns an array of possible values for the ApplicationDefinitionArtifactName const type.
-func PossibleApplicationDefinitionArtifactNameValues() []ApplicationDefinitionArtifactName {
-	return []ApplicationDefinitionArtifactName{ApplicationDefinitionArtifactNameApplicationResourceTemplate, ApplicationDefinitionArtifactNameCreateUIDefinition, ApplicationDefinitionArtifactNameMainTemplateParameters, ApplicationDefinitionArtifactNameNotSpecified}
-}
-
-// ApplicationLockLevel enumerates the values for application lock level.
-type ApplicationLockLevel string
-
-const (
-	// CanNotDelete ...
-	CanNotDelete ApplicationLockLevel = "CanNotDelete"
-	// None ...
-	None ApplicationLockLevel = "None"
-	// ReadOnly ...
-	ReadOnly ApplicationLockLevel = "ReadOnly"
-)
-
-// PossibleApplicationLockLevelValues returns an array of possible values for the ApplicationLockLevel const type.
-func PossibleApplicationLockLevelValues() []ApplicationLockLevel {
-	return []ApplicationLockLevel{CanNotDelete, None, ReadOnly}
-}
-
-// ApplicationManagementMode enumerates the values for application management mode.
-type ApplicationManagementMode string
-
-const (
-	// ApplicationManagementModeManaged ...
-	ApplicationManagementModeManaged ApplicationManagementMode = "Managed"
-	// ApplicationManagementModeNotSpecified ...
-	ApplicationManagementModeNotSpecified ApplicationManagementMode = "NotSpecified"
-	// ApplicationManagementModeUnmanaged ...
-	ApplicationManagementModeUnmanaged ApplicationManagementMode = "Unmanaged"
-)
-
-// PossibleApplicationManagementModeValues returns an array of possible values for the ApplicationManagementMode const type.
-func PossibleApplicationManagementModeValues() []ApplicationManagementMode {
-	return []ApplicationManagementMode{ApplicationManagementModeManaged, ApplicationManagementModeNotSpecified, ApplicationManagementModeUnmanaged}
-}
-
-// DeploymentMode enumerates the values for deployment mode.
-type DeploymentMode string
-
-const (
-	// DeploymentModeComplete ...
-	DeploymentModeComplete DeploymentMode = "Complete"
-	// DeploymentModeIncremental ...
-	DeploymentModeIncremental DeploymentMode = "Incremental"
-	// DeploymentModeNotSpecified ...
-	DeploymentModeNotSpecified DeploymentMode = "NotSpecified"
-)
-
-// PossibleDeploymentModeValues returns an array of possible values for the DeploymentMode const type.
-func PossibleDeploymentModeValues() []DeploymentMode {
-	return []DeploymentMode{DeploymentModeComplete, DeploymentModeIncremental, DeploymentModeNotSpecified}
-}
-
-// JitApprovalMode enumerates the values for jit approval mode.
-type JitApprovalMode string
-
-const (
-	// JitApprovalModeAutoApprove ...
-	JitApprovalModeAutoApprove JitApprovalMode = "AutoApprove"
-	// JitApprovalModeManualApprove ...
-	JitApprovalModeManualApprove JitApprovalMode = "ManualApprove"
-	// JitApprovalModeNotSpecified ...
-	JitApprovalModeNotSpecified JitApprovalMode = "NotSpecified"
-)
-
-// PossibleJitApprovalModeValues returns an array of possible values for the JitApprovalMode const type.
-func PossibleJitApprovalModeValues() []JitApprovalMode {
-	return []JitApprovalMode{JitApprovalModeAutoApprove, JitApprovalModeManualApprove, JitApprovalModeNotSpecified}
-}
-
-// JitApproverType enumerates the values for jit approver type.
-type JitApproverType string
-
-const (
-	// Group ...
-	Group JitApproverType = "group"
-	// User ...
-	User JitApproverType = "user"
-)
-
-// PossibleJitApproverTypeValues returns an array of possible values for the JitApproverType const type.
-func PossibleJitApproverTypeValues() []JitApproverType {
-	return []JitApproverType{Group, User}
-}
-
-// JitRequestState enumerates the values for jit request state.
-type JitRequestState string
-
-const (
-	// JitRequestStateApproved ...
-	JitRequestStateApproved JitRequestState = "Approved"
-	// JitRequestStateCanceled ...
-	JitRequestStateCanceled JitRequestState = "Canceled"
-	// JitRequestStateDenied ...
-	JitRequestStateDenied JitRequestState = "Denied"
-	// JitRequestStateExpired ...
-	JitRequestStateExpired JitRequestState = "Expired"
-	// JitRequestStateFailed ...
-	JitRequestStateFailed JitRequestState = "Failed"
-	// JitRequestStateNotSpecified ...
-	JitRequestStateNotSpecified JitRequestState = "NotSpecified"
-	// JitRequestStatePending ...
-	JitRequestStatePending JitRequestState = "Pending"
-	// JitRequestStateTimeout ...
-	JitRequestStateTimeout JitRequestState = "Timeout"
-)
-
-// PossibleJitRequestStateValues returns an array of possible values for the JitRequestState const type.
-func PossibleJitRequestStateValues() []JitRequestState {
-	return []JitRequestState{JitRequestStateApproved, JitRequestStateCanceled, JitRequestStateDenied, JitRequestStateExpired, JitRequestStateFailed, JitRequestStateNotSpecified, JitRequestStatePending, JitRequestStateTimeout}
-}
-
-// JitSchedulingType enumerates the values for jit scheduling type.
-type JitSchedulingType string
-
-const (
-	// JitSchedulingTypeNotSpecified ...
-	JitSchedulingTypeNotSpecified JitSchedulingType = "NotSpecified"
-	// JitSchedulingTypeOnce ...
-	JitSchedulingTypeOnce JitSchedulingType = "Once"
-	// JitSchedulingTypeRecurring ...
-	JitSchedulingTypeRecurring JitSchedulingType = "Recurring"
-)
-
-// PossibleJitSchedulingTypeValues returns an array of possible values for the JitSchedulingType const type.
-func PossibleJitSchedulingTypeValues() []JitSchedulingType {
-	return []JitSchedulingType{JitSchedulingTypeNotSpecified, JitSchedulingTypeOnce, JitSchedulingTypeRecurring}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// ProvisioningStateAccepted ...
-	ProvisioningStateAccepted ProvisioningState = "Accepted"
-	// ProvisioningStateCanceled ...
-	ProvisioningStateCanceled ProvisioningState = "Canceled"
-	// ProvisioningStateCreated ...
-	ProvisioningStateCreated ProvisioningState = "Created"
-	// ProvisioningStateCreating ...
-	ProvisioningStateCreating ProvisioningState = "Creating"
-	// ProvisioningStateDeleted ...
-	ProvisioningStateDeleted ProvisioningState = "Deleted"
-	// ProvisioningStateDeleting ...
-	ProvisioningStateDeleting ProvisioningState = "Deleting"
-	// ProvisioningStateFailed ...
-	ProvisioningStateFailed ProvisioningState = "Failed"
-	// ProvisioningStateNotSpecified ...
-	ProvisioningStateNotSpecified ProvisioningState = "NotSpecified"
-	// ProvisioningStateReady ...
-	ProvisioningStateReady ProvisioningState = "Ready"
-	// ProvisioningStateRunning ...
-	ProvisioningStateRunning ProvisioningState = "Running"
-	// ProvisioningStateSucceeded ...
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-	// ProvisioningStateUpdating ...
-	ProvisioningStateUpdating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{ProvisioningStateAccepted, ProvisioningStateCanceled, ProvisioningStateCreated, ProvisioningStateCreating, ProvisioningStateDeleted, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateNotSpecified, ProvisioningStateReady, ProvisioningStateRunning, ProvisioningStateSucceeded, ProvisioningStateUpdating}
-}
-
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// ResourceIdentityTypeNone ...
-	ResourceIdentityTypeNone ResourceIdentityType = "None"
-	// ResourceIdentityTypeSystemAssigned ...
-	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
-	// ResourceIdentityTypeSystemAssignedUserAssigned ...
-	ResourceIdentityTypeSystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
-	// ResourceIdentityTypeUserAssigned ...
-	ResourceIdentityTypeUserAssigned ResourceIdentityType = "UserAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{ResourceIdentityTypeNone, ResourceIdentityTypeSystemAssigned, ResourceIdentityTypeSystemAssignedUserAssigned, ResourceIdentityTypeUserAssigned}
-}
-
 // Application information about managed application.
 type Application struct {
 	autorest.Response `json:"-"`
@@ -690,10 +454,15 @@ func (adlr ApplicationDefinitionListResult) IsEmpty() bool {
 	return adlr.Value == nil || len(*adlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (adlr ApplicationDefinitionListResult) hasNextLink() bool {
+	return adlr.NextLink != nil && len(*adlr.NextLink) != 0
+}
+
 // applicationDefinitionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (adlr ApplicationDefinitionListResult) applicationDefinitionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if adlr.NextLink == nil || len(to.String(adlr.NextLink)) < 1 {
+	if !adlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -721,11 +490,16 @@ func (page *ApplicationDefinitionListResultPage) NextWithContext(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.adlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.adlr)
+		if err != nil {
+			return err
+		}
+		page.adlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.adlr = next
 	return nil
 }
 
@@ -755,8 +529,11 @@ func (page ApplicationDefinitionListResultPage) Values() []ApplicationDefinition
 }
 
 // Creates a new instance of the ApplicationDefinitionListResultPage type.
-func NewApplicationDefinitionListResultPage(getNextPage func(context.Context, ApplicationDefinitionListResult) (ApplicationDefinitionListResult, error)) ApplicationDefinitionListResultPage {
-	return ApplicationDefinitionListResultPage{fn: getNextPage}
+func NewApplicationDefinitionListResultPage(cur ApplicationDefinitionListResult, getNextPage func(context.Context, ApplicationDefinitionListResult) (ApplicationDefinitionListResult, error)) ApplicationDefinitionListResultPage {
+	return ApplicationDefinitionListResultPage{
+		fn:   getNextPage,
+		adlr: cur,
+	}
 }
 
 // ApplicationDefinitionProperties the managed application definition properties.
@@ -990,10 +767,15 @@ func (alr ApplicationListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr ApplicationListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // applicationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr ApplicationListResult) applicationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1021,11 +803,16 @@ func (page *ApplicationListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -1055,8 +842,11 @@ func (page ApplicationListResultPage) Values() []Application {
 }
 
 // Creates a new instance of the ApplicationListResultPage type.
-func NewApplicationListResultPage(getNextPage func(context.Context, ApplicationListResult) (ApplicationListResult, error)) ApplicationListResultPage {
-	return ApplicationListResultPage{fn: getNextPage}
+func NewApplicationListResultPage(cur ApplicationListResult, getNextPage func(context.Context, ApplicationListResult) (ApplicationListResult, error)) ApplicationListResultPage {
+	return ApplicationListResultPage{
+		fn:  getNextPage,
+		alr: cur,
+	}
 }
 
 // ApplicationManagementPolicy managed application management policy.
@@ -1103,8 +893,8 @@ type ApplicationPackageSupportUrls struct {
 
 // ApplicationPatchable information about managed application.
 type ApplicationPatchable struct {
-	// ApplicationPropertiesPatchable - The managed application properties.
-	*ApplicationPropertiesPatchable `json:"properties,omitempty"`
+	// ApplicationProperties - The managed application properties.
+	*ApplicationProperties `json:"properties,omitempty"`
 	// Plan - The plan information.
 	Plan *PlanPatchable `json:"plan,omitempty"`
 	// Kind - The kind of the managed application. Allowed values are MarketPlace and ServiceCatalog.
@@ -1130,8 +920,8 @@ type ApplicationPatchable struct {
 // MarshalJSON is the custom marshaler for ApplicationPatchable.
 func (ap ApplicationPatchable) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ap.ApplicationPropertiesPatchable != nil {
-		objectMap["properties"] = ap.ApplicationPropertiesPatchable
+	if ap.ApplicationProperties != nil {
+		objectMap["properties"] = ap.ApplicationProperties
 	}
 	if ap.Plan != nil {
 		objectMap["plan"] = ap.Plan
@@ -1168,12 +958,12 @@ func (ap *ApplicationPatchable) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "properties":
 			if v != nil {
-				var applicationPropertiesPatchable ApplicationPropertiesPatchable
-				err = json.Unmarshal(*v, &applicationPropertiesPatchable)
+				var applicationProperties ApplicationProperties
+				err = json.Unmarshal(*v, &applicationProperties)
 				if err != nil {
 					return err
 				}
-				ap.ApplicationPropertiesPatchable = &applicationPropertiesPatchable
+				ap.ApplicationProperties = &applicationProperties
 			}
 		case "plan":
 			if v != nil {
@@ -1315,6 +1105,24 @@ type ApplicationProperties struct {
 	UpdatedBy *ApplicationClientDetails `json:"updatedBy,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationProperties.
+func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.ManagedResourceGroupID != nil {
+		objectMap["managedResourceGroupId"] = ap.ManagedResourceGroupID
+	}
+	if ap.ApplicationDefinitionID != nil {
+		objectMap["applicationDefinitionId"] = ap.ApplicationDefinitionID
+	}
+	if ap.Parameters != nil {
+		objectMap["parameters"] = ap.Parameters
+	}
+	if ap.JitAccessPolicy != nil {
+		objectMap["jitAccessPolicy"] = ap.JitAccessPolicy
+	}
+	return json.Marshal(objectMap)
+}
+
 // ApplicationPropertiesPatchable the managed application properties.
 type ApplicationPropertiesPatchable struct {
 	// ManagedResourceGroupID - The managed resource group Id.
@@ -1327,6 +1135,21 @@ type ApplicationPropertiesPatchable struct {
 	Outputs interface{} `json:"outputs,omitempty"`
 	// ProvisioningState - READ-ONLY; The managed application provisioning state. Possible values include: 'ProvisioningStateNotSpecified', 'ProvisioningStateAccepted', 'ProvisioningStateRunning', 'ProvisioningStateReady', 'ProvisioningStateCreating', 'ProvisioningStateCreated', 'ProvisioningStateDeleting', 'ProvisioningStateDeleted', 'ProvisioningStateCanceled', 'ProvisioningStateFailed', 'ProvisioningStateSucceeded', 'ProvisioningStateUpdating'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationPropertiesPatchable.
+func (app ApplicationPropertiesPatchable) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if app.ManagedResourceGroupID != nil {
+		objectMap["managedResourceGroupId"] = app.ManagedResourceGroupID
+	}
+	if app.ApplicationDefinitionID != nil {
+		objectMap["applicationDefinitionId"] = app.ApplicationDefinitionID
+	}
+	if app.Parameters != nil {
+		objectMap["parameters"] = app.Parameters
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationsCreateOrUpdateByIDFuture an abstraction for monitoring and retrieving the results of a
@@ -1690,6 +1513,21 @@ type JitRequestProperties struct {
 	UpdatedBy *ApplicationClientDetails `json:"updatedBy,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JitRequestProperties.
+func (jrp JitRequestProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if jrp.ApplicationResourceID != nil {
+		objectMap["applicationResourceId"] = jrp.ApplicationResourceID
+	}
+	if jrp.JitAuthorizationPolicies != nil {
+		objectMap["jitAuthorizationPolicies"] = jrp.JitAuthorizationPolicies
+	}
+	if jrp.JitSchedulingPolicy != nil {
+		objectMap["jitSchedulingPolicy"] = jrp.JitSchedulingPolicy
+	}
+	return json.Marshal(objectMap)
+}
+
 // JitRequestsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type JitRequestsCreateOrUpdateFuture struct {
@@ -1824,10 +1662,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1855,11 +1698,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1889,8 +1737,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Plan plan for the managed application.

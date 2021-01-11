@@ -119,7 +119,6 @@ func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdateSender(req *h
 func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result BackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -160,6 +159,7 @@ func (client BackupShortTermRetentionPoliciesClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +199,6 @@ func (client BackupShortTermRetentionPoliciesClient) GetSender(req *http.Request
 func (client BackupShortTermRetentionPoliciesClient) GetResponder(resp *http.Response) (result BackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -241,6 +240,10 @@ func (client BackupShortTermRetentionPoliciesClient) ListByDatabase(ctx context.
 	result.bstrplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.bstrplr.hasNextLink() && result.bstrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -279,7 +282,6 @@ func (client BackupShortTermRetentionPoliciesClient) ListByDatabaseSender(req *h
 func (client BackupShortTermRetentionPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result BackupShortTermRetentionPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,6 +306,7 @@ func (client BackupShortTermRetentionPoliciesClient) listByDatabaseNextResults(c
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -399,7 +402,6 @@ func (client BackupShortTermRetentionPoliciesClient) UpdateSender(req *http.Requ
 func (client BackupShortTermRetentionPoliciesClient) UpdateResponder(resp *http.Response) (result BackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

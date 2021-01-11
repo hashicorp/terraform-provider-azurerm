@@ -72,6 +72,16 @@ func TestValidateVmName(t *testing.T) {
 			input:    "12345",
 			expected: false,
 		},
+		{
+			// can start with upper case letter
+			input:    "Test",
+			expected: true,
+		},
+		{
+			// can end with upper case letter
+			input:    "TEST",
+			expected: true,
+		},
 	}
 
 	for _, v := range testData {
@@ -155,7 +165,7 @@ func TestValidateLinuxComputerName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateLinuxComputerName(v.input, "computer_name", 100)
+		_, errors := ValidateLinuxComputerName(v.input, "computer_name", 100, false)
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -215,6 +225,11 @@ func TestValidateLinuxComputerNamePrefix(t *testing.T) {
 			// 59 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefg",
 			expected: false,
+		},
+		{
+			// dash suffix
+			input:    "abc-",
+			expected: true,
 		},
 	}
 

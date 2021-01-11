@@ -24,6 +24,7 @@ website/node_modules
 .idea
 *.iml
 *.test
+.terraform.tfstate.lock.info
 
 website/vendor
 
@@ -41,5 +42,6 @@ examples/**/test.tfvars
 examples/**/terraform
 examples/**/terraform.zip
 
-#never upload the build to git
+# never upload the build to git
 terraform-provider-azurerm
+tf.zip

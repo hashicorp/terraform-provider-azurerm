@@ -112,7 +112,6 @@ func (client VirtualClustersClient) DeleteSender(req *http.Request) (future Virt
 func (client VirtualClustersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -151,6 +150,7 @@ func (client VirtualClustersClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +188,6 @@ func (client VirtualClustersClient) GetSender(req *http.Request) (*http.Response
 func (client VirtualClustersClient) GetResponder(resp *http.Response) (result VirtualCluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -225,6 +224,10 @@ func (client VirtualClustersClient) List(ctx context.Context) (result VirtualClu
 	result.vclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.vclr.hasNextLink() && result.vclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -260,7 +263,6 @@ func (client VirtualClustersClient) ListSender(req *http.Request) (*http.Respons
 func (client VirtualClustersClient) ListResponder(resp *http.Response) (result VirtualClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -285,6 +287,7 @@ func (client VirtualClustersClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -337,6 +340,10 @@ func (client VirtualClustersClient) ListByResourceGroup(ctx context.Context, res
 	result.vclr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.vclr.hasNextLink() && result.vclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -373,7 +380,6 @@ func (client VirtualClustersClient) ListByResourceGroupSender(req *http.Request)
 func (client VirtualClustersClient) ListByResourceGroupResponder(resp *http.Response) (result VirtualClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -398,6 +404,7 @@ func (client VirtualClustersClient) listByResourceGroupNextResults(ctx context.C
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -490,7 +497,6 @@ func (client VirtualClustersClient) UpdateSender(req *http.Request) (future Virt
 func (client VirtualClustersClient) UpdateResponder(resp *http.Response) (result VirtualCluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

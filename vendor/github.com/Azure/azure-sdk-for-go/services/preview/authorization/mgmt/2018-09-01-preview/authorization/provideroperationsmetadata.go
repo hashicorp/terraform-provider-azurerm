@@ -74,6 +74,7 @@ func (client ProviderOperationsMetadataClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ProviderOperationsMetadataClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client ProviderOperationsMetadataClient) GetSender(req *http.Request) (*ht
 func (client ProviderOperationsMetadataClient) GetResponder(resp *http.Response) (result ProviderOperationsMetadata, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,10 @@ func (client ProviderOperationsMetadataClient) List(ctx context.Context, expand 
 	result.pomlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ProviderOperationsMetadataClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pomlr.hasNextLink() && result.pomlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -189,7 +193,6 @@ func (client ProviderOperationsMetadataClient) ListSender(req *http.Request) (*h
 func (client ProviderOperationsMetadataClient) ListResponder(resp *http.Response) (result ProviderOperationsMetadataListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,6 +217,7 @@ func (client ProviderOperationsMetadataClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ProviderOperationsMetadataClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

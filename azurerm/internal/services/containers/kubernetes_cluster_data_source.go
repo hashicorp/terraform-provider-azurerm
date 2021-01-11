@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -67,6 +67,26 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 									"log_analytics_workspace_id": {
 										Type:     schema.TypeString,
 										Computed: true,
+									},
+									"oms_agent_identity": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"client_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -166,6 +186,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"orchestrator_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"max_pods": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -181,13 +206,13 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 
 						"node_taints": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 
 						"enable_node_public_ip": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -211,24 +236,45 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"disk_encryption_set_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_link_enabled": {
-				Type:          schema.TypeBool,
-				Computed:      true,
-				Optional:      true,
-				ConflictsWith: []string{"private_cluster_enabled"},
-				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"private_cluster_enabled": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
-				ConflictsWith: []string{"private_link_enabled"},
+				Type:     schema.TypeBool,
+				Computed: true, // TODO -- remove this when deprecation resolves
 			},
 
 			"private_fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"kubernetes_version": {
@@ -316,6 +362,27 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"kubelet_identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"object_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"user_assigned_identity_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"linux_profile": {
@@ -419,8 +486,21 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"admin_group_object_ids": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
 									"client_app_id": {
 										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"managed": {
+										Type:     schema.TypeBool,
 										Computed: true,
 									},
 
@@ -491,6 +571,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
+		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
@@ -514,6 +595,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
+		}
+
+		kubeletIdentity := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
+		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
+			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
 
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
@@ -559,6 +645,10 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	if err := d.Set("identity", flattenKubernetesClusterDataSourceManagedClusterIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
 	d.Set("kube_config_raw", kubeConfigRaw)
 	if err := d.Set("kube_config", kubeConfig); err != nil {
@@ -576,21 +666,35 @@ func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerse
 
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		output := make(map[string]interface{})
+		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
+		clientAppId := ""
 		if profile.ClientAppID != nil {
-			output["client_app_id"] = *profile.ClientAppID
+			clientAppId = *profile.ClientAppID
 		}
 
+		managed := false
+		if profile.Managed != nil {
+			managed = *profile.Managed
+		}
+
+		serverAppId := ""
 		if profile.ServerAppID != nil {
-			output["server_app_id"] = *profile.ServerAppID
+			serverAppId = *profile.ServerAppID
 		}
 
+		tenantId := ""
 		if profile.TenantID != nil {
-			output["tenant_id"] = *profile.TenantID
+			tenantId = *profile.TenantID
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"admin_group_object_ids": adminGroupObjectIds,
+			"client_app_id":          clientAppId,
+			"managed":                managed,
+			"server_app_id":          serverAppId,
+			"tenant_id":              tenantId,
+		})
 	}
 
 	return []interface{}{
@@ -612,7 +716,6 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 
 		if strings.Contains(rawConfig, "apiserver-id:") {
 			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
 			}
@@ -620,7 +723,6 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 		} else {
 			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
 			}
@@ -638,14 +740,14 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
-	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
 		enabled := false
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
 			zoneName = *v
 		}
 
@@ -658,27 +760,30 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["http_application_routing"] = routes
 
 	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsagent"]; omsAgent != nil {
+	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
-		workspaceId := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
+		workspaceID := ""
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+			workspaceID = *v
 		}
+
+		omsagentIdentity := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
 
 		output := map[string]interface{}{
 			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
+			"log_analytics_workspace_id": workspaceID,
+			"oms_agent_identity":         omsagentIdentity,
 		}
 		agents = append(agents, output)
 	}
 	values["oms_agent"] = agents
 
 	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
+	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
 		enabled := false
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -692,7 +797,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["kube_dashboard"] = kubeDashboards
 
 	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
 		enabled := false
 		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -706,6 +811,36 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["azure_policy"] = azurePolicies
 
 	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	identity := make([]interface{}, 0)
+	clientID := ""
+	if clientid := profile.ClientID; clientid != nil {
+		clientID = *clientid
+	}
+
+	objectID := ""
+	if objectid := profile.ObjectID; objectid != nil {
+		objectID = *objectid
+	}
+
+	userAssignedIdentityID := ""
+	if resourceid := profile.ResourceID; resourceid != nil {
+		userAssignedIdentityID = *resourceid
+	}
+
+	identity = append(identity, map[string]interface{}{
+		"client_id":                 clientID,
+		"object_id":                 objectID,
+		"user_assigned_identity_id": userAssignedIdentityID,
+	})
+
+	return identity
 }
 
 func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.ManagedClusterAgentPoolProfile) []interface{} {
@@ -760,6 +895,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			agentPoolProfile["os_type"] = string(profile.OsType)
 		}
 
+		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
+			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
+		}
+
 		if profile.MaxPods != nil {
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
 		}
@@ -784,6 +923,38 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	}
 
 	return agentPoolProfiles
+}
+
+func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	kubeletIdentity := make([]interface{}, 0)
+	if kubeletidentity := profile["kubeletidentity"]; kubeletidentity != nil {
+		clientId := ""
+		if clientid := kubeletidentity.ClientID; clientid != nil {
+			clientId = *clientid
+		}
+
+		objectId := ""
+		if objectid := kubeletidentity.ObjectID; objectid != nil {
+			objectId = *objectid
+		}
+
+		userAssignedIdentityId := ""
+		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
+			userAssignedIdentityId = *resourceid
+		}
+
+		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
+			"client_id":                 clientId,
+			"object_id":                 objectId,
+			"user_assigned_identity_id": userAssignedIdentityId,
+		})
+	}
+
+	return kubeletIdentity
 }
 
 func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
@@ -865,8 +1036,8 @@ func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containe
 
 	values := make(map[string]interface{})
 
-	if clientId := profile.ClientID; clientId != nil {
-		values["client_id"] = *clientId
+	if clientID := profile.ClientID; clientID != nil {
+		values["client_id"] = *clientID
 	}
 
 	return []interface{}{values}
@@ -905,4 +1076,27 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
 	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+	// if it's none, omit the block
+	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
+		return []interface{}{}
+	}
+
+	identity := make(map[string]interface{})
+
+	identity["principal_id"] = ""
+	if input.PrincipalID != nil {
+		identity["principal_id"] = *input.PrincipalID
+	}
+
+	identity["tenant_id"] = ""
+	if input.TenantID != nil {
+		identity["tenant_id"] = *input.TenantID
+	}
+
+	identity["type"] = string(input.Type)
+
+	return []interface{}{identity}
 }

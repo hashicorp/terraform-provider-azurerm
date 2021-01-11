@@ -72,6 +72,7 @@ func (client ProfilesClient) CheckTrafficManagerRelativeDNSNameAvailability(ctx 
 	result, err = client.CheckTrafficManagerRelativeDNSNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "CheckTrafficManagerRelativeDNSNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -105,7 +106,6 @@ func (client ProfilesClient) CheckTrafficManagerRelativeDNSNameAvailabilitySende
 func (client ProfilesClient) CheckTrafficManagerRelativeDNSNameAvailabilityResponder(resp *http.Response) (result NameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,6 +145,7 @@ func (client ProfilesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -184,7 +185,6 @@ func (client ProfilesClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client ProfilesClient) CreateOrUpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -223,6 +223,7 @@ func (client ProfilesClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -260,7 +261,6 @@ func (client ProfilesClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client ProfilesClient) DeleteResponder(resp *http.Response) (result DeleteOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,6 +299,7 @@ func (client ProfilesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,7 +337,6 @@ func (client ProfilesClient) GetSender(req *http.Request) (*http.Response, error
 func (client ProfilesClient) GetResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,6 +374,7 @@ func (client ProfilesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -410,7 +411,6 @@ func (client ProfilesClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ProfilesClient) ListByResourceGroupResponder(resp *http.Response) (result ProfileListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -446,6 +446,7 @@ func (client ProfilesClient) ListBySubscription(ctx context.Context) (result Pro
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -481,7 +482,6 @@ func (client ProfilesClient) ListBySubscriptionSender(req *http.Request) (*http.
 func (client ProfilesClient) ListBySubscriptionResponder(resp *http.Response) (result ProfileListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -521,6 +521,7 @@ func (client ProfilesClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.ProfilesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -560,7 +561,6 @@ func (client ProfilesClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client ProfilesClient) UpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

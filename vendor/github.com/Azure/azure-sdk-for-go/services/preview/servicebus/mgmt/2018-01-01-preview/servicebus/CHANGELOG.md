@@ -1,0 +1,604 @@
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82
+
+Code generator @microsoft.azure/autorest.go@~2.1.161
+
+## Breaking Changes
+
+- Function `NewVirtualNetworkRuleListResultPage` parameter(s) have been changed from `(func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error))` to `(VirtualNetworkRuleListResult, func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error))`
+- Function `NewOperationListResultPage` parameter(s) have been changed from `(func(context.Context, OperationListResult) (OperationListResult, error))` to `(OperationListResult, func(context.Context, OperationListResult) (OperationListResult, error))`
+- Function `NewIPFilterRuleListResultPage` parameter(s) have been changed from `(func(context.Context, IPFilterRuleListResult) (IPFilterRuleListResult, error))` to `(IPFilterRuleListResult, func(context.Context, IPFilterRuleListResult) (IPFilterRuleListResult, error))`
+- Function `NewSBNamespaceListResultPage` parameter(s) have been changed from `(func(context.Context, SBNamespaceListResult) (SBNamespaceListResult, error))` to `(SBNamespaceListResult, func(context.Context, SBNamespaceListResult) (SBNamespaceListResult, error))`
+- Function `Identity.MarshalJSON` has been removed
+- Field `Code` of struct `ErrorResponse` has been removed
+- Field `Message` of struct `ErrorResponse` has been removed
+
+## New Content
+
+- New const `EntityStatusReceiveDisabled`
+- New const `Rejected`
+- New const `EventHub`
+- New const `Updating`
+- New const `PrimaryKey`
+- New const `FilterTypeCorrelationFilter`
+- New const `Listen`
+- New const `None`
+- New const `FilterTypeSQLFilter`
+- New const `ProvisioningStateDRFailed`
+- New const `InvalidName`
+- New const `Approved`
+- New const `Manage`
+- New const `EntityStatusActive`
+- New const `AvroDeflate`
+- New const `Disconnected`
+- New const `Relay`
+- New const `SubscriptionIsDisabled`
+- New const `EntityStatusCreating`
+- New const `Mixed`
+- New const `NotificationHub`
+- New const `PrimaryNotReplicating`
+- New const `Messaging`
+- New const `SendEnumValue`
+- New const `EntityStatusDisabled`
+- New const `Creating`
+- New const `NameInLockdown`
+- New const `Primary`
+- New const `Secondary`
+- New const `Canceled`
+- New const `EntityStatusRestoring`
+- New const `EntityStatusRenaming`
+- New const `EntityStatusDeleting`
+- New const `ProvisioningStateDRAccepted`
+- New const `Failed`
+- New const `EntityStatusSendDisabled`
+- New const `NameInUse`
+- New const `Avro`
+- New const `SecondaryKey`
+- New const `Pending`
+- New const `EntityStatusUnknown`
+- New const `Succeeded`
+- New const `TooManyNamespaceInCurrentSubscription`
+- New const `ProvisioningStateDRSucceeded`
+- New const `Deleting`
+- New function `TopicsClient.Delete(context.Context, string, string, string) (autorest.Response, error)`
+- New function `*SBSubscription.UnmarshalJSON([]byte) error`
+- New function `PremiumMessagingRegionsListResult.MarshalJSON() ([]byte, error)`
+- New function `PremiumMessagingRegionsClient.ListPreparer(context.Context) (*http.Request, error)`
+- New function `SBQueueListResultIterator.NotDone() bool`
+- New function `RuleListResult.IsEmpty() bool`
+- New function `MigrationConfigsClient.RevertSender(*http.Request) (*http.Response, error)`
+- New function `DisasterRecoveryConfigsClient.ListPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `TopicsClient.ListKeysSender(*http.Request) (*http.Response, error)`
+- New function `RegionsClient.ListBySkuPreparer(context.Context, string) (*http.Request, error)`
+- New function `*SBTopicListResultPage.Next() error`
+- New function `QueuesClient.RegenerateKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `SBQueueListResult.IsEmpty() bool`
+- New function `QueuesClient.CreateOrUpdate(context.Context, string, string, string, SBQueue) (SBQueue, error)`
+- New function `ArmDisasterRecoveryListResultPage.NotDone() bool`
+- New function `PrivateEndpointConnectionsClient.GetResponder(*http.Response) (PrivateEndpointConnection, error)`
+- New function `NewPremiumMessagingRegionsListResultPage(PremiumMessagingRegionsListResult, func(context.Context, PremiumMessagingRegionsListResult) (PremiumMessagingRegionsListResult, error)) PremiumMessagingRegionsListResultPage`
+- New function `DisasterRecoveryConfigsClient.ListAuthorizationRulesPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `*PremiumMessagingRegionsListResultPage.NextWithContext(context.Context) error`
+- New function `TopicsClient.ListByNamespaceComplete(context.Context, string, string, *int32, *int32) (SBTopicListResultIterator, error)`
+- New function `*MigrationConfigListResultIterator.NextWithContext(context.Context) error`
+- New function `NewSBQueueListResultPage(SBQueueListResult, func(context.Context, SBQueueListResult) (SBQueueListResult, error)) SBQueueListResultPage`
+- New function `ArmDisasterRecoveryListResultIterator.NotDone() bool`
+- New function `QueuesClient.RegenerateKeysPreparer(context.Context, string, string, string, string, RegenerateAccessKeyParameters) (*http.Request, error)`
+- New function `QueuesClient.ListAuthorizationRulesResponder(*http.Response) (SBAuthorizationRuleListResult, error)`
+- New function `MigrationConfigPropertiesProperties.MarshalJSON() ([]byte, error)`
+- New function `*EventHubListResultIterator.NextWithContext(context.Context) error`
+- New function `NewSubscriptionsClientWithBaseURI(string, string) SubscriptionsClient`
+- New function `PossibleKeyTypeValues() []KeyType`
+- New function `TopicsClient.GetAuthorizationRule(context.Context, string, string, string, string) (SBAuthorizationRule, error)`
+- New function `PossibleNameSpaceTypeValues() []NameSpaceType`
+- New function `QueuesClient.DeleteAuthorizationRule(context.Context, string, string, string, string) (autorest.Response, error)`
+- New function `RulesClient.ListBySubscriptionsSender(*http.Request) (*http.Response, error)`
+- New function `SBSubscriptionListResultIterator.Response() SBSubscriptionListResult`
+- New function `DisasterRecoveryConfigsClient.Delete(context.Context, string, string, string) (autorest.Response, error)`
+- New function `TopicsClient.CreateOrUpdateAuthorizationRulePreparer(context.Context, string, string, string, string, SBAuthorizationRule) (*http.Request, error)`
+- New function `NewRegionsClient(string) RegionsClient`
+- New function `TopicsClient.ListAuthorizationRulesSender(*http.Request) (*http.Response, error)`
+- New function `DisasterRecoveryConfigsClient.ListKeysSender(*http.Request) (*http.Response, error)`
+- New function `DisasterRecoveryConfigsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `MigrationConfigsClient.Get(context.Context, string, string) (MigrationConfigProperties, error)`
+- New function `QueuesClient.Delete(context.Context, string, string, string) (autorest.Response, error)`
+- New function `QueuesClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `RuleListResultPage.NotDone() bool`
+- New function `*MigrationConfigListResultIterator.Next() error`
+- New function `SBQueueListResultPage.Values() []SBQueue`
+- New function `MigrationConfigListResultPage.Response() MigrationConfigListResult`
+- New function `DisasterRecoveryConfigsClient.CreateOrUpdate(context.Context, string, string, string, ArmDisasterRecovery) (ArmDisasterRecovery, error)`
+- New function `QueuesClient.ListKeysPreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `NewRuleListResultIterator(RuleListResultPage) RuleListResultIterator`
+- New function `QueuesClient.CreateOrUpdateAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigsClient.CompleteMigrationSender(*http.Request) (*http.Response, error)`
+- New function `TopicsClient.Get(context.Context, string, string, string) (SBTopic, error)`
+- New function `*SBAuthorizationRule.UnmarshalJSON([]byte) error`
+- New function `*MigrationConfigsCreateAndStartMigrationFuture.Result(MigrationConfigsClient) (MigrationConfigProperties, error)`
+- New function `SubscriptionsClient.GetPreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `*PremiumMessagingRegionsListResultPage.Next() error`
+- New function `Eventhub.MarshalJSON() ([]byte, error)`
+- New function `TopicsClient.GetResponder(*http.Response) (SBTopic, error)`
+- New function `NewQueuesClient(string) QueuesClient`
+- New function `NewSBTopicListResultPage(SBTopicListResult, func(context.Context, SBTopicListResult) (SBTopicListResult, error)) SBTopicListResultPage`
+- New function `SBTopicListResultIterator.Value() SBTopic`
+- New function `PossibleEntityStatusValues() []EntityStatus`
+- New function `RuleListResultPage.Response() RuleListResult`
+- New function `TopicsClient.ListByNamespaceSender(*http.Request) (*http.Response, error)`
+- New function `NewPrivateEndpointConnectionListResultIterator(PrivateEndpointConnectionListResultPage) PrivateEndpointConnectionListResultIterator`
+- New function `MigrationConfigsClient.RevertPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `PossibleEncodingCaptureDescriptionValues() []EncodingCaptureDescription`
+- New function `*MigrationConfigListResultPage.NextWithContext(context.Context) error`
+- New function `TopicsClient.ListAuthorizationRules(context.Context, string, string, string) (SBAuthorizationRuleListResultPage, error)`
+- New function `DisasterRecoveryConfigsClient.CreateOrUpdateResponder(*http.Response) (ArmDisasterRecovery, error)`
+- New function `SBTopicListResultPage.NotDone() bool`
+- New function `EventHubsClient.ListByNamespaceResponder(*http.Response) (EventHubListResult, error)`
+- New function `PrivateLinkResourcesClient.Get(context.Context, string, string) (PrivateLinkResourcesListResult, error)`
+- New function `*ArmDisasterRecoveryListResultPage.Next() error`
+- New function `QueuesClient.GetAuthorizationRulePreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `NewEventHubListResultIterator(EventHubListResultPage) EventHubListResultIterator`
+- New function `MigrationConfigsClient.ListComplete(context.Context, string, string) (MigrationConfigListResultIterator, error)`
+- New function `PossibleRoleDisasterRecoveryValues() []RoleDisasterRecovery`
+- New function `DisasterRecoveryConfigsClient.GetPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `PrivateEndpointConnectionListResult.IsEmpty() bool`
+- New function `ArmDisasterRecoveryListResult.IsEmpty() bool`
+- New function `DisasterRecoveryConfigsClient.BreakPairingResponder(*http.Response) (autorest.Response, error)`
+- New function `PrivateEndpointConnectionsClient.ListComplete(context.Context, string, string) (PrivateEndpointConnectionListResultIterator, error)`
+- New function `DisasterRecoveryConfigsClient.BreakPairingPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `SBSubscriptionListResultPage.NotDone() bool`
+- New function `NamespacesClient.MigrateSender(*http.Request) (*http.Response, error)`
+- New function `QueuesClient.ListKeys(context.Context, string, string, string, string) (AccessKeys, error)`
+- New function `EventhubProperties.MarshalJSON() ([]byte, error)`
+- New function `NamespacesClient.CreateOrUpdateAuthorizationRulePreparer(context.Context, string, string, string, SBAuthorizationRule) (*http.Request, error)`
+- New function `PremiumMessagingRegionsClient.ListResponder(*http.Response) (PremiumMessagingRegionsListResult, error)`
+- New function `MigrationConfigsClient.CreateAndStartMigrationResponder(*http.Response) (MigrationConfigProperties, error)`
+- New function `*SBAuthorizationRuleListResultPage.NextWithContext(context.Context) error`
+- New function `PremiumMessagingRegionsListResult.IsEmpty() bool`
+- New function `MigrationConfigsClient.RevertResponder(*http.Response) (autorest.Response, error)`
+- New function `NamespacesClient.Migrate(context.Context, string, string, SBNamespaceMigrate) (autorest.Response, error)`
+- New function `QueuesClient.Get(context.Context, string, string, string) (SBQueue, error)`
+- New function `EventHubListResultPage.Values() []Eventhub`
+- New function `MigrationConfigsClient.CompleteMigrationResponder(*http.Response) (autorest.Response, error)`
+- New function `*PremiumMessagingRegionsListResultIterator.Next() error`
+- New function `NewSubscriptionsClient(string) SubscriptionsClient`
+- New function `MigrationConfigsClient.List(context.Context, string, string) (MigrationConfigListResultPage, error)`
+- New function `*PrivateEndpointConnectionListResultIterator.Next() error`
+- New function `DisasterRecoveryConfigsClient.GetAuthorizationRulePreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `MigrationConfigsClient.ListPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `*SBSubscriptionListResultIterator.NextWithContext(context.Context) error`
+- New function `ArmDisasterRecoveryListResultIterator.Value() ArmDisasterRecovery`
+- New function `SBQueueListResultIterator.Value() SBQueue`
+- New function `RulesClient.DeleteSender(*http.Request) (*http.Response, error)`
+- New function `SBTopicListResultPage.Response() SBTopicListResult`
+- New function `NamespacesClient.CheckNameAvailabilityMethodSender(*http.Request) (*http.Response, error)`
+- New function `CorrelationFilter.MarshalJSON() ([]byte, error)`
+- New function `TopicsClient.ListAuthorizationRulesResponder(*http.Response) (SBAuthorizationRuleListResult, error)`
+- New function `TopicsClient.GetPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `EventHubListResultIterator.Value() Eventhub`
+- New function `TopicsClient.ListByNamespace(context.Context, string, string, *int32, *int32) (SBTopicListResultPage, error)`
+- New function `SBAuthorizationRule.MarshalJSON() ([]byte, error)`
+- New function `Destination.MarshalJSON() ([]byte, error)`
+- New function `*PrivateLinkResource.UnmarshalJSON([]byte) error`
+- New function `TopicsClient.ListKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `PrivateEndpointConnectionsClient.Get(context.Context, string, string, string) (PrivateEndpointConnection, error)`
+- New function `EventHubListResultPage.NotDone() bool`
+- New function `*ArmDisasterRecovery.UnmarshalJSON([]byte) error`
+- New function `SBTopicProperties.MarshalJSON() ([]byte, error)`
+- New function `NewSBSubscriptionListResultIterator(SBSubscriptionListResultPage) SBSubscriptionListResultIterator`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdatePreparer(context.Context, string, string, string, PrivateEndpointConnection) (*http.Request, error)`
+- New function `*SBQueueListResultPage.Next() error`
+- New function `FailoverProperties.MarshalJSON() ([]byte, error)`
+- New function `NamespacesClient.ListKeysPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `MigrationConfigListResultIterator.NotDone() bool`
+- New function `PremiumMessagingRegionsListResultIterator.NotDone() bool`
+- New function `PrivateLinkResource.MarshalJSON() ([]byte, error)`
+- New function `*EventHubListResultPage.Next() error`
+- New function `DisasterRecoveryConfigsClient.ListAuthorizationRulesSender(*http.Request) (*http.Response, error)`
+- New function `ArmDisasterRecoveryProperties.MarshalJSON() ([]byte, error)`
+- New function `MigrationConfigsClient.ListResponder(*http.Response) (MigrationConfigListResult, error)`
+- New function `EventHubsClient.ListByNamespaceSender(*http.Request) (*http.Response, error)`
+- New function `PrivateLinkResourcesClient.GetResponder(*http.Response) (PrivateLinkResourcesListResult, error)`
+- New function `PrivateEndpointConnectionsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `TopicsClient.CreateOrUpdateAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `SubscriptionsClient.Get(context.Context, string, string, string, string) (SBSubscription, error)`
+- New function `NamespacesClient.DeleteAuthorizationRule(context.Context, string, string, string) (autorest.Response, error)`
+- New function `*SBQueueListResultIterator.NextWithContext(context.Context) error`
+- New function `QueuesClient.ListByNamespaceSender(*http.Request) (*http.Response, error)`
+- New function `*FailoverProperties.UnmarshalJSON([]byte) error`
+- New function `EventHubListResultPage.Response() EventHubListResult`
+- New function `TopicsClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `SubscriptionsClient.ListByTopicResponder(*http.Response) (SBSubscriptionListResult, error)`
+- New function `TopicsClient.GetAuthorizationRulePreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `*RuleListResultIterator.NextWithContext(context.Context) error`
+- New function `PremiumMessagingRegionsListResultIterator.Response() PremiumMessagingRegionsListResult`
+- New function `NamespacesClient.ListKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `NewTopicsClientWithBaseURI(string, string) TopicsClient`
+- New function `QueuesClient.GetPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `*SBQueueListResultIterator.Next() error`
+- New function `SBAuthorizationRuleListResultIterator.Response() SBAuthorizationRuleListResult`
+- New function `DisasterRecoveryConfigsClient.ListComplete(context.Context, string, string) (ArmDisasterRecoveryListResultIterator, error)`
+- New function `SBSubscriptionListResultIterator.Value() SBSubscription`
+- New function `SBSubscriptionListResult.IsEmpty() bool`
+- New function `*SBSubscriptionListResultIterator.Next() error`
+- New function `RulesClient.ListBySubscriptions(context.Context, string, string, string, string, *int32, *int32) (RuleListResultPage, error)`
+- New function `RulesClient.Delete(context.Context, string, string, string, string, string) (autorest.Response, error)`
+- New function `SBAuthorizationRuleListResult.IsEmpty() bool`
+- New function `EventHubListResultIterator.Response() EventHubListResult`
+- New function `PremiumMessagingRegionsClient.ListComplete(context.Context) (PremiumMessagingRegionsListResultIterator, error)`
+- New function `PrivateEndpointConnectionListResultPage.Values() []PrivateEndpointConnection`
+- New function `EventHubListResultIterator.NotDone() bool`
+- New function `TopicsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `SBTopicListResultIterator.Response() SBTopicListResult`
+- New function `DisasterRecoveryConfigsClient.CheckNameAvailabilityMethod(context.Context, string, string, CheckNameAvailability) (CheckNameAvailabilityResult, error)`
+- New function `*Eventhub.UnmarshalJSON([]byte) error`
+- New function `ArmDisasterRecoveryListResultPage.Response() ArmDisasterRecoveryListResult`
+- New function `RulesClient.CreateOrUpdate(context.Context, string, string, string, string, string, Rule) (Rule, error)`
+- New function `ArmDisasterRecoveryListResultIterator.Response() ArmDisasterRecoveryListResult`
+- New function `NewEventHubListResultPage(EventHubListResult, func(context.Context, EventHubListResult) (EventHubListResult, error)) EventHubListResultPage`
+- New function `DisasterRecoveryConfigsClient.ListAuthorizationRulesComplete(context.Context, string, string, string) (SBAuthorizationRuleListResultIterator, error)`
+- New function `SBTopicListResultIterator.NotDone() bool`
+- New function `TopicsClient.RegenerateKeysSender(*http.Request) (*http.Response, error)`
+- New function `TopicsClient.ListKeys(context.Context, string, string, string, string) (AccessKeys, error)`
+- New function `SubscriptionsClient.ListByTopicComplete(context.Context, string, string, string, *int32, *int32) (SBSubscriptionListResultIterator, error)`
+- New function `DisasterRecoveryConfigsClient.ListKeysPreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `QueuesClient.CreateOrUpdateAuthorizationRule(context.Context, string, string, string, string, SBAuthorizationRule) (SBAuthorizationRule, error)`
+- New function `NewMigrationConfigsClient(string) MigrationConfigsClient`
+- New function `SBQueue.MarshalJSON() ([]byte, error)`
+- New function `RegionsClient.ListBySku(context.Context, string) (PremiumMessagingRegionsListResultPage, error)`
+- New function `QueuesClient.ListAuthorizationRulesSender(*http.Request) (*http.Response, error)`
+- New function `DisasterRecoveryConfigsClient.CheckNameAvailabilityMethodPreparer(context.Context, string, string, CheckNameAvailability) (*http.Request, error)`
+- New function `PrivateEndpointConnectionListResultIterator.NotDone() bool`
+- New function `PrivateLinkResourcesClient.GetPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `*PremiumMessagingRegionsListResultIterator.NextWithContext(context.Context) error`
+- New function `SubscriptionsClient.CreateOrUpdatePreparer(context.Context, string, string, string, string, SBSubscription) (*http.Request, error)`
+- New function `RulesClient.ListBySubscriptionsResponder(*http.Response) (RuleListResult, error)`
+- New function `NewRegionsClientWithBaseURI(string, string) RegionsClient`
+- New function `DisasterRecoveryConfigsClient.FailOverResponder(*http.Response) (autorest.Response, error)`
+- New function `PrivateEndpointConnectionsClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `NewMigrationConfigListResultPage(MigrationConfigListResult, func(context.Context, MigrationConfigListResult) (MigrationConfigListResult, error)) MigrationConfigListResultPage`
+- New function `NamespacesClient.ListAuthorizationRules(context.Context, string, string) (SBAuthorizationRuleListResultPage, error)`
+- New function `TopicsClient.ListAuthorizationRulesComplete(context.Context, string, string, string) (SBAuthorizationRuleListResultIterator, error)`
+- New function `TopicsClient.ListAuthorizationRulesPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `RegionsClient.ListBySkuSender(*http.Request) (*http.Response, error)`
+- New function `TopicsClient.RegenerateKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `RuleListResultIterator.Response() RuleListResult`
+- New function `EventHubListResult.IsEmpty() bool`
+- New function `NamespacesClient.ListKeysSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigsClient.GetPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `NamespacesClient.GetAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `MigrationConfigsClient.Delete(context.Context, string, string) (autorest.Response, error)`
+- New function `DisasterRecoveryConfigsClient.DeletePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `MigrationConfigListResultIterator.Value() MigrationConfigProperties`
+- New function `NewPrivateLinkResourcesClient(string) PrivateLinkResourcesClient`
+- New function `NamespacesClient.CreateOrUpdateAuthorizationRule(context.Context, string, string, string, SBAuthorizationRule) (SBAuthorizationRule, error)`
+- New function `RulesClient.ListBySubscriptionsPreparer(context.Context, string, string, string, string, *int32, *int32) (*http.Request, error)`
+- New function `DisasterRecoveryConfigsClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigsClient.CompleteMigrationPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `NewPrivateEndpointConnectionsClientWithBaseURI(string, string) PrivateEndpointConnectionsClient`
+- New function `PrivateEndpointConnectionsClient.GetPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `SubscriptionsClient.ListByTopicPreparer(context.Context, string, string, string, *int32, *int32) (*http.Request, error)`
+- New function `NamespacesClient.GetAuthorizationRule(context.Context, string, string, string) (SBAuthorizationRule, error)`
+- New function `MigrationConfigsClient.CreateAndStartMigration(context.Context, string, string, MigrationConfigProperties) (MigrationConfigsCreateAndStartMigrationFuture, error)`
+- New function `PrivateEndpointConnectionListResultPage.NotDone() bool`
+- New function `NamespacesClient.RegenerateKeysSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigsClient.CreateAndStartMigrationSender(*http.Request) (MigrationConfigsCreateAndStartMigrationFuture, error)`
+- New function `*SBQueueListResultPage.NextWithContext(context.Context) error`
+- New function `PrivateEndpointConnectionListResultIterator.Response() PrivateEndpointConnectionListResult`
+- New function `TopicsClient.RegenerateKeys(context.Context, string, string, string, string, RegenerateAccessKeyParameters) (AccessKeys, error)`
+- New function `PrivateEndpointConnectionListResultIterator.Value() PrivateEndpointConnection`
+- New function `PossibleUnavailableReasonValues() []UnavailableReason`
+- New function `PremiumMessagingRegionsClient.List(context.Context) (PremiumMessagingRegionsListResultPage, error)`
+- New function `PrivateEndpointConnectionsClient.List(context.Context, string, string) (PrivateEndpointConnectionListResultPage, error)`
+- New function `*RuleListResultIterator.Next() error`
+- New function `DisasterRecoveryConfigsClient.FailOverPreparer(context.Context, string, string, string, *FailoverProperties) (*http.Request, error)`
+- New function `*Rule.UnmarshalJSON([]byte) error`
+- New function `NamespacesClient.CreateOrUpdateAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `RuleListResultIterator.Value() Rule`
+- New function `*EventHubListResultPage.NextWithContext(context.Context) error`
+- New function `ArmDisasterRecoveryListResultPage.Values() []ArmDisasterRecovery`
+- New function `NamespacesClient.MigratePreparer(context.Context, string, string, SBNamespaceMigrate) (*http.Request, error)`
+- New function `*PrivateEndpointConnectionsDeleteFuture.Result(PrivateEndpointConnectionsClient) (autorest.Response, error)`
+- New function `QueuesClient.RegenerateKeysSender(*http.Request) (*http.Response, error)`
+- New function `DisasterRecoveryConfigsClient.ListResponder(*http.Response) (ArmDisasterRecoveryListResult, error)`
+- New function `PrivateEndpointConnectionsClient.Delete(context.Context, string, string, string) (PrivateEndpointConnectionsDeleteFuture, error)`
+- New function `RulesClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `*SBTopic.UnmarshalJSON([]byte) error`
+- New function `PrivateEndpointConnectionsClient.ListSender(*http.Request) (*http.Response, error)`
+- New function `CheckNameAvailabilityResult.MarshalJSON() ([]byte, error)`
+- New function `DisasterRecoveryConfigsClient.ListKeys(context.Context, string, string, string, string) (AccessKeys, error)`
+- New function `NamespacesClient.ListAuthorizationRulesComplete(context.Context, string, string) (SBAuthorizationRuleListResultIterator, error)`
+- New function `TopicsClient.DeleteAuthorizationRuleResponder(*http.Response) (autorest.Response, error)`
+- New function `RuleListResultPage.Values() []Rule`
+- New function `*ArmDisasterRecoveryListResultIterator.NextWithContext(context.Context) error`
+- New function `SBQueueListResultIterator.Response() SBQueueListResult`
+- New function `QueuesClient.GetResponder(*http.Response) (SBQueue, error)`
+- New function `SubscriptionsClient.DeletePreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `*EventHubListResultIterator.Next() error`
+- New function `NewTopicsClient(string) TopicsClient`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdateResponder(*http.Response) (PrivateEndpointConnection, error)`
+- New function `NamespacesClient.MigrateResponder(*http.Response) (autorest.Response, error)`
+- New function `TopicsClient.DeletePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `PrivateEndpointConnectionListResultPage.Response() PrivateEndpointConnectionListResult`
+- New function `PrivateEndpointConnectionsClient.DeleteSender(*http.Request) (PrivateEndpointConnectionsDeleteFuture, error)`
+- New function `QueuesClient.DeleteAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `TopicsClient.DeleteAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `SBQueueListResultPage.NotDone() bool`
+- New function `NewEventHubsClient(string) EventHubsClient`
+- New function `*SBSubscriptionListResultPage.NextWithContext(context.Context) error`
+- New function `DisasterRecoveryConfigsClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `NamespacesClient.RegenerateKeys(context.Context, string, string, string, RegenerateAccessKeyParameters) (AccessKeys, error)`
+- New function `DisasterRecoveryConfigsClient.ListKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `PremiumMessagingRegionsListResultIterator.Value() PremiumMessagingRegions`
+- New function `TopicsClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigsClient.GetResponder(*http.Response) (MigrationConfigProperties, error)`
+- New function `NewPremiumMessagingRegionsListResultIterator(PremiumMessagingRegionsListResultPage) PremiumMessagingRegionsListResultIterator`
+- New function `DisasterRecoveryConfigsClient.BreakPairingSender(*http.Request) (*http.Response, error)`
+- New function `QueuesClient.DeleteAuthorizationRulePreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `SBTopicListResultPage.Values() []SBTopic`
+- New function `SubscriptionsClient.GetResponder(*http.Response) (SBSubscription, error)`
+- New function `QueuesClient.DeletePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `SubscriptionsClient.DeleteSender(*http.Request) (*http.Response, error)`
+- New function `NamespacesClient.ListAuthorizationRulesPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `MigrationConfigListResultPage.NotDone() bool`
+- New function `PremiumMessagingRegions.MarshalJSON() ([]byte, error)`
+- New function `*MigrationConfigProperties.UnmarshalJSON([]byte) error`
+- New function `DisasterRecoveryConfigsClient.List(context.Context, string, string) (ArmDisasterRecoveryListResultPage, error)`
+- New function `QueuesClient.ListByNamespace(context.Context, string, string, *int32, *int32) (SBQueueListResultPage, error)`
+- New function `MigrationConfigsClient.CreateAndStartMigrationPreparer(context.Context, string, string, MigrationConfigProperties) (*http.Request, error)`
+- New function `TopicsClient.CreateOrUpdateResponder(*http.Response) (SBTopic, error)`
+- New function `DisasterRecoveryConfigsClient.FailOver(context.Context, string, string, string, *FailoverProperties) (autorest.Response, error)`
+- New function `QueuesClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `QueuesClient.ListKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `SBAuthorizationRuleListResultPage.Values() []SBAuthorizationRule`
+- New function `QueuesClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `TopicsClient.CreateOrUpdateAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `SBAuthorizationRuleListResultPage.NotDone() bool`
+- New function `NewSBSubscriptionListResultPage(SBSubscriptionListResult, func(context.Context, SBSubscriptionListResult) (SBSubscriptionListResult, error)) SBSubscriptionListResultPage`
+- New function `SubscriptionsClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `NamespacesClient.ListKeys(context.Context, string, string, string) (AccessKeys, error)`
+- New function `SBQueueProperties.MarshalJSON() ([]byte, error)`
+- New function `SBSubscription.MarshalJSON() ([]byte, error)`
+- New function `QueuesClient.ListAuthorizationRules(context.Context, string, string, string) (SBAuthorizationRuleListResultPage, error)`
+- New function `RulesClient.CreateOrUpdatePreparer(context.Context, string, string, string, string, string, Rule) (*http.Request, error)`
+- New function `RegionsClient.ListBySkuResponder(*http.Response) (PremiumMessagingRegionsListResult, error)`
+- New function `PossibleAccessRightsValues() []AccessRights`
+- New function `NamespacesClient.RegenerateKeysResponder(*http.Response) (AccessKeys, error)`
+- New function `DisasterRecoveryConfigsClient.DeleteSender(*http.Request) (*http.Response, error)`
+- New function `QueuesClient.CreateOrUpdatePreparer(context.Context, string, string, string, SBQueue) (*http.Request, error)`
+- New function `QueuesClient.GetAuthorizationRule(context.Context, string, string, string, string) (SBAuthorizationRule, error)`
+- New function `DisasterRecoveryConfigsClient.GetAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `DisasterRecoveryConfigsClient.GetAuthorizationRule(context.Context, string, string, string, string) (SBAuthorizationRule, error)`
+- New function `NewPremiumMessagingRegionsClientWithBaseURI(string, string) PremiumMessagingRegionsClient`
+- New function `SubscriptionsClient.ListByTopic(context.Context, string, string, string, *int32, *int32) (SBSubscriptionListResultPage, error)`
+- New function `NewSBAuthorizationRuleListResultPage(SBAuthorizationRuleListResult, func(context.Context, SBAuthorizationRuleListResult) (SBAuthorizationRuleListResult, error)) SBAuthorizationRuleListResultPage`
+- New function `EventHubListResult.MarshalJSON() ([]byte, error)`
+- New function `MigrationConfigListResult.IsEmpty() bool`
+- New function `EventHubsClient.ListByNamespace(context.Context, string, string) (EventHubListResultPage, error)`
+- New function `DisasterRecoveryConfigsClient.CheckNameAvailabilityMethodSender(*http.Request) (*http.Response, error)`
+- New function `TopicsClient.DeleteAuthorizationRule(context.Context, string, string, string, string) (autorest.Response, error)`
+- New function `NewSBAuthorizationRuleListResultIterator(SBAuthorizationRuleListResultPage) SBAuthorizationRuleListResultIterator`
+- New function `NewMigrationConfigListResultIterator(MigrationConfigListResultPage) MigrationConfigListResultIterator`
+- New function `ArmDisasterRecovery.MarshalJSON() ([]byte, error)`
+- New function `SBSubscriptionProperties.MarshalJSON() ([]byte, error)`
+- New function `Rule.MarshalJSON() ([]byte, error)`
+- New function `NamespacesClient.GetAuthorizationRulePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `NewArmDisasterRecoveryListResultPage(ArmDisasterRecoveryListResult, func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)) ArmDisasterRecoveryListResultPage`
+- New function `RulesClient.Get(context.Context, string, string, string, string, string) (Rule, error)`
+- New function `NamespacesClient.CheckNameAvailabilityMethod(context.Context, CheckNameAvailability) (CheckNameAvailabilityResult, error)`
+- New function `RegionsClient.ListBySkuComplete(context.Context, string) (PremiumMessagingRegionsListResultIterator, error)`
+- New function `QueuesClient.CreateOrUpdateAuthorizationRulePreparer(context.Context, string, string, string, string, SBAuthorizationRule) (*http.Request, error)`
+- New function `SBQueueListResultPage.Response() SBQueueListResult`
+- New function `*PrivateEndpointConnection.UnmarshalJSON([]byte) error`
+- New function `MigrationConfigsClient.ListSender(*http.Request) (*http.Response, error)`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdate(context.Context, string, string, string, PrivateEndpointConnection) (PrivateEndpointConnection, error)`
+- New function `SBSubscriptionListResultIterator.NotDone() bool`
+- New function `NewPremiumMessagingRegionsClient(string) PremiumMessagingRegionsClient`
+- New function `NewEventHubsClientWithBaseURI(string, string) EventHubsClient`
+- New function `PremiumMessagingRegionsListResultPage.Values() []PremiumMessagingRegions`
+- New function `PossibleFilterTypeValues() []FilterType`
+- New function `SBAuthorizationRuleListResultPage.Response() SBAuthorizationRuleListResult`
+- New function `RulesClient.CreateOrUpdateResponder(*http.Response) (Rule, error)`
+- New function `MigrationConfigsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `NewRuleListResultPage(RuleListResult, func(context.Context, RuleListResult) (RuleListResult, error)) RuleListResultPage`
+- New function `NamespacesClient.ListAuthorizationRulesResponder(*http.Response) (SBAuthorizationRuleListResult, error)`
+- New function `*PrivateEndpointConnectionListResultPage.NextWithContext(context.Context) error`
+- New function `TopicsClient.RegenerateKeysPreparer(context.Context, string, string, string, string, RegenerateAccessKeyParameters) (*http.Request, error)`
+- New function `NewPrivateEndpointConnectionsClient(string) PrivateEndpointConnectionsClient`
+- New function `*SBAuthorizationRuleListResultIterator.Next() error`
+- New function `RulesClient.GetPreparer(context.Context, string, string, string, string, string) (*http.Request, error)`
+- New function `RulesClient.GetResponder(*http.Response) (Rule, error)`
+- New function `NewMigrationConfigsClientWithBaseURI(string, string) MigrationConfigsClient`
+- New function `PrivateEndpointConnectionsClient.ListPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `QueuesClient.CreateOrUpdateAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `*RuleListResultPage.Next() error`
+- New function `ArmDisasterRecoveryListResult.MarshalJSON() ([]byte, error)`
+- New function `SubscriptionsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `TopicsClient.ListKeysPreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `SBAuthorizationRuleListResultIterator.Value() SBAuthorizationRule`
+- New function `MigrationConfigsClient.Revert(context.Context, string, string) (autorest.Response, error)`
+- New function `NewQueuesClientWithBaseURI(string, string) QueuesClient`
+- New function `QueuesClient.DeleteSender(*http.Request) (*http.Response, error)`
+- New function `PrivateEndpointConnection.MarshalJSON() ([]byte, error)`
+- New function `SubscriptionsClient.ListByTopicSender(*http.Request) (*http.Response, error)`
+- New function `RulesClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `PremiumMessagingRegionsClient.ListSender(*http.Request) (*http.Response, error)`
+- New function `PossibleEndPointProvisioningStateValues() []EndPointProvisioningState`
+- New function `NamespacesClient.RegenerateKeysPreparer(context.Context, string, string, string, RegenerateAccessKeyParameters) (*http.Request, error)`
+- New function `*ArmDisasterRecoveryListResultIterator.Next() error`
+- New function `MigrationConfigsClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `NewPrivateLinkResourcesClientWithBaseURI(string, string) PrivateLinkResourcesClient`
+- New function `NewDisasterRecoveryConfigsClientWithBaseURI(string, string) DisasterRecoveryConfigsClient`
+- New function `DisasterRecoveryConfigsClient.GetAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `SubscriptionsClient.CreateOrUpdateResponder(*http.Response) (SBSubscription, error)`
+- New function `QueuesClient.DeleteAuthorizationRuleResponder(*http.Response) (autorest.Response, error)`
+- New function `RulesClient.ListBySubscriptionsComplete(context.Context, string, string, string, string, *int32, *int32) (RuleListResultIterator, error)`
+- New function `TopicsClient.CreateOrUpdatePreparer(context.Context, string, string, string, SBTopic) (*http.Request, error)`
+- New function `DisasterRecoveryConfigsClient.ListSender(*http.Request) (*http.Response, error)`
+- New function `DisasterRecoveryConfigsClient.BreakPairing(context.Context, string, string, string) (autorest.Response, error)`
+- New function `EventHubsClient.ListByNamespacePreparer(context.Context, string, string) (*http.Request, error)`
+- New function `TopicsClient.ListByNamespaceResponder(*http.Response) (SBTopicListResult, error)`
+- New function `DisasterRecoveryConfigsClient.FailOverSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigListResult.MarshalJSON() ([]byte, error)`
+- New function `NewRulesClient(string) RulesClient`
+- New function `SBAuthorizationRuleListResultIterator.NotDone() bool`
+- New function `NamespacesClient.DeleteAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `*SBTopicListResultPage.NextWithContext(context.Context) error`
+- New function `NamespacesClient.DeleteAuthorizationRuleResponder(*http.Response) (autorest.Response, error)`
+- New function `QueuesClient.GetAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `SBSubscriptionListResultPage.Values() []SBSubscription`
+- New function `DisasterRecoveryConfigsClient.ListAuthorizationRules(context.Context, string, string, string) (SBAuthorizationRuleListResultPage, error)`
+- New function `PrivateLinkResourcesClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `*PrivateEndpointConnectionListResultPage.Next() error`
+- New function `TopicsClient.CreateOrUpdate(context.Context, string, string, string, SBTopic) (SBTopic, error)`
+- New function `SubscriptionsClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `QueuesClient.ListByNamespaceComplete(context.Context, string, string, *int32, *int32) (SBQueueListResultIterator, error)`
+- New function `NamespacesClient.CreateOrUpdateAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `QueuesClient.ListAuthorizationRulesComplete(context.Context, string, string, string) (SBAuthorizationRuleListResultIterator, error)`
+- New function `NewSBTopicListResultIterator(SBTopicListResultPage) SBTopicListResultIterator`
+- New function `*ArmDisasterRecoveryListResultPage.NextWithContext(context.Context) error`
+- New function `RulesClient.DeletePreparer(context.Context, string, string, string, string, string) (*http.Request, error)`
+- New function `QueuesClient.GetAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `QueuesClient.ListAuthorizationRulesPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `*SBTopicListResultIterator.Next() error`
+- New function `SBTopic.MarshalJSON() ([]byte, error)`
+- New function `*SBTopicListResultIterator.NextWithContext(context.Context) error`
+- New function `*RuleListResultPage.NextWithContext(context.Context) error`
+- New function `TopicsClient.DeleteSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigListResultPage.Values() []MigrationConfigProperties`
+- New function `PremiumMessagingRegionsListResultPage.Response() PremiumMessagingRegionsListResult`
+- New function `PossibleProvisioningStateDRValues() []ProvisioningStateDR`
+- New function `NewArmDisasterRecoveryListResultIterator(ArmDisasterRecoveryListResultPage) ArmDisasterRecoveryListResultIterator`
+- New function `NamespacesClient.CheckNameAvailabilityMethodPreparer(context.Context, CheckNameAvailability) (*http.Request, error)`
+- New function `*SBAuthorizationRuleListResultPage.Next() error`
+- New function `*PrivateEndpointConnectionListResultIterator.NextWithContext(context.Context) error`
+- New function `SBTopicListResult.IsEmpty() bool`
+- New function `QueuesClient.ListByNamespacePreparer(context.Context, string, string, *int32, *int32) (*http.Request, error)`
+- New function `RulesClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `PrivateEndpointConnectionsClient.ListResponder(*http.Response) (PrivateEndpointConnectionListResult, error)`
+- New function `TopicsClient.GetAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `EventHubsClient.ListByNamespaceComplete(context.Context, string, string) (EventHubListResultIterator, error)`
+- New function `PremiumMessagingRegionsListResultPage.NotDone() bool`
+- New function `DisasterRecoveryConfigsClient.ListAuthorizationRulesResponder(*http.Response) (SBAuthorizationRuleListResult, error)`
+- New function `SubscriptionsClient.Delete(context.Context, string, string, string, string) (autorest.Response, error)`
+- New function `TopicsClient.DeleteAuthorizationRulePreparer(context.Context, string, string, string, string) (*http.Request, error)`
+- New function `NewSBQueueListResultIterator(SBQueueListResultPage) SBQueueListResultIterator`
+- New function `MigrationConfigListResultIterator.Response() MigrationConfigListResult`
+- New function `MigrationConfigProperties.MarshalJSON() ([]byte, error)`
+- New function `DisasterRecoveryConfigsClient.CheckNameAvailabilityMethodResponder(*http.Response) (CheckNameAvailabilityResult, error)`
+- New function `PrivateEndpointConnectionsClient.DeletePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `QueuesClient.RegenerateKeys(context.Context, string, string, string, string, RegenerateAccessKeyParameters) (AccessKeys, error)`
+- New function `SBSubscriptionListResultPage.Response() SBSubscriptionListResult`
+- New function `PossiblePrivateLinkConnectionStatusValues() []PrivateLinkConnectionStatus`
+- New function `DisasterRecoveryConfigsClient.CreateOrUpdatePreparer(context.Context, string, string, string, ArmDisasterRecovery) (*http.Request, error)`
+- New function `TopicsClient.ListByNamespacePreparer(context.Context, string, string, *int32, *int32) (*http.Request, error)`
+- New function `NamespacesClient.CheckNameAvailabilityMethodResponder(*http.Response) (CheckNameAvailabilityResult, error)`
+- New function `NewDisasterRecoveryConfigsClient(string) DisasterRecoveryConfigsClient`
+- New function `MigrationConfigsClient.CompleteMigration(context.Context, string, string) (autorest.Response, error)`
+- New function `NamespacesClient.GetAuthorizationRuleSender(*http.Request) (*http.Response, error)`
+- New function `MigrationConfigsClient.DeleteSender(*http.Request) (*http.Response, error)`
+- New function `NamespacesClient.ListAuthorizationRulesSender(*http.Request) (*http.Response, error)`
+- New function `QueuesClient.ListKeysSender(*http.Request) (*http.Response, error)`
+- New function `SubscriptionsClient.CreateOrUpdate(context.Context, string, string, string, string, SBSubscription) (SBSubscription, error)`
+- New function `NamespacesClient.DeleteAuthorizationRulePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `TopicsClient.GetAuthorizationRuleResponder(*http.Response) (SBAuthorizationRule, error)`
+- New function `DisasterRecoveryConfigsClient.Get(context.Context, string, string, string) (ArmDisasterRecovery, error)`
+- New function `*SBAuthorizationRuleListResultIterator.NextWithContext(context.Context) error`
+- New function `*MigrationConfigListResultPage.Next() error`
+- New function `*Destination.UnmarshalJSON([]byte) error`
+- New function `DisasterRecoveryConfigsClient.GetResponder(*http.Response) (ArmDisasterRecovery, error)`
+- New function `RuleListResultIterator.NotDone() bool`
+- New function `NewPrivateEndpointConnectionListResultPage(PrivateEndpointConnectionListResult, func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage`
+- New function `QueuesClient.ListByNamespaceResponder(*http.Response) (SBQueueListResult, error)`
+- New function `MigrationConfigsClient.DeletePreparer(context.Context, string, string) (*http.Request, error)`
+- New function `QueuesClient.CreateOrUpdateResponder(*http.Response) (SBQueue, error)`
+- New function `*SBSubscriptionListResultPage.Next() error`
+- New function `TopicsClient.CreateOrUpdateAuthorizationRule(context.Context, string, string, string, string, SBAuthorizationRule) (SBAuthorizationRule, error)`
+- New function `*SBQueue.UnmarshalJSON([]byte) error`
+- New function `NewRulesClientWithBaseURI(string, string) RulesClient`
+- New struct `AccessKeys`
+- New struct `Action`
+- New struct `ArmDisasterRecovery`
+- New struct `ArmDisasterRecoveryListResult`
+- New struct `ArmDisasterRecoveryListResultIterator`
+- New struct `ArmDisasterRecoveryListResultPage`
+- New struct `ArmDisasterRecoveryProperties`
+- New struct `CaptureDescription`
+- New struct `CheckNameAvailability`
+- New struct `CheckNameAvailabilityResult`
+- New struct `ConnectionState`
+- New struct `CorrelationFilter`
+- New struct `Destination`
+- New struct `DestinationProperties`
+- New struct `DisasterRecoveryConfigsClient`
+- New struct `ErrorAdditionalInfo`
+- New struct `ErrorResponseError`
+- New struct `EventHubListResult`
+- New struct `EventHubListResultIterator`
+- New struct `EventHubListResultPage`
+- New struct `EventHubsClient`
+- New struct `Eventhub`
+- New struct `EventhubProperties`
+- New struct `FailoverProperties`
+- New struct `FailoverPropertiesProperties`
+- New struct `MessageCountDetails`
+- New struct `MigrationConfigListResult`
+- New struct `MigrationConfigListResultIterator`
+- New struct `MigrationConfigListResultPage`
+- New struct `MigrationConfigProperties`
+- New struct `MigrationConfigPropertiesProperties`
+- New struct `MigrationConfigsClient`
+- New struct `MigrationConfigsCreateAndStartMigrationFuture`
+- New struct `PremiumMessagingRegions`
+- New struct `PremiumMessagingRegionsClient`
+- New struct `PremiumMessagingRegionsListResult`
+- New struct `PremiumMessagingRegionsListResultIterator`
+- New struct `PremiumMessagingRegionsListResultPage`
+- New struct `PremiumMessagingRegionsProperties`
+- New struct `PrivateEndpoint`
+- New struct `PrivateEndpointConnection`
+- New struct `PrivateEndpointConnectionListResult`
+- New struct `PrivateEndpointConnectionListResultIterator`
+- New struct `PrivateEndpointConnectionListResultPage`
+- New struct `PrivateEndpointConnectionProperties`
+- New struct `PrivateEndpointConnectionsClient`
+- New struct `PrivateEndpointConnectionsDeleteFuture`
+- New struct `PrivateLinkResource`
+- New struct `PrivateLinkResourceProperties`
+- New struct `PrivateLinkResourcesClient`
+- New struct `PrivateLinkResourcesListResult`
+- New struct `QueuesClient`
+- New struct `RegenerateAccessKeyParameters`
+- New struct `RegionsClient`
+- New struct `Rule`
+- New struct `RuleListResult`
+- New struct `RuleListResultIterator`
+- New struct `RuleListResultPage`
+- New struct `Ruleproperties`
+- New struct `RulesClient`
+- New struct `SBAuthorizationRule`
+- New struct `SBAuthorizationRuleListResult`
+- New struct `SBAuthorizationRuleListResultIterator`
+- New struct `SBAuthorizationRuleListResultPage`
+- New struct `SBAuthorizationRuleProperties`
+- New struct `SBNamespaceMigrate`
+- New struct `SBQueue`
+- New struct `SBQueueListResult`
+- New struct `SBQueueListResultIterator`
+- New struct `SBQueueListResultPage`
+- New struct `SBQueueProperties`
+- New struct `SBSubscription`
+- New struct `SBSubscriptionListResult`
+- New struct `SBSubscriptionListResultIterator`
+- New struct `SBSubscriptionListResultPage`
+- New struct `SBSubscriptionProperties`
+- New struct `SBTopic`
+- New struct `SBTopicListResult`
+- New struct `SBTopicListResultIterator`
+- New struct `SBTopicListResultPage`
+- New struct `SBTopicProperties`
+- New struct `SQLFilter`
+- New struct `SQLRuleAction`
+- New struct `SubscriptionsClient`
+- New struct `TopicsClient`
+- New field `Error` in struct `ErrorResponse`
+- New field `Identity` in struct `SBNamespace`

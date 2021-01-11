@@ -74,6 +74,7 @@ func (client HubVirtualNetworkConnectionsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client HubVirtualNetworkConnectionsClient) GetSender(req *http.Request) (*
 func (client HubVirtualNetworkConnectionsClient) GetResponder(resp *http.Response) (result HubVirtualNetworkConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +152,10 @@ func (client HubVirtualNetworkConnectionsClient) List(ctx context.Context, resou
 	result.lhvncr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lhvncr.hasNextLink() && result.lhvncr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -189,7 +193,6 @@ func (client HubVirtualNetworkConnectionsClient) ListSender(req *http.Request) (
 func (client HubVirtualNetworkConnectionsClient) ListResponder(resp *http.Response) (result ListHubVirtualNetworkConnectionsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,6 +217,7 @@ func (client HubVirtualNetworkConnectionsClient) listNextResults(ctx context.Con
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

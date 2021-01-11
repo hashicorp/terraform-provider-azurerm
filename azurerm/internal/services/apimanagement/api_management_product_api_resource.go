@@ -9,16 +9,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductApi() *schema.Resource {
+func resourceApiManagementProductApi() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementProductApiCreate,
-		Read:   resourceArmApiManagementProductApiRead,
-		Delete: resourceArmApiManagementProductApiDelete,
+		Create: resourceApiManagementProductApiCreate,
+		Read:   resourceApiManagementProductApiRead,
+		Delete: resourceApiManagementProductApiDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -31,7 +30,7 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"api_name": azure.SchemaApiManagementChildName(),
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"product_id": azure.SchemaApiManagementChildName(),
 
@@ -42,7 +41,7 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -52,19 +51,18 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 	apiName := d.Get("api_name").(string)
 	productId := d.Get("product_id").(string)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("checking for present of existing API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
-			}
+	exists, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(exists) {
+			return fmt.Errorf("checking for present of existing API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 		}
+	}
 
-		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/apis/%s", subscriptionId, resourceGroup, serviceName, productId, apiName)
-			return tf.ImportAsExistsError("azurerm_api_management_product_api", resourceId)
-		}
+	if !utils.ResponseWasNotFound(exists) {
+		// TODO: can we pull this from somewhere?
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/apis/%s", subscriptionId, resourceGroup, serviceName, productId, apiName)
+		return tf.ImportAsExistsError("azurerm_api_management_product_api", resourceId)
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, apiName)
@@ -75,10 +73,10 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductApiRead(d, meta)
+	return resourceApiManagementProductApiRead(d, meta)
 }
 
-func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +117,7 @@ func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmApiManagementProductApiDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

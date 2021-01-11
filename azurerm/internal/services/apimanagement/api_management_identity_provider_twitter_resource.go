@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderTwitter() *schema.Resource {
+func resourceApiManagementIdentityProviderTwitter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderTwitterCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderTwitterRead,
-		Update: resourceArmApiManagementIdentityProviderTwitterCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderTwitterDelete,
+		Create: resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderTwitterRead,
+		Update: resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderTwitterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceArmApiManagementIdentityProviderTwitter() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,10 +97,10 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderTwitterRead(d, meta)
+	return resourceApiManagementIdentityProviderTwitterRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderTwitterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,13 +129,12 @@ func resourceArmApiManagementIdentityProviderTwitterRead(d *schema.ResourceData,
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("api_key", props.ClientID)
-		d.Set("api_secret_key", props.ClientSecret)
 	}
 
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderTwitterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

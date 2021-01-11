@@ -84,6 +84,7 @@ func (client ComponentCurrentBillingFeaturesClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentCurrentBillingFeaturesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client ComponentCurrentBillingFeaturesClient) GetSender(req *http.Request)
 func (client ComponentCurrentBillingFeaturesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentBillingFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -172,6 +172,7 @@ func (client ComponentCurrentBillingFeaturesClient) Update(ctx context.Context, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentCurrentBillingFeaturesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client ComponentCurrentBillingFeaturesClient) UpdateSender(req *http.Reque
 func (client ComponentCurrentBillingFeaturesClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentBillingFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

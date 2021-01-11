@@ -119,7 +119,6 @@ func (client EncryptionProtectorsClient) CreateOrUpdateSender(req *http.Request)
 func (client EncryptionProtectorsClient) CreateOrUpdateResponder(resp *http.Response) (result EncryptionProtector, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +158,7 @@ func (client EncryptionProtectorsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +197,6 @@ func (client EncryptionProtectorsClient) GetSender(req *http.Request) (*http.Res
 func (client EncryptionProtectorsClient) GetResponder(resp *http.Response) (result EncryptionProtector, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,6 +237,10 @@ func (client EncryptionProtectorsClient) ListByServer(ctx context.Context, resou
 	result.eplr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.eplr.hasNextLink() && result.eplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -275,7 +278,6 @@ func (client EncryptionProtectorsClient) ListByServerSender(req *http.Request) (
 func (client EncryptionProtectorsClient) ListByServerResponder(resp *http.Response) (result EncryptionProtectorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -300,6 +302,7 @@ func (client EncryptionProtectorsClient) listByServerNextResults(ctx context.Con
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -390,7 +393,6 @@ func (client EncryptionProtectorsClient) RevalidateSender(req *http.Request) (fu
 func (client EncryptionProtectorsClient) RevalidateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

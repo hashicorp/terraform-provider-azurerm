@@ -90,6 +90,7 @@ func (client OfficeConsentsClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client OfficeConsentsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client OfficeConsentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -184,6 +184,7 @@ func (client OfficeConsentsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -223,7 +224,6 @@ func (client OfficeConsentsClient) GetSender(req *http.Request) (*http.Response,
 func (client OfficeConsentsClient) GetResponder(resp *http.Response) (result OfficeConsent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -279,6 +279,10 @@ func (client OfficeConsentsClient) List(ctx context.Context, resourceGroupName s
 	result.ocl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ocl.hasNextLink() && result.ocl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -317,7 +321,6 @@ func (client OfficeConsentsClient) ListSender(req *http.Request) (*http.Response
 func (client OfficeConsentsClient) ListResponder(resp *http.Response) (result OfficeConsentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -342,6 +345,7 @@ func (client OfficeConsentsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

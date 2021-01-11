@@ -73,6 +73,7 @@ func (client ServicesClient) CheckNameAvailability(ctx context.Context, location
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client ServicesClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client ServicesClient) CheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,7 @@ func (client ServicesClient) CheckStatus(ctx context.Context, groupName string, 
 	result, err = client.CheckStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "CheckStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client ServicesClient) CheckStatusSender(req *http.Request) (*http.Respons
 func (client ServicesClient) CheckStatusResponder(resp *http.Response) (result ServiceStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -280,7 +280,6 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 func (client ServicesClient) CreateOrUpdateResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +360,6 @@ func (client ServicesClient) DeleteSender(req *http.Request) (future ServicesDel
 func (client ServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -400,6 +398,7 @@ func (client ServicesClient) Get(ctx context.Context, groupName string, serviceN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -437,7 +436,6 @@ func (client ServicesClient) GetSender(req *http.Request) (*http.Response, error
 func (client ServicesClient) GetResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,6 +473,10 @@ func (client ServicesClient) List(ctx context.Context) (result ServiceListPage, 
 	result.sl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -510,7 +512,6 @@ func (client ServicesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ServicesClient) ListResponder(resp *http.Response) (result ServiceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -535,6 +536,7 @@ func (client ServicesClient) listNextResults(ctx context.Context, lastResults Se
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -587,6 +589,10 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, groupName 
 	result.sl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -623,7 +629,6 @@ func (client ServicesClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ServicesClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -648,6 +653,7 @@ func (client ServicesClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -701,6 +707,10 @@ func (client ServicesClient) ListSkus(ctx context.Context, groupName string, ser
 	result.ssl, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "ListSkus", resp, "Failure responding to request")
+		return
+	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -738,7 +748,6 @@ func (client ServicesClient) ListSkusSender(req *http.Request) (*http.Response, 
 func (client ServicesClient) ListSkusResponder(resp *http.Response) (result ServiceSkuList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -763,6 +772,7 @@ func (client ServicesClient) listSkusNextResults(ctx context.Context, lastResult
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "listSkusNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -815,6 +825,7 @@ func (client ServicesClient) NestedCheckNameAvailability(ctx context.Context, gr
 	result, err = client.NestedCheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "NestedCheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -854,7 +865,6 @@ func (client ServicesClient) NestedCheckNameAvailabilitySender(req *http.Request
 func (client ServicesClient) NestedCheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -931,7 +941,6 @@ func (client ServicesClient) StartSender(req *http.Request) (future ServicesStar
 func (client ServicesClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1008,7 +1017,6 @@ func (client ServicesClient) StopSender(req *http.Request) (future ServicesStopF
 func (client ServicesClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1088,7 +1096,6 @@ func (client ServicesClient) UpdateSender(req *http.Request) (future ServicesUpd
 func (client ServicesClient) UpdateResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

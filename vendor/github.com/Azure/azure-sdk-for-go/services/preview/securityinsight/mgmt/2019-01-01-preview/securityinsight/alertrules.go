@@ -91,6 +91,7 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -132,7 +133,6 @@ func (client AlertRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (result AlertRuleModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,6 +190,7 @@ func (client AlertRulesClient) CreateOrUpdateAction(ctx context.Context, resourc
 	result, err = client.CreateOrUpdateActionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "CreateOrUpdateAction", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -232,7 +233,6 @@ func (client AlertRulesClient) CreateOrUpdateActionSender(req *http.Request) (*h
 func (client AlertRulesClient) CreateOrUpdateActionResponder(resp *http.Response) (result ActionResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,6 +288,7 @@ func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -327,7 +328,6 @@ func (client AlertRulesClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -383,6 +383,7 @@ func (client AlertRulesClient) DeleteAction(ctx context.Context, resourceGroupNa
 	result, err = client.DeleteActionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "DeleteAction", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -423,7 +424,6 @@ func (client AlertRulesClient) DeleteActionSender(req *http.Request) (*http.Resp
 func (client AlertRulesClient) DeleteActionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -478,6 +478,7 @@ func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -517,7 +518,6 @@ func (client AlertRulesClient) GetSender(req *http.Request) (*http.Response, err
 func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRuleModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -574,6 +574,7 @@ func (client AlertRulesClient) GetAction(ctx context.Context, resourceGroupName 
 	result, err = client.GetActionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "GetAction", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -614,7 +615,6 @@ func (client AlertRulesClient) GetActionSender(req *http.Request) (*http.Respons
 func (client AlertRulesClient) GetActionResponder(resp *http.Response) (result ActionResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -670,6 +670,10 @@ func (client AlertRulesClient) List(ctx context.Context, resourceGroupName strin
 	result.arl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -708,7 +712,6 @@ func (client AlertRulesClient) ListSender(req *http.Request) (*http.Response, er
 func (client AlertRulesClient) ListResponder(resp *http.Response) (result AlertRulesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -733,6 +736,7 @@ func (client AlertRulesClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

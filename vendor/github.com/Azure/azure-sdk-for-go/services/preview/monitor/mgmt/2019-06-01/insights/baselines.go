@@ -86,6 +86,7 @@ func (client BaselinesClient) List(ctx context.Context, resourceURI string, metr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.BaselinesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -145,7 +146,6 @@ func (client BaselinesClient) ListSender(req *http.Request) (*http.Response, err
 func (client BaselinesClient) ListResponder(resp *http.Response) (result MetricBaselinesResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

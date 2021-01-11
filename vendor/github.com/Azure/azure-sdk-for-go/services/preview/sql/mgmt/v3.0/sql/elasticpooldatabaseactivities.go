@@ -77,6 +77,7 @@ func (client ElasticPoolDatabaseActivitiesClient) ListByElasticPool(ctx context.
 	result, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolDatabaseActivitiesClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client ElasticPoolDatabaseActivitiesClient) ListByElasticPoolSender(req *h
 func (client ElasticPoolDatabaseActivitiesClient) ListByElasticPoolResponder(resp *http.Response) (result ElasticPoolDatabaseActivityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

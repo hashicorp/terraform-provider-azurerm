@@ -70,6 +70,10 @@ func (client ResourceUsageClient) List(ctx context.Context) (result ResourceUsag
 	result.rulr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ResourceUsageClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -105,7 +109,6 @@ func (client ResourceUsageClient) ListSender(req *http.Request) (*http.Response,
 func (client ResourceUsageClient) ListResponder(resp *http.Response) (result ResourceUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -130,6 +133,7 @@ func (client ResourceUsageClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ResourceUsageClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

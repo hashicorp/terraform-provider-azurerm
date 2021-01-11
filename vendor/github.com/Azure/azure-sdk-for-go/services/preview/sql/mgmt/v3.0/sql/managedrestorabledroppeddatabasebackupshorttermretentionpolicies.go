@@ -119,7 +119,6 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +158,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -198,7 +198,6 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient) GetResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -239,6 +238,10 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result.mbstrplr, err = client.ListByRestorableDroppedDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "ListByRestorableDroppedDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.mbstrplr.hasNextLink() && result.mbstrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -277,7 +280,6 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient) ListByRestorableDroppedDatabaseResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -302,6 +304,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result, err = client.ListByRestorableDroppedDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "listByRestorableDroppedDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -396,7 +399,6 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient) UpdateResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

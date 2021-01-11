@@ -80,6 +80,7 @@ func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body
 	result, err = client.CheckFilePathAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.ResourceClient", "CheckFilePathAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client ResourceClient) CheckFilePathAvailabilitySender(req *http.Request) 
 func (client ResourceClient) CheckFilePathAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +164,7 @@ func (client ResourceClient) CheckNameAvailability(ctx context.Context, body Res
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.ResourceClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -202,7 +203,6 @@ func (client ResourceClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client ResourceClient) CheckNameAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

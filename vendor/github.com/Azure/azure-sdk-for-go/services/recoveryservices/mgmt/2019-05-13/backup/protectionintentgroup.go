@@ -76,6 +76,10 @@ func (client ProtectionIntentGroupClient) List(ctx context.Context, vaultName st
 	result.pirl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentGroupClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pirl.hasNextLink() && result.pirl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -119,7 +123,6 @@ func (client ProtectionIntentGroupClient) ListSender(req *http.Request) (*http.R
 func (client ProtectionIntentGroupClient) ListResponder(resp *http.Response) (result ProtectionIntentResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -144,6 +147,7 @@ func (client ProtectionIntentGroupClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentGroupClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

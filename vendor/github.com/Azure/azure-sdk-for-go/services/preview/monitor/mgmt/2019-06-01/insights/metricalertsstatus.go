@@ -73,6 +73,7 @@ func (client MetricAlertsStatusClient) List(ctx context.Context, resourceGroupNa
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsStatusClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client MetricAlertsStatusClient) ListSender(req *http.Request) (*http.Resp
 func (client MetricAlertsStatusClient) ListResponder(resp *http.Response) (result MetricAlertStatusCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +150,7 @@ func (client MetricAlertsStatusClient) ListByName(ctx context.Context, resourceG
 	result, err = client.ListByNameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsStatusClient", "ListByName", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client MetricAlertsStatusClient) ListByNameSender(req *http.Request) (*htt
 func (client MetricAlertsStatusClient) ListByNameResponder(resp *http.Response) (result MetricAlertStatusCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -77,6 +77,7 @@ func (client SyncGroupsClient) CancelSync(ctx context.Context, resourceGroupName
 	result, err = client.CancelSyncResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "CancelSync", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -92,7 +93,7 @@ func (client SyncGroupsClient) CancelSyncPreparer(ctx context.Context, resourceG
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -116,7 +117,6 @@ func (client SyncGroupsClient) CancelSyncSender(req *http.Request) (*http.Respon
 func (client SyncGroupsClient) CancelSyncResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -167,7 +167,7 @@ func (client SyncGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -199,7 +199,6 @@ func (client SyncGroupsClient) CreateOrUpdateSender(req *http.Request) (future S
 func (client SyncGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result SyncGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -250,7 +249,7 @@ func (client SyncGroupsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -280,7 +279,6 @@ func (client SyncGroupsClient) DeleteSender(req *http.Request) (future SyncGroup
 func (client SyncGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -321,6 +319,7 @@ func (client SyncGroupsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,7 +335,7 @@ func (client SyncGroupsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -360,7 +359,6 @@ func (client SyncGroupsClient) GetSender(req *http.Request) (*http.Response, err
 func (client SyncGroupsClient) GetResponder(resp *http.Response) (result SyncGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -402,6 +400,10 @@ func (client SyncGroupsClient) ListByDatabase(ctx context.Context, resourceGroup
 	result.sglr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.sglr.hasNextLink() && result.sglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -416,7 +418,7 @@ func (client SyncGroupsClient) ListByDatabasePreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -440,7 +442,6 @@ func (client SyncGroupsClient) ListByDatabaseSender(req *http.Request) (*http.Re
 func (client SyncGroupsClient) ListByDatabaseResponder(resp *http.Response) (result SyncGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -465,6 +466,7 @@ func (client SyncGroupsClient) listByDatabaseNextResults(ctx context.Context, la
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -520,6 +522,10 @@ func (client SyncGroupsClient) ListHubSchemas(ctx context.Context, resourceGroup
 	result.sfsplr, err = client.ListHubSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListHubSchemas", resp, "Failure responding to request")
+		return
+	}
+	if result.sfsplr.hasNextLink() && result.sfsplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -535,7 +541,7 @@ func (client SyncGroupsClient) ListHubSchemasPreparer(ctx context.Context, resou
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -559,7 +565,6 @@ func (client SyncGroupsClient) ListHubSchemasSender(req *http.Request) (*http.Re
 func (client SyncGroupsClient) ListHubSchemasResponder(resp *http.Response) (result SyncFullSchemaPropertiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -584,6 +589,7 @@ func (client SyncGroupsClient) listHubSchemasNextResults(ctx context.Context, la
 	result, err = client.ListHubSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listHubSchemasNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -643,6 +649,10 @@ func (client SyncGroupsClient) ListLogs(ctx context.Context, resourceGroupName s
 	result.sgllr, err = client.ListLogsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListLogs", resp, "Failure responding to request")
+		return
+	}
+	if result.sgllr.hasNextLink() && result.sgllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -658,7 +668,7 @@ func (client SyncGroupsClient) ListLogsPreparer(ctx context.Context, resourceGro
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 		"endTime":     autorest.Encode("query", endTime),
@@ -688,7 +698,6 @@ func (client SyncGroupsClient) ListLogsSender(req *http.Request) (*http.Response
 func (client SyncGroupsClient) ListLogsResponder(resp *http.Response) (result SyncGroupLogListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -713,6 +722,7 @@ func (client SyncGroupsClient) listLogsNextResults(ctx context.Context, lastResu
 	result, err = client.ListLogsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listLogsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -764,6 +774,10 @@ func (client SyncGroupsClient) ListSyncDatabaseIds(ctx context.Context, location
 	result.sdilr, err = client.ListSyncDatabaseIdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListSyncDatabaseIds", resp, "Failure responding to request")
+		return
+	}
+	if result.sdilr.hasNextLink() && result.sdilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -776,7 +790,7 @@ func (client SyncGroupsClient) ListSyncDatabaseIdsPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -800,7 +814,6 @@ func (client SyncGroupsClient) ListSyncDatabaseIdsSender(req *http.Request) (*ht
 func (client SyncGroupsClient) ListSyncDatabaseIdsResponder(resp *http.Response) (result SyncDatabaseIDListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -825,6 +838,7 @@ func (client SyncGroupsClient) listSyncDatabaseIdsNextResults(ctx context.Contex
 	result, err = client.ListSyncDatabaseIdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listSyncDatabaseIdsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -888,7 +902,7 @@ func (client SyncGroupsClient) RefreshHubSchemaPreparer(ctx context.Context, res
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -918,7 +932,6 @@ func (client SyncGroupsClient) RefreshHubSchemaSender(req *http.Request) (future
 func (client SyncGroupsClient) RefreshHubSchemaResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -959,6 +972,7 @@ func (client SyncGroupsClient) TriggerSync(ctx context.Context, resourceGroupNam
 	result, err = client.TriggerSyncResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "TriggerSync", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -974,7 +988,7 @@ func (client SyncGroupsClient) TriggerSyncPreparer(ctx context.Context, resource
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -998,7 +1012,6 @@ func (client SyncGroupsClient) TriggerSyncSender(req *http.Request) (*http.Respo
 func (client SyncGroupsClient) TriggerSyncResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1049,7 +1062,7 @@ func (client SyncGroupsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1081,7 +1094,6 @@ func (client SyncGroupsClient) UpdateSender(req *http.Request) (future SyncGroup
 func (client SyncGroupsClient) UpdateResponder(resp *http.Response) (result SyncGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

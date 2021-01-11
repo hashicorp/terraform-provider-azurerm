@@ -61,7 +61,7 @@ func dataSourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Dedicated Host Group %q (Resource Group %q) was not found", name, resourceGroupName)

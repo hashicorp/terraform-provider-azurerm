@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -71,8 +71,7 @@ func dataSourceArmPrivateEndpointConnectionRead(d *schema.ResourceData, meta int
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Private Endpoint %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("Error reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

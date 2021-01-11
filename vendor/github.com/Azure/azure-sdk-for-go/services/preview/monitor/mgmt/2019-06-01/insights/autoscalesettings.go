@@ -84,6 +84,7 @@ func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -123,7 +124,6 @@ func (client AutoscaleSettingsClient) CreateOrUpdateSender(req *http.Request) (*
 func (client AutoscaleSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result AutoscaleSettingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,7 @@ func (client AutoscaleSettingsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +200,6 @@ func (client AutoscaleSettingsClient) DeleteSender(req *http.Request) (*http.Res
 func (client AutoscaleSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -237,6 +237,7 @@ func (client AutoscaleSettingsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,7 +275,6 @@ func (client AutoscaleSettingsClient) GetSender(req *http.Request) (*http.Respon
 func (client AutoscaleSettingsClient) GetResponder(resp *http.Response) (result AutoscaleSettingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -313,6 +313,10 @@ func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, r
 	result.asrc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.asrc.hasNextLink() && result.asrc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -349,7 +353,6 @@ func (client AutoscaleSettingsClient) ListByResourceGroupSender(req *http.Reques
 func (client AutoscaleSettingsClient) ListByResourceGroupResponder(resp *http.Response) (result AutoscaleSettingResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,6 +377,7 @@ func (client AutoscaleSettingsClient) listByResourceGroupNextResults(ctx context
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -423,6 +427,10 @@ func (client AutoscaleSettingsClient) ListBySubscription(ctx context.Context) (r
 	result.asrc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.asrc.hasNextLink() && result.asrc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -458,7 +466,6 @@ func (client AutoscaleSettingsClient) ListBySubscriptionSender(req *http.Request
 func (client AutoscaleSettingsClient) ListBySubscriptionResponder(resp *http.Response) (result AutoscaleSettingResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -483,6 +490,7 @@ func (client AutoscaleSettingsClient) listBySubscriptionNextResults(ctx context.
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -535,6 +543,7 @@ func (client AutoscaleSettingsClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -574,7 +583,6 @@ func (client AutoscaleSettingsClient) UpdateSender(req *http.Request) (*http.Res
 func (client AutoscaleSettingsClient) UpdateResponder(resp *http.Response) (result AutoscaleSettingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

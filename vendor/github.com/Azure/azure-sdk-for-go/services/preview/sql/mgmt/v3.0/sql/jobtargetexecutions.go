@@ -83,6 +83,7 @@ func (client JobTargetExecutionsClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client JobTargetExecutionsClient) GetSender(req *http.Request) (*http.Resp
 func (client JobTargetExecutionsClient) GetResponder(resp *http.Response) (result JobExecution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -176,6 +176,10 @@ func (client JobTargetExecutionsClient) ListByJobExecution(ctx context.Context, 
 	result.jelr, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "ListByJobExecution", resp, "Failure responding to request")
+		return
+	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -237,7 +241,6 @@ func (client JobTargetExecutionsClient) ListByJobExecutionSender(req *http.Reque
 func (client JobTargetExecutionsClient) ListByJobExecutionResponder(resp *http.Response) (result JobExecutionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -262,6 +265,7 @@ func (client JobTargetExecutionsClient) listByJobExecutionNextResults(ctx contex
 	result, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "listByJobExecutionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -326,6 +330,10 @@ func (client JobTargetExecutionsClient) ListByStep(ctx context.Context, resource
 	result.jelr, err = client.ListByStepResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "ListByStep", resp, "Failure responding to request")
+		return
+	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -388,7 +396,6 @@ func (client JobTargetExecutionsClient) ListByStepSender(req *http.Request) (*ht
 func (client JobTargetExecutionsClient) ListByStepResponder(resp *http.Response) (result JobExecutionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -413,6 +420,7 @@ func (client JobTargetExecutionsClient) listByStepNextResults(ctx context.Contex
 	result, err = client.ListByStepResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "listByStepNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

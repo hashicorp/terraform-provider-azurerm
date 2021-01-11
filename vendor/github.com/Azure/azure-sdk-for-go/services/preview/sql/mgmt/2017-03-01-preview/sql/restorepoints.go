@@ -124,7 +124,6 @@ func (client RestorePointsClient) CreateSender(req *http.Request) (future Restor
 func (client RestorePointsClient) CreateResponder(resp *http.Response) (result RestorePoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -166,6 +165,7 @@ func (client RestorePointsClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -205,7 +205,6 @@ func (client RestorePointsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client RestorePointsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -246,6 +245,7 @@ func (client RestorePointsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,7 +285,6 @@ func (client RestorePointsClient) GetSender(req *http.Request) (*http.Response, 
 func (client RestorePointsClient) GetResponder(resp *http.Response) (result RestorePoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -326,6 +325,7 @@ func (client RestorePointsClient) ListByDatabase(ctx context.Context, resourceGr
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,7 +364,6 @@ func (client RestorePointsClient) ListByDatabaseSender(req *http.Request) (*http
 func (client RestorePointsClient) ListByDatabaseResponder(resp *http.Response) (result RestorePointListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

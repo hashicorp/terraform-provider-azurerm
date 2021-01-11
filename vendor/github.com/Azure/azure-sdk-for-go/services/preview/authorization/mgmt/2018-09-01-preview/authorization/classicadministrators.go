@@ -71,6 +71,10 @@ func (client ClassicAdministratorsClient) List(ctx context.Context) (result Clas
 	result.calr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ClassicAdministratorsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.calr.hasNextLink() && result.calr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -106,7 +110,6 @@ func (client ClassicAdministratorsClient) ListSender(req *http.Request) (*http.R
 func (client ClassicAdministratorsClient) ListResponder(resp *http.Response) (result ClassicAdministratorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -131,6 +134,7 @@ func (client ClassicAdministratorsClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ClassicAdministratorsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

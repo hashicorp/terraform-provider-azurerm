@@ -14,7 +14,7 @@ import (
 
 func dataSourcePostgreSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPostgreSqlServerRead,
+		Read: dataSourcePostgreSqlServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -48,12 +48,40 @@ func dataSourcePostgreSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
-func dataSourceArmPostgreSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePostgreSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,10 +108,18 @@ func dataSourceArmPostgreSqlServerRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if err := d.Set("identity", flattenServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if props := resp.ServerProperties; props != nil {
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

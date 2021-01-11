@@ -144,7 +144,6 @@ func (client SnapshotsClient) CreateSender(req *http.Request) (future SnapshotsC
 func (client SnapshotsClient) CreateResponder(resp *http.Response) (result Snapshot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,7 +233,6 @@ func (client SnapshotsClient) DeleteSender(req *http.Request) (future SnapshotsD
 func (client SnapshotsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,6 +281,7 @@ func (client SnapshotsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,7 +322,6 @@ func (client SnapshotsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client SnapshotsClient) GetResponder(resp *http.Response) (result Snapshot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -372,6 +370,7 @@ func (client SnapshotsClient) List(ctx context.Context, resourceGroupName string
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -411,7 +410,6 @@ func (client SnapshotsClient) ListSender(req *http.Request) (*http.Response, err
 func (client SnapshotsClient) ListResponder(resp *http.Response) (result SnapshotsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -462,6 +460,7 @@ func (client SnapshotsClient) Update(ctx context.Context, body SnapshotPatch, re
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -504,7 +503,6 @@ func (client SnapshotsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client SnapshotsClient) UpdateResponder(resp *http.Response) (result Snapshot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

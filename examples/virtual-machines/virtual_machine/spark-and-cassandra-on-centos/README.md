@@ -2,7 +2,7 @@
 
 This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/master/spark-and-cassandra-on-centos) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
 
-This project configures a Spark cluster (1 master and n-slave nodes) and a single node Cassandra on Azure using CentOS 7.x.  The base image starts with CentOS 7.3, and it is updated to the latest version as part of the provisioning steps.
+This project configures a Spark cluster (1 primary and n-secondary nodes) and a single node Cassandra on Azure using CentOS 7.x.  The base image starts with CentOS 7.3, and it is updated to the latest version as part of the provisioning steps.
 
 Please note that [Azure Resource Manager][3] is used to provision the environment.
 
@@ -20,17 +20,17 @@ Please note that [Azure Resource Manager][3] is used to provision the environmen
 
 | Component | Setting | Default | Notes |
 | --- | --- | --- | --- |
-| Spark - Master | VM Size | Standard D1 V2 | |
-| Spark - Master | Storage | Standard LRS | |
-| Spark - Master | Internal IP | 10.0.0.5 | |
-| Spark - Master | Service User Account | spark | Password-less access |
+| Spark - Primary | VM Size | Standard D1 V2 | |
+| Spark - Primary | Storage | Standard LRS | |
+| Spark - Primary | Internal IP | 10.0.0.5 | |
+| Spark - Primary | Service User Account | spark | Password-less access |
 | | | |
-| Spark - Slave | VM Size | Standard D3 V2 | |
-| Spark - Slave | Storage | Standard LRS | |
-| Spark - Slave | Internal IP Range | 10.0.1.5 - 10.0.1.255 | |
-| Spark - Slave | # of Nodes | 2 | Maximum of 200 |
-| Spark - Slave | Availability | 2 fault domains, 5 update domains | |
-| Spark - Slave | Service User Account | spark | Password-less access |
+| Spark - Secondary | VM Size | Standard D3 V2 | |
+| Spark - Secondary | Storage | Standard LRS | |
+| Spark - Secondary | Internal IP Range | 10.0.1.5 - 10.0.1.255 | |
+| Spark - Secondary | # of Nodes | 2 | Maximum of 200 |
+| Spark - Secondary | Availability | 2 fault domains, 5 update domains | |
+| Spark - Secondary | Service User Account | spark | Password-less access |
 | | | |
 | Cassandra | VM Size | Standard D3 V2 | |
 | Cassandra | Storage | Standard LRS | |
@@ -63,5 +63,5 @@ The `variables.tf` file contains all of the input parameters that the user can s
 
 1. All servers will have a public IP and SSH port enabled by default. These can be disabled or modified in the template or by using Azure Portal.
 2. All servers are configured with the same username and password. You may SSH into each server and ensure connectivity.
-3. Spark WebUI is running on **port 8080**.  Access it using MASTER_WEB_UI_PUBLIC_IP:8080 on your browser.  Public IP is available in the outputs as well as through Azure Portal.
+3. Spark WebUI is running on **port 8080**.  Access it using PRIMARY_WEB_UI_PUBLIC_IP:8080 on your browser.  Public IP is available in the outputs as well as through Azure Portal.
 4. Delete the Resource Group that was created to stage the provisioning scripts.

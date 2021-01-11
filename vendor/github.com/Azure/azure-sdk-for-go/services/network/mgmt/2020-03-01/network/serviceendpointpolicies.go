@@ -114,7 +114,6 @@ func (client ServiceEndpointPoliciesClient) CreateOrUpdateSender(req *http.Reque
 func (client ServiceEndpointPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceEndpointPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client ServiceEndpointPoliciesClient) DeleteSender(req *http.Request) (fut
 func (client ServiceEndpointPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -229,6 +227,7 @@ func (client ServiceEndpointPoliciesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,7 +268,6 @@ func (client ServiceEndpointPoliciesClient) GetSender(req *http.Request) (*http.
 func (client ServiceEndpointPoliciesClient) GetResponder(resp *http.Response) (result ServiceEndpointPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -306,6 +304,10 @@ func (client ServiceEndpointPoliciesClient) List(ctx context.Context) (result Se
 	result.seplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.seplr.hasNextLink() && result.seplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -341,7 +343,6 @@ func (client ServiceEndpointPoliciesClient) ListSender(req *http.Request) (*http
 func (client ServiceEndpointPoliciesClient) ListResponder(resp *http.Response) (result ServiceEndpointPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,6 +367,7 @@ func (client ServiceEndpointPoliciesClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -417,6 +419,10 @@ func (client ServiceEndpointPoliciesClient) ListByResourceGroup(ctx context.Cont
 	result.seplr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.seplr.hasNextLink() && result.seplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -453,7 +459,6 @@ func (client ServiceEndpointPoliciesClient) ListByResourceGroupSender(req *http.
 func (client ServiceEndpointPoliciesClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceEndpointPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -478,6 +483,7 @@ func (client ServiceEndpointPoliciesClient) listByResourceGroupNextResults(ctx c
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -530,6 +536,7 @@ func (client ServiceEndpointPoliciesClient) UpdateTags(ctx context.Context, reso
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -569,7 +576,6 @@ func (client ServiceEndpointPoliciesClient) UpdateTagsSender(req *http.Request) 
 func (client ServiceEndpointPoliciesClient) UpdateTagsResponder(resp *http.Response) (result ServiceEndpointPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

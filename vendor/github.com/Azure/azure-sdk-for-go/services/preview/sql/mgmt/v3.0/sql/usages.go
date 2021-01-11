@@ -77,6 +77,10 @@ func (client UsagesClient) ListByInstancePool(ctx context.Context, resourceGroup
 	result.ulr, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.UsagesClient", "ListByInstancePool", resp, "Failure responding to request")
+		return
+	}
+	if result.ulr.hasNextLink() && result.ulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -117,7 +121,6 @@ func (client UsagesClient) ListByInstancePoolSender(req *http.Request) (*http.Re
 func (client UsagesClient) ListByInstancePoolResponder(resp *http.Response) (result UsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,6 +145,7 @@ func (client UsagesClient) listByInstancePoolNextResults(ctx context.Context, la
 	result, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.UsagesClient", "listByInstancePoolNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

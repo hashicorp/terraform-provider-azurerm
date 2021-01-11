@@ -115,7 +115,6 @@ func (client SubnetsClient) CreateOrUpdateSender(req *http.Request) (future Subn
 func (client SubnetsClient) CreateOrUpdateResponder(resp *http.Response) (result Subnet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -193,7 +192,6 @@ func (client SubnetsClient) DeleteSender(req *http.Request) (future SubnetsDelet
 func (client SubnetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -233,6 +231,7 @@ func (client SubnetsClient) Get(ctx context.Context, resourceGroupName string, v
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SubnetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,7 +273,6 @@ func (client SubnetsClient) GetSender(req *http.Request) (*http.Response, error)
 func (client SubnetsClient) GetResponder(resp *http.Response) (result Subnet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,6 +312,10 @@ func (client SubnetsClient) List(ctx context.Context, resourceGroupName string, 
 	result.slr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SubnetsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -351,7 +353,6 @@ func (client SubnetsClient) ListSender(req *http.Request) (*http.Response, error
 func (client SubnetsClient) ListResponder(resp *http.Response) (result SubnetListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -376,6 +377,7 @@ func (client SubnetsClient) listNextResults(ctx context.Context, lastResults Sub
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SubnetsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -470,7 +472,6 @@ func (client SubnetsClient) PrepareNetworkPoliciesSender(req *http.Request) (fut
 func (client SubnetsClient) PrepareNetworkPoliciesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -551,7 +552,6 @@ func (client SubnetsClient) UnprepareNetworkPoliciesSender(req *http.Request) (f
 func (client SubnetsClient) UnprepareNetworkPoliciesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

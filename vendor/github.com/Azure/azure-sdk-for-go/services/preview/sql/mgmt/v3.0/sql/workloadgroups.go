@@ -130,7 +130,6 @@ func (client WorkloadGroupsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client WorkloadGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result WorkloadGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client WorkloadGroupsClient) DeleteSender(req *http.Request) (future Workl
 func (client WorkloadGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -252,6 +250,7 @@ func (client WorkloadGroupsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -291,7 +290,6 @@ func (client WorkloadGroupsClient) GetSender(req *http.Request) (*http.Response,
 func (client WorkloadGroupsClient) GetResponder(resp *http.Response) (result WorkloadGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -333,6 +331,10 @@ func (client WorkloadGroupsClient) ListByDatabase(ctx context.Context, resourceG
 	result.wglr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.wglr.hasNextLink() && result.wglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -371,7 +373,6 @@ func (client WorkloadGroupsClient) ListByDatabaseSender(req *http.Request) (*htt
 func (client WorkloadGroupsClient) ListByDatabaseResponder(resp *http.Response) (result WorkloadGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -396,6 +397,7 @@ func (client WorkloadGroupsClient) listByDatabaseNextResults(ctx context.Context
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

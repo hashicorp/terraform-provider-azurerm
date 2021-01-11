@@ -76,6 +76,7 @@ func (client WorkflowVersionTriggersClient) ListCallbackURL(ctx context.Context,
 	result, err = client.ListCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionTriggersClient", "ListCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -120,7 +121,6 @@ func (client WorkflowVersionTriggersClient) ListCallbackURLSender(req *http.Requ
 func (client WorkflowVersionTriggersClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

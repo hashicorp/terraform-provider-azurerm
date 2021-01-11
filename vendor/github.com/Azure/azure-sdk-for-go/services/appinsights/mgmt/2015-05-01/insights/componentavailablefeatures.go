@@ -84,6 +84,7 @@ func (client ComponentAvailableFeaturesClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentAvailableFeaturesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client ComponentAvailableFeaturesClient) GetSender(req *http.Request) (*ht
 func (client ComponentAvailableFeaturesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAvailableFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

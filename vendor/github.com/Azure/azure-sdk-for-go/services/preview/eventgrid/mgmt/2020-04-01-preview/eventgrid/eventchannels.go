@@ -74,6 +74,7 @@ func (client EventChannelsClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client EventChannelsClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client EventChannelsClient) CreateOrUpdateResponder(resp *http.Response) (result EventChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +192,6 @@ func (client EventChannelsClient) DeleteSender(req *http.Request) (future EventC
 func (client EventChannelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -231,6 +230,7 @@ func (client EventChannelsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,7 +269,6 @@ func (client EventChannelsClient) GetSender(req *http.Request) (*http.Response, 
 func (client EventChannelsClient) GetResponder(resp *http.Response) (result EventChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +316,10 @@ func (client EventChannelsClient) ListByPartnerNamespace(ctx context.Context, re
 	result.eclr, err = client.ListByPartnerNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "ListByPartnerNamespace", resp, "Failure responding to request")
+		return
+	}
+	if result.eclr.hasNextLink() && result.eclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -360,7 +363,6 @@ func (client EventChannelsClient) ListByPartnerNamespaceSender(req *http.Request
 func (client EventChannelsClient) ListByPartnerNamespaceResponder(resp *http.Response) (result EventChannelsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -385,6 +387,7 @@ func (client EventChannelsClient) listByPartnerNamespaceNextResults(ctx context.
 	result, err = client.ListByPartnerNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "listByPartnerNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

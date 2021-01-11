@@ -94,6 +94,7 @@ func (client WCFRelaysClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -134,7 +135,6 @@ func (client WCFRelaysClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client WCFRelaysClient) CreateOrUpdateResponder(resp *http.Response) (result WcfRelay, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,6 +195,7 @@ func (client WCFRelaysClient) CreateOrUpdateAuthorizationRule(ctx context.Contex
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,7 +237,6 @@ func (client WCFRelaysClient) CreateOrUpdateAuthorizationRuleSender(req *http.Re
 func (client WCFRelaysClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,6 +288,7 @@ func (client WCFRelaysClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,7 +327,6 @@ func (client WCFRelaysClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client WCFRelaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -380,6 +380,7 @@ func (client WCFRelaysClient) DeleteAuthorizationRule(ctx context.Context, resou
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -419,7 +420,6 @@ func (client WCFRelaysClient) DeleteAuthorizationRuleSender(req *http.Request) (
 func (client WCFRelaysClient) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -470,6 +470,7 @@ func (client WCFRelaysClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -508,7 +509,6 @@ func (client WCFRelaysClient) GetSender(req *http.Request) (*http.Response, erro
 func (client WCFRelaysClient) GetResponder(resp *http.Response) (result WcfRelay, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -563,6 +563,7 @@ func (client WCFRelaysClient) GetAuthorizationRule(ctx context.Context, resource
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -602,7 +603,6 @@ func (client WCFRelaysClient) GetAuthorizationRuleSender(req *http.Request) (*ht
 func (client WCFRelaysClient) GetAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -655,6 +655,10 @@ func (client WCFRelaysClient) ListAuthorizationRules(ctx context.Context, resour
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -693,7 +697,6 @@ func (client WCFRelaysClient) ListAuthorizationRulesSender(req *http.Request) (*
 func (client WCFRelaysClient) ListAuthorizationRulesResponder(resp *http.Response) (result AuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -718,6 +721,7 @@ func (client WCFRelaysClient) listAuthorizationRulesNextResults(ctx context.Cont
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -780,6 +784,10 @@ func (client WCFRelaysClient) ListByNamespace(ctx context.Context, resourceGroup
 	result.wrlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListByNamespace", resp, "Failure responding to request")
+		return
+	}
+	if result.wrlr.hasNextLink() && result.wrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -817,7 +825,6 @@ func (client WCFRelaysClient) ListByNamespaceSender(req *http.Request) (*http.Re
 func (client WCFRelaysClient) ListByNamespaceResponder(resp *http.Response) (result WcfRelaysListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -842,6 +849,7 @@ func (client WCFRelaysClient) listByNamespaceNextResults(ctx context.Context, la
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -909,6 +917,7 @@ func (client WCFRelaysClient) ListKeys(ctx context.Context, resourceGroupName st
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -948,7 +957,6 @@ func (client WCFRelaysClient) ListKeysSender(req *http.Request) (*http.Response,
 func (client WCFRelaysClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1004,6 +1012,7 @@ func (client WCFRelaysClient) RegenerateKeys(ctx context.Context, resourceGroupN
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1045,7 +1054,6 @@ func (client WCFRelaysClient) RegenerateKeysSender(req *http.Request) (*http.Res
 func (client WCFRelaysClient) RegenerateKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

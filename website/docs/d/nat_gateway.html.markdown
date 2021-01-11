@@ -38,6 +38,8 @@ The following attributes are exported:
 
 * `zones` - A list of Availability Zones which the NAT Gateway exists in.
 
+~> **NOTE:** The field `public_ip_address_ids` has been deprecated in favour of `azurerm_nat_gateway_public_ip_association`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

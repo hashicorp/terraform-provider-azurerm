@@ -129,7 +129,6 @@ func (client EndpointsClient) PurgeContentSender(req *http.Request) (future Endp
 func (client EndpointsClient) PurgeContentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

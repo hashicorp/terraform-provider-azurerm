@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -53,6 +54,12 @@ func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusR
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("cognitiveservices.ResourceSkusClient", "List", err.Error())
+	}
+
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
@@ -70,6 +77,10 @@ func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusR
 	result.rsr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -105,7 +116,6 @@ func (client ResourceSkusClient) ListSender(req *http.Request) (*http.Response, 
 func (client ResourceSkusClient) ListResponder(resp *http.Response) (result ResourceSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -130,6 +140,7 @@ func (client ResourceSkusClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

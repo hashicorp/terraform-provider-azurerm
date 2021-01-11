@@ -70,6 +70,7 @@ func (client GlobalAdministratorClient) ElevateAccess(ctx context.Context) (resu
 	result, err = client.ElevateAccessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.GlobalAdministratorClient", "ElevateAccess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -101,7 +102,6 @@ func (client GlobalAdministratorClient) ElevateAccessSender(req *http.Request) (
 func (client GlobalAdministratorClient) ElevateAccessResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

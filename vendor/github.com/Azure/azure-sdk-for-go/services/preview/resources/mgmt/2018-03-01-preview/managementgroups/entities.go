@@ -99,6 +99,10 @@ func (client EntitiesClient) List(ctx context.Context, skiptoken string, skip *i
 	result.elr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.EntitiesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.elr.hasNextLink() && result.elr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -161,7 +165,6 @@ func (client EntitiesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client EntitiesClient) ListResponder(resp *http.Response) (result EntityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,6 +189,7 @@ func (client EntitiesClient) listNextResults(ctx context.Context, lastResults En
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.EntitiesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

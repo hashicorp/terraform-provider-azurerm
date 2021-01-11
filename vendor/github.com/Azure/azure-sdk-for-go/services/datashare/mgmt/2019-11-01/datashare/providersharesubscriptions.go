@@ -75,6 +75,7 @@ func (client ProviderShareSubscriptionsClient) GetByShare(ctx context.Context, r
 	result, err = client.GetByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "GetByShare", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client ProviderShareSubscriptionsClient) GetByShareSender(req *http.Reques
 func (client ProviderShareSubscriptionsClient) GetByShareResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +156,10 @@ func (client ProviderShareSubscriptionsClient) ListByShare(ctx context.Context, 
 	result.pssl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "ListByShare", resp, "Failure responding to request")
+		return
+	}
+	if result.pssl.hasNextLink() && result.pssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -197,7 +201,6 @@ func (client ProviderShareSubscriptionsClient) ListByShareSender(req *http.Reque
 func (client ProviderShareSubscriptionsClient) ListByShareResponder(resp *http.Response) (result ProviderShareSubscriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,6 +225,7 @@ func (client ProviderShareSubscriptionsClient) listByShareNextResults(ctx contex
 	result, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "listByShareNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -275,6 +279,7 @@ func (client ProviderShareSubscriptionsClient) Reinstate(ctx context.Context, re
 	result, err = client.ReinstateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "Reinstate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,7 +319,6 @@ func (client ProviderShareSubscriptionsClient) ReinstateSender(req *http.Request
 func (client ProviderShareSubscriptionsClient) ReinstateResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -394,7 +398,6 @@ func (client ProviderShareSubscriptionsClient) RevokeSender(req *http.Request) (
 func (client ProviderShareSubscriptionsClient) RevokeResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -39,6 +40,7 @@ func dataSourceArmPlatformImage() *schema.Resource {
 
 			"version": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 		},
@@ -60,18 +62,33 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error reading Platform Images: %+v", err)
 	}
 
-	// the last value is the latest, apparently.
-	latestVersion := (*result.Value)[len(*result.Value)-1]
+	var image *compute.VirtualMachineImageResource
+	if v, ok := d.GetOk("version"); ok {
+		version := v.(string)
+		for _, item := range *result.Value {
+			if item.Name != nil && *item.Name == version {
+				image = &item
+				break
+			}
+		}
+		if image == nil {
+			return fmt.Errorf("could not find image (location %q / publisher %q / offer %q / sku %q / version % q): %+v", location, publisher, offer, sku, version, err)
+		}
+	} else {
+		// get the latest image
+		// the last value is the latest, apparently.
+		image = &(*result.Value)[len(*result.Value)-1]
+	}
 
-	d.SetId(*latestVersion.ID)
-	if location := latestVersion.Location; location != nil {
+	d.SetId(*image.ID)
+	if location := image.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("publisher", publisher)
 	d.Set("offer", offer)
 	d.Set("sku", sku)
-	d.Set("version", latestVersion.Name)
+	d.Set("version", image.Name)
 
 	return nil
 }

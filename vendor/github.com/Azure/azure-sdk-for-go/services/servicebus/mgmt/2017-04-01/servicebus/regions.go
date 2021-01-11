@@ -80,6 +80,10 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result P
 	result.pmrlr, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RegionsClient", "ListBySku", resp, "Failure responding to request")
+		return
+	}
+	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -116,7 +120,6 @@ func (client RegionsClient) ListBySkuSender(req *http.Request) (*http.Response, 
 func (client RegionsClient) ListBySkuResponder(resp *http.Response) (result PremiumMessagingRegionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -141,6 +144,7 @@ func (client RegionsClient) listBySkuNextResults(ctx context.Context, lastResult
 	result, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RegionsClient", "listBySkuNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

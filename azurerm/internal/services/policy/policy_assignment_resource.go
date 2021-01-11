@@ -2,12 +2,14 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -15,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -113,13 +114,52 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
+			"enforcement_mode": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"not_scopes": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"metadata": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: policyAssignmentsMetadataDiffSuppressFunc,
+			},
 		},
 	}
+}
+
+func policyAssignmentsMetadataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+	var oldPolicyAssignmentsMetadata map[string]interface{}
+	errOld := json.Unmarshal([]byte(old), &oldPolicyAssignmentsMetadata)
+	if errOld != nil {
+		return false
+	}
+
+	var newPolicyAssignmentsMetadata map[string]interface{}
+	if new != "" {
+		errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
+		if errNew != nil {
+			return false
+		}
+	}
+
+	// Ignore the following keys if they're found in the metadata JSON
+	ignoreKeys := [5]string{"assignedBy", "createdBy", "createdOn", "updatedBy", "updatedOn"}
+	for _, key := range ignoreKeys {
+		delete(oldPolicyAssignmentsMetadata, key)
+		delete(newPolicyAssignmentsMetadata, key)
+	}
+
+	return reflect.DeepEqual(oldPolicyAssignmentsMetadata, newPolicyAssignmentsMetadata)
 }
 
 func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -130,14 +170,11 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 
-	policyDefinitionId := d.Get("policy_definition_id").(string)
-	displayName := d.Get("display_name").(string)
-
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Policy Assignment %q: %s", name, err)
+				return fmt.Errorf("checking for presence of existing Policy Assignment %q: %s", name, err)
 			}
 		}
 
@@ -148,9 +185,10 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 
 	assignment := policy.Assignment{
 		AssignmentProperties: &policy.AssignmentProperties{
-			PolicyDefinitionID: utils.String(policyDefinitionId),
-			DisplayName:        utils.String(displayName),
+			PolicyDefinitionID: utils.String(d.Get("policy_definition_id").(string)),
+			DisplayName:        utils.String(d.Get("display_name").(string)),
 			Scope:              utils.String(scope),
+			EnforcementMode:    convertEnforcementMode(d.Get("enforcement_mode").(bool)),
 		},
 	}
 
@@ -158,9 +196,11 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 		assignment.AssignmentProperties.Description = utils.String(v)
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
-		policyIdentity := expandAzureRmPolicyIdentity(d)
-		assignment.Identity = policyIdentity
+	if v, ok := d.GetOk("identity"); ok {
+		if location := d.Get("location").(string); location == "" {
+			return fmt.Errorf("`location` must be set when `identity` is assigned")
+		}
+		assignment.Identity = expandAzureRmPolicyIdentity(v.([]interface{}))
 	}
 
 	if v := d.Get("location").(string); v != "" {
@@ -168,21 +208,28 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
-		expandedParams, err := structure.ExpandJsonFromString(v)
+		expandedParams, err := expandParameterValuesValueFromString(v)
 		if err != nil {
-			return fmt.Errorf("Error expanding JSON from Parameters %q: %+v", v, err)
+			return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
 		}
 
-		assignment.AssignmentProperties.Parameters = &expandedParams
+		assignment.AssignmentProperties.Parameters = expandedParams
 	}
 
-	if _, ok := d.GetOk("not_scopes"); ok {
-		notScopes := expandAzureRmPolicyNotScopes(d)
-		assignment.AssignmentProperties.NotScopes = notScopes
+	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
+		metaData, err := structure.ExpandJsonFromString(metaDataString)
+		if err != nil {
+			return fmt.Errorf("unable to parse metadata: %s", err)
+		}
+		assignment.AssignmentProperties.Metadata = &metaData
+	}
+
+	if v, ok := d.GetOk("not_scopes"); ok {
+		assignment.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
 	}
 
 	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
-		return err
+		return fmt.Errorf("creating/updating Policy Assignment %q (Scope %q): %+v", name, scope, err)
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
@@ -202,14 +249,17 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
+		return fmt.Errorf("waiting for Policy Assignment %q to become available: %s", name, err)
 	}
 
 	resp, err := client.Get(ctx, scope, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving Policy Assignment %q (Scope %q): %+v", name, scope, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Policy Assignment %q (Scope %q)", name, scope)
+	}
 	d.SetId(*resp.ID)
 
 	return resourceArmPolicyAssignmentRead(d, meta)
@@ -230,13 +280,13 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Policy Assignment %q: %+v", id, err)
+		return fmt.Errorf("reading Policy Assignment %q: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
 
 	if err := d.Set("identity", flattenAzureRmPolicyIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if location := resp.Location; location != nil {
@@ -248,12 +298,16 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
+		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
+
+		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
+			d.Set("metadata", metadataStr)
+		}
 
 		if params := props.Parameters; params != nil {
-			paramsVal := params.(map[string]interface{})
-			json, err := structure.FlattenJsonToString(paramsVal)
+			json, err := flattenParameterValuesValueToString(params)
 			if err != nil {
-				return fmt.Errorf("Error serializing JSON from Parameters: %+v", err)
+				return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 			}
 
 			d.Set("parameters", json)
@@ -278,7 +332,7 @@ func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Policy Assignment %q: %+v", id, err)
+		return fmt.Errorf("deleting Policy Assignment %q: %+v", id, err)
 	}
 
 	return nil
@@ -288,25 +342,22 @@ func policyAssignmentRefreshFunc(ctx context.Context, client *policy.Assignments
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, scope, name)
 		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q (Scope: %q): %s", name, scope, err)
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q (Scope: %q): %s", name, scope, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
 }
 
-func expandAzureRmPolicyIdentity(d *schema.ResourceData) *policy.Identity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	identity := identities[0].(map[string]interface{})
-
-	identityType := policy.ResourceIdentityType(identity["type"].(string))
-
-	policyIdentity := policy.Identity{
-		Type: identityType,
+func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
+	if len(input) == 0 {
+		return nil
 	}
+	identity := input[0].(map[string]interface{})
 
-	return &policyIdentity
+	return &policy.Identity{
+		Type: policy.ResourceIdentityType(identity["type"].(string)),
+	}
 }
 
 func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
@@ -327,13 +378,20 @@ func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
 	return []interface{}{result}
 }
 
-func expandAzureRmPolicyNotScopes(d *schema.ResourceData) *[]string {
-	notScopes := d.Get("not_scopes").([]interface{})
+func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	notScopesRes := make([]string, 0)
 
-	for _, notScope := range notScopes {
+	for _, notScope := range input {
 		notScopesRes = append(notScopesRes, notScope.(string))
 	}
 
 	return &notScopesRes
+}
+
+func convertEnforcementMode(mode bool) policy.EnforcementMode {
+	if mode {
+		return policy.Default
+	} else {
+		return policy.DoNotEnforce
+	}
 }

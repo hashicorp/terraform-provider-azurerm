@@ -117,7 +117,6 @@ func (client SystemTopicEventSubscriptionsClient) CreateOrUpdateSender(req *http
 func (client SystemTopicEventSubscriptionsClient) CreateOrUpdateResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client SystemTopicEventSubscriptionsClient) DeleteSender(req *http.Request
 func (client SystemTopicEventSubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -236,6 +234,7 @@ func (client SystemTopicEventSubscriptionsClient) Get(ctx context.Context, resou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,7 +273,6 @@ func (client SystemTopicEventSubscriptionsClient) GetSender(req *http.Request) (
 func (client SystemTopicEventSubscriptionsClient) GetResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +313,7 @@ func (client SystemTopicEventSubscriptionsClient) GetFullURL(ctx context.Context
 	result, err = client.GetFullURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -353,7 +352,6 @@ func (client SystemTopicEventSubscriptionsClient) GetFullURLSender(req *http.Req
 func (client SystemTopicEventSubscriptionsClient) GetFullURLResponder(resp *http.Response) (result EventSubscriptionFullURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -401,6 +399,10 @@ func (client SystemTopicEventSubscriptionsClient) ListBySystemTopic(ctx context.
 	result.eslr, err = client.ListBySystemTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "ListBySystemTopic", resp, "Failure responding to request")
+		return
+	}
+	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -444,7 +446,6 @@ func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicSender(req *h
 func (client SystemTopicEventSubscriptionsClient) ListBySystemTopicResponder(resp *http.Response) (result EventSubscriptionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -469,6 +470,7 @@ func (client SystemTopicEventSubscriptionsClient) listBySystemTopicNextResults(c
 	result, err = client.ListBySystemTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "listBySystemTopicNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -563,7 +565,6 @@ func (client SystemTopicEventSubscriptionsClient) UpdateSender(req *http.Request
 func (client SystemTopicEventSubscriptionsClient) UpdateResponder(resp *http.Response) (result EventSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

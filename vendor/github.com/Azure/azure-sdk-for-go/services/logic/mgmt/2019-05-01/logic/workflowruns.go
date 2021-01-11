@@ -73,6 +73,7 @@ func (client WorkflowRunsClient) Cancel(ctx context.Context, resourceGroupName s
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client WorkflowRunsClient) CancelSender(req *http.Request) (*http.Response
 func (client WorkflowRunsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -150,6 +150,7 @@ func (client WorkflowRunsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client WorkflowRunsClient) GetSender(req *http.Request) (*http.Response, e
 func (client WorkflowRunsClient) GetResponder(resp *http.Response) (result WorkflowRun, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -231,6 +231,10 @@ func (client WorkflowRunsClient) List(ctx context.Context, resourceGroupName str
 	result.wrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wrlr.hasNextLink() && result.wrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -274,7 +278,6 @@ func (client WorkflowRunsClient) ListSender(req *http.Request) (*http.Response, 
 func (client WorkflowRunsClient) ListResponder(resp *http.Response) (result WorkflowRunListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,6 +302,7 @@ func (client WorkflowRunsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

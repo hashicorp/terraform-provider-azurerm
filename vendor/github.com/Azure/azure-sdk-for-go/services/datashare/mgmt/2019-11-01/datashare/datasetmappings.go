@@ -75,6 +75,7 @@ func (client DataSetMappingsClient) Create(ctx context.Context, resourceGroupNam
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -116,7 +117,6 @@ func (client DataSetMappingsClient) CreateSender(req *http.Request) (*http.Respo
 func (client DataSetMappingsClient) CreateResponder(resp *http.Response) (result DataSetMappingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +157,7 @@ func (client DataSetMappingsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -196,7 +197,6 @@ func (client DataSetMappingsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client DataSetMappingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -236,6 +236,7 @@ func (client DataSetMappingsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -275,7 +276,6 @@ func (client DataSetMappingsClient) GetSender(req *http.Request) (*http.Response
 func (client DataSetMappingsClient) GetResponder(resp *http.Response) (result DataSetMappingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -289,7 +289,9 @@ func (client DataSetMappingsClient) GetResponder(resp *http.Response) (result Da
 // accountName - the name of the share account.
 // shareSubscriptionName - the name of the share subscription.
 // skipToken - continuation token
-func (client DataSetMappingsClient) ListByShareSubscription(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string) (result DataSetMappingListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client DataSetMappingsClient) ListByShareSubscription(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string, filter string, orderby string) (result DataSetMappingListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DataSetMappingsClient.ListByShareSubscription")
 		defer func() {
@@ -301,7 +303,7 @@ func (client DataSetMappingsClient) ListByShareSubscription(ctx context.Context,
 		}()
 	}
 	result.fn = client.listByShareSubscriptionNextResults
-	req, err := client.ListByShareSubscriptionPreparer(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken)
+	req, err := client.ListByShareSubscriptionPreparer(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "ListByShareSubscription", nil, "Failure preparing request")
 		return
@@ -317,13 +319,17 @@ func (client DataSetMappingsClient) ListByShareSubscription(ctx context.Context,
 	result.dsml, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "ListByShareSubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.dsml.hasNextLink() && result.dsml.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
 }
 
 // ListByShareSubscriptionPreparer prepares the ListByShareSubscription request.
-func (client DataSetMappingsClient) ListByShareSubscriptionPreparer(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string) (*http.Request, error) {
+func (client DataSetMappingsClient) ListByShareSubscriptionPreparer(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":           autorest.Encode("path", accountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
@@ -337,6 +343,12 @@ func (client DataSetMappingsClient) ListByShareSubscriptionPreparer(ctx context.
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -358,7 +370,6 @@ func (client DataSetMappingsClient) ListByShareSubscriptionSender(req *http.Requ
 func (client DataSetMappingsClient) ListByShareSubscriptionResponder(resp *http.Response) (result DataSetMappingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -383,12 +394,13 @@ func (client DataSetMappingsClient) listByShareSubscriptionNextResults(ctx conte
 	result, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "listByShareSubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
 
 // ListByShareSubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DataSetMappingsClient) ListByShareSubscriptionComplete(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string) (result DataSetMappingListIterator, err error) {
+func (client DataSetMappingsClient) ListByShareSubscriptionComplete(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string, filter string, orderby string) (result DataSetMappingListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DataSetMappingsClient.ListByShareSubscription")
 		defer func() {
@@ -399,6 +411,6 @@ func (client DataSetMappingsClient) ListByShareSubscriptionComplete(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByShareSubscription(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken)
+	result.page, err = client.ListByShareSubscription(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken, filter, orderby)
 	return
 }

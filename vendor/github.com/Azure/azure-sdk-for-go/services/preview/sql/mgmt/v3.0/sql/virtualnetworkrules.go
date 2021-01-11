@@ -126,7 +126,6 @@ func (client VirtualNetworkRulesClient) CreateOrUpdateSender(req *http.Request) 
 func (client VirtualNetworkRulesClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client VirtualNetworkRulesClient) DeleteSender(req *http.Request) (future 
 func (client VirtualNetworkRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -245,6 +243,7 @@ func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -283,7 +282,6 @@ func (client VirtualNetworkRulesClient) GetSender(req *http.Request) (*http.Resp
 func (client VirtualNetworkRulesClient) GetResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +322,10 @@ func (client VirtualNetworkRulesClient) ListByServer(ctx context.Context, resour
 	result.vnrlr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -361,7 +363,6 @@ func (client VirtualNetworkRulesClient) ListByServerSender(req *http.Request) (*
 func (client VirtualNetworkRulesClient) ListByServerResponder(resp *http.Response) (result VirtualNetworkRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +387,7 @@ func (client VirtualNetworkRulesClient) listByServerNextResults(ctx context.Cont
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

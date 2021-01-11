@@ -127,7 +127,6 @@ func (client ServiceClient) ApplyNetworkConfigurationUpdatesSender(req *http.Req
 func (client ServiceClient) ApplyNetworkConfigurationUpdatesResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,7 +219,6 @@ func (client ServiceClient) BackupSender(req *http.Request) (future ServiceBacku
 func (client ServiceClient) BackupResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,6 +262,7 @@ func (client ServiceClient) CheckNameAvailability(ctx context.Context, parameter
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -301,7 +300,6 @@ func (client ServiceClient) CheckNameAvailabilitySender(req *http.Request) (*htt
 func (client ServiceClient) CheckNameAvailabilityResponder(resp *http.Response) (result ServiceNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -400,7 +398,6 @@ func (client ServiceClient) CreateOrUpdateSender(req *http.Request) (future Serv
 func (client ServiceClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -484,7 +481,6 @@ func (client ServiceClient) DeleteSender(req *http.Request) (future ServiceDelet
 func (client ServiceClient) DeleteResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -531,6 +527,7 @@ func (client ServiceClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -568,7 +565,6 @@ func (client ServiceClient) GetSender(req *http.Request) (*http.Response, error)
 func (client ServiceClient) GetResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -615,6 +611,7 @@ func (client ServiceClient) GetSsoToken(ctx context.Context, resourceGroupName s
 	result, err = client.GetSsoTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "GetSsoToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -652,7 +649,6 @@ func (client ServiceClient) GetSsoTokenSender(req *http.Request) (*http.Response
 func (client ServiceClient) GetSsoTokenResponder(resp *http.Response) (result ServiceGetSsoTokenResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -689,6 +685,10 @@ func (client ServiceClient) List(ctx context.Context) (result ServiceListResultP
 	result.slr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -724,7 +724,6 @@ func (client ServiceClient) ListSender(req *http.Request) (*http.Response, error
 func (client ServiceClient) ListResponder(resp *http.Response) (result ServiceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -749,6 +748,7 @@ func (client ServiceClient) listNextResults(ctx context.Context, lastResults Ser
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -800,6 +800,10 @@ func (client ServiceClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.slr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -836,7 +840,6 @@ func (client ServiceClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client ServiceClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -861,6 +864,7 @@ func (client ServiceClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -966,7 +970,6 @@ func (client ServiceClient) RestoreSender(req *http.Request) (future ServiceRest
 func (client ServiceClient) RestoreResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1054,7 +1057,6 @@ func (client ServiceClient) UpdateSender(req *http.Request) (future ServiceUpdat
 func (client ServiceClient) UpdateResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

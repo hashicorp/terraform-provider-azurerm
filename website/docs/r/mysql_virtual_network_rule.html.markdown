@@ -15,6 +15,10 @@ Manages a MySQL Virtual Network Rule.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -31,26 +35,25 @@ resource "azurerm_subnet" "internal" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mysql_server" "example" {
-  name                         = "mysql-server-1"
-  location                     = azurerm_resource_group.example.location
-  resource_group_name          = azurerm_resource_group.example.name
+  name                = "example-mysqlserver"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
   administrator_login          = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.7"
-  ssl_enforcement              = "Enabled"
 
-  sku_name = "GP_Gen5_2"
+  sku_name   = "B_Gen5_2"
+  storage_mb = 5120
+  version    = "5.7"
 
-  storage_profile {
-    storage_mb            = 5120
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
+  ssl_enforcement_enabled      = true
 }
 
 resource "azurerm_mysql_virtual_network_rule" "example" {

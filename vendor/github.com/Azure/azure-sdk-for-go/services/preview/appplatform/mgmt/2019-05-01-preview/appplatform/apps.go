@@ -139,7 +139,6 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -180,6 +179,7 @@ func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -218,7 +218,6 @@ func (client AppsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -259,6 +258,7 @@ func (client AppsClient) Get(ctx context.Context, resourceGroupName string, serv
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -300,7 +300,6 @@ func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) GetResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -341,6 +340,7 @@ func (client AppsClient) GetResourceUploadURL(ctx context.Context, resourceGroup
 	result, err = client.GetResourceUploadURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "GetResourceUploadURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -379,7 +379,6 @@ func (client AppsClient) GetResourceUploadURLSender(req *http.Request) (*http.Re
 func (client AppsClient) GetResourceUploadURLResponder(resp *http.Response) (result ResourceUploadDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -420,6 +419,10 @@ func (client AppsClient) List(ctx context.Context, resourceGroupName string, ser
 	result.arc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.arc.hasNextLink() && result.arc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -457,7 +460,6 @@ func (client AppsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) ListResponder(resp *http.Response) (result AppResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -482,6 +484,7 @@ func (client AppsClient) listNextResults(ctx context.Context, lastResults AppRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -576,7 +579,6 @@ func (client AppsClient) UpdateSender(req *http.Request) (future AppsUpdateFutur
 func (client AppsClient) UpdateResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

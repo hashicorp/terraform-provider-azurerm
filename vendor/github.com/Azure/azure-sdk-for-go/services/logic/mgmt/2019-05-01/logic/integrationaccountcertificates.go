@@ -87,6 +87,7 @@ func (client IntegrationAccountCertificatesClient) CreateOrUpdate(ctx context.Co
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountCertificatesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client IntegrationAccountCertificatesClient) CreateOrUpdateSender(req *htt
 func (client IntegrationAccountCertificatesClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -167,6 +167,7 @@ func (client IntegrationAccountCertificatesClient) Delete(ctx context.Context, r
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountCertificatesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -205,7 +206,6 @@ func (client IntegrationAccountCertificatesClient) DeleteSender(req *http.Reques
 func (client IntegrationAccountCertificatesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -244,6 +244,7 @@ func (client IntegrationAccountCertificatesClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountCertificatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -282,7 +283,6 @@ func (client IntegrationAccountCertificatesClient) GetSender(req *http.Request) 
 func (client IntegrationAccountCertificatesClient) GetResponder(resp *http.Response) (result IntegrationAccountCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -323,6 +323,10 @@ func (client IntegrationAccountCertificatesClient) List(ctx context.Context, res
 	result.iaclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountCertificatesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.iaclr.hasNextLink() && result.iaclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -363,7 +367,6 @@ func (client IntegrationAccountCertificatesClient) ListSender(req *http.Request)
 func (client IntegrationAccountCertificatesClient) ListResponder(resp *http.Response) (result IntegrationAccountCertificateListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,6 +391,7 @@ func (client IntegrationAccountCertificatesClient) listNextResults(ctx context.C
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountCertificatesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -3,19 +3,21 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -35,6 +37,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
 		Delete: resourceWindowsVirtualMachineDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.VirtualMachineID(id)
 			return err
@@ -101,7 +104,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"allow_extension_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  true,
 			},
 
@@ -115,7 +117,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
-					// TODO: "virtual_machine_scale_set_id"
+					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
@@ -138,7 +140,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -149,8 +150,13 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"enable_automatic_updates": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true, // TODO: confirm
+				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				Default:  true,
+			},
+
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"eviction_policy": {
@@ -164,17 +170,30 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				}, false),
 			},
 
+			"extensions_time_budget": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+			},
+
 			"identity": virtualMachineIdentitySchema(),
 
 			"license_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"None",
 					"Windows_Client",
 					"Windows_Server",
 				}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
+					if old == "None" && new == "" || old == "" && new == "None" {
+						return true
+					}
+
+					return false
+				},
 			},
 
 			"max_bid_price": {
@@ -182,6 +201,18 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.FloatAtLeast(-1.0),
+			},
+
+			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
+			"patch_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.AutomaticByOS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AutomaticByOS),
+					string(compute.AutomaticByPlatform),
+					string(compute.Manual),
+				}, false),
 			},
 
 			"plan": planSchema(),
@@ -236,15 +267,28 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.VirtualMachineTimeZone(),
 			},
 
+			"virtual_machine_scale_set_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"availability_set_id",
+				},
+				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+			},
+
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
+				// the VMO mode VMSS will assign a zone for each of its instance.
+				// and if the VMSS in not zonal, this value should be left empty
+				Computed: true,
 				ConflictsWith: []string{
 					"availability_set_id",
-					// TODO: "virtual_machine_scale_set_id"
 				},
 			},
 
@@ -290,17 +334,15 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	locks.ByName(name, virtualMachineResourceName)
 	defer locks.UnlockByName(name, virtualMachineResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_windows_virtual_machine", *resp.ID)
+			return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_windows_virtual_machine", *resp.ID)
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -312,8 +354,10 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	adminPassword := d.Get("admin_password").(string)
 	adminUsername := d.Get("admin_username").(string)
 	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
+
 	var computerName string
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
@@ -394,11 +438,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
-
-			// @tombuildsstuff: passing in a VMSS ID returns:
-			// > Code="InvalidParameter" Message="The value of parameter virtualMachineScaleSet is invalid." Target="virtualMachineScaleSet"
-			// presuming this isn't finished yet; note: this'll conflict with availability set id
-			VirtualMachineScaleSet: nil,
+			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -409,6 +449,13 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if len(additionalUnattendContentRaw) > 0 {
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+	}
+
+	patchMode := d.Get("patch_mode").(string)
+	if patchMode != string(compute.AutomaticByOS) {
+		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(patchMode),
+		}
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -424,6 +471,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
 		params.Host = &compute.SubResource{
 			ID: utils.String(v.(string)),
+		}
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
 	}
 
@@ -453,6 +506,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		params.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+		params.VirtualMachineScaleSet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -552,6 +611,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("license_type", props.LicenseType)
 
+	extensionsTimeBudget := "PT1H30M"
+	if props.ExtensionsTimeBudget != nil {
+		extensionsTimeBudget = *props.ExtensionsTimeBudget
+	}
+	d.Set("extensions_time_budget", extensionsTimeBudget)
+
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
 	if props.BillingProfile != nil && props.BillingProfile.MaxPrice != nil {
@@ -571,6 +636,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
 
+	virtualMachineScaleSetId := ""
+	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
+		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
+	}
+	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
+
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
 		d.Set("allow_extension_operations", profile.AllowExtensionOperations)
@@ -584,6 +655,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
 
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+
+			if patchSettings := config.PatchSettings; patchSettings != nil {
+				d.Set("patch_mode", patchSettings.PatchMode)
+			}
+
 			d.Set("timezone", config.TimeZone)
 
 			if err := d.Set("winrm_listener", flattenWinRMListener(config.WinRM)); err != nil {
@@ -628,6 +704,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
+
+	encryptionAtHostEnabled := false
+	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
+		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	}
+	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
@@ -719,6 +801,34 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.VirtualMachineProperties.OsProfile = &profile
 	}
 
+	if d.HasChange("allow_extension_operations") {
+		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("patch_mode") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+		}
+	}
+
 	if d.HasChange("identity") {
 		shouldUpdate = true
 
@@ -728,6 +838,26 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_id"); ok {
+			update.Host = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.Host = &compute.SubResource{}
+		}
+	}
+
+	if d.HasChange("extensions_time_budget") {
+		shouldUpdate = true
+		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("max_bid_price") {
@@ -829,6 +959,70 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	if d.HasChange("additional_capabilities") {
+		shouldUpdate = true
+
+		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+			shouldShutDown = true
+			shouldDeallocate = true
+		}
+
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
+	}
+
+	if d.HasChange("encryption_at_host_enabled") {
+		shouldUpdate = true
+		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
+
+		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
+	}
+
+	if d.HasChange("license_type") {
+		shouldUpdate = true
+
+		license := d.Get("license_type").(string)
+		if license == "" {
+			// Only for create no specification is possible in the API. API does not allow empty string in update.
+			// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
+			// To allow updating in this case set value explicitly to 'None'.
+			license = "None"
+		}
+		update.VirtualMachineProperties.LicenseType = &license
+	}
+
+	if instanceView.Statuses != nil {
+		for _, status := range *instanceView.Statuses {
+			if status.Code == nil {
+				continue
+			}
+
+			// could also be the provisioning state which we're not bothered with here
+			state := strings.ToLower(*status.Code)
+			if !strings.HasPrefix(state, "powerstate/") {
+				continue
+			}
+
+			state = strings.TrimPrefix(state, "powerstate/")
+			switch strings.ToLower(state) {
+			case "deallocated":
+				// VM already deallocated, no shutdown and deallocation needed anymore
+				shouldShutDown = false
+				shouldDeallocate = false
+			case "deallocating":
+				// VM is deallocating
+				// To make sure we do not start updating before this action has finished,
+				// only skip the shutdown and send another deallocation request if shouldDeallocate == true
+				shouldShutDown = false
+			case "stopped":
+				// VM already stopped, no shutdown needed anymore
+				shouldShutDown = false
+			}
+		}
+	}
+
 	if shouldShutDown {
 		log.Printf("[DEBUG] Shutting Down Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		forceShutdown := false
@@ -909,11 +1103,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
 			if err != nil {
-				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
@@ -980,10 +1174,8 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	// ISSUE: XXX
 	// shutting down the Virtual Machine prior to removing it means users are no longer charged for the compute
 	// thus this can be a large cost-saving when deleting larger instances
-	// in addition - since we're shutting down the machine to remove it, forcing a power-off is fine (as opposed
-	// to waiting for a graceful shut down)
 	log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	skipShutdown := true
+	skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
 	powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
 	if err != nil {
 		return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -994,7 +1186,11 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -1020,24 +1216,60 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.Response()) {
 				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.Name, diskId.ResourceGroup)
+			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroup)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	}
+
+	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
+	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
+	// disks have actually been deleted.
+
+	log.Printf("[INFO] verifying Windows Virtual Machine %q has been deleted", id.Name)
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
+		return fmt.Errorf("verifying Windows Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if !utils.ResponseWasNotFound(virtualMachine.Response) {
+		log.Printf("[INFO] Windows Virtual Machine still exists, waiting on Windows Virtual Machine %q to be deleted", id.Name)
+
+		deleteWait := &resource.StateChangeConf{
+			Pending:    []string{"200"},
+			Target:     []string{"404"},
+			MinTimeout: 30 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+			Refresh: func() (interface{}, string, error) {
+				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return resp, strconv.Itoa(resp.StatusCode), nil
+					}
+					return nil, "nil", fmt.Errorf("polling for the status of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+				}
+				return resp, strconv.Itoa(resp.StatusCode), nil
+			},
+		}
+
+		if _, err := deleteWait.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for the deletion of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil

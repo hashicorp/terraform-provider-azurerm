@@ -86,6 +86,7 @@ func (client NetworkStatusClient) ListByLocation(ctx context.Context, resourceGr
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NetworkStatusClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client NetworkStatusClient) ListByLocationSender(req *http.Request) (*http
 func (client NetworkStatusClient) ListByLocationResponder(resp *http.Response) (result NetworkStatusContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -172,6 +172,7 @@ func (client NetworkStatusClient) ListByService(ctx context.Context, resourceGro
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NetworkStatusClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -209,7 +210,6 @@ func (client NetworkStatusClient) ListByServiceSender(req *http.Request) (*http.
 func (client NetworkStatusClient) ListByServiceResponder(resp *http.Response) (result ListNetworkStatusContractByLocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

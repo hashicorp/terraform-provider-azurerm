@@ -31,440 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 
-// CostThresholdStatus enumerates the values for cost threshold status.
-type CostThresholdStatus string
-
-const (
-	// Disabled ...
-	Disabled CostThresholdStatus = "Disabled"
-	// Enabled ...
-	Enabled CostThresholdStatus = "Enabled"
-)
-
-// PossibleCostThresholdStatusValues returns an array of possible values for the CostThresholdStatus const type.
-func PossibleCostThresholdStatusValues() []CostThresholdStatus {
-	return []CostThresholdStatus{Disabled, Enabled}
-}
-
-// CostType enumerates the values for cost type.
-type CostType string
-
-const (
-	// Projected ...
-	Projected CostType = "Projected"
-	// Reported ...
-	Reported CostType = "Reported"
-	// Unavailable ...
-	Unavailable CostType = "Unavailable"
-)
-
-// PossibleCostTypeValues returns an array of possible values for the CostType const type.
-func PossibleCostTypeValues() []CostType {
-	return []CostType{Projected, Reported, Unavailable}
-}
-
-// CustomImageOsType enumerates the values for custom image os type.
-type CustomImageOsType string
-
-const (
-	// Linux ...
-	Linux CustomImageOsType = "Linux"
-	// None ...
-	None CustomImageOsType = "None"
-	// Windows ...
-	Windows CustomImageOsType = "Windows"
-)
-
-// PossibleCustomImageOsTypeValues returns an array of possible values for the CustomImageOsType const type.
-func PossibleCustomImageOsTypeValues() []CustomImageOsType {
-	return []CustomImageOsType{Linux, None, Windows}
-}
-
-// EnableStatus enumerates the values for enable status.
-type EnableStatus string
-
-const (
-	// EnableStatusDisabled ...
-	EnableStatusDisabled EnableStatus = "Disabled"
-	// EnableStatusEnabled ...
-	EnableStatusEnabled EnableStatus = "Enabled"
-)
-
-// PossibleEnableStatusValues returns an array of possible values for the EnableStatus const type.
-func PossibleEnableStatusValues() []EnableStatus {
-	return []EnableStatus{EnableStatusDisabled, EnableStatusEnabled}
-}
-
-// FileUploadOptions enumerates the values for file upload options.
-type FileUploadOptions string
-
-const (
-	// FileUploadOptionsNone ...
-	FileUploadOptionsNone FileUploadOptions = "None"
-	// FileUploadOptionsUploadFilesAndGenerateSasTokens ...
-	FileUploadOptionsUploadFilesAndGenerateSasTokens FileUploadOptions = "UploadFilesAndGenerateSasTokens"
-)
-
-// PossibleFileUploadOptionsValues returns an array of possible values for the FileUploadOptions const type.
-func PossibleFileUploadOptionsValues() []FileUploadOptions {
-	return []FileUploadOptions{FileUploadOptionsNone, FileUploadOptionsUploadFilesAndGenerateSasTokens}
-}
-
-// HostCachingOptions enumerates the values for host caching options.
-type HostCachingOptions string
-
-const (
-	// HostCachingOptionsNone ...
-	HostCachingOptionsNone HostCachingOptions = "None"
-	// HostCachingOptionsReadOnly ...
-	HostCachingOptionsReadOnly HostCachingOptions = "ReadOnly"
-	// HostCachingOptionsReadWrite ...
-	HostCachingOptionsReadWrite HostCachingOptions = "ReadWrite"
-)
-
-// PossibleHostCachingOptionsValues returns an array of possible values for the HostCachingOptions const type.
-func PossibleHostCachingOptionsValues() []HostCachingOptions {
-	return []HostCachingOptions{HostCachingOptionsNone, HostCachingOptionsReadOnly, HostCachingOptionsReadWrite}
-}
-
-// HTTPStatusCode enumerates the values for http status code.
-type HTTPStatusCode string
-
-const (
-	// Accepted ...
-	Accepted HTTPStatusCode = "Accepted"
-	// BadGateway ...
-	BadGateway HTTPStatusCode = "BadGateway"
-	// BadRequest ...
-	BadRequest HTTPStatusCode = "BadRequest"
-	// Conflict ...
-	Conflict HTTPStatusCode = "Conflict"
-	// Continue ...
-	Continue HTTPStatusCode = "Continue"
-	// Created ...
-	Created HTTPStatusCode = "Created"
-	// ExpectationFailed ...
-	ExpectationFailed HTTPStatusCode = "ExpectationFailed"
-	// Forbidden ...
-	Forbidden HTTPStatusCode = "Forbidden"
-	// GatewayTimeout ...
-	GatewayTimeout HTTPStatusCode = "GatewayTimeout"
-	// Gone ...
-	Gone HTTPStatusCode = "Gone"
-	// HTTPVersionNotSupported ...
-	HTTPVersionNotSupported HTTPStatusCode = "HttpVersionNotSupported"
-	// InternalServerError ...
-	InternalServerError HTTPStatusCode = "InternalServerError"
-	// LengthRequired ...
-	LengthRequired HTTPStatusCode = "LengthRequired"
-	// MethodNotAllowed ...
-	MethodNotAllowed HTTPStatusCode = "MethodNotAllowed"
-	// MovedPermanently ...
-	MovedPermanently HTTPStatusCode = "MovedPermanently"
-	// MultipleChoices ...
-	MultipleChoices HTTPStatusCode = "MultipleChoices"
-	// NoContent ...
-	NoContent HTTPStatusCode = "NoContent"
-	// NonAuthoritativeInformation ...
-	NonAuthoritativeInformation HTTPStatusCode = "NonAuthoritativeInformation"
-	// NotAcceptable ...
-	NotAcceptable HTTPStatusCode = "NotAcceptable"
-	// NotFound ...
-	NotFound HTTPStatusCode = "NotFound"
-	// NotImplemented ...
-	NotImplemented HTTPStatusCode = "NotImplemented"
-	// NotModified ...
-	NotModified HTTPStatusCode = "NotModified"
-	// OK ...
-	OK HTTPStatusCode = "OK"
-	// PartialContent ...
-	PartialContent HTTPStatusCode = "PartialContent"
-	// PaymentRequired ...
-	PaymentRequired HTTPStatusCode = "PaymentRequired"
-	// PreconditionFailed ...
-	PreconditionFailed HTTPStatusCode = "PreconditionFailed"
-	// ProxyAuthenticationRequired ...
-	ProxyAuthenticationRequired HTTPStatusCode = "ProxyAuthenticationRequired"
-	// Redirect ...
-	Redirect HTTPStatusCode = "Redirect"
-	// RequestedRangeNotSatisfiable ...
-	RequestedRangeNotSatisfiable HTTPStatusCode = "RequestedRangeNotSatisfiable"
-	// RequestEntityTooLarge ...
-	RequestEntityTooLarge HTTPStatusCode = "RequestEntityTooLarge"
-	// RequestTimeout ...
-	RequestTimeout HTTPStatusCode = "RequestTimeout"
-	// RequestURITooLong ...
-	RequestURITooLong HTTPStatusCode = "RequestUriTooLong"
-	// ResetContent ...
-	ResetContent HTTPStatusCode = "ResetContent"
-	// SeeOther ...
-	SeeOther HTTPStatusCode = "SeeOther"
-	// ServiceUnavailable ...
-	ServiceUnavailable HTTPStatusCode = "ServiceUnavailable"
-	// SwitchingProtocols ...
-	SwitchingProtocols HTTPStatusCode = "SwitchingProtocols"
-	// TemporaryRedirect ...
-	TemporaryRedirect HTTPStatusCode = "TemporaryRedirect"
-	// Unauthorized ...
-	Unauthorized HTTPStatusCode = "Unauthorized"
-	// UnsupportedMediaType ...
-	UnsupportedMediaType HTTPStatusCode = "UnsupportedMediaType"
-	// Unused ...
-	Unused HTTPStatusCode = "Unused"
-	// UpgradeRequired ...
-	UpgradeRequired HTTPStatusCode = "UpgradeRequired"
-	// UseProxy ...
-	UseProxy HTTPStatusCode = "UseProxy"
-)
-
-// PossibleHTTPStatusCodeValues returns an array of possible values for the HTTPStatusCode const type.
-func PossibleHTTPStatusCodeValues() []HTTPStatusCode {
-	return []HTTPStatusCode{Accepted, BadGateway, BadRequest, Conflict, Continue, Created, ExpectationFailed, Forbidden, GatewayTimeout, Gone, HTTPVersionNotSupported, InternalServerError, LengthRequired, MethodNotAllowed, MovedPermanently, MultipleChoices, NoContent, NonAuthoritativeInformation, NotAcceptable, NotFound, NotImplemented, NotModified, OK, PartialContent, PaymentRequired, PreconditionFailed, ProxyAuthenticationRequired, Redirect, RequestedRangeNotSatisfiable, RequestEntityTooLarge, RequestTimeout, RequestURITooLong, ResetContent, SeeOther, ServiceUnavailable, SwitchingProtocols, TemporaryRedirect, Unauthorized, UnsupportedMediaType, Unused, UpgradeRequired, UseProxy}
-}
-
-// LinuxOsState enumerates the values for linux os state.
-type LinuxOsState string
-
-const (
-	// DeprovisionApplied ...
-	DeprovisionApplied LinuxOsState = "DeprovisionApplied"
-	// DeprovisionRequested ...
-	DeprovisionRequested LinuxOsState = "DeprovisionRequested"
-	// NonDeprovisioned ...
-	NonDeprovisioned LinuxOsState = "NonDeprovisioned"
-)
-
-// PossibleLinuxOsStateValues returns an array of possible values for the LinuxOsState const type.
-func PossibleLinuxOsStateValues() []LinuxOsState {
-	return []LinuxOsState{DeprovisionApplied, DeprovisionRequested, NonDeprovisioned}
-}
-
-// NotificationChannelEventType enumerates the values for notification channel event type.
-type NotificationChannelEventType string
-
-const (
-	// AutoShutdown ...
-	AutoShutdown NotificationChannelEventType = "AutoShutdown"
-	// Cost ...
-	Cost NotificationChannelEventType = "Cost"
-)
-
-// PossibleNotificationChannelEventTypeValues returns an array of possible values for the NotificationChannelEventType const type.
-func PossibleNotificationChannelEventTypeValues() []NotificationChannelEventType {
-	return []NotificationChannelEventType{AutoShutdown, Cost}
-}
-
-// NotificationStatus enumerates the values for notification status.
-type NotificationStatus string
-
-const (
-	// NotificationStatusDisabled ...
-	NotificationStatusDisabled NotificationStatus = "Disabled"
-	// NotificationStatusEnabled ...
-	NotificationStatusEnabled NotificationStatus = "Enabled"
-)
-
-// PossibleNotificationStatusValues returns an array of possible values for the NotificationStatus const type.
-func PossibleNotificationStatusValues() []NotificationStatus {
-	return []NotificationStatus{NotificationStatusDisabled, NotificationStatusEnabled}
-}
-
-// PolicyEvaluatorType enumerates the values for policy evaluator type.
-type PolicyEvaluatorType string
-
-const (
-	// AllowedValuesPolicy ...
-	AllowedValuesPolicy PolicyEvaluatorType = "AllowedValuesPolicy"
-	// MaxValuePolicy ...
-	MaxValuePolicy PolicyEvaluatorType = "MaxValuePolicy"
-)
-
-// PossiblePolicyEvaluatorTypeValues returns an array of possible values for the PolicyEvaluatorType const type.
-func PossiblePolicyEvaluatorTypeValues() []PolicyEvaluatorType {
-	return []PolicyEvaluatorType{AllowedValuesPolicy, MaxValuePolicy}
-}
-
-// PolicyFactName enumerates the values for policy fact name.
-type PolicyFactName string
-
-const (
-	// PolicyFactNameGalleryImage ...
-	PolicyFactNameGalleryImage PolicyFactName = "GalleryImage"
-	// PolicyFactNameLabPremiumVMCount ...
-	PolicyFactNameLabPremiumVMCount PolicyFactName = "LabPremiumVmCount"
-	// PolicyFactNameLabTargetCost ...
-	PolicyFactNameLabTargetCost PolicyFactName = "LabTargetCost"
-	// PolicyFactNameLabVMCount ...
-	PolicyFactNameLabVMCount PolicyFactName = "LabVmCount"
-	// PolicyFactNameLabVMSize ...
-	PolicyFactNameLabVMSize PolicyFactName = "LabVmSize"
-	// PolicyFactNameUserOwnedLabPremiumVMCount ...
-	PolicyFactNameUserOwnedLabPremiumVMCount PolicyFactName = "UserOwnedLabPremiumVmCount"
-	// PolicyFactNameUserOwnedLabVMCount ...
-	PolicyFactNameUserOwnedLabVMCount PolicyFactName = "UserOwnedLabVmCount"
-	// PolicyFactNameUserOwnedLabVMCountInSubnet ...
-	PolicyFactNameUserOwnedLabVMCountInSubnet PolicyFactName = "UserOwnedLabVmCountInSubnet"
-)
-
-// PossiblePolicyFactNameValues returns an array of possible values for the PolicyFactName const type.
-func PossiblePolicyFactNameValues() []PolicyFactName {
-	return []PolicyFactName{PolicyFactNameGalleryImage, PolicyFactNameLabPremiumVMCount, PolicyFactNameLabTargetCost, PolicyFactNameLabVMCount, PolicyFactNameLabVMSize, PolicyFactNameUserOwnedLabPremiumVMCount, PolicyFactNameUserOwnedLabVMCount, PolicyFactNameUserOwnedLabVMCountInSubnet}
-}
-
-// PolicyStatus enumerates the values for policy status.
-type PolicyStatus string
-
-const (
-	// PolicyStatusDisabled ...
-	PolicyStatusDisabled PolicyStatus = "Disabled"
-	// PolicyStatusEnabled ...
-	PolicyStatusEnabled PolicyStatus = "Enabled"
-)
-
-// PossiblePolicyStatusValues returns an array of possible values for the PolicyStatus const type.
-func PossiblePolicyStatusValues() []PolicyStatus {
-	return []PolicyStatus{PolicyStatusDisabled, PolicyStatusEnabled}
-}
-
-// PremiumDataDisk enumerates the values for premium data disk.
-type PremiumDataDisk string
-
-const (
-	// PremiumDataDiskDisabled ...
-	PremiumDataDiskDisabled PremiumDataDisk = "Disabled"
-	// PremiumDataDiskEnabled ...
-	PremiumDataDiskEnabled PremiumDataDisk = "Enabled"
-)
-
-// PossiblePremiumDataDiskValues returns an array of possible values for the PremiumDataDisk const type.
-func PossiblePremiumDataDiskValues() []PremiumDataDisk {
-	return []PremiumDataDisk{PremiumDataDiskDisabled, PremiumDataDiskEnabled}
-}
-
-// ReportingCycleType enumerates the values for reporting cycle type.
-type ReportingCycleType string
-
-const (
-	// CalendarMonth ...
-	CalendarMonth ReportingCycleType = "CalendarMonth"
-	// Custom ...
-	Custom ReportingCycleType = "Custom"
-)
-
-// PossibleReportingCycleTypeValues returns an array of possible values for the ReportingCycleType const type.
-func PossibleReportingCycleTypeValues() []ReportingCycleType {
-	return []ReportingCycleType{CalendarMonth, Custom}
-}
-
-// SourceControlType enumerates the values for source control type.
-type SourceControlType string
-
-const (
-	// GitHub ...
-	GitHub SourceControlType = "GitHub"
-	// VsoGit ...
-	VsoGit SourceControlType = "VsoGit"
-)
-
-// PossibleSourceControlTypeValues returns an array of possible values for the SourceControlType const type.
-func PossibleSourceControlTypeValues() []SourceControlType {
-	return []SourceControlType{GitHub, VsoGit}
-}
-
-// StorageType enumerates the values for storage type.
-type StorageType string
-
-const (
-	// Premium ...
-	Premium StorageType = "Premium"
-	// Standard ...
-	Standard StorageType = "Standard"
-)
-
-// PossibleStorageTypeValues returns an array of possible values for the StorageType const type.
-func PossibleStorageTypeValues() []StorageType {
-	return []StorageType{Premium, Standard}
-}
-
-// TargetCostStatus enumerates the values for target cost status.
-type TargetCostStatus string
-
-const (
-	// TargetCostStatusDisabled ...
-	TargetCostStatusDisabled TargetCostStatus = "Disabled"
-	// TargetCostStatusEnabled ...
-	TargetCostStatusEnabled TargetCostStatus = "Enabled"
-)
-
-// PossibleTargetCostStatusValues returns an array of possible values for the TargetCostStatus const type.
-func PossibleTargetCostStatusValues() []TargetCostStatus {
-	return []TargetCostStatus{TargetCostStatusDisabled, TargetCostStatusEnabled}
-}
-
-// TransportProtocol enumerates the values for transport protocol.
-type TransportProtocol string
-
-const (
-	// TCP ...
-	TCP TransportProtocol = "Tcp"
-	// UDP ...
-	UDP TransportProtocol = "Udp"
-)
-
-// PossibleTransportProtocolValues returns an array of possible values for the TransportProtocol const type.
-func PossibleTransportProtocolValues() []TransportProtocol {
-	return []TransportProtocol{TCP, UDP}
-}
-
-// UsagePermissionType enumerates the values for usage permission type.
-type UsagePermissionType string
-
-const (
-	// Allow ...
-	Allow UsagePermissionType = "Allow"
-	// Default ...
-	Default UsagePermissionType = "Default"
-	// Deny ...
-	Deny UsagePermissionType = "Deny"
-)
-
-// PossibleUsagePermissionTypeValues returns an array of possible values for the UsagePermissionType const type.
-func PossibleUsagePermissionTypeValues() []UsagePermissionType {
-	return []UsagePermissionType{Allow, Default, Deny}
-}
-
-// VirtualMachineCreationSource enumerates the values for virtual machine creation source.
-type VirtualMachineCreationSource string
-
-const (
-	// FromCustomImage ...
-	FromCustomImage VirtualMachineCreationSource = "FromCustomImage"
-	// FromGalleryImage ...
-	FromGalleryImage VirtualMachineCreationSource = "FromGalleryImage"
-)
-
-// PossibleVirtualMachineCreationSourceValues returns an array of possible values for the VirtualMachineCreationSource const type.
-func PossibleVirtualMachineCreationSourceValues() []VirtualMachineCreationSource {
-	return []VirtualMachineCreationSource{FromCustomImage, FromGalleryImage}
-}
-
-// WindowsOsState enumerates the values for windows os state.
-type WindowsOsState string
-
-const (
-	// NonSysprepped ...
-	NonSysprepped WindowsOsState = "NonSysprepped"
-	// SysprepApplied ...
-	SysprepApplied WindowsOsState = "SysprepApplied"
-	// SysprepRequested ...
-	SysprepRequested WindowsOsState = "SysprepRequested"
-)
-
-// PossibleWindowsOsStateValues returns an array of possible values for the WindowsOsState const type.
-func PossibleWindowsOsStateValues() []WindowsOsState {
-	return []WindowsOsState{NonSysprepped, SysprepApplied, SysprepRequested}
-}
-
 // ApplicableSchedule schedules applicable to a virtual machine. The schedules may have been defined on a
 // VM or on lab level.
 type ApplicableSchedule struct {
@@ -1242,6 +808,42 @@ type ArtifactSourceProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ArtifactSourceProperties.
+func (asp ArtifactSourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asp.DisplayName != nil {
+		objectMap["displayName"] = asp.DisplayName
+	}
+	if asp.URI != nil {
+		objectMap["uri"] = asp.URI
+	}
+	if asp.SourceType != "" {
+		objectMap["sourceType"] = asp.SourceType
+	}
+	if asp.FolderPath != nil {
+		objectMap["folderPath"] = asp.FolderPath
+	}
+	if asp.ArmTemplateFolderPath != nil {
+		objectMap["armTemplateFolderPath"] = asp.ArmTemplateFolderPath
+	}
+	if asp.BranchRef != nil {
+		objectMap["branchRef"] = asp.BranchRef
+	}
+	if asp.SecurityToken != nil {
+		objectMap["securityToken"] = asp.SecurityToken
+	}
+	if asp.Status != "" {
+		objectMap["status"] = asp.Status
+	}
+	if asp.ProvisioningState != nil {
+		objectMap["provisioningState"] = asp.ProvisioningState
+	}
+	if asp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = asp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // ArtifactSourcePropertiesFragment properties of an artifact source.
 type ArtifactSourcePropertiesFragment struct {
 	// DisplayName - The artifact source's display name.
@@ -1517,6 +1119,33 @@ type CustomImageProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CustomImageProperties.
+func (cip CustomImageProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cip.VM != nil {
+		objectMap["vm"] = cip.VM
+	}
+	if cip.Vhd != nil {
+		objectMap["vhd"] = cip.Vhd
+	}
+	if cip.Description != nil {
+		objectMap["description"] = cip.Description
+	}
+	if cip.Author != nil {
+		objectMap["author"] = cip.Author
+	}
+	if cip.ManagedImageID != nil {
+		objectMap["managedImageId"] = cip.ManagedImageID
+	}
+	if cip.ProvisioningState != nil {
+		objectMap["provisioningState"] = cip.ProvisioningState
+	}
+	if cip.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = cip.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // CustomImagePropertiesCustom properties for creating a custom image from a VHD.
 type CustomImagePropertiesCustom struct {
 	// ImageName - The image name.
@@ -1748,6 +1377,39 @@ type DiskProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DiskProperties.
+func (dp DiskProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dp.DiskType != "" {
+		objectMap["diskType"] = dp.DiskType
+	}
+	if dp.DiskSizeGiB != nil {
+		objectMap["diskSizeGiB"] = dp.DiskSizeGiB
+	}
+	if dp.LeasedByLabVMID != nil {
+		objectMap["leasedByLabVmId"] = dp.LeasedByLabVMID
+	}
+	if dp.DiskBlobName != nil {
+		objectMap["diskBlobName"] = dp.DiskBlobName
+	}
+	if dp.DiskURI != nil {
+		objectMap["diskUri"] = dp.DiskURI
+	}
+	if dp.HostCaching != nil {
+		objectMap["hostCaching"] = dp.HostCaching
+	}
+	if dp.ManagedDiskID != nil {
+		objectMap["managedDiskId"] = dp.ManagedDiskID
+	}
+	if dp.ProvisioningState != nil {
+		objectMap["provisioningState"] = dp.ProvisioningState
+	}
+	if dp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = dp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // DisksAttachFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DisksAttachFuture struct {
 	azure.Future
@@ -1966,6 +1628,24 @@ type EnvironmentProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// UniqueIdentifier - The unique immutable identifier of a resource (Guid).
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EnvironmentProperties.
+func (ep EnvironmentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ep.DeploymentProperties != nil {
+		objectMap["deploymentProperties"] = ep.DeploymentProperties
+	}
+	if ep.ArmTemplateDisplayName != nil {
+		objectMap["armTemplateDisplayName"] = ep.ArmTemplateDisplayName
+	}
+	if ep.ProvisioningState != nil {
+		objectMap["provisioningState"] = ep.ProvisioningState
+	}
+	if ep.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = ep.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
 }
 
 // EnvironmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -2200,6 +1880,33 @@ type FormulaProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FormulaProperties.
+func (fp FormulaProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fp.Description != nil {
+		objectMap["description"] = fp.Description
+	}
+	if fp.Author != nil {
+		objectMap["author"] = fp.Author
+	}
+	if fp.OsType != nil {
+		objectMap["osType"] = fp.OsType
+	}
+	if fp.FormulaContent != nil {
+		objectMap["formulaContent"] = fp.FormulaContent
+	}
+	if fp.VM != nil {
+		objectMap["vm"] = fp.VM
+	}
+	if fp.ProvisioningState != nil {
+		objectMap["provisioningState"] = fp.ProvisioningState
+	}
+	if fp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = fp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // FormulaPropertiesFromVM information about a VM from which a formula is to be created.
 type FormulaPropertiesFromVM struct {
 	// LabVMID - The identifier of the VM from which a formula is to be created.
@@ -2349,6 +2056,27 @@ type GalleryImageProperties struct {
 	Icon *string `json:"icon,omitempty"`
 	// Enabled - Indicates whether this gallery image is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GalleryImageProperties.
+func (gip GalleryImageProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gip.Author != nil {
+		objectMap["author"] = gip.Author
+	}
+	if gip.Description != nil {
+		objectMap["description"] = gip.Description
+	}
+	if gip.ImageReference != nil {
+		objectMap["imageReference"] = gip.ImageReference
+	}
+	if gip.Icon != nil {
+		objectMap["icon"] = gip.Icon
+	}
+	if gip.Enabled != nil {
+		objectMap["enabled"] = gip.Enabled
+	}
+	return json.Marshal(objectMap)
 }
 
 // GalleryImageReference the reference information for an Azure Marketplace image.
@@ -2732,6 +2460,33 @@ type LabCostProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LabCostProperties.
+func (lcp LabCostProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lcp.TargetCost != nil {
+		objectMap["targetCost"] = lcp.TargetCost
+	}
+	if lcp.CurrencyCode != nil {
+		objectMap["currencyCode"] = lcp.CurrencyCode
+	}
+	if lcp.StartDateTime != nil {
+		objectMap["startDateTime"] = lcp.StartDateTime
+	}
+	if lcp.EndDateTime != nil {
+		objectMap["endDateTime"] = lcp.EndDateTime
+	}
+	if lcp.CreatedDate != nil {
+		objectMap["createdDate"] = lcp.CreatedDate
+	}
+	if lcp.ProvisioningState != nil {
+		objectMap["provisioningState"] = lcp.ProvisioningState
+	}
+	if lcp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = lcp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // LabCostSummaryProperties the properties of the cost summary.
 type LabCostSummaryProperties struct {
 	// EstimatedLabCost - The cost component of the cost item.
@@ -2862,6 +2617,24 @@ type LabProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// UniqueIdentifier - The unique immutable identifier of a resource (Guid).
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LabProperties.
+func (lp LabProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lp.LabStorageType != "" {
+		objectMap["labStorageType"] = lp.LabStorageType
+	}
+	if lp.PremiumDataDisks != "" {
+		objectMap["premiumDataDisks"] = lp.PremiumDataDisks
+	}
+	if lp.ProvisioningState != nil {
+		objectMap["provisioningState"] = lp.ProvisioningState
+	}
+	if lp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = lp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
 }
 
 // LabPropertiesFragment properties of a lab.
@@ -3440,6 +3213,102 @@ type LabVirtualMachineProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LabVirtualMachineProperties.
+func (lvmp LabVirtualMachineProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lvmp.Notes != nil {
+		objectMap["notes"] = lvmp.Notes
+	}
+	if lvmp.OwnerObjectID != nil {
+		objectMap["ownerObjectId"] = lvmp.OwnerObjectID
+	}
+	if lvmp.OwnerUserPrincipalName != nil {
+		objectMap["ownerUserPrincipalName"] = lvmp.OwnerUserPrincipalName
+	}
+	if lvmp.CreatedByUserID != nil {
+		objectMap["createdByUserId"] = lvmp.CreatedByUserID
+	}
+	if lvmp.CreatedByUser != nil {
+		objectMap["createdByUser"] = lvmp.CreatedByUser
+	}
+	if lvmp.CreatedDate != nil {
+		objectMap["createdDate"] = lvmp.CreatedDate
+	}
+	if lvmp.CustomImageID != nil {
+		objectMap["customImageId"] = lvmp.CustomImageID
+	}
+	if lvmp.OsType != nil {
+		objectMap["osType"] = lvmp.OsType
+	}
+	if lvmp.Size != nil {
+		objectMap["size"] = lvmp.Size
+	}
+	if lvmp.UserName != nil {
+		objectMap["userName"] = lvmp.UserName
+	}
+	if lvmp.Password != nil {
+		objectMap["password"] = lvmp.Password
+	}
+	if lvmp.SSHKey != nil {
+		objectMap["sshKey"] = lvmp.SSHKey
+	}
+	if lvmp.IsAuthenticationWithSSHKey != nil {
+		objectMap["isAuthenticationWithSshKey"] = lvmp.IsAuthenticationWithSSHKey
+	}
+	if lvmp.Fqdn != nil {
+		objectMap["fqdn"] = lvmp.Fqdn
+	}
+	if lvmp.LabSubnetName != nil {
+		objectMap["labSubnetName"] = lvmp.LabSubnetName
+	}
+	if lvmp.LabVirtualNetworkID != nil {
+		objectMap["labVirtualNetworkId"] = lvmp.LabVirtualNetworkID
+	}
+	if lvmp.DisallowPublicIPAddress != nil {
+		objectMap["disallowPublicIpAddress"] = lvmp.DisallowPublicIPAddress
+	}
+	if lvmp.Artifacts != nil {
+		objectMap["artifacts"] = lvmp.Artifacts
+	}
+	if lvmp.ArtifactDeploymentStatus != nil {
+		objectMap["artifactDeploymentStatus"] = lvmp.ArtifactDeploymentStatus
+	}
+	if lvmp.GalleryImageReference != nil {
+		objectMap["galleryImageReference"] = lvmp.GalleryImageReference
+	}
+	if lvmp.ComputeVM != nil {
+		objectMap["computeVm"] = lvmp.ComputeVM
+	}
+	if lvmp.NetworkInterface != nil {
+		objectMap["networkInterface"] = lvmp.NetworkInterface
+	}
+	if lvmp.ApplicableSchedule != nil {
+		objectMap["applicableSchedule"] = lvmp.ApplicableSchedule
+	}
+	if lvmp.ExpirationDate != nil {
+		objectMap["expirationDate"] = lvmp.ExpirationDate
+	}
+	if lvmp.AllowClaim != nil {
+		objectMap["allowClaim"] = lvmp.AllowClaim
+	}
+	if lvmp.StorageType != nil {
+		objectMap["storageType"] = lvmp.StorageType
+	}
+	if lvmp.VirtualMachineCreationSource != "" {
+		objectMap["virtualMachineCreationSource"] = lvmp.VirtualMachineCreationSource
+	}
+	if lvmp.EnvironmentID != nil {
+		objectMap["environmentId"] = lvmp.EnvironmentID
+	}
+	if lvmp.ProvisioningState != nil {
+		objectMap["provisioningState"] = lvmp.ProvisioningState
+	}
+	if lvmp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = lvmp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // LabVirtualMachinePropertiesFragment properties of a virtual machine.
 type LabVirtualMachinePropertiesFragment struct {
 	// Notes - The notes of the virtual machine.
@@ -3771,6 +3640,27 @@ type NotificationChannelProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for NotificationChannelProperties.
+func (ncp NotificationChannelProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ncp.WebHookURL != nil {
+		objectMap["webHookUrl"] = ncp.WebHookURL
+	}
+	if ncp.Description != nil {
+		objectMap["description"] = ncp.Description
+	}
+	if ncp.Events != nil {
+		objectMap["events"] = ncp.Events
+	}
+	if ncp.ProvisioningState != nil {
+		objectMap["provisioningState"] = ncp.ProvisioningState
+	}
+	if ncp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = ncp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // NotificationChannelPropertiesFragment properties of a schedule.
 type NotificationChannelPropertiesFragment struct {
 	// WebHookURL - The webhook URL to send notifications to.
@@ -4097,6 +3987,36 @@ type PolicyProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PolicyProperties.
+func (pp PolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pp.Description != nil {
+		objectMap["description"] = pp.Description
+	}
+	if pp.Status != "" {
+		objectMap["status"] = pp.Status
+	}
+	if pp.FactName != "" {
+		objectMap["factName"] = pp.FactName
+	}
+	if pp.FactData != nil {
+		objectMap["factData"] = pp.FactData
+	}
+	if pp.Threshold != nil {
+		objectMap["threshold"] = pp.Threshold
+	}
+	if pp.EvaluatorType != "" {
+		objectMap["evaluatorType"] = pp.EvaluatorType
+	}
+	if pp.ProvisioningState != nil {
+		objectMap["provisioningState"] = pp.ProvisioningState
+	}
+	if pp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = pp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // PolicyPropertiesFragment properties of a Policy.
 type PolicyPropertiesFragment struct {
 	// Description - The description of the policy.
@@ -4156,6 +4076,15 @@ type ProviderOperationResult struct {
 	Value *[]OperationMetadata `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProviderOperationResult.
+func (por ProviderOperationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if por.Value != nil {
+		objectMap["value"] = por.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // ProviderOperationResultIterator provides access to a complete listing of OperationMetadata values.
@@ -4226,10 +4155,15 @@ func (por ProviderOperationResult) IsEmpty() bool {
 	return por.Value == nil || len(*por.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (por ProviderOperationResult) hasNextLink() bool {
+	return por.NextLink != nil && len(*por.NextLink) != 0
+}
+
 // providerOperationResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (por ProviderOperationResult) providerOperationResultPreparer(ctx context.Context) (*http.Request, error) {
-	if por.NextLink == nil || len(to.String(por.NextLink)) < 1 {
+	if !por.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4257,11 +4191,16 @@ func (page *ProviderOperationResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.por)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.por)
+		if err != nil {
+			return err
+		}
+		page.por = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.por = next
 	return nil
 }
 
@@ -4291,8 +4230,11 @@ func (page ProviderOperationResultPage) Values() []OperationMetadata {
 }
 
 // Creates a new instance of the ProviderOperationResultPage type.
-func NewProviderOperationResultPage(getNextPage func(context.Context, ProviderOperationResult) (ProviderOperationResult, error)) ProviderOperationResultPage {
-	return ProviderOperationResultPage{fn: getNextPage}
+func NewProviderOperationResultPage(cur ProviderOperationResult, getNextPage func(context.Context, ProviderOperationResult) (ProviderOperationResult, error)) ProviderOperationResultPage {
+	return ProviderOperationResultPage{
+		fn:  getNextPage,
+		por: cur,
+	}
 }
 
 // Resource an Azure resource.
@@ -4398,10 +4340,15 @@ func (rwcAt ResponseWithContinuationArmTemplate) IsEmpty() bool {
 	return rwcAt.Value == nil || len(*rwcAt.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcAt ResponseWithContinuationArmTemplate) hasNextLink() bool {
+	return rwcAt.NextLink != nil && len(*rwcAt.NextLink) != 0
+}
+
 // responseWithContinuationArmTemplatePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcAt ResponseWithContinuationArmTemplate) responseWithContinuationArmTemplatePreparer(ctx context.Context) (*http.Request, error) {
-	if rwcAt.NextLink == nil || len(to.String(rwcAt.NextLink)) < 1 {
+	if !rwcAt.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4429,11 +4376,16 @@ func (page *ResponseWithContinuationArmTemplatePage) NextWithContext(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcat)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcat)
+		if err != nil {
+			return err
+		}
+		page.rwcat = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcat = next
 	return nil
 }
 
@@ -4463,8 +4415,11 @@ func (page ResponseWithContinuationArmTemplatePage) Values() []ArmTemplate {
 }
 
 // Creates a new instance of the ResponseWithContinuationArmTemplatePage type.
-func NewResponseWithContinuationArmTemplatePage(getNextPage func(context.Context, ResponseWithContinuationArmTemplate) (ResponseWithContinuationArmTemplate, error)) ResponseWithContinuationArmTemplatePage {
-	return ResponseWithContinuationArmTemplatePage{fn: getNextPage}
+func NewResponseWithContinuationArmTemplatePage(cur ResponseWithContinuationArmTemplate, getNextPage func(context.Context, ResponseWithContinuationArmTemplate) (ResponseWithContinuationArmTemplate, error)) ResponseWithContinuationArmTemplatePage {
+	return ResponseWithContinuationArmTemplatePage{
+		fn:    getNextPage,
+		rwcat: cur,
+	}
 }
 
 // ResponseWithContinuationArtifact the response of a list operation.
@@ -4544,10 +4499,15 @@ func (rwcA ResponseWithContinuationArtifact) IsEmpty() bool {
 	return rwcA.Value == nil || len(*rwcA.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcA ResponseWithContinuationArtifact) hasNextLink() bool {
+	return rwcA.NextLink != nil && len(*rwcA.NextLink) != 0
+}
+
 // responseWithContinuationArtifactPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcA ResponseWithContinuationArtifact) responseWithContinuationArtifactPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcA.NextLink == nil || len(to.String(rwcA.NextLink)) < 1 {
+	if !rwcA.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4575,11 +4535,16 @@ func (page *ResponseWithContinuationArtifactPage) NextWithContext(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwca)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwca)
+		if err != nil {
+			return err
+		}
+		page.rwca = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwca = next
 	return nil
 }
 
@@ -4609,8 +4574,11 @@ func (page ResponseWithContinuationArtifactPage) Values() []Artifact {
 }
 
 // Creates a new instance of the ResponseWithContinuationArtifactPage type.
-func NewResponseWithContinuationArtifactPage(getNextPage func(context.Context, ResponseWithContinuationArtifact) (ResponseWithContinuationArtifact, error)) ResponseWithContinuationArtifactPage {
-	return ResponseWithContinuationArtifactPage{fn: getNextPage}
+func NewResponseWithContinuationArtifactPage(cur ResponseWithContinuationArtifact, getNextPage func(context.Context, ResponseWithContinuationArtifact) (ResponseWithContinuationArtifact, error)) ResponseWithContinuationArtifactPage {
+	return ResponseWithContinuationArtifactPage{
+		fn:   getNextPage,
+		rwca: cur,
+	}
 }
 
 // ResponseWithContinuationArtifactSource the response of a list operation.
@@ -4691,10 +4659,15 @@ func (rwcAs ResponseWithContinuationArtifactSource) IsEmpty() bool {
 	return rwcAs.Value == nil || len(*rwcAs.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcAs ResponseWithContinuationArtifactSource) hasNextLink() bool {
+	return rwcAs.NextLink != nil && len(*rwcAs.NextLink) != 0
+}
+
 // responseWithContinuationArtifactSourcePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcAs ResponseWithContinuationArtifactSource) responseWithContinuationArtifactSourcePreparer(ctx context.Context) (*http.Request, error) {
-	if rwcAs.NextLink == nil || len(to.String(rwcAs.NextLink)) < 1 {
+	if !rwcAs.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4722,11 +4695,16 @@ func (page *ResponseWithContinuationArtifactSourcePage) NextWithContext(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcas)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcas)
+		if err != nil {
+			return err
+		}
+		page.rwcas = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcas = next
 	return nil
 }
 
@@ -4756,8 +4734,11 @@ func (page ResponseWithContinuationArtifactSourcePage) Values() []ArtifactSource
 }
 
 // Creates a new instance of the ResponseWithContinuationArtifactSourcePage type.
-func NewResponseWithContinuationArtifactSourcePage(getNextPage func(context.Context, ResponseWithContinuationArtifactSource) (ResponseWithContinuationArtifactSource, error)) ResponseWithContinuationArtifactSourcePage {
-	return ResponseWithContinuationArtifactSourcePage{fn: getNextPage}
+func NewResponseWithContinuationArtifactSourcePage(cur ResponseWithContinuationArtifactSource, getNextPage func(context.Context, ResponseWithContinuationArtifactSource) (ResponseWithContinuationArtifactSource, error)) ResponseWithContinuationArtifactSourcePage {
+	return ResponseWithContinuationArtifactSourcePage{
+		fn:    getNextPage,
+		rwcas: cur,
+	}
 }
 
 // ResponseWithContinuationCustomImage the response of a list operation.
@@ -4837,10 +4818,15 @@ func (rwcCi ResponseWithContinuationCustomImage) IsEmpty() bool {
 	return rwcCi.Value == nil || len(*rwcCi.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcCi ResponseWithContinuationCustomImage) hasNextLink() bool {
+	return rwcCi.NextLink != nil && len(*rwcCi.NextLink) != 0
+}
+
 // responseWithContinuationCustomImagePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcCi ResponseWithContinuationCustomImage) responseWithContinuationCustomImagePreparer(ctx context.Context) (*http.Request, error) {
-	if rwcCi.NextLink == nil || len(to.String(rwcCi.NextLink)) < 1 {
+	if !rwcCi.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4868,11 +4854,16 @@ func (page *ResponseWithContinuationCustomImagePage) NextWithContext(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcci)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcci)
+		if err != nil {
+			return err
+		}
+		page.rwcci = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcci = next
 	return nil
 }
 
@@ -4902,8 +4893,11 @@ func (page ResponseWithContinuationCustomImagePage) Values() []CustomImage {
 }
 
 // Creates a new instance of the ResponseWithContinuationCustomImagePage type.
-func NewResponseWithContinuationCustomImagePage(getNextPage func(context.Context, ResponseWithContinuationCustomImage) (ResponseWithContinuationCustomImage, error)) ResponseWithContinuationCustomImagePage {
-	return ResponseWithContinuationCustomImagePage{fn: getNextPage}
+func NewResponseWithContinuationCustomImagePage(cur ResponseWithContinuationCustomImage, getNextPage func(context.Context, ResponseWithContinuationCustomImage) (ResponseWithContinuationCustomImage, error)) ResponseWithContinuationCustomImagePage {
+	return ResponseWithContinuationCustomImagePage{
+		fn:    getNextPage,
+		rwcci: cur,
+	}
 }
 
 // ResponseWithContinuationDisk the response of a list operation.
@@ -4983,10 +4977,15 @@ func (rwcD ResponseWithContinuationDisk) IsEmpty() bool {
 	return rwcD.Value == nil || len(*rwcD.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcD ResponseWithContinuationDisk) hasNextLink() bool {
+	return rwcD.NextLink != nil && len(*rwcD.NextLink) != 0
+}
+
 // responseWithContinuationDiskPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcD ResponseWithContinuationDisk) responseWithContinuationDiskPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcD.NextLink == nil || len(to.String(rwcD.NextLink)) < 1 {
+	if !rwcD.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5014,11 +5013,16 @@ func (page *ResponseWithContinuationDiskPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcd)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcd)
+		if err != nil {
+			return err
+		}
+		page.rwcd = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcd = next
 	return nil
 }
 
@@ -5048,8 +5052,11 @@ func (page ResponseWithContinuationDiskPage) Values() []Disk {
 }
 
 // Creates a new instance of the ResponseWithContinuationDiskPage type.
-func NewResponseWithContinuationDiskPage(getNextPage func(context.Context, ResponseWithContinuationDisk) (ResponseWithContinuationDisk, error)) ResponseWithContinuationDiskPage {
-	return ResponseWithContinuationDiskPage{fn: getNextPage}
+func NewResponseWithContinuationDiskPage(cur ResponseWithContinuationDisk, getNextPage func(context.Context, ResponseWithContinuationDisk) (ResponseWithContinuationDisk, error)) ResponseWithContinuationDiskPage {
+	return ResponseWithContinuationDiskPage{
+		fn:   getNextPage,
+		rwcd: cur,
+	}
 }
 
 // ResponseWithContinuationDtlEnvironment the response of a list operation.
@@ -5130,10 +5137,15 @@ func (rwcDe ResponseWithContinuationDtlEnvironment) IsEmpty() bool {
 	return rwcDe.Value == nil || len(*rwcDe.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcDe ResponseWithContinuationDtlEnvironment) hasNextLink() bool {
+	return rwcDe.NextLink != nil && len(*rwcDe.NextLink) != 0
+}
+
 // responseWithContinuationDtlEnvironmentPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcDe ResponseWithContinuationDtlEnvironment) responseWithContinuationDtlEnvironmentPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcDe.NextLink == nil || len(to.String(rwcDe.NextLink)) < 1 {
+	if !rwcDe.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5161,11 +5173,16 @@ func (page *ResponseWithContinuationDtlEnvironmentPage) NextWithContext(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcde)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcde)
+		if err != nil {
+			return err
+		}
+		page.rwcde = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcde = next
 	return nil
 }
 
@@ -5195,8 +5212,11 @@ func (page ResponseWithContinuationDtlEnvironmentPage) Values() []Environment {
 }
 
 // Creates a new instance of the ResponseWithContinuationDtlEnvironmentPage type.
-func NewResponseWithContinuationDtlEnvironmentPage(getNextPage func(context.Context, ResponseWithContinuationDtlEnvironment) (ResponseWithContinuationDtlEnvironment, error)) ResponseWithContinuationDtlEnvironmentPage {
-	return ResponseWithContinuationDtlEnvironmentPage{fn: getNextPage}
+func NewResponseWithContinuationDtlEnvironmentPage(cur ResponseWithContinuationDtlEnvironment, getNextPage func(context.Context, ResponseWithContinuationDtlEnvironment) (ResponseWithContinuationDtlEnvironment, error)) ResponseWithContinuationDtlEnvironmentPage {
+	return ResponseWithContinuationDtlEnvironmentPage{
+		fn:    getNextPage,
+		rwcde: cur,
+	}
 }
 
 // ResponseWithContinuationFormula the response of a list operation.
@@ -5276,10 +5296,15 @@ func (rwcF ResponseWithContinuationFormula) IsEmpty() bool {
 	return rwcF.Value == nil || len(*rwcF.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcF ResponseWithContinuationFormula) hasNextLink() bool {
+	return rwcF.NextLink != nil && len(*rwcF.NextLink) != 0
+}
+
 // responseWithContinuationFormulaPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcF ResponseWithContinuationFormula) responseWithContinuationFormulaPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcF.NextLink == nil || len(to.String(rwcF.NextLink)) < 1 {
+	if !rwcF.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5307,11 +5332,16 @@ func (page *ResponseWithContinuationFormulaPage) NextWithContext(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcf)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcf)
+		if err != nil {
+			return err
+		}
+		page.rwcf = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcf = next
 	return nil
 }
 
@@ -5341,8 +5371,11 @@ func (page ResponseWithContinuationFormulaPage) Values() []Formula {
 }
 
 // Creates a new instance of the ResponseWithContinuationFormulaPage type.
-func NewResponseWithContinuationFormulaPage(getNextPage func(context.Context, ResponseWithContinuationFormula) (ResponseWithContinuationFormula, error)) ResponseWithContinuationFormulaPage {
-	return ResponseWithContinuationFormulaPage{fn: getNextPage}
+func NewResponseWithContinuationFormulaPage(cur ResponseWithContinuationFormula, getNextPage func(context.Context, ResponseWithContinuationFormula) (ResponseWithContinuationFormula, error)) ResponseWithContinuationFormulaPage {
+	return ResponseWithContinuationFormulaPage{
+		fn:   getNextPage,
+		rwcf: cur,
+	}
 }
 
 // ResponseWithContinuationGalleryImage the response of a list operation.
@@ -5423,10 +5456,15 @@ func (rwcGi ResponseWithContinuationGalleryImage) IsEmpty() bool {
 	return rwcGi.Value == nil || len(*rwcGi.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcGi ResponseWithContinuationGalleryImage) hasNextLink() bool {
+	return rwcGi.NextLink != nil && len(*rwcGi.NextLink) != 0
+}
+
 // responseWithContinuationGalleryImagePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcGi ResponseWithContinuationGalleryImage) responseWithContinuationGalleryImagePreparer(ctx context.Context) (*http.Request, error) {
-	if rwcGi.NextLink == nil || len(to.String(rwcGi.NextLink)) < 1 {
+	if !rwcGi.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5454,11 +5492,16 @@ func (page *ResponseWithContinuationGalleryImagePage) NextWithContext(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcgi)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcgi)
+		if err != nil {
+			return err
+		}
+		page.rwcgi = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcgi = next
 	return nil
 }
 
@@ -5488,8 +5531,11 @@ func (page ResponseWithContinuationGalleryImagePage) Values() []GalleryImage {
 }
 
 // Creates a new instance of the ResponseWithContinuationGalleryImagePage type.
-func NewResponseWithContinuationGalleryImagePage(getNextPage func(context.Context, ResponseWithContinuationGalleryImage) (ResponseWithContinuationGalleryImage, error)) ResponseWithContinuationGalleryImagePage {
-	return ResponseWithContinuationGalleryImagePage{fn: getNextPage}
+func NewResponseWithContinuationGalleryImagePage(cur ResponseWithContinuationGalleryImage, getNextPage func(context.Context, ResponseWithContinuationGalleryImage) (ResponseWithContinuationGalleryImage, error)) ResponseWithContinuationGalleryImagePage {
+	return ResponseWithContinuationGalleryImagePage{
+		fn:    getNextPage,
+		rwcgi: cur,
+	}
 }
 
 // ResponseWithContinuationLab the response of a list operation.
@@ -5569,10 +5615,15 @@ func (rwcL ResponseWithContinuationLab) IsEmpty() bool {
 	return rwcL.Value == nil || len(*rwcL.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcL ResponseWithContinuationLab) hasNextLink() bool {
+	return rwcL.NextLink != nil && len(*rwcL.NextLink) != 0
+}
+
 // responseWithContinuationLabPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcL ResponseWithContinuationLab) responseWithContinuationLabPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcL.NextLink == nil || len(to.String(rwcL.NextLink)) < 1 {
+	if !rwcL.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5600,11 +5651,16 @@ func (page *ResponseWithContinuationLabPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcl)
+		if err != nil {
+			return err
+		}
+		page.rwcl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcl = next
 	return nil
 }
 
@@ -5634,8 +5690,11 @@ func (page ResponseWithContinuationLabPage) Values() []Lab {
 }
 
 // Creates a new instance of the ResponseWithContinuationLabPage type.
-func NewResponseWithContinuationLabPage(getNextPage func(context.Context, ResponseWithContinuationLab) (ResponseWithContinuationLab, error)) ResponseWithContinuationLabPage {
-	return ResponseWithContinuationLabPage{fn: getNextPage}
+func NewResponseWithContinuationLabPage(cur ResponseWithContinuationLab, getNextPage func(context.Context, ResponseWithContinuationLab) (ResponseWithContinuationLab, error)) ResponseWithContinuationLabPage {
+	return ResponseWithContinuationLabPage{
+		fn:   getNextPage,
+		rwcl: cur,
+	}
 }
 
 // ResponseWithContinuationLabVhd the response of a list operation.
@@ -5715,10 +5774,15 @@ func (rwcLv ResponseWithContinuationLabVhd) IsEmpty() bool {
 	return rwcLv.Value == nil || len(*rwcLv.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcLv ResponseWithContinuationLabVhd) hasNextLink() bool {
+	return rwcLv.NextLink != nil && len(*rwcLv.NextLink) != 0
+}
+
 // responseWithContinuationLabVhdPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcLv ResponseWithContinuationLabVhd) responseWithContinuationLabVhdPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcLv.NextLink == nil || len(to.String(rwcLv.NextLink)) < 1 {
+	if !rwcLv.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5746,11 +5810,16 @@ func (page *ResponseWithContinuationLabVhdPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwclv)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwclv)
+		if err != nil {
+			return err
+		}
+		page.rwclv = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwclv = next
 	return nil
 }
 
@@ -5780,8 +5849,11 @@ func (page ResponseWithContinuationLabVhdPage) Values() []LabVhd {
 }
 
 // Creates a new instance of the ResponseWithContinuationLabVhdPage type.
-func NewResponseWithContinuationLabVhdPage(getNextPage func(context.Context, ResponseWithContinuationLabVhd) (ResponseWithContinuationLabVhd, error)) ResponseWithContinuationLabVhdPage {
-	return ResponseWithContinuationLabVhdPage{fn: getNextPage}
+func NewResponseWithContinuationLabVhdPage(cur ResponseWithContinuationLabVhd, getNextPage func(context.Context, ResponseWithContinuationLabVhd) (ResponseWithContinuationLabVhd, error)) ResponseWithContinuationLabVhdPage {
+	return ResponseWithContinuationLabVhdPage{
+		fn:    getNextPage,
+		rwclv: cur,
+	}
 }
 
 // ResponseWithContinuationLabVirtualMachine the response of a list operation.
@@ -5862,10 +5934,15 @@ func (rwcLvm ResponseWithContinuationLabVirtualMachine) IsEmpty() bool {
 	return rwcLvm.Value == nil || len(*rwcLvm.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcLvm ResponseWithContinuationLabVirtualMachine) hasNextLink() bool {
+	return rwcLvm.NextLink != nil && len(*rwcLvm.NextLink) != 0
+}
+
 // responseWithContinuationLabVirtualMachinePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcLvm ResponseWithContinuationLabVirtualMachine) responseWithContinuationLabVirtualMachinePreparer(ctx context.Context) (*http.Request, error) {
-	if rwcLvm.NextLink == nil || len(to.String(rwcLvm.NextLink)) < 1 {
+	if !rwcLvm.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5893,11 +5970,16 @@ func (page *ResponseWithContinuationLabVirtualMachinePage) NextWithContext(ctx c
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwclvm)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwclvm)
+		if err != nil {
+			return err
+		}
+		page.rwclvm = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwclvm = next
 	return nil
 }
 
@@ -5927,8 +6009,11 @@ func (page ResponseWithContinuationLabVirtualMachinePage) Values() []LabVirtualM
 }
 
 // Creates a new instance of the ResponseWithContinuationLabVirtualMachinePage type.
-func NewResponseWithContinuationLabVirtualMachinePage(getNextPage func(context.Context, ResponseWithContinuationLabVirtualMachine) (ResponseWithContinuationLabVirtualMachine, error)) ResponseWithContinuationLabVirtualMachinePage {
-	return ResponseWithContinuationLabVirtualMachinePage{fn: getNextPage}
+func NewResponseWithContinuationLabVirtualMachinePage(cur ResponseWithContinuationLabVirtualMachine, getNextPage func(context.Context, ResponseWithContinuationLabVirtualMachine) (ResponseWithContinuationLabVirtualMachine, error)) ResponseWithContinuationLabVirtualMachinePage {
+	return ResponseWithContinuationLabVirtualMachinePage{
+		fn:     getNextPage,
+		rwclvm: cur,
+	}
 }
 
 // ResponseWithContinuationNotificationChannel the response of a list operation.
@@ -6009,10 +6094,15 @@ func (rwcNc ResponseWithContinuationNotificationChannel) IsEmpty() bool {
 	return rwcNc.Value == nil || len(*rwcNc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcNc ResponseWithContinuationNotificationChannel) hasNextLink() bool {
+	return rwcNc.NextLink != nil && len(*rwcNc.NextLink) != 0
+}
+
 // responseWithContinuationNotificationChannelPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcNc ResponseWithContinuationNotificationChannel) responseWithContinuationNotificationChannelPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcNc.NextLink == nil || len(to.String(rwcNc.NextLink)) < 1 {
+	if !rwcNc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6040,11 +6130,16 @@ func (page *ResponseWithContinuationNotificationChannelPage) NextWithContext(ctx
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcnc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcnc)
+		if err != nil {
+			return err
+		}
+		page.rwcnc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcnc = next
 	return nil
 }
 
@@ -6074,8 +6169,11 @@ func (page ResponseWithContinuationNotificationChannelPage) Values() []Notificat
 }
 
 // Creates a new instance of the ResponseWithContinuationNotificationChannelPage type.
-func NewResponseWithContinuationNotificationChannelPage(getNextPage func(context.Context, ResponseWithContinuationNotificationChannel) (ResponseWithContinuationNotificationChannel, error)) ResponseWithContinuationNotificationChannelPage {
-	return ResponseWithContinuationNotificationChannelPage{fn: getNextPage}
+func NewResponseWithContinuationNotificationChannelPage(cur ResponseWithContinuationNotificationChannel, getNextPage func(context.Context, ResponseWithContinuationNotificationChannel) (ResponseWithContinuationNotificationChannel, error)) ResponseWithContinuationNotificationChannelPage {
+	return ResponseWithContinuationNotificationChannelPage{
+		fn:    getNextPage,
+		rwcnc: cur,
+	}
 }
 
 // ResponseWithContinuationPolicy the response of a list operation.
@@ -6155,10 +6253,15 @@ func (rwcP ResponseWithContinuationPolicy) IsEmpty() bool {
 	return rwcP.Value == nil || len(*rwcP.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcP ResponseWithContinuationPolicy) hasNextLink() bool {
+	return rwcP.NextLink != nil && len(*rwcP.NextLink) != 0
+}
+
 // responseWithContinuationPolicyPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcP ResponseWithContinuationPolicy) responseWithContinuationPolicyPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcP.NextLink == nil || len(to.String(rwcP.NextLink)) < 1 {
+	if !rwcP.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6186,11 +6289,16 @@ func (page *ResponseWithContinuationPolicyPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcp)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcp)
+		if err != nil {
+			return err
+		}
+		page.rwcp = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcp = next
 	return nil
 }
 
@@ -6220,8 +6328,11 @@ func (page ResponseWithContinuationPolicyPage) Values() []Policy {
 }
 
 // Creates a new instance of the ResponseWithContinuationPolicyPage type.
-func NewResponseWithContinuationPolicyPage(getNextPage func(context.Context, ResponseWithContinuationPolicy) (ResponseWithContinuationPolicy, error)) ResponseWithContinuationPolicyPage {
-	return ResponseWithContinuationPolicyPage{fn: getNextPage}
+func NewResponseWithContinuationPolicyPage(cur ResponseWithContinuationPolicy, getNextPage func(context.Context, ResponseWithContinuationPolicy) (ResponseWithContinuationPolicy, error)) ResponseWithContinuationPolicyPage {
+	return ResponseWithContinuationPolicyPage{
+		fn:   getNextPage,
+		rwcp: cur,
+	}
 }
 
 // ResponseWithContinuationSchedule the response of a list operation.
@@ -6301,10 +6412,15 @@ func (rwcS ResponseWithContinuationSchedule) IsEmpty() bool {
 	return rwcS.Value == nil || len(*rwcS.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcS ResponseWithContinuationSchedule) hasNextLink() bool {
+	return rwcS.NextLink != nil && len(*rwcS.NextLink) != 0
+}
+
 // responseWithContinuationSchedulePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcS ResponseWithContinuationSchedule) responseWithContinuationSchedulePreparer(ctx context.Context) (*http.Request, error) {
-	if rwcS.NextLink == nil || len(to.String(rwcS.NextLink)) < 1 {
+	if !rwcS.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6332,11 +6448,16 @@ func (page *ResponseWithContinuationSchedulePage) NextWithContext(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcs)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcs)
+		if err != nil {
+			return err
+		}
+		page.rwcs = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcs = next
 	return nil
 }
 
@@ -6366,8 +6487,11 @@ func (page ResponseWithContinuationSchedulePage) Values() []Schedule {
 }
 
 // Creates a new instance of the ResponseWithContinuationSchedulePage type.
-func NewResponseWithContinuationSchedulePage(getNextPage func(context.Context, ResponseWithContinuationSchedule) (ResponseWithContinuationSchedule, error)) ResponseWithContinuationSchedulePage {
-	return ResponseWithContinuationSchedulePage{fn: getNextPage}
+func NewResponseWithContinuationSchedulePage(cur ResponseWithContinuationSchedule, getNextPage func(context.Context, ResponseWithContinuationSchedule) (ResponseWithContinuationSchedule, error)) ResponseWithContinuationSchedulePage {
+	return ResponseWithContinuationSchedulePage{
+		fn:   getNextPage,
+		rwcs: cur,
+	}
 }
 
 // ResponseWithContinuationSecret the response of a list operation.
@@ -6447,10 +6571,15 @@ func (rwcS ResponseWithContinuationSecret) IsEmpty() bool {
 	return rwcS.Value == nil || len(*rwcS.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcS ResponseWithContinuationSecret) hasNextLink() bool {
+	return rwcS.NextLink != nil && len(*rwcS.NextLink) != 0
+}
+
 // responseWithContinuationSecretPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcS ResponseWithContinuationSecret) responseWithContinuationSecretPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcS.NextLink == nil || len(to.String(rwcS.NextLink)) < 1 {
+	if !rwcS.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6478,11 +6607,16 @@ func (page *ResponseWithContinuationSecretPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcs)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcs)
+		if err != nil {
+			return err
+		}
+		page.rwcs = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcs = next
 	return nil
 }
 
@@ -6512,8 +6646,11 @@ func (page ResponseWithContinuationSecretPage) Values() []Secret {
 }
 
 // Creates a new instance of the ResponseWithContinuationSecretPage type.
-func NewResponseWithContinuationSecretPage(getNextPage func(context.Context, ResponseWithContinuationSecret) (ResponseWithContinuationSecret, error)) ResponseWithContinuationSecretPage {
-	return ResponseWithContinuationSecretPage{fn: getNextPage}
+func NewResponseWithContinuationSecretPage(cur ResponseWithContinuationSecret, getNextPage func(context.Context, ResponseWithContinuationSecret) (ResponseWithContinuationSecret, error)) ResponseWithContinuationSecretPage {
+	return ResponseWithContinuationSecretPage{
+		fn:   getNextPage,
+		rwcs: cur,
+	}
 }
 
 // ResponseWithContinuationServiceRunner the response of a list operation.
@@ -6594,10 +6731,15 @@ func (rwcSr ResponseWithContinuationServiceRunner) IsEmpty() bool {
 	return rwcSr.Value == nil || len(*rwcSr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcSr ResponseWithContinuationServiceRunner) hasNextLink() bool {
+	return rwcSr.NextLink != nil && len(*rwcSr.NextLink) != 0
+}
+
 // responseWithContinuationServiceRunnerPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcSr ResponseWithContinuationServiceRunner) responseWithContinuationServiceRunnerPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcSr.NextLink == nil || len(to.String(rwcSr.NextLink)) < 1 {
+	if !rwcSr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6625,11 +6767,16 @@ func (page *ResponseWithContinuationServiceRunnerPage) NextWithContext(ctx conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcsr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcsr)
+		if err != nil {
+			return err
+		}
+		page.rwcsr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcsr = next
 	return nil
 }
 
@@ -6659,8 +6806,11 @@ func (page ResponseWithContinuationServiceRunnerPage) Values() []ServiceRunner {
 }
 
 // Creates a new instance of the ResponseWithContinuationServiceRunnerPage type.
-func NewResponseWithContinuationServiceRunnerPage(getNextPage func(context.Context, ResponseWithContinuationServiceRunner) (ResponseWithContinuationServiceRunner, error)) ResponseWithContinuationServiceRunnerPage {
-	return ResponseWithContinuationServiceRunnerPage{fn: getNextPage}
+func NewResponseWithContinuationServiceRunnerPage(cur ResponseWithContinuationServiceRunner, getNextPage func(context.Context, ResponseWithContinuationServiceRunner) (ResponseWithContinuationServiceRunner, error)) ResponseWithContinuationServiceRunnerPage {
+	return ResponseWithContinuationServiceRunnerPage{
+		fn:    getNextPage,
+		rwcsr: cur,
+	}
 }
 
 // ResponseWithContinuationUser the response of a list operation.
@@ -6740,10 +6890,15 @@ func (rwcU ResponseWithContinuationUser) IsEmpty() bool {
 	return rwcU.Value == nil || len(*rwcU.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcU ResponseWithContinuationUser) hasNextLink() bool {
+	return rwcU.NextLink != nil && len(*rwcU.NextLink) != 0
+}
+
 // responseWithContinuationUserPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcU ResponseWithContinuationUser) responseWithContinuationUserPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcU.NextLink == nil || len(to.String(rwcU.NextLink)) < 1 {
+	if !rwcU.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6771,11 +6926,16 @@ func (page *ResponseWithContinuationUserPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcu)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcu)
+		if err != nil {
+			return err
+		}
+		page.rwcu = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcu = next
 	return nil
 }
 
@@ -6805,8 +6965,11 @@ func (page ResponseWithContinuationUserPage) Values() []User {
 }
 
 // Creates a new instance of the ResponseWithContinuationUserPage type.
-func NewResponseWithContinuationUserPage(getNextPage func(context.Context, ResponseWithContinuationUser) (ResponseWithContinuationUser, error)) ResponseWithContinuationUserPage {
-	return ResponseWithContinuationUserPage{fn: getNextPage}
+func NewResponseWithContinuationUserPage(cur ResponseWithContinuationUser, getNextPage func(context.Context, ResponseWithContinuationUser) (ResponseWithContinuationUser, error)) ResponseWithContinuationUserPage {
+	return ResponseWithContinuationUserPage{
+		fn:   getNextPage,
+		rwcu: cur,
+	}
 }
 
 // ResponseWithContinuationVirtualNetwork the response of a list operation.
@@ -6887,10 +7050,15 @@ func (rwcVn ResponseWithContinuationVirtualNetwork) IsEmpty() bool {
 	return rwcVn.Value == nil || len(*rwcVn.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rwcVn ResponseWithContinuationVirtualNetwork) hasNextLink() bool {
+	return rwcVn.NextLink != nil && len(*rwcVn.NextLink) != 0
+}
+
 // responseWithContinuationVirtualNetworkPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rwcVn ResponseWithContinuationVirtualNetwork) responseWithContinuationVirtualNetworkPreparer(ctx context.Context) (*http.Request, error) {
-	if rwcVn.NextLink == nil || len(to.String(rwcVn.NextLink)) < 1 {
+	if !rwcVn.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6918,11 +7086,16 @@ func (page *ResponseWithContinuationVirtualNetworkPage) NextWithContext(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rwcvn)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rwcvn)
+		if err != nil {
+			return err
+		}
+		page.rwcvn = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rwcvn = next
 	return nil
 }
 
@@ -6952,8 +7125,11 @@ func (page ResponseWithContinuationVirtualNetworkPage) Values() []VirtualNetwork
 }
 
 // Creates a new instance of the ResponseWithContinuationVirtualNetworkPage type.
-func NewResponseWithContinuationVirtualNetworkPage(getNextPage func(context.Context, ResponseWithContinuationVirtualNetwork) (ResponseWithContinuationVirtualNetwork, error)) ResponseWithContinuationVirtualNetworkPage {
-	return ResponseWithContinuationVirtualNetworkPage{fn: getNextPage}
+func NewResponseWithContinuationVirtualNetworkPage(cur ResponseWithContinuationVirtualNetwork, getNextPage func(context.Context, ResponseWithContinuationVirtualNetwork) (ResponseWithContinuationVirtualNetwork, error)) ResponseWithContinuationVirtualNetworkPage {
+	return ResponseWithContinuationVirtualNetworkPage{
+		fn:    getNextPage,
+		rwcvn: cur,
+	}
 }
 
 // RetargetScheduleProperties properties for retargeting a virtual machine schedule.
@@ -7189,6 +7365,42 @@ type ScheduleProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// UniqueIdentifier - The unique immutable identifier of a resource (Guid).
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScheduleProperties.
+func (sp ScheduleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.Status != "" {
+		objectMap["status"] = sp.Status
+	}
+	if sp.TaskType != nil {
+		objectMap["taskType"] = sp.TaskType
+	}
+	if sp.WeeklyRecurrence != nil {
+		objectMap["weeklyRecurrence"] = sp.WeeklyRecurrence
+	}
+	if sp.DailyRecurrence != nil {
+		objectMap["dailyRecurrence"] = sp.DailyRecurrence
+	}
+	if sp.HourlyRecurrence != nil {
+		objectMap["hourlyRecurrence"] = sp.HourlyRecurrence
+	}
+	if sp.TimeZoneID != nil {
+		objectMap["timeZoneId"] = sp.TimeZoneID
+	}
+	if sp.NotificationSettings != nil {
+		objectMap["notificationSettings"] = sp.NotificationSettings
+	}
+	if sp.TargetResourceID != nil {
+		objectMap["targetResourceId"] = sp.TargetResourceID
+	}
+	if sp.ProvisioningState != nil {
+		objectMap["provisioningState"] = sp.ProvisioningState
+	}
+	if sp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = sp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
 }
 
 // SchedulePropertiesFragment properties of a schedule.
@@ -7745,6 +7957,24 @@ type UserProperties struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UserProperties.
+func (up UserProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if up.Identity != nil {
+		objectMap["identity"] = up.Identity
+	}
+	if up.SecretStore != nil {
+		objectMap["secretStore"] = up.SecretStore
+	}
+	if up.ProvisioningState != nil {
+		objectMap["provisioningState"] = up.ProvisioningState
+	}
+	if up.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = up.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
+}
+
 // UserPropertiesFragment properties of a lab user profile.
 type UserPropertiesFragment struct {
 	// Identity - The identity of the user.
@@ -8227,6 +8457,33 @@ type VirtualNetworkProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// UniqueIdentifier - The unique immutable identifier of a resource (Guid).
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkProperties.
+func (vnp VirtualNetworkProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnp.AllowedSubnets != nil {
+		objectMap["allowedSubnets"] = vnp.AllowedSubnets
+	}
+	if vnp.Description != nil {
+		objectMap["description"] = vnp.Description
+	}
+	if vnp.ExternalProviderResourceID != nil {
+		objectMap["externalProviderResourceId"] = vnp.ExternalProviderResourceID
+	}
+	if vnp.ExternalSubnets != nil {
+		objectMap["externalSubnets"] = vnp.ExternalSubnets
+	}
+	if vnp.SubnetOverrides != nil {
+		objectMap["subnetOverrides"] = vnp.SubnetOverrides
+	}
+	if vnp.ProvisioningState != nil {
+		objectMap["provisioningState"] = vnp.ProvisioningState
+	}
+	if vnp.UniqueIdentifier != nil {
+		objectMap["uniqueIdentifier"] = vnp.UniqueIdentifier
+	}
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkPropertiesFragment properties of a virtual network.

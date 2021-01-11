@@ -81,6 +81,7 @@ func (client ArtifactSourcesClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client ArtifactSourcesClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client ArtifactSourcesClient) CreateOrUpdateResponder(resp *http.Response) (result ArtifactSource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client ArtifactSourcesClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +200,6 @@ func (client ArtifactSourcesClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ArtifactSourcesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +239,7 @@ func (client ArtifactSourcesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,7 +281,6 @@ func (client ArtifactSourcesClient) GetSender(req *http.Request) (*http.Response
 func (client ArtifactSourcesClient) GetResponder(resp *http.Response) (result ArtifactSource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +324,10 @@ func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName 
 	result.rwcas, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcas.hasNextLink() && result.rwcas.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -373,7 +377,6 @@ func (client ArtifactSourcesClient) ListSender(req *http.Request) (*http.Respons
 func (client ArtifactSourcesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArtifactSource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -398,6 +401,7 @@ func (client ArtifactSourcesClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -451,6 +455,7 @@ func (client ArtifactSourcesClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -491,7 +496,6 @@ func (client ArtifactSourcesClient) UpdateSender(req *http.Request) (*http.Respo
 func (client ArtifactSourcesClient) UpdateResponder(resp *http.Response) (result ArtifactSource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

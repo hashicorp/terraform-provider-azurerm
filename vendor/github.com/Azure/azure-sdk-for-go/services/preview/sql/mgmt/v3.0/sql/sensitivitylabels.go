@@ -81,6 +81,7 @@ func (client SensitivityLabelsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client SensitivityLabelsClient) CreateOrUpdateSender(req *http.Request) (*
 func (client SensitivityLabelsClient) CreateOrUpdateResponder(resp *http.Response) (result SensitivityLabel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client SensitivityLabelsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client SensitivityLabelsClient) DeleteSender(req *http.Request) (*http.Res
 func (client SensitivityLabelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -254,6 +254,7 @@ func (client SensitivityLabelsClient) DisableRecommendation(ctx context.Context,
 	result, err = client.DisableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "DisableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -296,7 +297,6 @@ func (client SensitivityLabelsClient) DisableRecommendationSender(req *http.Requ
 func (client SensitivityLabelsClient) DisableRecommendationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -340,6 +340,7 @@ func (client SensitivityLabelsClient) EnableRecommendation(ctx context.Context, 
 	result, err = client.EnableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "EnableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -382,7 +383,6 @@ func (client SensitivityLabelsClient) EnableRecommendationSender(req *http.Reque
 func (client SensitivityLabelsClient) EnableRecommendationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -426,6 +426,7 @@ func (client SensitivityLabelsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -468,7 +469,6 @@ func (client SensitivityLabelsClient) GetSender(req *http.Request) (*http.Respon
 func (client SensitivityLabelsClient) GetResponder(resp *http.Response) (result SensitivityLabel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -511,6 +511,10 @@ func (client SensitivityLabelsClient) ListCurrentByDatabase(ctx context.Context,
 	result.sllr, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListCurrentByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -552,7 +556,6 @@ func (client SensitivityLabelsClient) ListCurrentByDatabaseSender(req *http.Requ
 func (client SensitivityLabelsClient) ListCurrentByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -577,6 +580,7 @@ func (client SensitivityLabelsClient) listCurrentByDatabaseNextResults(ctx conte
 	result, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listCurrentByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -633,6 +637,10 @@ func (client SensitivityLabelsClient) ListRecommendedByDatabase(ctx context.Cont
 	result.sllr, err = client.ListRecommendedByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListRecommendedByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -680,7 +688,6 @@ func (client SensitivityLabelsClient) ListRecommendedByDatabaseSender(req *http.
 func (client SensitivityLabelsClient) ListRecommendedByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -705,6 +712,7 @@ func (client SensitivityLabelsClient) listRecommendedByDatabaseNextResults(ctx c
 	result, err = client.ListRecommendedByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listRecommendedByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

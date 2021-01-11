@@ -127,7 +127,6 @@ func (client SolutionsClient) CreateOrUpdateSender(req *http.Request) (future So
 func (client SolutionsClient) CreateOrUpdateResponder(resp *http.Response) (result Solution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client SolutionsClient) DeleteSender(req *http.Request) (future SolutionsD
 func (client SolutionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -257,6 +255,7 @@ func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -294,7 +293,6 @@ func (client SolutionsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client SolutionsClient) GetResponder(resp *http.Response) (result Solution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,6 +338,7 @@ func (client SolutionsClient) ListByResourceGroup(ctx context.Context, resourceG
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -376,7 +375,6 @@ func (client SolutionsClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client SolutionsClient) ListByResourceGroupResponder(resp *http.Response) (result SolutionPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -412,6 +410,7 @@ func (client SolutionsClient) ListBySubscription(ctx context.Context) (result So
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -447,7 +446,6 @@ func (client SolutionsClient) ListBySubscriptionSender(req *http.Request) (*http
 func (client SolutionsClient) ListBySubscriptionResponder(resp *http.Response) (result SolutionPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -534,7 +532,6 @@ func (client SolutionsClient) UpdateSender(req *http.Request) (future SolutionsU
 func (client SolutionsClient) UpdateResponder(resp *http.Response) (result Solution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

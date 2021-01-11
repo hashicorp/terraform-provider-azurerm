@@ -127,7 +127,6 @@ func (client TenantConfigurationClient) DeploySender(req *http.Request) (future 
 func (client TenantConfigurationClient) DeployResponder(resp *http.Response) (result OperationResultContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -175,6 +174,7 @@ func (client TenantConfigurationClient) GetSyncState(ctx context.Context, resour
 	result, err = client.GetSyncStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantConfigurationClient", "GetSyncState", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -213,7 +213,6 @@ func (client TenantConfigurationClient) GetSyncStateSender(req *http.Request) (*
 func (client TenantConfigurationClient) GetSyncStateResponder(resp *http.Response) (result TenantConfigurationSyncStateContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,7 +304,6 @@ func (client TenantConfigurationClient) SaveSender(req *http.Request) (future Te
 func (client TenantConfigurationClient) SaveResponder(resp *http.Response) (result OperationResultContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -397,7 +395,6 @@ func (client TenantConfigurationClient) ValidateSender(req *http.Request) (futur
 func (client TenantConfigurationClient) ValidateResponder(resp *http.Response) (result OperationResultContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

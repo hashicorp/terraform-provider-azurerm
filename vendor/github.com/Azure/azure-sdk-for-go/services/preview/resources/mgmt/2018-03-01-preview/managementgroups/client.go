@@ -84,6 +84,7 @@ func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAva
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.BaseClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client BaseClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,7 @@ func (client BaseClient) StartTenantBackfill(ctx context.Context) (result Tenant
 	result, err = client.StartTenantBackfillResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.BaseClient", "StartTenantBackfill", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -184,7 +185,6 @@ func (client BaseClient) StartTenantBackfillSender(req *http.Request) (*http.Res
 func (client BaseClient) StartTenantBackfillResponder(resp *http.Response) (result TenantBackfillStatusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,6 +220,7 @@ func (client BaseClient) TenantBackfillStatus(ctx context.Context) (result Tenan
 	result, err = client.TenantBackfillStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.BaseClient", "TenantBackfillStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -251,7 +252,6 @@ func (client BaseClient) TenantBackfillStatusSender(req *http.Request) (*http.Re
 func (client BaseClient) TenantBackfillStatusResponder(resp *http.Response) (result TenantBackfillStatusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

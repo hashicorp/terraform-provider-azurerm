@@ -71,6 +71,10 @@ func (client BgpServiceCommunitiesClient) List(ctx context.Context) (result BgpS
 	result.bsclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.bsclr.hasNextLink() && result.bsclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -106,7 +110,6 @@ func (client BgpServiceCommunitiesClient) ListSender(req *http.Request) (*http.R
 func (client BgpServiceCommunitiesClient) ListResponder(resp *http.Response) (result BgpServiceCommunityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -131,6 +134,7 @@ func (client BgpServiceCommunitiesClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

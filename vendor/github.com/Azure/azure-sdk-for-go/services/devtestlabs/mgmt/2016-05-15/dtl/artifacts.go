@@ -76,6 +76,7 @@ func (client ArtifactsClient) GenerateArmTemplate(ctx context.Context, resourceG
 	result, err = client.GenerateArmTemplateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "GenerateArmTemplate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client ArtifactsClient) GenerateArmTemplateSender(req *http.Request) (*htt
 func (client ArtifactsClient) GenerateArmTemplateResponder(resp *http.Response) (result ArmTemplateInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +159,7 @@ func (client ArtifactsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -201,7 +202,6 @@ func (client ArtifactsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client ArtifactsClient) GetResponder(resp *http.Response) (result Artifact, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -246,6 +246,10 @@ func (client ArtifactsClient) List(ctx context.Context, resourceGroupName string
 	result.rwca, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwca.hasNextLink() && result.rwca.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -296,7 +300,6 @@ func (client ArtifactsClient) ListSender(req *http.Request) (*http.Response, err
 func (client ArtifactsClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArtifact, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -321,6 +324,7 @@ func (client ArtifactsClient) listNextResults(ctx context.Context, lastResults R
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

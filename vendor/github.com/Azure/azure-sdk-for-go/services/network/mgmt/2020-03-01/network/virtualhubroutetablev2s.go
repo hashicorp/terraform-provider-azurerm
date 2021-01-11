@@ -117,7 +117,6 @@ func (client VirtualHubRouteTableV2sClient) CreateOrUpdateSender(req *http.Reque
 func (client VirtualHubRouteTableV2sClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualHubRouteTableV2, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client VirtualHubRouteTableV2sClient) DeleteSender(req *http.Request) (fut
 func (client VirtualHubRouteTableV2sClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -234,6 +232,7 @@ func (client VirtualHubRouteTableV2sClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -272,7 +271,6 @@ func (client VirtualHubRouteTableV2sClient) GetSender(req *http.Request) (*http.
 func (client VirtualHubRouteTableV2sClient) GetResponder(resp *http.Response) (result VirtualHubRouteTableV2, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -312,6 +310,10 @@ func (client VirtualHubRouteTableV2sClient) List(ctx context.Context, resourceGr
 	result.lvhrtvr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lvhrtvr.hasNextLink() && result.lvhrtvr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -349,7 +351,6 @@ func (client VirtualHubRouteTableV2sClient) ListSender(req *http.Request) (*http
 func (client VirtualHubRouteTableV2sClient) ListResponder(resp *http.Response) (result ListVirtualHubRouteTableV2sResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,6 +375,7 @@ func (client VirtualHubRouteTableV2sClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

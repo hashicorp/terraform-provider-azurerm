@@ -17,7 +17,9 @@ type Builder struct {
 	ClientID       string
 	SubscriptionID string
 	TenantID       string
+	TenantOnly     bool
 	Environment    string
+	MetadataHost   string
 
 	// Auxiliary tenant IDs used for multi tenant auth
 	SupportsAuxiliaryTenants bool
@@ -54,6 +56,7 @@ func (b Builder) Build() (*Config, error) {
 		TenantID:                      b.TenantID,
 		AuxiliaryTenantIDs:            b.AuxiliaryTenantIDs,
 		Environment:                   b.Environment,
+		MetadataHost:                  b.MetadataHost,
 		CustomResourceManagerEndpoint: b.CustomResourceManagerEndpoint,
 	}
 
@@ -64,6 +67,7 @@ func (b Builder) Build() (*Config, error) {
 		servicePrincipalClientSecretMultiTenantAuth{},
 		servicePrincipalClientSecretAuth{},
 		managedServiceIdentityAuth{},
+		azureCliTokenMultiTenantAuth{},
 		azureCliTokenAuth{},
 	}
 

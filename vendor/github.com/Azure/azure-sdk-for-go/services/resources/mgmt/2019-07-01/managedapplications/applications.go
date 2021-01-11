@@ -141,7 +141,6 @@ func (client ApplicationsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client ApplicationsClient) CreateOrUpdateResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -240,7 +239,6 @@ func (client ApplicationsClient) CreateOrUpdateByIDSender(req *http.Request) (fu
 func (client ApplicationsClient) CreateOrUpdateByIDResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -327,7 +325,6 @@ func (client ApplicationsClient) DeleteSender(req *http.Request) (future Applica
 func (client ApplicationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -401,7 +398,6 @@ func (client ApplicationsClient) DeleteByIDSender(req *http.Request) (future App
 func (client ApplicationsClient) DeleteByIDResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -450,6 +446,7 @@ func (client ApplicationsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -487,7 +484,6 @@ func (client ApplicationsClient) GetSender(req *http.Request) (*http.Response, e
 func (client ApplicationsClient) GetResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -527,6 +523,7 @@ func (client ApplicationsClient) GetByID(ctx context.Context, applicationID stri
 	result, err = client.GetByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "GetByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -562,7 +559,6 @@ func (client ApplicationsClient) GetByIDSender(req *http.Request) (*http.Respons
 func (client ApplicationsClient) GetByIDResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -609,6 +605,10 @@ func (client ApplicationsClient) ListByResourceGroup(ctx context.Context, resour
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -645,7 +645,6 @@ func (client ApplicationsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client ApplicationsClient) ListByResourceGroupResponder(resp *http.Response) (result ApplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -670,6 +669,7 @@ func (client ApplicationsClient) listByResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -719,6 +719,10 @@ func (client ApplicationsClient) ListBySubscription(ctx context.Context) (result
 	result.alr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -754,7 +758,6 @@ func (client ApplicationsClient) ListBySubscriptionSender(req *http.Request) (*h
 func (client ApplicationsClient) ListBySubscriptionResponder(resp *http.Response) (result ApplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -779,6 +782,7 @@ func (client ApplicationsClient) listBySubscriptionNextResults(ctx context.Conte
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -878,7 +882,6 @@ func (client ApplicationsClient) RefreshPermissionsSender(req *http.Request) (fu
 func (client ApplicationsClient) RefreshPermissionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -890,7 +893,7 @@ func (client ApplicationsClient) RefreshPermissionsResponder(resp *http.Response
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // applicationName - the name of the managed application.
 // parameters - parameters supplied to update an existing managed application.
-func (client ApplicationsClient) Update(ctx context.Context, resourceGroupName string, applicationName string, parameters *Application) (result Application, err error) {
+func (client ApplicationsClient) Update(ctx context.Context, resourceGroupName string, applicationName string, parameters *ApplicationPatchable) (result Application, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationsClient.Update")
 		defer func() {
@@ -928,13 +931,14 @@ func (client ApplicationsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ApplicationsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, applicationName string, parameters *Application) (*http.Request, error) {
+func (client ApplicationsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, applicationName string, parameters *ApplicationPatchable) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"applicationName":   autorest.Encode("path", applicationName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -970,7 +974,6 @@ func (client ApplicationsClient) UpdateSender(req *http.Request) (*http.Response
 func (client ApplicationsClient) UpdateResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1012,6 +1015,7 @@ func (client ApplicationsClient) UpdateByID(ctx context.Context, applicationID s
 	result, err = client.UpdateByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "UpdateByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1052,7 +1056,6 @@ func (client ApplicationsClient) UpdateByIDSender(req *http.Request) (*http.Resp
 func (client ApplicationsClient) UpdateByIDResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

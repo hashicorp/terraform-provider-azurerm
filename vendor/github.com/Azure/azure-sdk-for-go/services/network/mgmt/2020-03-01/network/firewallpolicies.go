@@ -114,7 +114,6 @@ func (client FirewallPoliciesClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client FirewallPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result FirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client FirewallPoliciesClient) DeleteSender(req *http.Request) (future Fir
 func (client FirewallPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -229,6 +227,7 @@ func (client FirewallPoliciesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,7 +268,6 @@ func (client FirewallPoliciesClient) GetSender(req *http.Request) (*http.Respons
 func (client FirewallPoliciesClient) GetResponder(resp *http.Response) (result FirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -308,6 +306,10 @@ func (client FirewallPoliciesClient) List(ctx context.Context, resourceGroupName
 	result.fplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.fplr.hasNextLink() && result.fplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -344,7 +346,6 @@ func (client FirewallPoliciesClient) ListSender(req *http.Request) (*http.Respon
 func (client FirewallPoliciesClient) ListResponder(resp *http.Response) (result FirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,6 +370,7 @@ func (client FirewallPoliciesClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -418,6 +420,10 @@ func (client FirewallPoliciesClient) ListAll(ctx context.Context) (result Firewa
 	result.fplr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.fplr.hasNextLink() && result.fplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -453,7 +459,6 @@ func (client FirewallPoliciesClient) ListAllSender(req *http.Request) (*http.Res
 func (client FirewallPoliciesClient) ListAllResponder(resp *http.Response) (result FirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -478,6 +483,7 @@ func (client FirewallPoliciesClient) listAllNextResults(ctx context.Context, las
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

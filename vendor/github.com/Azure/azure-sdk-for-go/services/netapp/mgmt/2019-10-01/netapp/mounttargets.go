@@ -83,6 +83,7 @@ func (client MountTargetsClient) List(ctx context.Context, resourceGroupName str
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.MountTargetsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client MountTargetsClient) ListSender(req *http.Request) (*http.Response, 
 func (client MountTargetsClient) ListResponder(resp *http.Response) (result MountTargetList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

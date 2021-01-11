@@ -29,125 +29,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
 
-// CheckNameResourceTypes enumerates the values for check name resource types.
-type CheckNameResourceTypes string
-
-const (
-	// MicrosoftNetAppnetAppAccounts ...
-	MicrosoftNetAppnetAppAccounts CheckNameResourceTypes = "Microsoft.NetApp/netAppAccounts"
-	// MicrosoftNetAppnetAppAccountscapacityPools ...
-	MicrosoftNetAppnetAppAccountscapacityPools CheckNameResourceTypes = "Microsoft.NetApp/netAppAccounts/capacityPools"
-	// MicrosoftNetAppnetAppAccountscapacityPoolsvolumes ...
-	MicrosoftNetAppnetAppAccountscapacityPoolsvolumes CheckNameResourceTypes = "Microsoft.NetApp/netAppAccounts/capacityPools/volumes"
-	// MicrosoftNetAppnetAppAccountscapacityPoolsvolumessnapshots ...
-	MicrosoftNetAppnetAppAccountscapacityPoolsvolumessnapshots CheckNameResourceTypes = "Microsoft.NetApp/netAppAccounts/capacityPools/volumes/snapshots"
-)
-
-// PossibleCheckNameResourceTypesValues returns an array of possible values for the CheckNameResourceTypes const type.
-func PossibleCheckNameResourceTypesValues() []CheckNameResourceTypes {
-	return []CheckNameResourceTypes{MicrosoftNetAppnetAppAccounts, MicrosoftNetAppnetAppAccountscapacityPools, MicrosoftNetAppnetAppAccountscapacityPoolsvolumes, MicrosoftNetAppnetAppAccountscapacityPoolsvolumessnapshots}
-}
-
-// EndpointType enumerates the values for endpoint type.
-type EndpointType string
-
-const (
-	// Dst ...
-	Dst EndpointType = "dst"
-	// Src ...
-	Src EndpointType = "src"
-)
-
-// PossibleEndpointTypeValues returns an array of possible values for the EndpointType const type.
-func PossibleEndpointTypeValues() []EndpointType {
-	return []EndpointType{Dst, Src}
-}
-
-// InAvailabilityReasonType enumerates the values for in availability reason type.
-type InAvailabilityReasonType string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists InAvailabilityReasonType = "AlreadyExists"
-	// Invalid ...
-	Invalid InAvailabilityReasonType = "Invalid"
-)
-
-// PossibleInAvailabilityReasonTypeValues returns an array of possible values for the InAvailabilityReasonType const type.
-func PossibleInAvailabilityReasonTypeValues() []InAvailabilityReasonType {
-	return []InAvailabilityReasonType{AlreadyExists, Invalid}
-}
-
-// MirrorState enumerates the values for mirror state.
-type MirrorState string
-
-const (
-	// Broken ...
-	Broken MirrorState = "Broken"
-	// Mirrored ...
-	Mirrored MirrorState = "Mirrored"
-	// Uninitialized ...
-	Uninitialized MirrorState = "Uninitialized"
-)
-
-// PossibleMirrorStateValues returns an array of possible values for the MirrorState const type.
-func PossibleMirrorStateValues() []MirrorState {
-	return []MirrorState{Broken, Mirrored, Uninitialized}
-}
-
-// RelationshipStatus enumerates the values for relationship status.
-type RelationshipStatus string
-
-const (
-	// Idle ...
-	Idle RelationshipStatus = "Idle"
-	// Transferring ...
-	Transferring RelationshipStatus = "Transferring"
-)
-
-// PossibleRelationshipStatusValues returns an array of possible values for the RelationshipStatus const type.
-func PossibleRelationshipStatusValues() []RelationshipStatus {
-	return []RelationshipStatus{Idle, Transferring}
-}
-
-// ReplicationSchedule enumerates the values for replication schedule.
-type ReplicationSchedule string
-
-const (
-	// OneZerominutely ...
-	OneZerominutely ReplicationSchedule = "_10minutely"
-	// Daily ...
-	Daily ReplicationSchedule = "daily"
-	// Hourly ...
-	Hourly ReplicationSchedule = "hourly"
-	// Monthly ...
-	Monthly ReplicationSchedule = "monthly"
-	// Weekly ...
-	Weekly ReplicationSchedule = "weekly"
-)
-
-// PossibleReplicationScheduleValues returns an array of possible values for the ReplicationSchedule const type.
-func PossibleReplicationScheduleValues() []ReplicationSchedule {
-	return []ReplicationSchedule{OneZerominutely, Daily, Hourly, Monthly, Weekly}
-}
-
-// ServiceLevel enumerates the values for service level.
-type ServiceLevel string
-
-const (
-	// Premium Premium service level
-	Premium ServiceLevel = "Premium"
-	// Standard Standard service level
-	Standard ServiceLevel = "Standard"
-	// Ultra Ultra service level
-	Ultra ServiceLevel = "Ultra"
-)
-
-// PossibleServiceLevelValues returns an array of possible values for the ServiceLevel const type.
-func PossibleServiceLevelValues() []ServiceLevel {
-	return []ServiceLevel{Premium, Standard, Ultra}
-}
-
 // Account netApp account resource
 type Account struct {
 	autorest.Response `json:"-"`
@@ -362,6 +243,15 @@ type AccountProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// ActiveDirectories - Active Directories
 	ActiveDirectories *[]ActiveDirectory `json:"activeDirectories,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountProperties.
+func (ap AccountProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.ActiveDirectories != nil {
+		objectMap["activeDirectories"] = ap.ActiveDirectories
+	}
+	return json.Marshal(objectMap)
 }
 
 // AccountsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -829,6 +719,33 @@ type MountTargetProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MountTargetProperties.
+func (mtp MountTargetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mtp.FileSystemID != nil {
+		objectMap["fileSystemId"] = mtp.FileSystemID
+	}
+	if mtp.Subnet != nil {
+		objectMap["subnet"] = mtp.Subnet
+	}
+	if mtp.StartIP != nil {
+		objectMap["startIp"] = mtp.StartIP
+	}
+	if mtp.EndIP != nil {
+		objectMap["endIp"] = mtp.EndIP
+	}
+	if mtp.Gateway != nil {
+		objectMap["gateway"] = mtp.Gateway
+	}
+	if mtp.Netmask != nil {
+		objectMap["netmask"] = mtp.Netmask
+	}
+	if mtp.SmbServerFqdn != nil {
+		objectMap["smbServerFqdn"] = mtp.SmbServerFqdn
+	}
+	return json.Marshal(objectMap)
+}
+
 // Operation microsoft.NetApp REST API operation definition.
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -956,6 +873,18 @@ type PoolProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PoolProperties.
+func (pp PoolProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pp.Size != nil {
+		objectMap["size"] = pp.Size
+	}
+	if pp.ServiceLevel != "" {
+		objectMap["serviceLevel"] = pp.ServiceLevel
+	}
+	return json.Marshal(objectMap)
+}
+
 // PoolsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PoolsCreateOrUpdateFuture struct {
@@ -1013,7 +942,7 @@ type ReplicationObject struct {
 	ReplicationID *string `json:"replicationId,omitempty"`
 	// EndpointType - Indicates whether the local volume is the source or destination for the Volume Replication. Possible values include: 'Src', 'Dst'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
-	// ReplicationSchedule - Schedule. Possible values include: '10minutely', 'Hourly', 'Daily', 'Weekly', 'Monthly'
+	// ReplicationSchedule - Schedule. Possible values include: '10minutely', 'Hourly', 'Daily'
 	ReplicationSchedule ReplicationSchedule `json:"replicationSchedule,omitempty"`
 	// RemoteVolumeResourceID - The resource ID of the remote volume.
 	RemoteVolumeResourceID *string `json:"remoteVolumeResourceId,omitempty"`
@@ -1189,6 +1118,15 @@ type SnapshotProperties struct {
 	Created *date.Time `json:"created,omitempty"`
 	// ProvisioningState - READ-ONLY; Azure lifecycle management
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SnapshotProperties.
+func (sp SnapshotProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.FileSystemID != nil {
+		objectMap["fileSystemId"] = sp.FileSystemID
+	}
+	return json.Marshal(objectMap)
 }
 
 // SnapshotsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -1504,6 +1442,45 @@ type VolumeProperties struct {
 	DataProtection *VolumePropertiesDataProtection `json:"dataProtection,omitempty"`
 	// IsRestoring - Restoring
 	IsRestoring *bool `json:"isRestoring,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeProperties.
+func (vp VolumeProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vp.CreationToken != nil {
+		objectMap["creationToken"] = vp.CreationToken
+	}
+	if vp.ServiceLevel != "" {
+		objectMap["serviceLevel"] = vp.ServiceLevel
+	}
+	if vp.UsageThreshold != nil {
+		objectMap["usageThreshold"] = vp.UsageThreshold
+	}
+	if vp.ExportPolicy != nil {
+		objectMap["exportPolicy"] = vp.ExportPolicy
+	}
+	if vp.ProtocolTypes != nil {
+		objectMap["protocolTypes"] = vp.ProtocolTypes
+	}
+	if vp.SnapshotID != nil {
+		objectMap["snapshotId"] = vp.SnapshotID
+	}
+	if vp.SubnetID != nil {
+		objectMap["subnetId"] = vp.SubnetID
+	}
+	if vp.MountTargets != nil {
+		objectMap["mountTargets"] = vp.MountTargets
+	}
+	if vp.VolumeType != nil {
+		objectMap["volumeType"] = vp.VolumeType
+	}
+	if vp.DataProtection != nil {
+		objectMap["dataProtection"] = vp.DataProtection
+	}
+	if vp.IsRestoring != nil {
+		objectMap["isRestoring"] = vp.IsRestoring
+	}
+	return json.Marshal(objectMap)
 }
 
 // VolumePropertiesDataProtection dataProtection type volumes include an object containing details of the

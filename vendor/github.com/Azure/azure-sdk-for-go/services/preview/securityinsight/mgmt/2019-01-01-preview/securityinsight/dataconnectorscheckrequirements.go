@@ -92,6 +92,7 @@ func (client DataConnectorsCheckRequirementsClient) Post(ctx context.Context, re
 	result, err = client.PostResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.DataConnectorsCheckRequirementsClient", "Post", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -132,7 +133,6 @@ func (client DataConnectorsCheckRequirementsClient) PostSender(req *http.Request
 func (client DataConnectorsCheckRequirementsClient) PostResponder(resp *http.Response) (result DataConnectorRequirementsState, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

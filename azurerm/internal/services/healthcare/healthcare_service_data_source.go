@@ -2,7 +2,6 @@ package healthcare
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmHealthcareService() *schema.Resource {
+func dataSourceHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmHealthcareServiceRead,
+		Read: dataSourceHealthcareServiceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -115,7 +114,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 	}
 }
 
-func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,8 +125,6 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", name, resourceGroup)
-			d.SetId("")
 			return fmt.Errorf("HealthCare Service %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -138,25 +135,23 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 		d.Set("kind", kind)
 	}
 
-	if properties := resp.Properties; properties != nil {
-		if accessPolicies := properties.AccessPolicies; accessPolicies != nil {
-			d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(accessPolicies))
+	if props := resp.Properties; props != nil {
+		if err := d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(props.AccessPolicies)); err != nil {
+			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
 		}
 
-		if config := properties.CosmosDbConfiguration; config != nil {
-			d.Set("cosmosdb_throughput", config.OfferThroughput)
+		cosmosThroughput := 0
+		if props.CosmosDbConfiguration != nil && props.CosmosDbConfiguration.OfferThroughput != nil {
+			cosmosThroughput = int(*props.CosmosDbConfiguration.OfferThroughput)
+		}
+		d.Set("cosmosdb_throughput", cosmosThroughput)
+
+		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
+			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
 		}
 
-		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(authConfig)); err != nil {
-				return fmt.Errorf("Error setting `authentication_configuration`: %+v", flattenHealthcareAuthConfig(authConfig))
-			}
-		}
-
-		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
-			if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(corsConfig)); err != nil {
-				return fmt.Errorf("Error setting `cors_configuration`: %+v", flattenHealthcareCorsConfig(corsConfig))
-			}
+		if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(props.CorsConfiguration)); err != nil {
+			return fmt.Errorf("Error setting `cors_configuration`: %+v", err)
 		}
 	}
 

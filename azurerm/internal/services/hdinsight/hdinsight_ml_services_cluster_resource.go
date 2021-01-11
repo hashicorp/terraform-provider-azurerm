@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,44 +20,48 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightMLServicesClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightMLServicesClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightMLServicesClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightMLServicesClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        16,
 	CanSpecifyDisks:         false,
 }
 
-var hdInsightMLServicesClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightMLServicesClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-var hdInsightMLServicesClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightMLServicesClusterEdgeNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         1,
-	MaxInstanceCount:         1,
+	MaxInstanceCount:         utils.Int(1),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
 }
 
-func resourceArmHDInsightMLServicesCluster() *schema.Resource {
+func resourceHDInsightMLServicesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightMLServicesClusterCreate,
-		Read:   resourceArmHDInsightMLServicesClusterRead,
-		Update: hdinsightClusterUpdate("MLServices", resourceArmHDInsightMLServicesClusterRead),
+		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - MLServices is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
+		
+More information on the HDInsight 3.6 deprecation can be found at:
+
+https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
+		Create: resourceHDInsightMLServicesClusterCreate,
+		Read:   resourceHDInsightMLServicesClusterRead,
+		Update: hdinsightClusterUpdate("MLServices", resourceHDInsightMLServicesClusterRead),
 		Delete: hdinsightClusterDelete("MLServices"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -70,19 +75,19 @@ func resourceArmHDInsightMLServicesCluster() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaHDInsightName(),
+			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"cluster_version": azure.SchemaHDInsightClusterVersion(),
+			"cluster_version": SchemaHDInsightClusterVersion(),
 
-			"tier": azure.SchemaHDInsightTier(),
+			"tier": SchemaHDInsightTier(),
 
-			"tls_min_version": azure.SchemaHDInsightTls(),
+			"tls_min_version": SchemaHDInsightTls(),
 
-			"gateway": azure.SchemaHDInsightsGateway(),
+			"gateway": SchemaHDInsightsGateway(),
 
 			"rstudio": {
 				Type:     schema.TypeBool,
@@ -90,7 +95,7 @@ func resourceArmHDInsightMLServicesCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -98,13 +103,13 @@ func resourceArmHDInsightMLServicesCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightMLServicesClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightMLServicesClusterHeadNodeDefinition, true),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightMLServicesClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightMLServicesClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightMLServicesClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightMLServicesClusterZookeeperNodeDefinition, true),
 
-						"edge_node": azure.SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightMLServicesClusterEdgeNodeDefinition),
+						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightMLServicesClusterEdgeNodeDefinition, true),
 					},
 				},
 			},
@@ -130,7 +135,7 @@ func resourceArmHDInsightMLServicesCluster() *schema.Resource {
 }
 
 func expandHDInsightsMLServicesConfigurations(gateway []interface{}, rStudio bool) map[string]interface{} {
-	config := azure.ExpandHDInsightsConfigurations(gateway)
+	config := ExpandHDInsightsConfigurations(gateway)
 
 	config["rserver"] = map[string]interface{}{
 		"rstudio": rStudio,
@@ -139,13 +144,15 @@ func expandHDInsightsMLServicesConfigurations(gateway []interface{}, rStudio boo
 	return config
 }
 
-func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -157,7 +164,7 @@ func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta in
 	gateway := expandHDInsightsMLServicesConfigurations(gatewayRaw, rStudio)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
@@ -174,17 +181,15 @@ func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error expanding `roles`: %+v", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hdinsight_ml_server_cluster", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_hdinsight_ml_server_cluster", *existing.ID)
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -226,24 +231,24 @@ func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error reading ID for HDInsight MLServices Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
-	return resourceArmHDInsightMLServicesClusterRead(d, meta)
+	return resourceHDInsightMLServicesClusterRead(d, meta)
 }
 
-func resourceArmHDInsightMLServicesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightMLServicesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -279,7 +284,7 @@ func resourceArmHDInsightMLServicesClusterRead(d *schema.ResourceData, meta inte
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 
@@ -307,11 +312,11 @@ func resourceArmHDInsightMLServicesClusterRead(d *schema.ResourceData, meta inte
 			return fmt.Errorf("Error flattening `roles`: %+v", err)
 		}
 
-		edgeSSHEndpoint := azure.FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
+		edgeSSHEndpoint := FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
 		d.Set("edge_ssh_endpoint", edgeSSHEndpoint)
-		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 

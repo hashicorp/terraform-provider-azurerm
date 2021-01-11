@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -370,6 +370,50 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Deny"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_policies(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_policies(data, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "trust_policy.0.enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMContainerRegistry_policies(data, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "trust_policy.0.enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMContainerRegistry_policies_downgradeUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "trust_policy.0.enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -780,4 +824,67 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMContainerRegistry_policies(data acceptance.TestData, days int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "acctestACR%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = false
+  sku                 = "Premium"
+
+  retention_policy {
+    days    = %d
+    enabled = true
+  }
+
+  trust_policy {
+    enabled = true
+  }
+
+  tags = {
+    Environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days)
+}
+
+func testAccAzureRMContainerRegistry_policies_downgradeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "acctestACR%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = false
+  sku                 = "Basic"
+  network_rule_set    = []
+
+  retention_policy {}
+  trust_policy {}
+
+  tags = {
+    Environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

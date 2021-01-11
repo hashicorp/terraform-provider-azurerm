@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -22,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppPool() *schema.Resource {
+func resourceNetAppPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppPoolCreateUpdate,
-		Read:   resourceArmNetAppPoolRead,
-		Update: resourceArmNetAppPoolCreateUpdate,
-		Delete: resourceArmNetAppPoolDelete,
+		Create: resourceNetAppPoolCreateUpdate,
+		Read:   resourceNetAppPoolRead,
+		Update: resourceNetAppPoolCreateUpdate,
+		Delete: resourceNetAppPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,7 +35,7 @@ func resourceArmNetAppPool() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.NetAppPoolID(id)
+			_, err := parse.CapacityPoolID(id)
 			return err
 		}),
 
@@ -80,7 +79,7 @@ func resourceArmNetAppPool() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,7 +88,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -133,20 +132,20 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppPoolRead(d, meta)
+	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppPoolID(d.Id())
+	id, err := parse.CapacityPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Pools %q does not exist - removing from state", d.Id())
@@ -158,7 +157,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.NetAppAccountName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -177,27 +176,35 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppPoolID(d.Id())
+	id, err := parse.CapacityPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	// The resource NetApp Pool depends on the resource NetApp Account.
+	// Although the delete API returns 404 which means the NetApp Pool resource has been deleted.
+	// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
+	// In this case we're going to re-check status code again.
+	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
 	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.Name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -214,15 +221,6 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsC
 			if !utils.ResponseWasNotFound(res.Response) {
 				return nil, "", fmt.Errorf("Error retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
-		}
-
-		// The resource NetApp Pool depends on the resource NetApp Account.
-		// Although the delete API returns 404 which means the NetApp Pool resource has been deleted.
-		// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
-		// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
-		// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
-		if _, err := client.Delete(ctx, resourceGroupName, accountName, name); err != nil {
-			log.Printf("Error reissuing NetApp Pool %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -24,16 +23,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDbServer() *schema.Resource {
+func resourceMariaDbServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbServerCreate,
-		Read:   resourceArmMariaDbServerRead,
-		Update: resourceArmMariaDbServerUpdate,
-		Delete: resourceArmMariaDbServerDelete,
+		Create: resourceMariaDbServerCreate,
+		Read:   resourceMariaDbServerRead,
+		Update: resourceMariaDbServerUpdate,
+		Delete: resourceMariaDbServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.MariaDbServerServerID(d.Id()); err != nil {
+				if _, err := parse.ServerID(d.Id()); err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
@@ -58,7 +57,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MariaDbServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {
@@ -104,7 +103,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 			"creation_source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MariaDbServerServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"fqdn": {
@@ -169,7 +168,6 @@ func resourceArmMariaDbServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -257,7 +255,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +266,7 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -296,10 +294,7 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	ssl := mariadb.SslEnforcementEnumEnabled
-	if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(mariadb.SslEnforcementEnumDisabled)) {
-		ssl = mariadb.SslEnforcementEnumDisabled
-	}
-	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
 		ssl = mariadb.SslEnforcementEnumDisabled
 	}
 
@@ -395,17 +390,17 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbServerRead(d, meta)
+	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server update.")
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}
@@ -421,9 +416,6 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	ssl := mariadb.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(mariadb.SslEnforcementEnumDisabled)) {
-		ssl = mariadb.SslEnforcementEnumDisabled
-	}
 	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
 		ssl = mariadb.SslEnforcementEnumDisabled
 	}
@@ -462,15 +454,15 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbServerRead(d, meta)
+	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}
@@ -522,12 +514,12 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}

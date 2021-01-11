@@ -72,6 +72,7 @@ func (client VMInsightsClient) GetOnboardingStatus(ctx context.Context, resource
 	result, err = client.GetOnboardingStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.VMInsightsClient", "GetOnboardingStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client VMInsightsClient) GetOnboardingStatusSender(req *http.Request) (*ht
 func (client VMInsightsClient) GetOnboardingStatusResponder(resp *http.Response) (result VMInsightsOnboardingStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

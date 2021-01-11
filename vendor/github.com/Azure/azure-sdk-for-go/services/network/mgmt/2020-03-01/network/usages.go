@@ -79,6 +79,10 @@ func (client UsagesClient) List(ctx context.Context, location string) (result Us
 	result.ulr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.UsagesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ulr.hasNextLink() && result.ulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -115,7 +119,6 @@ func (client UsagesClient) ListSender(req *http.Request) (*http.Response, error)
 func (client UsagesClient) ListResponder(resp *http.Response) (result UsagesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -140,6 +143,7 @@ func (client UsagesClient) listNextResults(ctx context.Context, lastResults Usag
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.UsagesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

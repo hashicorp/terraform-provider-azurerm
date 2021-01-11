@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderFacebook() *schema.Resource {
+func resourceApiManagementIdentityProviderFacebook() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderFacebookCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderFacebookRead,
-		Update: resourceArmApiManagementIdentityProviderFacebookCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderFacebookDelete,
+		Create: resourceApiManagementIdentityProviderFacebookCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderFacebookRead,
+		Update: resourceApiManagementIdentityProviderFacebookCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderFacebookDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceArmApiManagementIdentityProviderFacebook() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderFacebookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,10 +97,10 @@ func resourceArmApiManagementIdentityProviderFacebookCreateUpdate(d *schema.Reso
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderFacebookRead(d, meta)
+	return resourceApiManagementIdentityProviderFacebookRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderFacebookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,13 +129,12 @@ func resourceArmApiManagementIdentityProviderFacebookRead(d *schema.ResourceData
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("app_id", props.ClientID)
-		d.Set("app_secret", props.ClientSecret)
 	}
 
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderFacebookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

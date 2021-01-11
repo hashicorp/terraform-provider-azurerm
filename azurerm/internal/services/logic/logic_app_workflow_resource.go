@@ -3,15 +3,17 @@ package logic
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,12 +21,12 @@ import (
 
 var logicAppResourceName = "azurerm_logic_app"
 
-func resourceArmLogicAppWorkflow() *schema.Resource {
+func resourceLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppWorkflowCreate,
-		Read:   resourceArmLogicAppWorkflowRead,
-		Update: resourceArmLogicAppWorkflowUpdate,
-		Delete: resourceArmLogicAppWorkflowDelete,
+		Create: resourceLogicAppWorkflowCreate,
+		Read:   resourceLogicAppWorkflowRead,
+		Update: resourceLogicAppWorkflowUpdate,
+		Delete: resourceLogicAppWorkflowDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,11 +43,31 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-()_.A-Za-z0-9]{1,80}$"),
+						"The Logic app name can contain only letters, numbers, periods (.), hyphens (-), brackets (()) and underscores (_), up to 80 characters",
+					),
+				),
 			},
 
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"integration_service_environment_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+			},
+
+			"logic_app_integration_account_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.IntegrationAccountID,
+			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {
@@ -101,8 +123,8 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+func resourceLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -111,7 +133,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -145,6 +167,18 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
+	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
+		properties.WorkflowProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
+			ID: utils.String(iseID.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
+		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -159,11 +193,11 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogicAppWorkflowRead(d, meta)
+	return resourceLogicAppWorkflowRead(d, meta)
 }
 
-func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+func resourceLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,15 +240,21 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
+		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return resourceArmLogicAppWorkflowRead(d, meta)
+	return resourceLogicAppWorkflowRead(d, meta)
 }
 
-func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+func resourceLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -271,13 +311,29 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 				d.Set("workflow_version", v["contentVersion"].(string))
 			}
 		}
+
+		integrationServiceEnvironmentId := ""
+		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
+			integrationServiceEnvironmentId = *props.IntegrationServiceEnvironment.ID
+		}
+		d.Set("integration_service_environment_id", integrationServiceEnvironmentId)
+
+		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
+			d.Set("logic_app_integration_account_id", props.IntegrationAccount.ID)
+		}
+
+		integrationAccountId := ""
+		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
+			integrationAccountId = *props.IntegrationAccount.ID
+		}
+		d.Set("logic_app_integration_account_id", integrationAccountId)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+func resourceLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

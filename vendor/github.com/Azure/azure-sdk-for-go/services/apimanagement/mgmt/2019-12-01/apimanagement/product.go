@@ -94,6 +94,7 @@ func (client ProductClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -138,7 +139,6 @@ func (client ProductClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client ProductClient) CreateOrUpdateResponder(resp *http.Response) (result ProductContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,6 +192,7 @@ func (client ProductClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,7 +235,6 @@ func (client ProductClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client ProductClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,6 +284,7 @@ func (client ProductClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,7 +323,6 @@ func (client ProductClient) GetSender(req *http.Request) (*http.Response, error)
 func (client ProductClient) GetResponder(resp *http.Response) (result ProductContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -373,6 +373,7 @@ func (client ProductClient) GetEntityTag(ctx context.Context, resourceGroupName 
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -411,7 +412,6 @@ func (client ProductClient) GetEntityTagSender(req *http.Request) (*http.Respons
 func (client ProductClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -476,6 +476,10 @@ func (client ProductClient) ListByService(ctx context.Context, resourceGroupName
 	result.pc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.pc.hasNextLink() && result.pc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -528,7 +532,6 @@ func (client ProductClient) ListByServiceSender(req *http.Request) (*http.Respon
 func (client ProductClient) ListByServiceResponder(resp *http.Response) (result ProductCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -553,6 +556,7 @@ func (client ProductClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -629,6 +633,10 @@ func (client ProductClient) ListByTags(ctx context.Context, resourceGroupName st
 	result.trc, err = client.ListByTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "ListByTags", resp, "Failure responding to request")
+		return
+	}
+	if result.trc.hasNextLink() && result.trc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -678,7 +686,6 @@ func (client ProductClient) ListByTagsSender(req *http.Request) (*http.Response,
 func (client ProductClient) ListByTagsResponder(resp *http.Response) (result TagResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -703,6 +710,7 @@ func (client ProductClient) listByTagsNextResults(ctx context.Context, lastResul
 	result, err = client.ListByTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "listByTagsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -769,6 +777,7 @@ func (client ProductClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -810,7 +819,6 @@ func (client ProductClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client ProductClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

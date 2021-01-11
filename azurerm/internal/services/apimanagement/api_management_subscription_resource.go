@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementSubscription() *schema.Resource {
+func resourceApiManagementSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementSubscriptionCreateUpdate,
-		Read:   resourceArmApiManagementSubscriptionRead,
-		Update: resourceArmApiManagementSubscriptionCreateUpdate,
-		Delete: resourceArmApiManagementSubscriptionDelete,
+		Create: resourceApiManagementSubscriptionCreateUpdate,
+		Read:   resourceApiManagementSubscriptionRead,
+		Update: resourceApiManagementSubscriptionCreateUpdate,
+		Delete: resourceApiManagementSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -90,11 +90,17 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"allow_tracing": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
 
-func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,13 +129,15 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	productId := d.Get("product_id").(string)
 	state := d.Get("state").(string)
 	userId := d.Get("user_id").(string)
+	allowTracing := d.Get("allow_tracing").(bool)
 
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
-			DisplayName: utils.String(displayName),
-			Scope:       utils.String(productId),
-			State:       apimanagement.SubscriptionState(state),
-			OwnerID:     utils.String(userId),
+			DisplayName:  utils.String(displayName),
+			Scope:        utils.String(productId),
+			State:        apimanagement.SubscriptionState(state),
+			OwnerID:      utils.String(userId),
+			AllowTracing: utils.Bool(allowTracing),
 		},
 	}
 
@@ -142,7 +150,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	}
 
 	sendEmail := utils.Bool(false)
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "")
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.DeveloperPortal)
 	if err != nil {
 		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
@@ -154,10 +162,10 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementSubscriptionRead(d, meta)
+	return resourceApiManagementSubscriptionRead(d, meta)
 }
 
-func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,17 +195,24 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 
 	if props := resp.SubscriptionContractProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
-		d.Set("primary_key", props.PrimaryKey)
-		d.Set("secondary_key", props.SecondaryKey)
 		d.Set("state", string(props.State))
 		d.Set("product_id", props.Scope)
 		d.Set("user_id", props.OwnerID)
+		d.Set("allow_tracing", props.AllowTracing)
 	}
+
+	// Primary and secondary keys must be got from this additional api
+	keyResp, err := client.ListSecrets(ctx, resourceGroup, serviceName, subscriptionId)
+	if err != nil {
+		return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+	}
+	d.Set("primary_key", keyResp.PrimaryKey)
+	d.Set("secondary_key", keyResp.SecondaryKey)
 
 	return nil
 }
 
-func resourceArmApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -84,6 +84,7 @@ func (client ServersClient) CheckNameAvailability(ctx context.Context, location 
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client ServersClient) CheckNameAvailabilitySender(req *http.Request) (*htt
 func (client ServersClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckServerNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +215,6 @@ func (client ServersClient) CreateSender(req *http.Request) (future ServersCreat
 func (client ServersClient) CreateResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,7 +304,6 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 func (client ServersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -357,6 +355,7 @@ func (client ServersClient) DissociateGateway(ctx context.Context, resourceGroup
 	result, err = client.DissociateGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "DissociateGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -394,7 +393,6 @@ func (client ServersClient) DissociateGatewaySender(req *http.Request) (*http.Re
 func (client ServersClient) DissociateGatewayResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -446,6 +444,7 @@ func (client ServersClient) GetDetails(ctx context.Context, resourceGroupName st
 	result, err = client.GetDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "GetDetails", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -483,7 +482,6 @@ func (client ServersClient) GetDetailsSender(req *http.Request) (*http.Response,
 func (client ServersClient) GetDetailsResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -519,6 +517,7 @@ func (client ServersClient) List(ctx context.Context) (result Servers, err error
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -554,7 +553,6 @@ func (client ServersClient) ListSender(req *http.Request) (*http.Response, error
 func (client ServersClient) ListResponder(resp *http.Response) (result Servers, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -601,6 +599,7 @@ func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -637,7 +636,6 @@ func (client ServersClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client ServersClient) ListByResourceGroupResponder(resp *http.Response) (result Servers, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -689,6 +687,7 @@ func (client ServersClient) ListGatewayStatus(ctx context.Context, resourceGroup
 	result, err = client.ListGatewayStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListGatewayStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -726,7 +725,6 @@ func (client ServersClient) ListGatewayStatusSender(req *http.Request) (*http.Re
 func (client ServersClient) ListGatewayStatusResponder(resp *http.Response) (result GatewayListStatusLive, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -765,6 +763,7 @@ func (client ServersClient) ListOperationResults(ctx context.Context, location s
 	result, err = client.ListOperationResultsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListOperationResults", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -802,7 +801,6 @@ func (client ServersClient) ListOperationResultsSender(req *http.Request) (*http
 func (client ServersClient) ListOperationResultsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -840,6 +838,7 @@ func (client ServersClient) ListOperationStatuses(ctx context.Context, location 
 	result, err = client.ListOperationStatusesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListOperationStatuses", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -877,7 +876,6 @@ func (client ServersClient) ListOperationStatusesSender(req *http.Request) (*htt
 func (client ServersClient) ListOperationStatusesResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -930,6 +928,7 @@ func (client ServersClient) ListSkusForExisting(ctx context.Context, resourceGro
 	result, err = client.ListSkusForExistingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListSkusForExisting", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -967,7 +966,6 @@ func (client ServersClient) ListSkusForExistingSender(req *http.Request) (*http.
 func (client ServersClient) ListSkusForExistingResponder(resp *http.Response) (result SkuEnumerationForExistingResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1003,6 +1001,7 @@ func (client ServersClient) ListSkusForNew(ctx context.Context) (result SkuEnume
 	result, err = client.ListSkusForNewResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListSkusForNew", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1038,7 +1037,6 @@ func (client ServersClient) ListSkusForNewSender(req *http.Request) (*http.Respo
 func (client ServersClient) ListSkusForNewResponder(resp *http.Response) (result SkuEnumerationForNewResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1128,7 +1126,6 @@ func (client ServersClient) ResumeSender(req *http.Request) (future ServersResum
 func (client ServersClient) ResumeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1217,7 +1214,6 @@ func (client ServersClient) SuspendSender(req *http.Request) (future ServersSusp
 func (client ServersClient) SuspendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1309,7 +1305,6 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 func (client ServersClient) UpdateResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

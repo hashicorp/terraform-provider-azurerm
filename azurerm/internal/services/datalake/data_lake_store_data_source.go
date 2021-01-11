@@ -2,7 +2,6 @@ package datalake
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDataLakeStoreAccount() *schema.Resource {
+func dataSourceDataLakeStoreAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmDateLakeStoreAccountRead,
 
@@ -72,11 +71,9 @@ func dataSourceArmDateLakeStoreAccountRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] DataLakeStoreAccount %q was not found (Resource Group %q)", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Data Lake Store Account %q was not found in Resource Group %q", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Azure Data Lake %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Lake Store Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

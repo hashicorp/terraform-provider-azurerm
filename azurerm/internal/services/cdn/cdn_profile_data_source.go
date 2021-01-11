@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -12,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmCdnProfile() *schema.Resource {
+func dataSourceCdnProfile() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmCdnProfileRead,
+		Read: dataSourceCdnProfileRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -40,7 +42,7 @@ func dataSourceArmCdnProfile() *schema.Resource {
 	}
 }
 
-func dataSourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -56,7 +58,12 @@ func dataSourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error making Read request on Azure CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.ProfileID(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

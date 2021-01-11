@@ -32,168 +32,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 
-// AADObjectType enumerates the values for aad object type.
-type AADObjectType string
-
-const (
-	// Group ...
-	Group AADObjectType = "Group"
-	// ServicePrincipal ...
-	ServicePrincipal AADObjectType = "ServicePrincipal"
-	// User ...
-	User AADObjectType = "User"
-)
-
-// PossibleAADObjectTypeValues returns an array of possible values for the AADObjectType const type.
-func PossibleAADObjectTypeValues() []AADObjectType {
-	return []AADObjectType{Group, ServicePrincipal, User}
-}
-
-// DataLakeAnalyticsAccountState enumerates the values for data lake analytics account state.
-type DataLakeAnalyticsAccountState string
-
-const (
-	// Active ...
-	Active DataLakeAnalyticsAccountState = "Active"
-	// Suspended ...
-	Suspended DataLakeAnalyticsAccountState = "Suspended"
-)
-
-// PossibleDataLakeAnalyticsAccountStateValues returns an array of possible values for the DataLakeAnalyticsAccountState const type.
-func PossibleDataLakeAnalyticsAccountStateValues() []DataLakeAnalyticsAccountState {
-	return []DataLakeAnalyticsAccountState{Active, Suspended}
-}
-
-// DataLakeAnalyticsAccountStatus enumerates the values for data lake analytics account status.
-type DataLakeAnalyticsAccountStatus string
-
-const (
-	// Canceled ...
-	Canceled DataLakeAnalyticsAccountStatus = "Canceled"
-	// Creating ...
-	Creating DataLakeAnalyticsAccountStatus = "Creating"
-	// Deleted ...
-	Deleted DataLakeAnalyticsAccountStatus = "Deleted"
-	// Deleting ...
-	Deleting DataLakeAnalyticsAccountStatus = "Deleting"
-	// Failed ...
-	Failed DataLakeAnalyticsAccountStatus = "Failed"
-	// Patching ...
-	Patching DataLakeAnalyticsAccountStatus = "Patching"
-	// Resuming ...
-	Resuming DataLakeAnalyticsAccountStatus = "Resuming"
-	// Running ...
-	Running DataLakeAnalyticsAccountStatus = "Running"
-	// Succeeded ...
-	Succeeded DataLakeAnalyticsAccountStatus = "Succeeded"
-	// Suspending ...
-	Suspending DataLakeAnalyticsAccountStatus = "Suspending"
-	// Undeleting ...
-	Undeleting DataLakeAnalyticsAccountStatus = "Undeleting"
-)
-
-// PossibleDataLakeAnalyticsAccountStatusValues returns an array of possible values for the DataLakeAnalyticsAccountStatus const type.
-func PossibleDataLakeAnalyticsAccountStatusValues() []DataLakeAnalyticsAccountStatus {
-	return []DataLakeAnalyticsAccountStatus{Canceled, Creating, Deleted, Deleting, Failed, Patching, Resuming, Running, Succeeded, Suspending, Undeleting}
-}
-
-// FirewallAllowAzureIpsState enumerates the values for firewall allow azure ips state.
-type FirewallAllowAzureIpsState string
-
-const (
-	// Disabled ...
-	Disabled FirewallAllowAzureIpsState = "Disabled"
-	// Enabled ...
-	Enabled FirewallAllowAzureIpsState = "Enabled"
-)
-
-// PossibleFirewallAllowAzureIpsStateValues returns an array of possible values for the FirewallAllowAzureIpsState const type.
-func PossibleFirewallAllowAzureIpsStateValues() []FirewallAllowAzureIpsState {
-	return []FirewallAllowAzureIpsState{Disabled, Enabled}
-}
-
-// FirewallState enumerates the values for firewall state.
-type FirewallState string
-
-const (
-	// FirewallStateDisabled ...
-	FirewallStateDisabled FirewallState = "Disabled"
-	// FirewallStateEnabled ...
-	FirewallStateEnabled FirewallState = "Enabled"
-)
-
-// PossibleFirewallStateValues returns an array of possible values for the FirewallState const type.
-func PossibleFirewallStateValues() []FirewallState {
-	return []FirewallState{FirewallStateDisabled, FirewallStateEnabled}
-}
-
-// OperationOrigin enumerates the values for operation origin.
-type OperationOrigin string
-
-const (
-	// OperationOriginSystem ...
-	OperationOriginSystem OperationOrigin = "system"
-	// OperationOriginUser ...
-	OperationOriginUser OperationOrigin = "user"
-	// OperationOriginUsersystem ...
-	OperationOriginUsersystem OperationOrigin = "user,system"
-)
-
-// PossibleOperationOriginValues returns an array of possible values for the OperationOrigin const type.
-func PossibleOperationOriginValues() []OperationOrigin {
-	return []OperationOrigin{OperationOriginSystem, OperationOriginUser, OperationOriginUsersystem}
-}
-
-// SubscriptionState enumerates the values for subscription state.
-type SubscriptionState string
-
-const (
-	// SubscriptionStateDeleted ...
-	SubscriptionStateDeleted SubscriptionState = "Deleted"
-	// SubscriptionStateRegistered ...
-	SubscriptionStateRegistered SubscriptionState = "Registered"
-	// SubscriptionStateSuspended ...
-	SubscriptionStateSuspended SubscriptionState = "Suspended"
-	// SubscriptionStateUnregistered ...
-	SubscriptionStateUnregistered SubscriptionState = "Unregistered"
-	// SubscriptionStateWarned ...
-	SubscriptionStateWarned SubscriptionState = "Warned"
-)
-
-// PossibleSubscriptionStateValues returns an array of possible values for the SubscriptionState const type.
-func PossibleSubscriptionStateValues() []SubscriptionState {
-	return []SubscriptionState{SubscriptionStateDeleted, SubscriptionStateRegistered, SubscriptionStateSuspended, SubscriptionStateUnregistered, SubscriptionStateWarned}
-}
-
-// TierType enumerates the values for tier type.
-type TierType string
-
-const (
-	// Commitment100000AUHours ...
-	Commitment100000AUHours TierType = "Commitment_100000AUHours"
-	// Commitment10000AUHours ...
-	Commitment10000AUHours TierType = "Commitment_10000AUHours"
-	// Commitment1000AUHours ...
-	Commitment1000AUHours TierType = "Commitment_1000AUHours"
-	// Commitment100AUHours ...
-	Commitment100AUHours TierType = "Commitment_100AUHours"
-	// Commitment500000AUHours ...
-	Commitment500000AUHours TierType = "Commitment_500000AUHours"
-	// Commitment50000AUHours ...
-	Commitment50000AUHours TierType = "Commitment_50000AUHours"
-	// Commitment5000AUHours ...
-	Commitment5000AUHours TierType = "Commitment_5000AUHours"
-	// Commitment500AUHours ...
-	Commitment500AUHours TierType = "Commitment_500AUHours"
-	// Consumption ...
-	Consumption TierType = "Consumption"
-)
-
-// PossibleTierTypeValues returns an array of possible values for the TierType const type.
-func PossibleTierTypeValues() []TierType {
-	return []TierType{Commitment100000AUHours, Commitment10000AUHours, Commitment1000AUHours, Commitment100AUHours, Commitment500000AUHours, Commitment50000AUHours, Commitment5000AUHours, Commitment500AUHours, Consumption}
-}
-
 // AccountsCreateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFutureType struct {
@@ -647,10 +485,15 @@ func (cplr ComputePolicyListResult) IsEmpty() bool {
 	return cplr.Value == nil || len(*cplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cplr ComputePolicyListResult) hasNextLink() bool {
+	return cplr.NextLink != nil && len(*cplr.NextLink) != 0
+}
+
 // computePolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cplr ComputePolicyListResult) computePolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if cplr.NextLink == nil || len(to.String(cplr.NextLink)) < 1 {
+	if !cplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -678,11 +521,16 @@ func (page *ComputePolicyListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cplr)
+		if err != nil {
+			return err
+		}
+		page.cplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cplr = next
 	return nil
 }
 
@@ -712,8 +560,11 @@ func (page ComputePolicyListResultPage) Values() []ComputePolicy {
 }
 
 // Creates a new instance of the ComputePolicyListResultPage type.
-func NewComputePolicyListResultPage(getNextPage func(context.Context, ComputePolicyListResult) (ComputePolicyListResult, error)) ComputePolicyListResultPage {
-	return ComputePolicyListResultPage{fn: getNextPage}
+func NewComputePolicyListResultPage(cur ComputePolicyListResult, getNextPage func(context.Context, ComputePolicyListResult) (ComputePolicyListResult, error)) ComputePolicyListResultPage {
+	return ComputePolicyListResultPage{
+		fn:   getNextPage,
+		cplr: cur,
+	}
 }
 
 // ComputePolicyProperties the compute policy properties.
@@ -1297,10 +1148,15 @@ func (dlaalr DataLakeAnalyticsAccountListResult) IsEmpty() bool {
 	return dlaalr.Value == nil || len(*dlaalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dlaalr DataLakeAnalyticsAccountListResult) hasNextLink() bool {
+	return dlaalr.NextLink != nil && len(*dlaalr.NextLink) != 0
+}
+
 // dataLakeAnalyticsAccountListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dlaalr DataLakeAnalyticsAccountListResult) dataLakeAnalyticsAccountListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dlaalr.NextLink == nil || len(to.String(dlaalr.NextLink)) < 1 {
+	if !dlaalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1328,11 +1184,16 @@ func (page *DataLakeAnalyticsAccountListResultPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dlaalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dlaalr)
+		if err != nil {
+			return err
+		}
+		page.dlaalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dlaalr = next
 	return nil
 }
 
@@ -1362,8 +1223,11 @@ func (page DataLakeAnalyticsAccountListResultPage) Values() []DataLakeAnalyticsA
 }
 
 // Creates a new instance of the DataLakeAnalyticsAccountListResultPage type.
-func NewDataLakeAnalyticsAccountListResultPage(getNextPage func(context.Context, DataLakeAnalyticsAccountListResult) (DataLakeAnalyticsAccountListResult, error)) DataLakeAnalyticsAccountListResultPage {
-	return DataLakeAnalyticsAccountListResultPage{fn: getNextPage}
+func NewDataLakeAnalyticsAccountListResultPage(cur DataLakeAnalyticsAccountListResult, getNextPage func(context.Context, DataLakeAnalyticsAccountListResult) (DataLakeAnalyticsAccountListResult, error)) DataLakeAnalyticsAccountListResultPage {
+	return DataLakeAnalyticsAccountListResultPage{
+		fn:     getNextPage,
+		dlaalr: cur,
+	}
 }
 
 // DataLakeAnalyticsAccountProperties the account specific properties that are associated with an
@@ -1580,10 +1444,15 @@ func (dlsailr DataLakeStoreAccountInformationListResult) IsEmpty() bool {
 	return dlsailr.Value == nil || len(*dlsailr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dlsailr DataLakeStoreAccountInformationListResult) hasNextLink() bool {
+	return dlsailr.NextLink != nil && len(*dlsailr.NextLink) != 0
+}
+
 // dataLakeStoreAccountInformationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dlsailr DataLakeStoreAccountInformationListResult) dataLakeStoreAccountInformationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dlsailr.NextLink == nil || len(to.String(dlsailr.NextLink)) < 1 {
+	if !dlsailr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1611,11 +1480,16 @@ func (page *DataLakeStoreAccountInformationListResultPage) NextWithContext(ctx c
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dlsailr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dlsailr)
+		if err != nil {
+			return err
+		}
+		page.dlsailr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dlsailr = next
 	return nil
 }
 
@@ -1645,8 +1519,11 @@ func (page DataLakeStoreAccountInformationListResultPage) Values() []DataLakeSto
 }
 
 // Creates a new instance of the DataLakeStoreAccountInformationListResultPage type.
-func NewDataLakeStoreAccountInformationListResultPage(getNextPage func(context.Context, DataLakeStoreAccountInformationListResult) (DataLakeStoreAccountInformationListResult, error)) DataLakeStoreAccountInformationListResultPage {
-	return DataLakeStoreAccountInformationListResultPage{fn: getNextPage}
+func NewDataLakeStoreAccountInformationListResultPage(cur DataLakeStoreAccountInformationListResult, getNextPage func(context.Context, DataLakeStoreAccountInformationListResult) (DataLakeStoreAccountInformationListResult, error)) DataLakeStoreAccountInformationListResultPage {
+	return DataLakeStoreAccountInformationListResultPage{
+		fn:      getNextPage,
+		dlsailr: cur,
+	}
 }
 
 // DataLakeStoreAccountInformationProperties the Data Lake Store account properties.
@@ -1802,10 +1679,15 @@ func (frlr FirewallRuleListResult) IsEmpty() bool {
 	return frlr.Value == nil || len(*frlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (frlr FirewallRuleListResult) hasNextLink() bool {
+	return frlr.NextLink != nil && len(*frlr.NextLink) != 0
+}
+
 // firewallRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (frlr FirewallRuleListResult) firewallRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if frlr.NextLink == nil || len(to.String(frlr.NextLink)) < 1 {
+	if !frlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1833,11 +1715,16 @@ func (page *FirewallRuleListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.frlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.frlr)
+		if err != nil {
+			return err
+		}
+		page.frlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.frlr = next
 	return nil
 }
 
@@ -1867,8 +1754,11 @@ func (page FirewallRuleListResultPage) Values() []FirewallRule {
 }
 
 // Creates a new instance of the FirewallRuleListResultPage type.
-func NewFirewallRuleListResultPage(getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
-	return FirewallRuleListResultPage{fn: getNextPage}
+func NewFirewallRuleListResultPage(cur FirewallRuleListResult, getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
+	return FirewallRuleListResultPage{
+		fn:   getNextPage,
+		frlr: cur,
+	}
 }
 
 // FirewallRuleProperties the firewall rule properties.
@@ -2026,10 +1916,15 @@ func (stilr SasTokenInformationListResult) IsEmpty() bool {
 	return stilr.Value == nil || len(*stilr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (stilr SasTokenInformationListResult) hasNextLink() bool {
+	return stilr.NextLink != nil && len(*stilr.NextLink) != 0
+}
+
 // sasTokenInformationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (stilr SasTokenInformationListResult) sasTokenInformationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if stilr.NextLink == nil || len(to.String(stilr.NextLink)) < 1 {
+	if !stilr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2057,11 +1952,16 @@ func (page *SasTokenInformationListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.stilr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.stilr)
+		if err != nil {
+			return err
+		}
+		page.stilr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.stilr = next
 	return nil
 }
 
@@ -2091,8 +1991,11 @@ func (page SasTokenInformationListResultPage) Values() []SasTokenInformation {
 }
 
 // Creates a new instance of the SasTokenInformationListResultPage type.
-func NewSasTokenInformationListResultPage(getNextPage func(context.Context, SasTokenInformationListResult) (SasTokenInformationListResult, error)) SasTokenInformationListResultPage {
-	return SasTokenInformationListResultPage{fn: getNextPage}
+func NewSasTokenInformationListResultPage(cur SasTokenInformationListResult, getNextPage func(context.Context, SasTokenInformationListResult) (SasTokenInformationListResult, error)) SasTokenInformationListResultPage {
+	return SasTokenInformationListResultPage{
+		fn:    getNextPage,
+		stilr: cur,
+	}
 }
 
 // StorageAccountInformation azure Storage account information.
@@ -2243,10 +2146,15 @@ func (sailr StorageAccountInformationListResult) IsEmpty() bool {
 	return sailr.Value == nil || len(*sailr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sailr StorageAccountInformationListResult) hasNextLink() bool {
+	return sailr.NextLink != nil && len(*sailr.NextLink) != 0
+}
+
 // storageAccountInformationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sailr StorageAccountInformationListResult) storageAccountInformationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sailr.NextLink == nil || len(to.String(sailr.NextLink)) < 1 {
+	if !sailr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2274,11 +2182,16 @@ func (page *StorageAccountInformationListResultPage) NextWithContext(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sailr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sailr)
+		if err != nil {
+			return err
+		}
+		page.sailr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sailr = next
 	return nil
 }
 
@@ -2308,8 +2221,11 @@ func (page StorageAccountInformationListResultPage) Values() []StorageAccountInf
 }
 
 // Creates a new instance of the StorageAccountInformationListResultPage type.
-func NewStorageAccountInformationListResultPage(getNextPage func(context.Context, StorageAccountInformationListResult) (StorageAccountInformationListResult, error)) StorageAccountInformationListResultPage {
-	return StorageAccountInformationListResultPage{fn: getNextPage}
+func NewStorageAccountInformationListResultPage(cur StorageAccountInformationListResult, getNextPage func(context.Context, StorageAccountInformationListResult) (StorageAccountInformationListResult, error)) StorageAccountInformationListResultPage {
+	return StorageAccountInformationListResultPage{
+		fn:    getNextPage,
+		sailr: cur,
+	}
 }
 
 // StorageAccountInformationProperties the Azure Storage account properties.
@@ -2466,10 +2382,15 @@ func (sclr StorageContainerListResult) IsEmpty() bool {
 	return sclr.Value == nil || len(*sclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sclr StorageContainerListResult) hasNextLink() bool {
+	return sclr.NextLink != nil && len(*sclr.NextLink) != 0
+}
+
 // storageContainerListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sclr StorageContainerListResult) storageContainerListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sclr.NextLink == nil || len(to.String(sclr.NextLink)) < 1 {
+	if !sclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2497,11 +2418,16 @@ func (page *StorageContainerListResultPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sclr)
+		if err != nil {
+			return err
+		}
+		page.sclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sclr = next
 	return nil
 }
 
@@ -2531,8 +2457,11 @@ func (page StorageContainerListResultPage) Values() []StorageContainer {
 }
 
 // Creates a new instance of the StorageContainerListResultPage type.
-func NewStorageContainerListResultPage(getNextPage func(context.Context, StorageContainerListResult) (StorageContainerListResult, error)) StorageContainerListResultPage {
-	return StorageContainerListResultPage{fn: getNextPage}
+func NewStorageContainerListResultPage(cur StorageContainerListResult, getNextPage func(context.Context, StorageContainerListResult) (StorageContainerListResult, error)) StorageContainerListResultPage {
+	return StorageContainerListResultPage{
+		fn:   getNextPage,
+		sclr: cur,
+	}
 }
 
 // StorageContainerProperties azure Storage blob container properties information.

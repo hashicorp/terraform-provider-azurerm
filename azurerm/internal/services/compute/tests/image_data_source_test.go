@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMImageBasic(data),
+				Config: testAccDataSourceAzureRMImage_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
@@ -45,7 +45,11 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMImageLocalFilter(data),
+				// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources
+				Config: testAccDataSourceAzureRMImage_localFilter_setup(data),
+			},
+			{
+				Config: testAccDataSourceAzureRMImage_localFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
@@ -60,7 +64,7 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMImageBasic(data acceptance.TestData) string {
+func testAccDataSourceAzureRMImage_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -112,6 +116,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
 
   tags = {
     environment = "Dev"
@@ -192,7 +197,7 @@ output "location" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMImageLocalFilter(data acceptance.TestData) string {
+func testAccDataSourceAzureRMImage_localFilter_setup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -331,6 +336,13 @@ resource "azurerm_image" "def" {
     cost-center = "Ops"
   }
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccDataSourceAzureRMImage_localFilter(data acceptance.TestData) string {
+	setup := testAccDataSourceAzureRMImage_localFilter_setup(data)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_image" "test1" {
   name_regex          = "^def-acctest-\\d+"
@@ -342,5 +354,5 @@ data "azurerm_image" "test2" {
   sort_descending     = true
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, setup)
 }

@@ -82,6 +82,7 @@ func (client ItemLevelRecoveryConnectionsClient) Provision(ctx context.Context, 
 	result, err = client.ProvisionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ItemLevelRecoveryConnectionsClient", "Provision", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client ItemLevelRecoveryConnectionsClient) ProvisionSender(req *http.Reque
 func (client ItemLevelRecoveryConnectionsClient) ProvisionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -170,6 +170,7 @@ func (client ItemLevelRecoveryConnectionsClient) Revoke(ctx context.Context, vau
 	result, err = client.RevokeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ItemLevelRecoveryConnectionsClient", "Revoke", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client ItemLevelRecoveryConnectionsClient) RevokeSender(req *http.Request)
 func (client ItemLevelRecoveryConnectionsClient) RevokeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

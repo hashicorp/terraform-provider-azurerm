@@ -6,22 +6,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabasePrincipal() *schema.Resource {
+func resourceKustoDatabasePrincipal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabasePrincipalCreate,
-		Read:   resourceArmKustoDatabasePrincipalRead,
-		Delete: resourceArmKustoDatabasePrincipalDelete,
+		Create: resourceKustoDatabasePrincipalCreate,
+		Read:   resourceKustoDatabasePrincipalRead,
+		Delete: resourceKustoDatabasePrincipalDelete,
+
+		DeprecationMessage: "This resource has been superseded by `azurerm_kusto_database_principal_assignment` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -116,7 +118,7 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,17 +143,26 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 		fqn = fmt.Sprintf("aadapp=%s;%s", objectID, clientID)
 	}
 
-	database, err := client.Get(ctx, resourceGroup, clusterName, databaseName)
+	resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName)
 	if err != nil {
-		if utils.ResponseWasNotFound(database.Response) {
-			return fmt.Errorf("Kusto Database %q (Resource Group %q) was not found", databaseName, resourceGroup)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Kusto Database %q (Resource Group %q, Cluster %q) was not found", databaseName, resourceGroup, clusterName)
 		}
 
-		return fmt.Errorf("Error loading Kusto Database %q (Resource Group %q): %+v", databaseName, resourceGroup, err)
+		return fmt.Errorf("Error loading Kusto Database %q (Resource Group %q, Cluster %q): %+v", databaseName, resourceGroup, clusterName, err)
 	}
-	resourceId := fmt.Sprintf("%s/Role/%s/FQN/%s", *database.ID, role, fqn)
+	if resp.Value == nil {
+		return fmt.Errorf("Error loading Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", databaseName, resourceGroup, clusterName)
+	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	database, ok := resp.Value.AsReadWriteDatabase()
+	if !ok {
+		return fmt.Errorf("Exisiting resource is not a Kusto Read/Write Database %q (Resource Group %q, Cluster %q)", databaseName, resourceGroup, clusterName)
+	}
+
+	resourceID := fmt.Sprintf("%s/Role/%s/FQN/%s", *database.ID, role, fqn)
+
+	if d.IsNewResource() {
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -163,7 +174,7 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 			for _, principal := range *principals {
 				// kusto database principals are unique when looked at with name and role
 				if string(principal.Role) == role && principal.Fqn != nil && *principal.Fqn == fqn {
-					return tf.ImportAsExistsError("azurerm_kusto_database_principal", resourceId)
+					return tf.ImportAsExistsError("azurerm_kusto_database_principal", resourceID)
 				}
 			}
 		}
@@ -175,9 +186,7 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 		Fqn:  utils.String(fqn),
 		// These three must be specified or the api returns `The request is invalid.`
 		// For more info: https://github.com/Azure/azure-sdk-for-go/issues/6547
-		Email: utils.String(""),
-		AppID: utils.String(""),
-		Name:  utils.String(""),
+		Name: utils.String(""),
 	}
 
 	principals := []kusto.DatabasePrincipal{kustoPrincipal}
@@ -189,56 +198,50 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error creating Kusto Database Principal (Resource Group %q, Cluster %q): %+v", resourceGroup, clusterName, err)
 	}
 
-	resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
+	principalsResp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !utils.ResponseWasNotFound(principalsResp.Response) {
 			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals (Resource Group %q, Cluster %q): %s", resourceGroup, clusterName, err)
 		}
 	}
 
-	d.SetId(resourceId)
+	d.SetId(resourceID)
 
-	return resourceArmKustoDatabasePrincipalRead(d, meta)
+	return resourceKustoDatabasePrincipalRead(d, meta)
 }
 
-func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabasePrincipalID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	clusterName := id.Path["Clusters"]
-	databaseName := id.Path["Databases"]
-	role := id.Path["Role"]
-	fqn := id.Path["FQN"]
-
-	databaseResponse, err := client.Get(ctx, resourceGroup, clusterName, databaseName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName)
 	if err != nil {
-		if utils.ResponseWasNotFound(databaseResponse.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", databaseName, resourceGroup, clusterName, err)
+		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.DatabaseName, id.ResourceGroup, id.ClusterName, err)
 	}
 
-	resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
+	databasePrincipals, err := client.ListPrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals %q (Resource Group %q, Cluster %q): %s", id, resourceGroup, clusterName, err)
+		if !utils.ResponseWasNotFound(databasePrincipals.Response) {
+			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals %q (Resource Group %q, Cluster %q): %s", id, id.ResourceGroup, id.ClusterName, err)
 		}
 	}
 
 	principal := kusto.DatabasePrincipal{}
 	found := false
-	if principals := resp.Value; principals != nil {
+	if principals := databasePrincipals.Value; principals != nil {
 		for _, currPrincipal := range *principals {
 			// kusto database principals are unique when looked at with fqn and role
-			if string(currPrincipal.Role) == role && currPrincipal.Fqn != nil && *currPrincipal.Fqn == fqn {
+			if string(currPrincipal.Role) == id.RoleName && currPrincipal.Fqn != nil && *currPrincipal.Fqn == id.FQNName {
 				principal = currPrincipal
 				found = true
 				break
@@ -252,9 +255,9 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 		return nil
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("cluster_name", clusterName)
-	d.Set("database_name", databaseName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("database_name", id.DatabaseName)
 
 	d.Set("role", string(principal.Role))
 	d.Set("type", string(principal.Type))
@@ -271,13 +274,13 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 		d.Set("name", principal.Name)
 	}
 
-	splitFQN := strings.Split(fqn, "=")
+	splitFQN := strings.Split(id.FQNName, "=")
 	if len(splitFQN) != 2 {
-		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", fqn)
+		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", id.FQNName)
 	}
 	splitIDs := strings.Split(splitFQN[1], ";")
 	if len(splitIDs) != 2 {
-		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", fqn)
+		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", id.FQNName)
 	}
 	d.Set("object_id", splitIDs[0])
 	d.Set("client_id", splitIDs[1])
@@ -285,25 +288,19 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabasePrincipalID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	clusterName := id.Path["Clusters"]
-	databaseName := id.Path["Databases"]
-	role := id.Path["Role"]
-	fqn := id.Path["FQN"]
-
 	kustoPrincipal := kusto.DatabasePrincipal{
-		Role: kusto.DatabasePrincipalRole(role),
-		Fqn:  utils.String(fqn),
+		Role: kusto.DatabasePrincipalRole(id.RoleName),
+		Fqn:  utils.String(id.FQNName),
 		Type: kusto.DatabasePrincipalType(d.Get("type").(string)),
 		// These three must be specified or the api returns `The request is invalid.`
 		// For more info: https://github.com/Azure/azure-sdk-for-go/issues/6547
@@ -317,8 +314,8 @@ func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interf
 		Value: &principals,
 	}
 
-	if _, err = client.RemovePrincipals(ctx, resGroup, clusterName, databaseName, request); err != nil {
-		return fmt.Errorf("Error deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, resGroup, clusterName, databaseName, err)
+	if _, err = client.RemovePrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, request); err != nil {
+		return fmt.Errorf("Error deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

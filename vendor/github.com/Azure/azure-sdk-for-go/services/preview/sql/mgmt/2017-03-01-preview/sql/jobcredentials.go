@@ -88,6 +88,7 @@ func (client JobCredentialsClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client JobCredentialsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client JobCredentialsClient) CreateOrUpdateResponder(resp *http.Response) (result JobCredential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -171,6 +171,7 @@ func (client JobCredentialsClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -210,7 +211,6 @@ func (client JobCredentialsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client JobCredentialsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -251,6 +251,7 @@ func (client JobCredentialsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -290,7 +291,6 @@ func (client JobCredentialsClient) GetSender(req *http.Request) (*http.Response,
 func (client JobCredentialsClient) GetResponder(resp *http.Response) (result JobCredential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -332,6 +332,10 @@ func (client JobCredentialsClient) ListByAgent(ctx context.Context, resourceGrou
 	result.jclr, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "ListByAgent", resp, "Failure responding to request")
+		return
+	}
+	if result.jclr.hasNextLink() && result.jclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -370,7 +374,6 @@ func (client JobCredentialsClient) ListByAgentSender(req *http.Request) (*http.R
 func (client JobCredentialsClient) ListByAgentResponder(resp *http.Response) (result JobCredentialListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -395,6 +398,7 @@ func (client JobCredentialsClient) listByAgentNextResults(ctx context.Context, l
 	result, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "listByAgentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

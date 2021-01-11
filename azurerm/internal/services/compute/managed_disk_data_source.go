@@ -54,6 +54,11 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"image_reference_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Computed: true,

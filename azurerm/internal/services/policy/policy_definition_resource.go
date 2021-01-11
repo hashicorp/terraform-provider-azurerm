@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -54,20 +54,30 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.TypeBuiltIn),
-					string(policy.TypeCustom),
-					string(policy.TypeNotSpecified),
-				}, true)},
+					string(policy.BuiltIn),
+					string(policy.Custom),
+					string(policy.NotSpecified),
+					string(policy.Static),
+				}, true),
+			},
 
 			"mode": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.All),
-					string(policy.Indexed),
-					string(policy.NotSpecified),
-				}, true),
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"All",
+						"Indexed",
+						"Microsoft.ContainerService.Data",
+						"Microsoft.CustomerLockbox.Data",
+						"Microsoft.DataCatalog.Data",
+						"Microsoft.KeyVault.Data",
+						"Microsoft.Kubernetes.Data",
+						"Microsoft.MachineLearningServices.Data",
+						"Microsoft.Network.Data",
+						"Microsoft.Synapse.Data",
+					}, false,
+				),
 			},
 
 			"management_group_id": {
@@ -167,7 +177,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Policy Definition %q: %s", name, err)
+				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
 			}
 		}
 
@@ -178,7 +188,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 
 	properties := policy.DefinitionProperties{
 		PolicyType:  policy.Type(policyType),
-		Mode:        policy.Mode(mode),
+		Mode:        utils.String(mode),
 		DisplayName: utils.String(displayName),
 		Description: utils.String(description),
 	}
@@ -186,7 +196,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
 		policyRule, err := structure.ExpandJsonFromString(policyRuleString)
 		if err != nil {
-			return fmt.Errorf("unable to parse policy_rule: %s", err)
+			return fmt.Errorf("expanding JSON for `policy_rule`: %+v", err)
 		}
 		properties.PolicyRule = &policyRule
 	}
@@ -194,17 +204,17 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
 		metaData, err := structure.ExpandJsonFromString(metaDataString)
 		if err != nil {
-			return fmt.Errorf("unable to parse metadata: %s", err)
+			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
 		properties.Metadata = &metaData
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := structure.ExpandJsonFromString(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 		if err != nil {
-			return fmt.Errorf("unable to parse parameters: %s", err)
+			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
-		properties.Parameters = &parameters
+		properties.Parameters = parameters
 	}
 
 	definition := policy.Definition{
@@ -221,7 +231,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating Policy Definition %q: %+v", name, err)
 	}
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
@@ -241,7 +251,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Policy Definition %q to become available: %s", name, err)
+		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
@@ -249,6 +259,9 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Policy Assignment %q", name)
+	}
 	d.SetId(*resp.ID)
 
 	return resourceArmPolicyDefinitionRead(d, meta)
@@ -267,11 +280,10 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	managementGroupName := ""
 	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupName = scopeId.ManagementGroupId
+		managementGroupName = scopeId.ManagementGroupName
 	}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
@@ -279,7 +291,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Policy Definition %+v", err)
+		return fmt.Errorf("reading Policy Definition %+v", err)
 	}
 
 	d.Set("name", resp.Name)
@@ -300,8 +312,10 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr := flattenJSON(props.Parameters); parametersStr != "" {
+		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
+		} else {
+			return fmt.Errorf("flattening policy definition parameters %+v", err)
 		}
 	}
 
@@ -318,17 +332,17 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	managementGroupID := ""
+	managementGroupName := ""
 	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupID = scopeId.ManagementGroupId
+		managementGroupName = scopeId.ManagementGroupName
 	}
 
 	var resp autorest.Response
-	if managementGroupID == "" {
+	if managementGroupName == "" {
 		resp, err = client.Delete(ctx, id.Name)
 	} else {
-		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupID)
+		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupName)
 	}
 
 	if err != nil {
@@ -336,18 +350,17 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Policy Definition %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting Policy Definition %q: %+v", id.Name, err)
 	}
 
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
-
 		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %s", name, err)
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

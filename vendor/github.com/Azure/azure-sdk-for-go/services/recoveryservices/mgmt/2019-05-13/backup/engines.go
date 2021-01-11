@@ -75,6 +75,7 @@ func (client EnginesClient) Get(ctx context.Context, vaultName string, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -119,7 +120,6 @@ func (client EnginesClient) GetSender(req *http.Request) (*http.Response, error)
 func (client EnginesClient) GetResponder(resp *http.Response) (result EngineBaseResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,10 @@ func (client EnginesClient) List(ctx context.Context, vaultName string, resource
 	result.ebrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ebrl.hasNextLink() && result.ebrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -204,7 +208,6 @@ func (client EnginesClient) ListSender(req *http.Request) (*http.Response, error
 func (client EnginesClient) ListResponder(resp *http.Response) (result EngineBaseResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -229,6 +232,7 @@ func (client EnginesClient) listNextResults(ctx context.Context, lastResults Eng
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

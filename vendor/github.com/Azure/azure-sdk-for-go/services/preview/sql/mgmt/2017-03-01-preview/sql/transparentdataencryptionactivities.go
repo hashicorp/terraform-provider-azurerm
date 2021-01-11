@@ -78,6 +78,7 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfiguration(ctx 
 	result, err = client.ListByConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionActivitiesClient", "ListByConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationSende
 func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationResponder(resp *http.Response) (result TransparentDataEncryptionActivityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

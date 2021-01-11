@@ -85,6 +85,7 @@ func (client GeoBackupPoliciesClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.GeoBackupPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -128,7 +129,6 @@ func (client GeoBackupPoliciesClient) CreateOrUpdateSender(req *http.Request) (*
 func (client GeoBackupPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result GeoBackupPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client GeoBackupPoliciesClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.GeoBackupPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,7 +209,6 @@ func (client GeoBackupPoliciesClient) GetSender(req *http.Request) (*http.Respon
 func (client GeoBackupPoliciesClient) GetResponder(resp *http.Response) (result GeoBackupPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -249,6 +249,7 @@ func (client GeoBackupPoliciesClient) ListByDatabase(ctx context.Context, resour
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.GeoBackupPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -287,7 +288,6 @@ func (client GeoBackupPoliciesClient) ListByDatabaseSender(req *http.Request) (*
 func (client GeoBackupPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result GeoBackupPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

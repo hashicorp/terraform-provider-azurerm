@@ -113,7 +113,6 @@ func (client VirtualHubsClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client VirtualHubsClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualHub, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client VirtualHubsClient) DeleteSender(req *http.Request) (future VirtualH
 func (client VirtualHubsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,6 +225,7 @@ func (client VirtualHubsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +263,6 @@ func (client VirtualHubsClient) GetSender(req *http.Request) (*http.Response, er
 func (client VirtualHubsClient) GetResponder(resp *http.Response) (result VirtualHub, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,6 +299,10 @@ func (client VirtualHubsClient) List(ctx context.Context) (result ListVirtualHub
 	result.lvhr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lvhr.hasNextLink() && result.lvhr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -336,7 +338,6 @@ func (client VirtualHubsClient) ListSender(req *http.Request) (*http.Response, e
 func (client VirtualHubsClient) ListResponder(resp *http.Response) (result ListVirtualHubsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,6 +362,7 @@ func (client VirtualHubsClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -412,6 +414,10 @@ func (client VirtualHubsClient) ListByResourceGroup(ctx context.Context, resourc
 	result.lvhr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lvhr.hasNextLink() && result.lvhr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -448,7 +454,6 @@ func (client VirtualHubsClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client VirtualHubsClient) ListByResourceGroupResponder(resp *http.Response) (result ListVirtualHubsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,6 +478,7 @@ func (client VirtualHubsClient) listByResourceGroupNextResults(ctx context.Conte
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -525,6 +531,7 @@ func (client VirtualHubsClient) UpdateTags(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -564,7 +571,6 @@ func (client VirtualHubsClient) UpdateTagsSender(req *http.Request) (*http.Respo
 func (client VirtualHubsClient) UpdateTagsResponder(resp *http.Response) (result VirtualHub, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -125,7 +125,6 @@ func (client FlowLogsClient) CreateOrUpdateSender(req *http.Request) (future Flo
 func (client FlowLogsClient) CreateOrUpdateResponder(resp *http.Response) (result FlowLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client FlowLogsClient) DeleteSender(req *http.Request) (future FlowLogsDel
 func (client FlowLogsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -242,6 +240,7 @@ func (client FlowLogsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,7 +279,6 @@ func (client FlowLogsClient) GetSender(req *http.Request) (*http.Response, error
 func (client FlowLogsClient) GetResponder(resp *http.Response) (result FlowLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +318,10 @@ func (client FlowLogsClient) List(ctx context.Context, resourceGroupName string,
 	result.fllr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.fllr.hasNextLink() && result.fllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -357,7 +359,6 @@ func (client FlowLogsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client FlowLogsClient) ListResponder(resp *http.Response) (result FlowLogListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,6 +383,7 @@ func (client FlowLogsClient) listNextResults(ctx context.Context, lastResults Fl
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

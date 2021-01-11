@@ -28,7 +28,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -112,6 +111,12 @@ The following arguments are supported:
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Kafka Cluster.
 
+* `metastores` - (Optional) A `metastores` block as defined below.
+
+* `monitor` - (Optional) A `monitor` block as defined below.
+
+* `rest_proxy` - (Optional) A `rest_proxy` block as defined below. 
+
 ---
 
 A `component_version` block supports the following:
@@ -122,9 +127,9 @@ A `component_version` block supports the following:
 
 A `gateway` block supports the following:
 
-* `enabled` - (Required) Is the Ambari portal enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
-* `password` - (Required) The password used for the Ambari Portal. Changing this forces a new resource to be created.
+* `password` - (Required) The password used for the Ambari Portal.
 
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
@@ -159,6 +164,8 @@ A `roles` block supports the following:
 * `worker_node` - (Required) A `worker_node` block as defined below.
 
 * `zookeeper_node` - (Required) A `zookeeper_node` block as defined below.
+
+* `kafka_management_node` - (Optional) A `kafka_management_node` block as defined below.
 
 ---
 
@@ -200,7 +207,7 @@ A `worker_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
 
-* `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
+* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -236,6 +243,88 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+---
+
+A `kafka_management_node` block supports the following:
+
+* `username` - (Required) The Username of the local administrator for the Kafka Management Nodes. Changing this forces a new resource to be created.
+
+* `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Kafka Management Nodes. Changing this forces a new resource to be created.
+
+* `password` - (Optional) The Password associated with the local administrator for the Kafka Management Nodes. Changing this forces a new resource to be created.
+
+-> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
+
+* `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Kafka Management Nodes. Changing this forces a new resource to be created.
+
+-> **NOTE:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
+
+* `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Kafka Management Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+* `virtual_network_id` - (Optional) The ID of the Virtual Network where the Kafka Management Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+--- 
+
+A `metastores` block supports the following:
+
+* `hive` - (Optional) A `hive` block as defined below.
+
+* `oozie` - (Optional) An `oozie` block as defined below.
+
+* `ambari` - (Optional) An `ambari` block as defined below.
+
+---
+
+A `hive` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+
+---
+
+An `oozie` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Oozie metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+---
+
+An `ambari` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+---
+
+A `monitor` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
+
+* `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
+---
+
+A `rest_proxy` block supports the following:
+
+* `security_group_id` - (Required) The Azure Active Directory Security Group ID.
+
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -244,11 +333,11 @@ The following attributes are exported:
 
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight Kafka Cluster.
 
+* `kafka_rest_proxy_endpoint` - The Kafka Rest Proxy Endpoint for this HDInsight Kafka Cluster.
+
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Kafka Cluster.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
@@ -262,5 +351,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 HDInsight Kafka Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_kafka_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_kafka_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```

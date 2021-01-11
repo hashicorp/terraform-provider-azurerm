@@ -94,6 +94,7 @@ func (client WebApplicationFirewallPoliciesClient) CreateOrUpdate(ctx context.Co
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.WebApplicationFirewallPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -134,7 +135,6 @@ func (client WebApplicationFirewallPoliciesClient) CreateOrUpdateSender(req *htt
 func (client WebApplicationFirewallPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result WebApplicationFirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +216,6 @@ func (client WebApplicationFirewallPoliciesClient) DeleteSender(req *http.Reques
 func (client WebApplicationFirewallPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -260,6 +259,7 @@ func (client WebApplicationFirewallPoliciesClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.WebApplicationFirewallPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -297,7 +297,6 @@ func (client WebApplicationFirewallPoliciesClient) GetSender(req *http.Request) 
 func (client WebApplicationFirewallPoliciesClient) GetResponder(resp *http.Response) (result WebApplicationFirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -336,6 +335,10 @@ func (client WebApplicationFirewallPoliciesClient) List(ctx context.Context, res
 	result.wafplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.WebApplicationFirewallPoliciesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wafplr.hasNextLink() && result.wafplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -372,7 +375,6 @@ func (client WebApplicationFirewallPoliciesClient) ListSender(req *http.Request)
 func (client WebApplicationFirewallPoliciesClient) ListResponder(resp *http.Response) (result WebApplicationFirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -397,6 +399,7 @@ func (client WebApplicationFirewallPoliciesClient) listNextResults(ctx context.C
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.WebApplicationFirewallPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -446,6 +449,10 @@ func (client WebApplicationFirewallPoliciesClient) ListAll(ctx context.Context) 
 	result.wafplr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.WebApplicationFirewallPoliciesClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.wafplr.hasNextLink() && result.wafplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -481,7 +488,6 @@ func (client WebApplicationFirewallPoliciesClient) ListAllSender(req *http.Reque
 func (client WebApplicationFirewallPoliciesClient) ListAllResponder(resp *http.Response) (result WebApplicationFirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -506,6 +512,7 @@ func (client WebApplicationFirewallPoliciesClient) listAllNextResults(ctx contex
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.WebApplicationFirewallPoliciesClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

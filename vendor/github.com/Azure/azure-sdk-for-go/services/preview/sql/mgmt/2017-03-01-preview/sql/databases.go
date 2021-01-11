@@ -127,7 +127,6 @@ func (client DatabasesClient) CreateImportOperationSender(req *http.Request) (fu
 func (client DatabasesClient) CreateImportOperationResponder(resp *http.Response) (result ImportExportResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client DatabasesClient) CreateOrUpdateSender(req *http.Request) (future Da
 func (client DatabasesClient) CreateOrUpdateResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -251,6 +249,7 @@ func (client DatabasesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,7 +288,6 @@ func (client DatabasesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client DatabasesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -379,7 +377,6 @@ func (client DatabasesClient) ExportSender(req *http.Request) (future DatabasesE
 func (client DatabasesClient) ExportResponder(resp *http.Response) (result ImportExportResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,6 +419,7 @@ func (client DatabasesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -463,7 +461,6 @@ func (client DatabasesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client DatabasesClient) GetResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -505,6 +502,7 @@ func (client DatabasesClient) GetByElasticPool(ctx context.Context, resourceGrou
 	result, err = client.GetByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "GetByElasticPool", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -544,7 +542,6 @@ func (client DatabasesClient) GetByElasticPoolSender(req *http.Request) (*http.R
 func (client DatabasesClient) GetByElasticPoolResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -586,6 +583,7 @@ func (client DatabasesClient) GetByRecommendedElasticPool(ctx context.Context, r
 	result, err = client.GetByRecommendedElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "GetByRecommendedElasticPool", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -625,7 +623,6 @@ func (client DatabasesClient) GetByRecommendedElasticPoolSender(req *http.Reques
 func (client DatabasesClient) GetByRecommendedElasticPoolResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -712,7 +709,6 @@ func (client DatabasesClient) ImportSender(req *http.Request) (future DatabasesI
 func (client DatabasesClient) ImportResponder(resp *http.Response) (result ImportExportResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -753,6 +749,7 @@ func (client DatabasesClient) ListByElasticPool(ctx context.Context, resourceGro
 	result, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -791,7 +788,6 @@ func (client DatabasesClient) ListByElasticPoolSender(req *http.Request) (*http.
 func (client DatabasesClient) ListByElasticPoolResponder(resp *http.Response) (result DatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -832,6 +828,7 @@ func (client DatabasesClient) ListByRecommendedElasticPool(ctx context.Context, 
 	result, err = client.ListByRecommendedElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListByRecommendedElasticPool", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -870,7 +867,6 @@ func (client DatabasesClient) ListByRecommendedElasticPoolSender(req *http.Reque
 func (client DatabasesClient) ListByRecommendedElasticPoolResponder(resp *http.Response) (result DatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -913,6 +909,7 @@ func (client DatabasesClient) ListByServer(ctx context.Context, resourceGroupNam
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -956,7 +953,6 @@ func (client DatabasesClient) ListByServerSender(req *http.Request) (*http.Respo
 func (client DatabasesClient) ListByServerResponder(resp *http.Response) (result DatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -997,6 +993,7 @@ func (client DatabasesClient) ListMetricDefinitions(ctx context.Context, resourc
 	result, err = client.ListMetricDefinitionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListMetricDefinitions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1035,7 +1032,6 @@ func (client DatabasesClient) ListMetricDefinitionsSender(req *http.Request) (*h
 func (client DatabasesClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1077,6 +1073,7 @@ func (client DatabasesClient) ListMetrics(ctx context.Context, resourceGroupName
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1116,7 +1113,6 @@ func (client DatabasesClient) ListMetricsSender(req *http.Request) (*http.Respon
 func (client DatabasesClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1195,7 +1191,6 @@ func (client DatabasesClient) PauseSender(req *http.Request) (future DatabasesPa
 func (client DatabasesClient) PauseResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1242,6 +1237,7 @@ func (client DatabasesClient) Rename(ctx context.Context, resourceGroupName stri
 	result, err = client.RenameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Rename", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1282,7 +1278,6 @@ func (client DatabasesClient) RenameSender(req *http.Request) (*http.Response, e
 func (client DatabasesClient) RenameResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1360,7 +1355,6 @@ func (client DatabasesClient) ResumeSender(req *http.Request) (future DatabasesR
 func (client DatabasesClient) ResumeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1441,7 +1435,6 @@ func (client DatabasesClient) UpdateSender(req *http.Request) (future DatabasesU
 func (client DatabasesClient) UpdateResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

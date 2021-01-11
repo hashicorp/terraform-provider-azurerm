@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -74,7 +73,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -124,7 +122,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -465,6 +462,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 								},
 							},
 						},
+
+						"firewall_policy_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 					},
 				},
 			},
@@ -481,13 +484,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rule_type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Basic),
 								string(network.PathBasedRouting),
-							}, true),
+							}, false),
 						},
 
 						"http_listener_name": {
@@ -843,6 +845,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
+						},
+
 						"pick_host_name_from_backend_http_settings": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -1013,7 +1021,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"key_vault_secret_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateKeyVaultChildId,
+							ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
 						},
 
 						"id": {
@@ -1193,7 +1201,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 500),
+							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"request_body_check": {
@@ -1318,7 +1326,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -1432,6 +1440,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(network.WAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.WAFV2)
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
@@ -2217,6 +2232,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 
 		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
 		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
+		firewallPolicyID := v["firewall_policy_id"].(string)
 
 		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]interface{}))
 
@@ -2254,6 +2270,12 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
 			listener.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate = &network.SubResource{
 				ID: utils.String(certID),
+			}
+		}
+
+		if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.FirewallPolicy = &network.SubResource{
+				ID: utils.String(firewallPolicyID),
 			}
 		}
 
@@ -2332,6 +2354,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 				output["require_sni"] = *sni
 			}
 
+			if fwp := props.FirewallPolicy; fwp != nil && fwp.ID != nil {
+				output["firewall_policy_id"] = *fwp.ID
+			}
+
 			output["custom_error_configuration"] = flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)
 		}
 
@@ -2375,7 +2401,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 
 		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
 		if len(oldVS) != len(newVS) {
-			stopApplicationGateway = true
+			return &results, true
 		}
 
 		for i, configRaw := range newVS {
@@ -2568,6 +2594,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		name := v["name"].(string)
 		probePath := v["path"].(string)
 		protocol := v["protocol"].(string)
+		port := int32(v["port"].(int))
 		timeout := int32(v["timeout"].(int))
 		unhealthyThreshold := int32(v["unhealthy_threshold"].(int))
 		pickHostNameFromBackendHTTPSettings := v["pick_host_name_from_backend_http_settings"].(bool)
@@ -2602,6 +2629,10 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 			}
 			outputMatch.Body = utils.String(matchBody)
 			output.ApplicationGatewayProbePropertiesFormat.Match = outputMatch
+		}
+
+		if port != 0 {
+			output.ApplicationGatewayProbePropertiesFormat.Port = utils.Int32(port)
 		}
 
 		results = append(results, output)
@@ -2649,6 +2680,12 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 			if threshold := props.UnhealthyThreshold; threshold != nil {
 				output["unhealthy_threshold"] = int(*threshold)
 			}
+
+			port := 0
+			if props.Port != nil {
+				port = int(*props.Port)
+			}
+			output["port"] = port
 
 			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
 				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings
@@ -3213,6 +3250,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 		data := v["data"].(string)
 		password := v["password"].(string)
 		kvsid := v["key_vault_secret_id"].(string)
+		cert := v["public_cert_data"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
@@ -3233,6 +3271,8 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 			}
 
 			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else if cert != "" {
+			output.ApplicationGatewaySslCertificatePropertiesFormat.PublicCertData = utils.String(cert)
 		} else {
 			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}

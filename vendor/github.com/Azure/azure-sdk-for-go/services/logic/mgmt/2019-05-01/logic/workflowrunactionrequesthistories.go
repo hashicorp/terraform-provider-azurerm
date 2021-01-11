@@ -77,6 +77,7 @@ func (client WorkflowRunActionRequestHistoriesClient) Get(ctx context.Context, r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRequestHistoriesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client WorkflowRunActionRequestHistoriesClient) GetSender(req *http.Reques
 func (client WorkflowRunActionRequestHistoriesClient) GetResponder(resp *http.Response) (result RequestHistory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +159,10 @@ func (client WorkflowRunActionRequestHistoriesClient) List(ctx context.Context, 
 	result.rhlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRequestHistoriesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rhlr.hasNextLink() && result.rhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -198,7 +202,6 @@ func (client WorkflowRunActionRequestHistoriesClient) ListSender(req *http.Reque
 func (client WorkflowRunActionRequestHistoriesClient) ListResponder(resp *http.Response) (result RequestHistoryListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -223,6 +226,7 @@ func (client WorkflowRunActionRequestHistoriesClient) listNextResults(ctx contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRequestHistoriesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

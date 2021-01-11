@@ -83,6 +83,7 @@ func (client MetricBaselineClient) CalculateBaseline(ctx context.Context, resour
 	result, err = client.CalculateBaselineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricBaselineClient", "CalculateBaseline", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -120,7 +121,6 @@ func (client MetricBaselineClient) CalculateBaselineSender(req *http.Request) (*
 func (client MetricBaselineClient) CalculateBaselineResponder(resp *http.Response) (result CalculateBaselineResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -168,6 +168,7 @@ func (client MetricBaselineClient) Get(ctx context.Context, resourceURI string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricBaselineClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -219,7 +220,6 @@ func (client MetricBaselineClient) GetSender(req *http.Request) (*http.Response,
 func (client MetricBaselineClient) GetResponder(resp *http.Response) (result BaselineResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

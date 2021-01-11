@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	azureHelpers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
+	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
 const (
@@ -29,10 +31,14 @@ const (
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6462
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7487
 	},
 	azure.USGovernmentCloud.Name: {
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7136
 	},
 }
 
@@ -95,13 +101,11 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 				"http_application_routing": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
-					ForceNew: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"enabled": {
 								Type:     schema.TypeBool,
-								ForceNew: true,
 								Required: true,
 							},
 							"http_application_routing_zone_name": {
@@ -126,6 +130,26 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Type:         schema.TypeString,
 								Optional:     true,
 								ValidateFunc: azureHelpers.ValidateResourceID,
+							},
+							"oms_agent_identity": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"client_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"object_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"user_assigned_identity_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -170,8 +194,12 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if workspaceId, ok := value["log_analytics_workspace_id"]; ok && workspaceId != "" {
-			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
+		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
+			lawid, err := laparse.LogAnalyticsWorkspaceID(workspaceID.(string))
+			if err != nil {
+				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+			}
+			config["logAnalyticsWorkspaceResourceID"] = utils.String(lawid.ID())
 		}
 
 		addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
@@ -214,7 +242,9 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 
 		addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
-			Config:  nil,
+			Config: map[string]*string{
+				"version": utils.String("v2"),
+			},
 		}
 	}
 
@@ -222,7 +252,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 }
 
 func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.ManagedClusterAddonProfile, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
-	var filter = func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+	filter := func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 		output := input
 		if v, ok := output[key]; ok {
 			if v.Enabled != nil && *v.Enabled {
@@ -251,20 +281,8 @@ func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.Manage
 }
 
 func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
-	// meaning what's submitted could be different to what's returned..
-	var locateInProfile = func(key string) *containerservice.ManagedClusterAddonProfile {
-		for k, v := range profile {
-			if strings.EqualFold(k, key) {
-				return v
-			}
-		}
-
-		return nil
-	}
-
 	aciConnectors := make([]interface{}, 0)
-	if aciConnector := locateInProfile(aciConnectorKey); aciConnector != nil {
+	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
 		enabled := false
 		if enabledVal := aciConnector.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -282,7 +300,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := locateInProfile(azurePolicyKey); azurePolicy != nil {
+	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
 		enabled := false
 		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -294,14 +312,14 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	httpApplicationRoutes := make([]interface{}, 0)
-	if httpApplicationRouting := locateInProfile(httpApplicationRoutingKey); httpApplicationRouting != nil {
+	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
 		enabled := false
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
 			zoneName = *v
 		}
 
@@ -312,7 +330,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := locateInProfile(kubernetesDashboardKey); kubeDashboard != nil {
+	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
 		enabled := false
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -324,20 +342,25 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	omsAgents := make([]interface{}, 0)
-	if omsAgent := locateInProfile(omsAgentKey); omsAgent != nil {
+	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
-		workspaceId := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
+		workspaceID := ""
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+			if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
+				workspaceID = lawid.ID()
+			}
 		}
+
+		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
+			"log_analytics_workspace_id": workspaceID,
+			"oms_agent_identity":         omsagentIdentity,
 		})
 	}
 
@@ -355,4 +378,59 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			"oms_agent":                omsAgents,
 		},
 	}
+}
+
+func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	identity := make([]interface{}, 0)
+	clientID := ""
+	if clientid := profile.ClientID; clientid != nil {
+		clientID = *clientid
+	}
+
+	objectID := ""
+	if objectid := profile.ObjectID; objectid != nil {
+		objectID = *objectid
+	}
+
+	userAssignedIdentityID := ""
+	if resourceid := profile.ResourceID; resourceid != nil {
+		userAssignedIdentityID = *resourceid
+	}
+
+	identity = append(identity, map[string]interface{}{
+		"client_id":                 clientID,
+		"object_id":                 objectID,
+		"user_assigned_identity_id": userAssignedIdentityID,
+	})
+
+	return identity
+}
+
+// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+// meaning what's submitted could be different to what's returned..
+func kubernetesAddonProfileLocate(profile map[string]*containerservice.ManagedClusterAddonProfile, key string) *containerservice.ManagedClusterAddonProfile {
+	for k, v := range profile {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+
+	return nil
+}
+
+// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+// meaning what's submitted could be different to what's returned..
+// Related issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+func kubernetesAddonProfilelocateInConfig(config map[string]*string, key string) *string {
+	for k, v := range config {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+
+	return nil
 }

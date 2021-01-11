@@ -128,7 +128,6 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdateSender(req *http
 func (client ManagedInstanceAdministratorsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client ManagedInstanceAdministratorsClient) DeleteSender(req *http.Request
 func (client ManagedInstanceAdministratorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -245,6 +243,7 @@ func (client ManagedInstanceAdministratorsClient) Get(ctx context.Context, resou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -283,7 +282,6 @@ func (client ManagedInstanceAdministratorsClient) GetSender(req *http.Request) (
 func (client ManagedInstanceAdministratorsClient) GetResponder(resp *http.Response) (result ManagedInstanceAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +322,10 @@ func (client ManagedInstanceAdministratorsClient) ListByInstance(ctx context.Con
 	result.mialr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "ListByInstance", resp, "Failure responding to request")
+		return
+	}
+	if result.mialr.hasNextLink() && result.mialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -361,7 +363,6 @@ func (client ManagedInstanceAdministratorsClient) ListByInstanceSender(req *http
 func (client ManagedInstanceAdministratorsClient) ListByInstanceResponder(resp *http.Response) (result ManagedInstanceAdministratorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +387,7 @@ func (client ManagedInstanceAdministratorsClient) listByInstanceNextResults(ctx 
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

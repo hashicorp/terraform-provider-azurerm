@@ -84,6 +84,7 @@ func (client VirtualNetworkRulesClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client VirtualNetworkRulesClient) CreateOrUpdateSender(req *http.Request) 
 func (client VirtualNetworkRulesClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +164,7 @@ func (client VirtualNetworkRulesClient) Delete(ctx context.Context, resourceGrou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -202,7 +203,6 @@ func (client VirtualNetworkRulesClient) DeleteSender(req *http.Request) (*http.R
 func (client VirtualNetworkRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +241,7 @@ func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,7 +280,6 @@ func (client VirtualNetworkRulesClient) GetSender(req *http.Request) (*http.Resp
 func (client VirtualNetworkRulesClient) GetResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +319,10 @@ func (client VirtualNetworkRulesClient) ListByAccount(ctx context.Context, resou
 	result.vnrlr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -356,7 +360,6 @@ func (client VirtualNetworkRulesClient) ListByAccountSender(req *http.Request) (
 func (client VirtualNetworkRulesClient) ListByAccountResponder(resp *http.Response) (result VirtualNetworkRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -381,6 +384,7 @@ func (client VirtualNetworkRulesClient) listByAccountNextResults(ctx context.Con
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -434,6 +438,7 @@ func (client VirtualNetworkRulesClient) Update(ctx context.Context, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -477,7 +482,6 @@ func (client VirtualNetworkRulesClient) UpdateSender(req *http.Request) (*http.R
 func (client VirtualNetworkRulesClient) UpdateResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceEventHubNamespace() *schema.Resource {
+func EventHubNamespaceDataSource() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceEventHubNamespaceRead,
+		Read: EventHubNamespaceDataSourceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -45,6 +45,16 @@ func dataSourceEventHubNamespace() *schema.Resource {
 
 			"auto_inflate_enabled": {
 				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"dedicated_cluster_id": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -97,7 +107,7 @@ func dataSourceEventHubNamespace() *schema.Resource {
 	}
 }
 
-func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func EventHubNamespaceDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,6 +151,8 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("kafka_enabled", props.KafkaEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+		d.Set("zone_redundant", props.ZoneRedundant)
+		d.Set("dedicated_cluster_id", props.ClusterArmID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

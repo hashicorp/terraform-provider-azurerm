@@ -487,11 +487,6 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	// once that's done this can also use the same template as everything else too
-	location := "westus2"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -514,7 +509,7 @@ resource "azurerm_key_vault" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "premium"
+  sku_name                    = "standard"
   soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
@@ -529,6 +524,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "create",
     "delete",
     "get",
+    "purge",
     "update",
   ]
 
@@ -582,7 +578,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomString, data.RandomInteger, location, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {

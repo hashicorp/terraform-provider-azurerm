@@ -121,7 +121,6 @@ func (client CustomImagesClient) CreateOrUpdateSender(req *http.Request) (future
 func (client CustomImagesClient) CreateOrUpdateResponder(resp *http.Response) (result CustomImage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client CustomImagesClient) DeleteSender(req *http.Request) (future CustomI
 func (client CustomImagesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +237,7 @@ func (client CustomImagesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,7 +279,6 @@ func (client CustomImagesClient) GetSender(req *http.Request) (*http.Response, e
 func (client CustomImagesClient) GetResponder(resp *http.Response) (result CustomImage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +322,10 @@ func (client CustomImagesClient) List(ctx context.Context, resourceGroupName str
 	result.rwcci, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcci.hasNextLink() && result.rwcci.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -373,7 +375,6 @@ func (client CustomImagesClient) ListSender(req *http.Request) (*http.Response, 
 func (client CustomImagesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationCustomImage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -398,6 +399,7 @@ func (client CustomImagesClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

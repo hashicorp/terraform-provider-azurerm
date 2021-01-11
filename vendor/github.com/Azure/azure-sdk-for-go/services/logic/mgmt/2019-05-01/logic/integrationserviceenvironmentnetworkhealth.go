@@ -74,6 +74,7 @@ func (client IntegrationServiceEnvironmentNetworkHealthClient) Get(ctx context.C
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentNetworkHealthClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client IntegrationServiceEnvironmentNetworkHealthClient) GetSender(req *ht
 func (client IntegrationServiceEnvironmentNetworkHealthClient) GetResponder(resp *http.Response) (result SetIntegrationServiceEnvironmentSubnetNetworkHealth, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

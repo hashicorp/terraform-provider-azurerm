@@ -44,97 +44,6 @@ func NewDatabasesClientWithBaseURI(baseURI string, subscriptionID string) Databa
 	return DatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateImportOperation creates an import operation that imports a bacpac into an existing database. The existing
-// database must be empty.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serverName - the name of the server.
-// databaseName - the name of the database to import into
-// parameters - the required parameters for importing a Bacpac into a database.
-func (client DatabasesClient) CreateImportOperation(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters ImportExtensionRequest) (result DatabasesCreateImportOperationFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.CreateImportOperation")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.ImportExtensionProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.ImportExtensionProperties.OperationMode", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("sql.DatabasesClient", "CreateImportOperation", err.Error())
-	}
-
-	req, err := client.CreateImportOperationPreparer(ctx, resourceGroupName, serverName, databaseName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "CreateImportOperation", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.CreateImportOperationSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "CreateImportOperation", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// CreateImportOperationPreparer prepares the CreateImportOperation request.
-func (client DatabasesClient) CreateImportOperationPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters ImportExtensionRequest) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"databaseName":      autorest.Encode("path", databaseName),
-		"extensionName":     autorest.Encode("path", "import"),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serverName":        autorest.Encode("path", serverName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2014-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/extensions/{extensionName}", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// CreateImportOperationSender sends the CreateImportOperation request. The method will close the
-// http.Response Body if it receives an error.
-func (client DatabasesClient) CreateImportOperationSender(req *http.Request) (future DatabasesCreateImportOperationFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// CreateImportOperationResponder handles the response to the CreateImportOperation request. The method always
-// closes the http.Response Body.
-func (client DatabasesClient) CreateImportOperationResponder(resp *http.Response) (result ImportExportResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // CreateOrUpdate creates a new database or updates an existing database.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -188,7 +97,7 @@ func (client DatabasesClient) CreateOrUpdatePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -222,7 +131,6 @@ func (client DatabasesClient) CreateOrUpdateSender(req *http.Request) (future Da
 func (client DatabasesClient) CreateOrUpdateResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -271,7 +179,7 @@ func (client DatabasesClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,21 +209,20 @@ func (client DatabasesClient) DeleteSender(req *http.Request) (future DatabasesD
 func (client DatabasesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
 }
 
-// Export exports a database to a bacpac.
+// Export exports a database.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// databaseName - the name of the database to be exported.
-// parameters - the required parameters for exporting a database.
-func (client DatabasesClient) Export(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters ExportRequest) (result DatabasesExportFuture, err error) {
+// databaseName - the name of the database.
+// parameters - the database export request parameters.
+func (client DatabasesClient) Export(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters ExportDatabaseDefinition) (result DatabasesExportFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.Export")
 		defer func() {
@@ -351,7 +258,7 @@ func (client DatabasesClient) Export(ctx context.Context, resourceGroupName stri
 }
 
 // ExportPreparer prepares the Export request.
-func (client DatabasesClient) ExportPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters ExportRequest) (*http.Request, error) {
+func (client DatabasesClient) ExportPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters ExportDatabaseDefinition) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":      autorest.Encode("path", databaseName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -359,7 +266,7 @@ func (client DatabasesClient) ExportPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2014-04-01"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -388,10 +295,9 @@ func (client DatabasesClient) ExportSender(req *http.Request) (future DatabasesE
 
 // ExportResponder handles the response to the Export request. The method always
 // closes the http.Response Body.
-func (client DatabasesClient) ExportResponder(resp *http.Response) (result ImportExportResponse, err error) {
+func (client DatabasesClient) ExportResponder(resp *http.Response) (result ImportExportOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -441,7 +347,7 @@ func (client DatabasesClient) FailoverPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -474,7 +380,6 @@ func (client DatabasesClient) FailoverSender(req *http.Request) (future Database
 func (client DatabasesClient) FailoverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -514,6 +419,7 @@ func (client DatabasesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -528,7 +434,7 @@ func (client DatabasesClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -552,95 +458,7 @@ func (client DatabasesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client DatabasesClient) GetResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// Import imports a bacpac into a new database.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serverName - the name of the server.
-// parameters - the required parameters for importing a Bacpac into a database.
-func (client DatabasesClient) Import(ctx context.Context, resourceGroupName string, serverName string, parameters ImportRequest) (result DatabasesImportFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.Import")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.DatabaseName", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.MaxSizeBytes", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("sql.DatabasesClient", "Import", err.Error())
-	}
-
-	req, err := client.ImportPreparer(ctx, resourceGroupName, serverName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Import", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.ImportSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Import", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// ImportPreparer prepares the Import request.
-func (client DatabasesClient) ImportPreparer(ctx context.Context, resourceGroupName string, serverName string, parameters ImportRequest) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serverName":        autorest.Encode("path", serverName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2014-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/import", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ImportSender sends the Import request. The method will close the
-// http.Response Body if it receives an error.
-func (client DatabasesClient) ImportSender(req *http.Request) (future DatabasesImportFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// ImportResponder handles the response to the Import request. The method always
-// closes the http.Response Body.
-func (client DatabasesClient) ImportResponder(resp *http.Response) (result ImportExportResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -681,6 +499,10 @@ func (client DatabasesClient) ListByElasticPool(ctx context.Context, resourceGro
 	result.dlr, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -695,7 +517,7 @@ func (client DatabasesClient) ListByElasticPoolPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -719,7 +541,6 @@ func (client DatabasesClient) ListByElasticPoolSender(req *http.Request) (*http.
 func (client DatabasesClient) ListByElasticPoolResponder(resp *http.Response) (result DatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -744,6 +565,7 @@ func (client DatabasesClient) listByElasticPoolNextResults(ctx context.Context, 
 	result, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "listByElasticPoolNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -797,6 +619,10 @@ func (client DatabasesClient) ListByServer(ctx context.Context, resourceGroupNam
 	result.dlr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -810,7 +636,7 @@ func (client DatabasesClient) ListByServerPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -834,7 +660,6 @@ func (client DatabasesClient) ListByServerSender(req *http.Request) (*http.Respo
 func (client DatabasesClient) ListByServerResponder(resp *http.Response) (result DatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -859,6 +684,7 @@ func (client DatabasesClient) listByServerNextResults(ctx context.Context, lastR
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -876,6 +702,125 @@ func (client DatabasesClient) ListByServerComplete(ctx context.Context, resource
 		}()
 	}
 	result.page, err = client.ListByServer(ctx, resourceGroupName, serverName)
+	return
+}
+
+// ListInaccessibleByServer gets a list of inaccessible databases in a logical server
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+func (client DatabasesClient) ListInaccessibleByServer(ctx context.Context, resourceGroupName string, serverName string) (result DatabaseListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.ListInaccessibleByServer")
+		defer func() {
+			sc := -1
+			if result.dlr.Response.Response != nil {
+				sc = result.dlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listInaccessibleByServerNextResults
+	req, err := client.ListInaccessibleByServerPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListInaccessibleByServer", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListInaccessibleByServerSender(req)
+	if err != nil {
+		result.dlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListInaccessibleByServer", resp, "Failure sending request")
+		return
+	}
+
+	result.dlr, err = client.ListInaccessibleByServerResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListInaccessibleByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
+
+	return
+}
+
+// ListInaccessibleByServerPreparer prepares the ListInaccessibleByServer request.
+func (client DatabasesClient) ListInaccessibleByServerPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/inaccessibleDatabases", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListInaccessibleByServerSender sends the ListInaccessibleByServer request. The method will close the
+// http.Response Body if it receives an error.
+func (client DatabasesClient) ListInaccessibleByServerSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListInaccessibleByServerResponder handles the response to the ListInaccessibleByServer request. The method always
+// closes the http.Response Body.
+func (client DatabasesClient) ListInaccessibleByServerResponder(resp *http.Response) (result DatabaseListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listInaccessibleByServerNextResults retrieves the next set of results, if any.
+func (client DatabasesClient) listInaccessibleByServerNextResults(ctx context.Context, lastResults DatabaseListResult) (result DatabaseListResult, err error) {
+	req, err := lastResults.databaseListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.DatabasesClient", "listInaccessibleByServerNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListInaccessibleByServerSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.DatabasesClient", "listInaccessibleByServerNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListInaccessibleByServerResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "listInaccessibleByServerNextResults", resp, "Failure responding to next results request")
+		return
+	}
+	return
+}
+
+// ListInaccessibleByServerComplete enumerates all values, automatically crossing page boundaries as required.
+func (client DatabasesClient) ListInaccessibleByServerComplete(ctx context.Context, resourceGroupName string, serverName string) (result DatabaseListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.ListInaccessibleByServer")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListInaccessibleByServer(ctx, resourceGroupName, serverName)
 	return
 }
 
@@ -912,6 +857,7 @@ func (client DatabasesClient) ListMetricDefinitions(ctx context.Context, resourc
 	result, err = client.ListMetricDefinitionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListMetricDefinitions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -950,7 +896,6 @@ func (client DatabasesClient) ListMetricDefinitionsSender(req *http.Request) (*h
 func (client DatabasesClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -992,6 +937,7 @@ func (client DatabasesClient) ListMetrics(ctx context.Context, resourceGroupName
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1031,7 +977,6 @@ func (client DatabasesClient) ListMetricsSender(req *http.Request) (*http.Respon
 func (client DatabasesClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1080,7 +1025,7 @@ func (client DatabasesClient) PausePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1110,7 +1055,6 @@ func (client DatabasesClient) PauseSender(req *http.Request) (future DatabasesPa
 func (client DatabasesClient) PauseResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1158,6 +1102,7 @@ func (client DatabasesClient) Rename(ctx context.Context, resourceGroupName stri
 	result, err = client.RenameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Rename", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1172,7 +1117,7 @@ func (client DatabasesClient) RenamePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1198,7 +1143,6 @@ func (client DatabasesClient) RenameSender(req *http.Request) (*http.Response, e
 func (client DatabasesClient) RenameResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1246,7 +1190,7 @@ func (client DatabasesClient) ResumePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1276,7 +1220,6 @@ func (client DatabasesClient) ResumeSender(req *http.Request) (future DatabasesR
 func (client DatabasesClient) ResumeResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1326,7 +1269,7 @@ func (client DatabasesClient) UpdatePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1358,7 +1301,6 @@ func (client DatabasesClient) UpdateSender(req *http.Request) (future DatabasesU
 func (client DatabasesClient) UpdateResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1407,7 +1349,7 @@ func (client DatabasesClient) UpgradeDataWarehousePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1437,7 +1379,6 @@ func (client DatabasesClient) UpgradeDataWarehouseSender(req *http.Request) (fut
 func (client DatabasesClient) UpgradeDataWarehouseResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

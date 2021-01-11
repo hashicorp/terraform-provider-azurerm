@@ -71,6 +71,8 @@ func (client BaseClient) CheckDomainAvailability(ctx context.Context, parameters
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.SubdomainName", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Type", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -93,6 +95,7 @@ func (client BaseClient) CheckDomainAvailability(ctx context.Context, parameters
 	result, err = client.CheckDomainAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckDomainAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -130,7 +133,6 @@ func (client BaseClient) CheckDomainAvailabilitySender(req *http.Request) (*http
 func (client BaseClient) CheckDomainAvailabilityResponder(resp *http.Response) (result CheckDomainAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -154,6 +156,8 @@ func (client BaseClient) CheckSkuAvailability(ctx context.Context, location stri
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Skus", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Kind", Name: validation.Null, Rule: true, Chain: nil},
@@ -177,6 +181,7 @@ func (client BaseClient) CheckSkuAvailability(ctx context.Context, location stri
 	result, err = client.CheckSkuAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckSkuAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -215,7 +220,6 @@ func (client BaseClient) CheckSkuAvailabilitySender(req *http.Request) (*http.Re
 func (client BaseClient) CheckSkuAvailabilityResponder(resp *http.Response) (result CheckSkuAvailabilityResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

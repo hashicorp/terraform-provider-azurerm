@@ -76,6 +76,7 @@ func (client ProtectionIntentClient) CreateOrUpdate(ctx context.Context, vaultNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client ProtectionIntentClient) CreateOrUpdateSender(req *http.Request) (*h
 func (client ProtectionIntentClient) CreateOrUpdateResponder(resp *http.Response) (result ProtectionIntentResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +158,7 @@ func (client ProtectionIntentClient) Delete(ctx context.Context, vaultName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client ProtectionIntentClient) DeleteSender(req *http.Request) (*http.Resp
 func (client ProtectionIntentClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +239,7 @@ func (client ProtectionIntentClient) Get(ctx context.Context, vaultName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,7 +279,6 @@ func (client ProtectionIntentClient) GetSender(req *http.Request) (*http.Respons
 func (client ProtectionIntentClient) GetResponder(resp *http.Response) (result ProtectionIntentResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +317,7 @@ func (client ProtectionIntentClient) Validate(ctx context.Context, azureRegion s
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -355,7 +356,6 @@ func (client ProtectionIntentClient) ValidateSender(req *http.Request) (*http.Re
 func (client ProtectionIntentClient) ValidateResponder(resp *http.Response) (result PreValidateEnableBackupResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

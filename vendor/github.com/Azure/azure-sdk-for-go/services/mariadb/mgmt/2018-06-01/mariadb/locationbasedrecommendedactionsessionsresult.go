@@ -84,6 +84,10 @@ func (client LocationBasedRecommendedActionSessionsResultClient) List(ctx contex
 	result.rarl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.LocationBasedRecommendedActionSessionsResultClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rarl.hasNextLink() && result.rarl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -121,7 +125,6 @@ func (client LocationBasedRecommendedActionSessionsResultClient) ListSender(req 
 func (client LocationBasedRecommendedActionSessionsResultClient) ListResponder(resp *http.Response) (result RecommendationActionsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -146,6 +149,7 @@ func (client LocationBasedRecommendedActionSessionsResultClient) listNextResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.LocationBasedRecommendedActionSessionsResultClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

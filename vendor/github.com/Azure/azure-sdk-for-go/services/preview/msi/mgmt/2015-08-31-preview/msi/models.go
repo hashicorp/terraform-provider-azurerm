@@ -30,15 +30,15 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 
-// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
 	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -69,11 +69,11 @@ type Identity struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -267,10 +267,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -298,11 +303,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -332,28 +342,31 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
-// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
-// required location and tags
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
 type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
-// Resource ...
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -366,11 +379,11 @@ type SystemAssignedIdentity struct {
 	Tags map[string]*string `json:"tags"`
 	// IdentityProperties - READ-ONLY; The properties associated with the identity.
 	*IdentityProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -455,17 +468,18 @@ func (sai *SystemAssignedIdentity) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// TrackedResource the resource model definition for a ARM tracked top level resource
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
 type TrackedResource struct {
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -558,10 +572,15 @@ func (uailr UserAssignedIdentitiesListResult) IsEmpty() bool {
 	return uailr.Value == nil || len(*uailr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (uailr UserAssignedIdentitiesListResult) hasNextLink() bool {
+	return uailr.NextLink != nil && len(*uailr.NextLink) != 0
+}
+
 // userAssignedIdentitiesListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (uailr UserAssignedIdentitiesListResult) userAssignedIdentitiesListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if uailr.NextLink == nil || len(to.String(uailr.NextLink)) < 1 {
+	if !uailr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -589,11 +608,16 @@ func (page *UserAssignedIdentitiesListResultPage) NextWithContext(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.uailr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.uailr)
+		if err != nil {
+			return err
+		}
+		page.uailr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.uailr = next
 	return nil
 }
 
@@ -623,6 +647,9 @@ func (page UserAssignedIdentitiesListResultPage) Values() []Identity {
 }
 
 // Creates a new instance of the UserAssignedIdentitiesListResultPage type.
-func NewUserAssignedIdentitiesListResultPage(getNextPage func(context.Context, UserAssignedIdentitiesListResult) (UserAssignedIdentitiesListResult, error)) UserAssignedIdentitiesListResultPage {
-	return UserAssignedIdentitiesListResultPage{fn: getNextPage}
+func NewUserAssignedIdentitiesListResultPage(cur UserAssignedIdentitiesListResult, getNextPage func(context.Context, UserAssignedIdentitiesListResult) (UserAssignedIdentitiesListResult, error)) UserAssignedIdentitiesListResultPage {
+	return UserAssignedIdentitiesListResultPage{
+		fn:    getNextPage,
+		uailr: cur,
+	}
 }

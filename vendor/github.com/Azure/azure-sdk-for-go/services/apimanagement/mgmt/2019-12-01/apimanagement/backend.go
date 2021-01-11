@@ -94,6 +94,7 @@ func (client BackendClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -138,7 +139,6 @@ func (client BackendClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client BackendClient) CreateOrUpdateResponder(resp *http.Response) (result BackendContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,6 +191,7 @@ func (client BackendClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -230,7 +231,6 @@ func (client BackendClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client BackendClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,6 +280,7 @@ func (client BackendClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,7 +319,6 @@ func (client BackendClient) GetSender(req *http.Request) (*http.Response, error)
 func (client BackendClient) GetResponder(resp *http.Response) (result BackendContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,6 +369,7 @@ func (client BackendClient) GetEntityTag(ctx context.Context, resourceGroupName 
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -407,7 +408,6 @@ func (client BackendClient) GetEntityTagSender(req *http.Request) (*http.Respons
 func (client BackendClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -467,6 +467,10 @@ func (client BackendClient) ListByService(ctx context.Context, resourceGroupName
 	result.bc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.bc.hasNextLink() && result.bc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -513,7 +517,6 @@ func (client BackendClient) ListByServiceSender(req *http.Request) (*http.Respon
 func (client BackendClient) ListByServiceResponder(resp *http.Response) (result BackendCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -538,6 +541,7 @@ func (client BackendClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -603,6 +607,7 @@ func (client BackendClient) Reconnect(ctx context.Context, resourceGroupName str
 	result, err = client.ReconnectResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Reconnect", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -646,7 +651,6 @@ func (client BackendClient) ReconnectSender(req *http.Request) (*http.Response, 
 func (client BackendClient) ReconnectResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -699,6 +703,7 @@ func (client BackendClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -740,7 +745,6 @@ func (client BackendClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client BackendClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

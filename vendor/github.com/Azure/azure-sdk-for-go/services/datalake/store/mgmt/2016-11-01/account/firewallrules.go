@@ -85,6 +85,7 @@ func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client FirewallRulesClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client FirewallRulesClient) CreateOrUpdateResponder(resp *http.Response) (result FirewallRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -165,6 +165,7 @@ func (client FirewallRulesClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -203,7 +204,6 @@ func (client FirewallRulesClient) DeleteSender(req *http.Request) (*http.Respons
 func (client FirewallRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -242,6 +242,7 @@ func (client FirewallRulesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,7 +281,6 @@ func (client FirewallRulesClient) GetSender(req *http.Request) (*http.Response, 
 func (client FirewallRulesClient) GetResponder(resp *http.Response) (result FirewallRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +320,10 @@ func (client FirewallRulesClient) ListByAccount(ctx context.Context, resourceGro
 	result.frlr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.frlr.hasNextLink() && result.frlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -357,7 +361,6 @@ func (client FirewallRulesClient) ListByAccountSender(req *http.Request) (*http.
 func (client FirewallRulesClient) ListByAccountResponder(resp *http.Response) (result FirewallRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,6 +385,7 @@ func (client FirewallRulesClient) listByAccountNextResults(ctx context.Context, 
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -435,6 +439,7 @@ func (client FirewallRulesClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -478,7 +483,6 @@ func (client FirewallRulesClient) UpdateSender(req *http.Request) (*http.Respons
 func (client FirewallRulesClient) UpdateResponder(resp *http.Response) (result FirewallRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

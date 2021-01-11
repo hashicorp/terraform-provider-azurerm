@@ -117,7 +117,6 @@ func (client SQLVirtualMachinesClient) CreateOrUpdateSender(req *http.Request) (
 func (client SQLVirtualMachinesClient) CreateOrUpdateResponder(resp *http.Response) (result SQLVirtualMachine, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client SQLVirtualMachinesClient) DeleteSender(req *http.Request) (future S
 func (client SQLVirtualMachinesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -234,6 +232,7 @@ func (client SQLVirtualMachinesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,7 +273,6 @@ func (client SQLVirtualMachinesClient) GetSender(req *http.Request) (*http.Respo
 func (client SQLVirtualMachinesClient) GetResponder(resp *http.Response) (result SQLVirtualMachine, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -311,6 +309,10 @@ func (client SQLVirtualMachinesClient) List(ctx context.Context) (result ListRes
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -346,7 +348,6 @@ func (client SQLVirtualMachinesClient) ListSender(req *http.Request) (*http.Resp
 func (client SQLVirtualMachinesClient) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -371,6 +372,7 @@ func (client SQLVirtualMachinesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -423,6 +425,10 @@ func (client SQLVirtualMachinesClient) ListByResourceGroup(ctx context.Context, 
 	result.lr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -459,7 +465,6 @@ func (client SQLVirtualMachinesClient) ListByResourceGroupSender(req *http.Reque
 func (client SQLVirtualMachinesClient) ListByResourceGroupResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -484,6 +489,7 @@ func (client SQLVirtualMachinesClient) listByResourceGroupNextResults(ctx contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -537,6 +543,10 @@ func (client SQLVirtualMachinesClient) ListBySQLVMGroup(ctx context.Context, res
 	result.lr, err = client.ListBySQLVMGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "ListBySQLVMGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -574,7 +584,6 @@ func (client SQLVirtualMachinesClient) ListBySQLVMGroupSender(req *http.Request)
 func (client SQLVirtualMachinesClient) ListBySQLVMGroupResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -599,6 +608,7 @@ func (client SQLVirtualMachinesClient) listBySQLVMGroupNextResults(ctx context.C
 	result, err = client.ListBySQLVMGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesClient", "listBySQLVMGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -691,7 +701,6 @@ func (client SQLVirtualMachinesClient) UpdateSender(req *http.Request) (future S
 func (client SQLVirtualMachinesClient) UpdateResponder(resp *http.Response) (result SQLVirtualMachine, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -40,7 +40,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Shared Image.
+* `id` - The ID of the Shared Image.
 
 * `exclude_from_latest` - Is this Image Version excluded from the `latest` filter?
 
@@ -49,6 +49,10 @@ The following attributes are exported:
 * `managed_image_id` - The ID of the Managed Image which was the source of this Shared Image Version.
 
 * `target_region` - One or more `target_region` blocks as documented below.
+
+* `os_disk_snapshot_id` - The ID of the OS disk snapshot which was the source of this Shared Image Version.
+
+* `os_disk_image_size_gb` - The size of the OS disk snapshot (in Gigabytes) which was the source of this Shared Image Version. 
 
 * `tags` - A mapping of tags assigned to the Shared Image.
 

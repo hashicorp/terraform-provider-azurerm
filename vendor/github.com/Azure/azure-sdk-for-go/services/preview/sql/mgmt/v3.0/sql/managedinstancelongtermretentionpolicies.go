@@ -120,7 +120,6 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdateSende
 func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +160,7 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) Get(ctx context.Con
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +200,6 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) GetSender(req *http
 func (client ManagedInstanceLongTermRetentionPoliciesClient) GetResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -242,6 +241,10 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) ListByDatabase(ctx 
 	result.miltrplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.miltrplr.hasNextLink() && result.miltrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -280,7 +283,6 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) ListByDatabaseSende
 func (client ManagedInstanceLongTermRetentionPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,6 +307,7 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) listByDatabaseNextR
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

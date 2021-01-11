@@ -11,16 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiVersionSet() *schema.Resource {
+func resourceApiManagementApiVersionSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiVersionSetCreateUpdate,
-		Read:   resourceArmApiManagementApiVersionSetRead,
-		Update: resourceArmApiManagementApiVersionSetCreateUpdate,
-		Delete: resourceArmApiManagementApiVersionSetDelete,
+		Create: resourceApiManagementApiVersionSetCreateUpdate,
+		Read:   resourceApiManagementApiVersionSetRead,
+		Update: resourceApiManagementApiVersionSetCreateUpdate,
+		Delete: resourceApiManagementApiVersionSetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -30,6 +32,15 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.ApiVersionSetUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.ApiVersionSetUpgradeV0ToV1,
+				Version: 0,
+			},
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -78,7 +89,7 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,36 +169,33 @@ func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiVersionSetRead(d, meta)
+	return resourceApiManagementApiVersionSetRead(d, meta)
 }
 
-func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiVersionSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["api-version-sets"]
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Api Version Set %q (Resource Group %q / Api Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
+			log.Printf("[DEBUG] Api Version Set %q (Resource Group %q / Api Management Service %q) was not found - removing from state!", id.Name, id.ResourceGroup, id.ServiceName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("making Read request for Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", id.Name, id.ResourceGroup, id.ServiceName, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
 
 	if props := resp.APIVersionSetContractProperties; props != nil {
 		d.Set("description", props.Description)
@@ -200,22 +208,19 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmApiManagementApiVersionSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiVersionSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["api-version-sets"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf("deleting Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", id.Name, id.ResourceGroup, id.ServiceName, err)
 		}
 	}
 

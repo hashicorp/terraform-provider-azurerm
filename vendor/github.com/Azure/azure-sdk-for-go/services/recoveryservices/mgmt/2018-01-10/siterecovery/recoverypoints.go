@@ -74,6 +74,7 @@ func (client RecoveryPointsClient) Get(ctx context.Context, fabricName string, p
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.RecoveryPointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client RecoveryPointsClient) GetSender(req *http.Request) (*http.Response,
 func (client RecoveryPointsClient) GetResponder(resp *http.Response) (result RecoveryPoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +156,10 @@ func (client RecoveryPointsClient) ListByReplicationProtectedItems(ctx context.C
 	result.RPCVar, err = client.ListByReplicationProtectedItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.RecoveryPointsClient", "ListByReplicationProtectedItems", resp, "Failure responding to request")
+		return
+	}
+	if result.RPCVar.hasNextLink() && result.RPCVar.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -196,7 +200,6 @@ func (client RecoveryPointsClient) ListByReplicationProtectedItemsSender(req *ht
 func (client RecoveryPointsClient) ListByReplicationProtectedItemsResponder(resp *http.Response) (result RecoveryPointCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -221,6 +224,7 @@ func (client RecoveryPointsClient) listByReplicationProtectedItemsNextResults(ct
 	result, err = client.ListByReplicationProtectedItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.RecoveryPointsClient", "listByReplicationProtectedItemsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

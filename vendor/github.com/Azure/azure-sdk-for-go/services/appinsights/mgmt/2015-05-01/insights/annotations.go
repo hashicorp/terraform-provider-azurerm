@@ -85,6 +85,7 @@ func (client AnnotationsClient) Create(ctx context.Context, resourceGroupName st
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnnotationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client AnnotationsClient) CreateSender(req *http.Request) (*http.Response,
 func (client AnnotationsClient) CreateResponder(resp *http.Response) (result ListAnnotation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -174,6 +174,7 @@ func (client AnnotationsClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnnotationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -212,7 +213,6 @@ func (client AnnotationsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client AnnotationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -261,6 +261,7 @@ func (client AnnotationsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnnotationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -299,7 +300,6 @@ func (client AnnotationsClient) GetSender(req *http.Request) (*http.Response, er
 func (client AnnotationsClient) GetResponder(resp *http.Response) (result ListAnnotation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -350,6 +350,7 @@ func (client AnnotationsClient) List(ctx context.Context, resourceGroupName stri
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnnotationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -389,7 +390,6 @@ func (client AnnotationsClient) ListSender(req *http.Request) (*http.Response, e
 func (client AnnotationsClient) ListResponder(resp *http.Response) (result AnnotationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

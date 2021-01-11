@@ -77,6 +77,7 @@ func (client DataWarehouseUserActivitiesClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataWarehouseUserActivitiesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -116,7 +117,6 @@ func (client DataWarehouseUserActivitiesClient) GetSender(req *http.Request) (*h
 func (client DataWarehouseUserActivitiesClient) GetResponder(resp *http.Response) (result DataWarehouseUserActivities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

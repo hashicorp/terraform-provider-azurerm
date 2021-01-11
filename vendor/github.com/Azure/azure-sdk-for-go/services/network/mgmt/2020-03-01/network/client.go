@@ -87,6 +87,7 @@ func (client BaseClient) CheckDNSNameAvailability(ctx context.Context, location 
 	result, err = client.CheckDNSNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "CheckDNSNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client BaseClient) CheckDNSNameAvailabilitySender(req *http.Request) (*htt
 func (client BaseClient) CheckDNSNameAvailabilityResponder(resp *http.Response) (result DNSNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +203,6 @@ func (client BaseClient) DeleteBastionShareableLinkSender(req *http.Request) (fu
 func (client BaseClient) DeleteBastionShareableLinkResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -243,6 +242,10 @@ func (client BaseClient) DisconnectActiveSessions(ctx context.Context, resourceG
 	result.bsdr, err = client.DisconnectActiveSessionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "DisconnectActiveSessions", resp, "Failure responding to request")
+		return
+	}
+	if result.bsdr.hasNextLink() && result.bsdr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -282,7 +285,6 @@ func (client BaseClient) DisconnectActiveSessionsSender(req *http.Request) (*htt
 func (client BaseClient) DisconnectActiveSessionsResponder(resp *http.Response) (result BastionSessionDeleteResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,6 +309,7 @@ func (client BaseClient) disconnectActiveSessionsNextResults(ctx context.Context
 	result, err = client.DisconnectActiveSessionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "disconnectActiveSessionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -399,7 +402,6 @@ func (client BaseClient) GeneratevirtualwanvpnserverconfigurationvpnprofileSende
 func (client BaseClient) GeneratevirtualwanvpnserverconfigurationvpnprofileResponder(resp *http.Response) (result VpnProfileResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -481,7 +483,6 @@ func (client BaseClient) GetActiveSessionsResponder(resp *http.Response) (result
 func (client BaseClient) getActiveSessionsResponder(resp *http.Response) (result BastionActiveSessionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -557,6 +558,10 @@ func (client BaseClient) GetBastionShareableLink(ctx context.Context, resourceGr
 	result.bsllr, err = client.GetBastionShareableLinkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "GetBastionShareableLink", resp, "Failure responding to request")
+		return
+	}
+	if result.bsllr.hasNextLink() && result.bsllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -596,7 +601,6 @@ func (client BaseClient) GetBastionShareableLinkSender(req *http.Request) (*http
 func (client BaseClient) GetBastionShareableLinkResponder(resp *http.Response) (result BastionShareableLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -621,6 +625,7 @@ func (client BaseClient) getBastionShareableLinkNextResults(ctx context.Context,
 	result, err = client.GetBastionShareableLinkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "getBastionShareableLinkNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -718,7 +723,6 @@ func (client BaseClient) PutBastionShareableLinkResponder(resp *http.Response) (
 func (client BaseClient) putBastionShareableLinkResponder(resp *http.Response) (result BastionShareableLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -792,6 +796,7 @@ func (client BaseClient) SupportedSecurityProviders(ctx context.Context, resourc
 	result, err = client.SupportedSecurityProvidersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "SupportedSecurityProviders", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -829,7 +834,6 @@ func (client BaseClient) SupportedSecurityProvidersSender(req *http.Request) (*h
 func (client BaseClient) SupportedSecurityProvidersResponder(resp *http.Response) (result VirtualWanSecurityProviders, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

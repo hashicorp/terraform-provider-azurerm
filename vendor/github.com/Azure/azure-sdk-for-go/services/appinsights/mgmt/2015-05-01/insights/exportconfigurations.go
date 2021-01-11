@@ -86,6 +86,7 @@ func (client ExportConfigurationsClient) Create(ctx context.Context, resourceGro
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client ExportConfigurationsClient) CreateSender(req *http.Request) (*http.
 func (client ExportConfigurationsClient) CreateResponder(resp *http.Response) (result ListApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -175,6 +175,7 @@ func (client ExportConfigurationsClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -213,7 +214,6 @@ func (client ExportConfigurationsClient) DeleteSender(req *http.Request) (*http.
 func (client ExportConfigurationsClient) DeleteResponder(resp *http.Response) (result ApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -263,6 +263,7 @@ func (client ExportConfigurationsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -301,7 +302,6 @@ func (client ExportConfigurationsClient) GetSender(req *http.Request) (*http.Res
 func (client ExportConfigurationsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -350,6 +350,7 @@ func (client ExportConfigurationsClient) List(ctx context.Context, resourceGroup
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -387,7 +388,6 @@ func (client ExportConfigurationsClient) ListSender(req *http.Request) (*http.Re
 func (client ExportConfigurationsClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -438,6 +438,7 @@ func (client ExportConfigurationsClient) Update(ctx context.Context, resourceGro
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -478,7 +479,6 @@ func (client ExportConfigurationsClient) UpdateSender(req *http.Request) (*http.
 func (client ExportConfigurationsClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

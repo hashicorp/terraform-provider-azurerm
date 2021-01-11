@@ -119,7 +119,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateSender(req
 func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceEncryptionProtector, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +158,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) Get(ctx context.Context,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +197,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) GetSender(req *http.Requ
 func (client ManagedInstanceEncryptionProtectorsClient) GetResponder(resp *http.Response) (result ManagedInstanceEncryptionProtector, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,6 +237,10 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstance(ctx conte
 	result.mieplr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "ListByInstance", resp, "Failure responding to request")
+		return
+	}
+	if result.mieplr.hasNextLink() && result.mieplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -275,7 +278,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstanceSender(req
 func (client ManagedInstanceEncryptionProtectorsClient) ListByInstanceResponder(resp *http.Response) (result ManagedInstanceEncryptionProtectorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -300,6 +302,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) listByInstanceNextResult
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -390,7 +393,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) RevalidateSender(req *ht
 func (client ManagedInstanceEncryptionProtectorsClient) RevalidateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

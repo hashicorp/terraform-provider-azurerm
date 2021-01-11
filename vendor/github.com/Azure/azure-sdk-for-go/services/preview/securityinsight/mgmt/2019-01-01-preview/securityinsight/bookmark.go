@@ -91,6 +91,7 @@ func (client BookmarkClient) Expand(ctx context.Context, resourceGroupName strin
 	result, err = client.ExpandResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkClient", "Expand", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -132,7 +133,6 @@ func (client BookmarkClient) ExpandSender(req *http.Request) (*http.Response, er
 func (client BookmarkClient) ExpandResponder(resp *http.Response) (result BookmarkExpandResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

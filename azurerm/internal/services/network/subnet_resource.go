@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -78,6 +79,16 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
+			"service_endpoint_policy_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.SubnetServiceEndpointStoragePolicyID,
+				},
+			},
+
 			"delegation": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -97,19 +108,30 @@ func resourceArmSubnet() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.ApiManagement/service",
+											"Microsoft.AzureCosmosDB/clusters",
 											"Microsoft.BareMetal/AzureVMware",
 											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
 											"Microsoft.Databricks/workspaces",
+											"Microsoft.DBforMySQL/flexibleServers",
+											"Microsoft.DBforMySQL/serversv2",
+											"Microsoft.DBforPostgreSQL/flexibleServers",
 											"Microsoft.DBforPostgreSQL/serversv2",
+											"Microsoft.DBforPostgreSQL/singleServers",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+											"Microsoft.Kusto/clusters",
 											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
+											"Microsoft.Network/managedResolvers",
+											"Microsoft.PowerPlatform/vnetaccesslinks",
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
 											"Microsoft.StreamAnalytics/streamingJobs",
+											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 										}, false),
@@ -164,17 +186,15 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resGroup, vnetName, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
-			}
+	existing, err := client.Get(ctx, resGroup, vnetName, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
 	}
 
 	locks.ByName(vnetName, VirtualNetworkResourceName)
@@ -206,6 +226,9 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+
+	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
+	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
@@ -296,6 +319,11 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 	}
 
+	if d.HasChange("service_endpoint_policy_ids") {
+		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
+		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+	}
+
 	subnet := network.Subnet{
 		Name:                   utils.String(name),
 		SubnetPropertiesFormat: &props,
@@ -327,7 +355,6 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	name := id.Path["subnets"]
 
 	resp, err := client.Get(ctx, resourceGroup, networkName, name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -363,6 +390,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("Error setting `service_endpoints`: %+v", err)
+		}
+
+		serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
+		if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
+			return fmt.Errorf("Error setting `service_endpoint_policy_ids`: %+v", err)
 		}
 	}
 
@@ -519,4 +551,29 @@ func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
 	}
 
 	return strings.EqualFold(*input, "Disabled")
+}
+
+func expandSubnetServiceEndpointPolicies(input []interface{}) *[]network.ServiceEndpointPolicy {
+	output := make([]network.ServiceEndpointPolicy, 0)
+	for _, policy := range input {
+		policy := policy.(string)
+		output = append(output, network.ServiceEndpointPolicy{ID: &policy})
+	}
+	return &output
+}
+
+func flattenSubnetServiceEndpointPolicies(input *[]network.ServiceEndpointPolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var output []interface{}
+	for _, policy := range *input {
+		id := ""
+		if policy.ID != nil {
+			id = *policy.ID
+		}
+		output = append(output, id)
+	}
+	return output
 }

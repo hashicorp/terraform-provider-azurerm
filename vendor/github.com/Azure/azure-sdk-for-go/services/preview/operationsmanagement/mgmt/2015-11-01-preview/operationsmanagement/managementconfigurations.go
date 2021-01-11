@@ -89,6 +89,7 @@ func (client ManagementConfigurationsClient) CreateOrUpdate(ctx context.Context,
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementConfigurationsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client ManagementConfigurationsClient) CreateOrUpdateSender(req *http.Requ
 func (client ManagementConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagementConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -178,6 +178,7 @@ func (client ManagementConfigurationsClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -215,7 +216,6 @@ func (client ManagementConfigurationsClient) DeleteSender(req *http.Request) (*h
 func (client ManagementConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -261,6 +261,7 @@ func (client ManagementConfigurationsClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,7 +299,6 @@ func (client ManagementConfigurationsClient) GetSender(req *http.Request) (*http
 func (client ManagementConfigurationsClient) GetResponder(resp *http.Response) (result ManagementConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -334,6 +334,7 @@ func (client ManagementConfigurationsClient) ListBySubscription(ctx context.Cont
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.ManagementConfigurationsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -369,7 +370,6 @@ func (client ManagementConfigurationsClient) ListBySubscriptionSender(req *http.
 func (client ManagementConfigurationsClient) ListBySubscriptionResponder(resp *http.Response) (result ManagementConfigurationPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

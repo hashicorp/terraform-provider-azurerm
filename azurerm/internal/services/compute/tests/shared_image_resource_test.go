@@ -95,6 +95,24 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSharedImage_specialized(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImage_specialized(data, "V1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -193,6 +211,45 @@ resource "azurerm_shared_image" "test" {
 `, hyperVGen, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMSharedImage_specialized(data acceptance.TestData, hyperVGen string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+variable "hyper_v_generation" {
+  default = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  specialized         = true
+  hyper_v_generation  = var.hyper_v_generation != "" ? var.hyper_v_generation : null
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, hyperVGen, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMSharedImage_basic(data, "")
 	return fmt.Sprintf(`
@@ -247,6 +304,12 @@ resource "azurerm_shared_image" "test" {
     publisher = "AccTesPublisher%d"
     offer     = "AccTesOffer%d"
     sku       = "AccTesSku%d"
+  }
+
+  purchase_plan {
+    name      = "AccTestPlan"
+    publisher = "AccTestPlanPublisher"
+    product   = "AccTestPlanProduct"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, hyperVGen, data.RandomInteger, data.RandomInteger, data.RandomInteger)

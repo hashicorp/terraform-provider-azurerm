@@ -117,7 +117,6 @@ func (client DisksClient) AttachSender(req *http.Request) (future DisksAttachFut
 func (client DisksClient) AttachResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -205,7 +204,6 @@ func (client DisksClient) CreateOrUpdateSender(req *http.Request) (future DisksC
 func (client DisksClient) CreateOrUpdateResponder(resp *http.Response) (result Disk, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -285,7 +283,6 @@ func (client DisksClient) DeleteSender(req *http.Request) (future DisksDeleteFut
 func (client DisksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -368,7 +365,6 @@ func (client DisksClient) DetachSender(req *http.Request) (future DisksDetachFut
 func (client DisksClient) DetachResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -409,6 +405,7 @@ func (client DisksClient) Get(ctx context.Context, resourceGroupName string, lab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -451,7 +448,6 @@ func (client DisksClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client DisksClient) GetResponder(resp *http.Response) (result Disk, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -496,6 +492,10 @@ func (client DisksClient) List(ctx context.Context, resourceGroupName string, la
 	result.rwcd, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcd.hasNextLink() && result.rwcd.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -546,7 +546,6 @@ func (client DisksClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client DisksClient) ListResponder(resp *http.Response) (result ResponseWithContinuationDisk, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -571,6 +570,7 @@ func (client DisksClient) listNextResults(ctx context.Context, lastResults Respo
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -30,7 +30,7 @@ resource "azurerm_subnet" "example" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -72,9 +72,12 @@ resource "azurerm_firewall_nat_rule_collection" "example" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
-      "8.8.4.4",
+      azurerm_public_ip.example.ip_address
     ]
+
+    translated_port = 53
+
+    translated_address = "8.8.8.8"
 
     protocols = [
       "TCP",
@@ -114,7 +117,11 @@ A `rule` block supports the following:
 
 * `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.  If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
+
+* `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
+
+-> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `translated_address` - (Required) The address of the service behind the Firewall.
 

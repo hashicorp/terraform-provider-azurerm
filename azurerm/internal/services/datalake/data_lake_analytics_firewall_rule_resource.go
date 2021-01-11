@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
+func resourceDataLakeAnalyticsFirewallRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate,
 		Read:   resourceArmDateLakeAnalyticsFirewallRuleRead,
@@ -39,14 +40,14 @@ func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateDataLakeFirewallRuleName(),
+				ValidateFunc: validate.FirewallRuleName(),
 			},
 
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateDataLakeAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -54,13 +55,13 @@ func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
 			"start_ip_address": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IPv4Address,
+				ValidateFunc: commonValidate.IPv4Address,
 			},
 
 			"end_ip_address": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IPv4Address,
+				ValidateFunc: commonValidate.IPv4Address,
 			},
 		},
 	}

@@ -18,6 +18,15 @@ func SchemaResourceGroupName() *schema.Schema {
 	}
 }
 
+func SchemaResourceGroupNameDeprecated() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: validateResourceGroupName,
+		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
+	}
+}
+
 func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
@@ -43,6 +52,25 @@ func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
 		Optional:     true,
 		Computed:     true,
 		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameSetOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Schema{
+			Type:         schema.TypeString,
+			ValidateFunc: validateResourceGroupName,
+		},
 	}
 }
 

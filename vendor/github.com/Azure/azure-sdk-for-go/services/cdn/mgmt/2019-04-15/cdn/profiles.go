@@ -123,7 +123,6 @@ func (client ProfilesClient) CreateSender(req *http.Request) (future ProfilesCre
 func (client ProfilesClient) CreateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client ProfilesClient) DeleteSender(req *http.Request) (future ProfilesDel
 func (client ProfilesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -257,6 +255,7 @@ func (client ProfilesClient) GenerateSsoURI(ctx context.Context, resourceGroupNa
 	result, err = client.GenerateSsoURIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "GenerateSsoURI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -294,7 +293,6 @@ func (client ProfilesClient) GenerateSsoURISender(req *http.Request) (*http.Resp
 func (client ProfilesClient) GenerateSsoURIResponder(resp *http.Response) (result SsoURI, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -341,6 +339,7 @@ func (client ProfilesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -378,7 +377,6 @@ func (client ProfilesClient) GetSender(req *http.Request) (*http.Response, error
 func (client ProfilesClient) GetResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -415,6 +413,10 @@ func (client ProfilesClient) List(ctx context.Context) (result ProfileListResult
 	result.plr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -450,7 +452,6 @@ func (client ProfilesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ProfilesClient) ListResponder(resp *http.Response) (result ProfileListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,6 +476,7 @@ func (client ProfilesClient) listNextResults(ctx context.Context, lastResults Pr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -534,6 +536,10 @@ func (client ProfilesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.plr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -570,7 +576,6 @@ func (client ProfilesClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ProfilesClient) ListByResourceGroupResponder(resp *http.Response) (result ProfileListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -595,6 +600,7 @@ func (client ProfilesClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -655,6 +661,10 @@ func (client ProfilesClient) ListResourceUsage(ctx context.Context, resourceGrou
 	result.rulr, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListResourceUsage", resp, "Failure responding to request")
+		return
+	}
+	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -692,7 +702,6 @@ func (client ProfilesClient) ListResourceUsageSender(req *http.Request) (*http.R
 func (client ProfilesClient) ListResourceUsageResponder(resp *http.Response) (result ResourceUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -717,6 +726,7 @@ func (client ProfilesClient) listResourceUsageNextResults(ctx context.Context, l
 	result, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "listResourceUsageNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -777,6 +787,7 @@ func (client ProfilesClient) ListSupportedOptimizationTypes(ctx context.Context,
 	result, err = client.ListSupportedOptimizationTypesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListSupportedOptimizationTypes", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -814,7 +825,6 @@ func (client ProfilesClient) ListSupportedOptimizationTypesSender(req *http.Requ
 func (client ProfilesClient) ListSupportedOptimizationTypesResponder(resp *http.Response) (result SupportedOptimizationTypesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -902,7 +912,6 @@ func (client ProfilesClient) UpdateSender(req *http.Request) (future ProfilesUpd
 func (client ProfilesClient) UpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

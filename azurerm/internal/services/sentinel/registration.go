@@ -23,13 +23,15 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_sentinel_alert_rule":          dataSourceArmSentinelAlertRule(),
 		"azurerm_sentinel_alert_rule_template": dataSourceArmSentinelAlertRuleTemplate(),
+		"azurerm_sentinel_alert_rule":          dataSourceSentinelAlertRule(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_sentinel_alert_rule_ms_security_incident": resourceArmSentinelAlertRuleMsSecurityIncident(),
-		"azurerm_sentinel_alert_rule_scheduled":            resourceArmSentinelAlertRuleScheduled(),
+		"azurerm_sentinel_alert_rule_fusion":               resourceSentinelAlertRuleFusion(),
+		"azurerm_sentinel_alert_rule_ms_security_incident": resourceSentinelAlertRuleMsSecurityIncident(),
+		"azurerm_sentinel_alert_rule_scheduled":            resourceSentinelAlertRuleScheduled(),
 	}
 }

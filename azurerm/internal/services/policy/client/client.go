@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/policyinsights/mgmt/2019-10-01/policyinsights"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

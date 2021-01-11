@@ -62,15 +62,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `default_node_pool` - (Optional) A `default_node_pool` block as defined below.
-
--> **NOTE:** The `default_node_pool` block will become required in 2.0
+* `default_node_pool` - (Required) A `default_node_pool` block as defined below.
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
-In addition, one of either `identity` or `service_principal` must be specified.
+In addition, one of either `identity` or `service_principal` blocks must be specified.
 
 ---
 
@@ -78,9 +76,9 @@ In addition, one of either `identity` or `service_principal` must be specified.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
 
-* `enable_pod_security_policy` - (Optional) Whether Pod Security Policies are enabled. Note that this also requires role based access control to be enabled.
+* `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
--> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
 
@@ -100,7 +98,7 @@ In addition, one of either `identity` or `service_principal` must be specified.
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `private_cluster_enabled` Should this Kubernetes Cluster have it's API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
+* `private_cluster_enabled` Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
@@ -108,10 +106,13 @@ In addition, one of either `identity` or `service_principal` must be specified.
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
+* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
+
+~> **Note:**  It is currently possible to upgrade in place from `Free` to `Paid`. However, changing this value from `Paid` to `Free` will force a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
-
 
 ---
 
@@ -148,7 +149,9 @@ A `addon_profile` block supports the following:
 
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
--> **NOTE**: Azure Policy for Azure Kubernetes Service is currently in preview and not available to subscriptions that have not [opted-in](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks?toc=/azure/aks/toc.json) to join `Azure Policy` preview.
+-> **NOTE:** At this time Azure Policy is not supported in Azure China or Azure US Government.
+
+~> **Note:** Azure Policy is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-gb/azure/governance/policy/concepts/policy-for-kubernetes).
 
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
 
@@ -160,16 +163,45 @@ A `addon_profile` block supports the following:
 
 ---
 
+A `auto_scaler_profile` block supports the following:
+
+* `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
+
+* `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
+
+* `scale_down_delay_after_add` - How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
+
+* `scale_down_delay_after_delete` - How long after node deletion that scale down evaluation resumes. Defaults to the value used for `scan_interval`.
+
+* `scale_down_delay_after_failure` - How long after scale down failure that scale down evaluation resumes. Defaults to `3m`.
+
+* `scan_interval` - How often the AKS Cluster should be re-evaluated for scale up/down. Defaults to `10s`.
+
+* `scale_down_unneeded` - How long a node should be unneeded before it is eligible for scale down. Defaults to `10m`.
+
+* `scale_down_unready` - How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
+
+* `scale_down_utilization_threshold` - Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
+
+---
+
 A `azure_active_directory` block supports the following:
+
+* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+
+* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
+
+When `managed` is set to `true` the following properties can be specified:
+
+* `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
+
+When `managed` is set to `false` the following properties can be specified:
 
 * `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
 
 * `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
 
 * `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
-
-* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
-
 
 ---
 
@@ -185,7 +217,7 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
 
-* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread.
+* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread. Changing this forces a new resource to be created.
 
 -> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
 
@@ -199,9 +231,11 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
-* `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.
+* `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool. Changing this forces a new resource to be created.
 
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
+* `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
+
+-> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
 
 * `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. Changing this forces a new resource to be created.
 
@@ -217,17 +251,17 @@ A `default_node_pool` block supports the following:
 
 If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
-* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100` and between `min_count` and `max_count`.
+* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000` and between `min_count` and `max_count`.
 
 -> **NOTE:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
 
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
-* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 -> **NOTE:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
@@ -235,7 +269,7 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 A `http_application_routing` block supports the following:
 
-* `enabled` (Required) Is HTTP Application Routing Enabled? Changing this forces a new resource to be created.
+* `enabled` (Required) Is HTTP Application Routing Enabled?
 
 ---
 
@@ -293,7 +327,11 @@ A `load_balancer_profile` block supports the following:
 
 ~> **NOTE:** These options are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`.
 
-* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
+* `outbound_ports_allocated` - (Optional) Number of desired SNAT port for each VM in the clusters load balancer. Must be between `0` and `64000` inclusive. Defaults to `0`.
+
+* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `30`.
+
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
 
 -> **NOTE** User has to explicitly set `managed_outbound_ip_count` to empty slice (`[]`) to remove it.
 
@@ -312,6 +350,8 @@ A `oms_agent` block supports the following:
 * `enabled` - (Required) Is the OMS Agent Enabled?
 
 * `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
+
+* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
 
 ---
 
@@ -400,6 +440,16 @@ The `kubelet_identity` block exports the following:
 
 ---
 
+The `oms_agent_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
+---
+
 The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
@@ -419,9 +469,9 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 ```
 provider "kubernetes" {
   load_config_file       = "false"
-  host                   = "${azurerm_kubernetes_cluster.main.kube_config.0.host}"
-  username               = "${azurerm_kubernetes_cluster.main.kube_config.0.username}"
-  password               = "${azurerm_kubernetes_cluster.main.kube_config.0.password}"
+  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
+  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
+  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
   client_certificate     = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)}"
   client_key             = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)}"
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
@@ -429,8 +479,6 @@ provider "kubernetes" {
 ```
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

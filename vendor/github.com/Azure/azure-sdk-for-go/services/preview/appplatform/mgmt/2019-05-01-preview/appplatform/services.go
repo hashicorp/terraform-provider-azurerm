@@ -80,6 +80,7 @@ func (client ServicesClient) CheckNameAvailability(ctx context.Context, location
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client ServicesClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client ServicesClient) CheckNameAvailabilityResponder(resp *http.Response) (result NameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +211,6 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 func (client ServicesClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,7 +287,6 @@ func (client ServicesClient) DeleteSender(req *http.Request) (future ServicesDel
 func (client ServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -327,6 +325,7 @@ func (client ServicesClient) DisableTestEndpoint(ctx context.Context, resourceGr
 	result, err = client.DisableTestEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "DisableTestEndpoint", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,7 +363,6 @@ func (client ServicesClient) DisableTestEndpointSender(req *http.Request) (*http
 func (client ServicesClient) DisableTestEndpointResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -403,6 +401,7 @@ func (client ServicesClient) EnableTestEndpoint(ctx context.Context, resourceGro
 	result, err = client.EnableTestEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "EnableTestEndpoint", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -440,7 +439,6 @@ func (client ServicesClient) EnableTestEndpointSender(req *http.Request) (*http.
 func (client ServicesClient) EnableTestEndpointResponder(resp *http.Response) (result TestKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -480,6 +478,7 @@ func (client ServicesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -517,7 +516,6 @@ func (client ServicesClient) GetSender(req *http.Request) (*http.Response, error
 func (client ServicesClient) GetResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -557,6 +555,10 @@ func (client ServicesClient) List(ctx context.Context, resourceGroupName string)
 	result.srl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.srl.hasNextLink() && result.srl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -593,7 +595,6 @@ func (client ServicesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ServicesClient) ListResponder(resp *http.Response) (result ServiceResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -618,6 +619,7 @@ func (client ServicesClient) listNextResults(ctx context.Context, lastResults Se
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -667,6 +669,10 @@ func (client ServicesClient) ListBySubscription(ctx context.Context) (result Ser
 	result.srl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.srl.hasNextLink() && result.srl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -702,7 +708,6 @@ func (client ServicesClient) ListBySubscriptionSender(req *http.Request) (*http.
 func (client ServicesClient) ListBySubscriptionResponder(resp *http.Response) (result ServiceResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -727,6 +732,7 @@ func (client ServicesClient) listBySubscriptionNextResults(ctx context.Context, 
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -779,6 +785,7 @@ func (client ServicesClient) ListTestKeys(ctx context.Context, resourceGroupName
 	result, err = client.ListTestKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "ListTestKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -816,7 +823,6 @@ func (client ServicesClient) ListTestKeysSender(req *http.Request) (*http.Respon
 func (client ServicesClient) ListTestKeysResponder(resp *http.Response) (result TestKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -857,6 +863,7 @@ func (client ServicesClient) RegenerateTestKey(ctx context.Context, resourceGrou
 	result, err = client.RegenerateTestKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "RegenerateTestKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -896,7 +903,6 @@ func (client ServicesClient) RegenerateTestKeySender(req *http.Request) (*http.R
 func (client ServicesClient) RegenerateTestKeyResponder(resp *http.Response) (result TestKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -976,7 +982,6 @@ func (client ServicesClient) UpdateSender(req *http.Request) (future ServicesUpd
 func (client ServicesClient) UpdateResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

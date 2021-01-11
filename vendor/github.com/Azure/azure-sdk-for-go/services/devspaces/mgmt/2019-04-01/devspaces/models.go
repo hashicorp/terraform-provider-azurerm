@@ -30,59 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces"
 
-// InstanceType enumerates the values for instance type.
-type InstanceType string
-
-const (
-	// InstanceTypeKubernetes ...
-	InstanceTypeKubernetes InstanceType = "Kubernetes"
-	// InstanceTypeOrchestratorSpecificConnectionDetails ...
-	InstanceTypeOrchestratorSpecificConnectionDetails InstanceType = "OrchestratorSpecificConnectionDetails"
-)
-
-// PossibleInstanceTypeValues returns an array of possible values for the InstanceType const type.
-func PossibleInstanceTypeValues() []InstanceType {
-	return []InstanceType{InstanceTypeKubernetes, InstanceTypeOrchestratorSpecificConnectionDetails}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleted ...
-	Deleted ProvisioningState = "Deleted"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleted, Deleting, Failed, Succeeded, Updating}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// Standard ...
-	Standard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Standard}
-}
-
 // ContainerHostMapping container host mapping object specifying the Container host resource ID and its
 // associated Controller resource.
 type ContainerHostMapping struct {
@@ -91,6 +38,15 @@ type ContainerHostMapping struct {
 	ContainerHostResourceID *string `json:"containerHostResourceId,omitempty"`
 	// MappedControllerResourceID - READ-ONLY; ARM ID of the mapped Controller resource
 	MappedControllerResourceID *string `json:"mappedControllerResourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerHostMapping.
+func (chm ContainerHostMapping) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if chm.ContainerHostResourceID != nil {
+		objectMap["containerHostResourceId"] = chm.ContainerHostResourceID
+	}
+	return json.Marshal(objectMap)
 }
 
 // Controller ...
@@ -250,6 +206,15 @@ type ControllerList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ControllerList.
+func (cl ControllerList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cl.Value != nil {
+		objectMap["value"] = cl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ControllerListIterator provides access to a complete listing of Controller values.
 type ControllerListIterator struct {
 	i    int
@@ -318,10 +283,15 @@ func (cl ControllerList) IsEmpty() bool {
 	return cl.Value == nil || len(*cl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cl ControllerList) hasNextLink() bool {
+	return cl.NextLink != nil && len(*cl.NextLink) != 0
+}
+
 // controllerListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cl ControllerList) controllerListPreparer(ctx context.Context) (*http.Request, error) {
-	if cl.NextLink == nil || len(to.String(cl.NextLink)) < 1 {
+	if !cl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -349,11 +319,16 @@ func (page *ControllerListPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cl)
+		if err != nil {
+			return err
+		}
+		page.cl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cl = next
 	return nil
 }
 
@@ -383,8 +358,11 @@ func (page ControllerListPage) Values() []Controller {
 }
 
 // Creates a new instance of the ControllerListPage type.
-func NewControllerListPage(getNextPage func(context.Context, ControllerList) (ControllerList, error)) ControllerListPage {
-	return ControllerListPage{fn: getNextPage}
+func NewControllerListPage(cur ControllerList, getNextPage func(context.Context, ControllerList) (ControllerList, error)) ControllerListPage {
+	return ControllerListPage{
+		fn: getNextPage,
+		cl: cur,
+	}
 }
 
 // ControllerProperties ...
@@ -401,6 +379,18 @@ type ControllerProperties struct {
 	TargetContainerHostResourceID *string `json:"targetContainerHostResourceId,omitempty"`
 	// TargetContainerHostCredentialsBase64 - Credentials of the target container host (base64).
 	TargetContainerHostCredentialsBase64 *string `json:"targetContainerHostCredentialsBase64,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ControllerProperties.
+func (cp ControllerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.TargetContainerHostResourceID != nil {
+		objectMap["targetContainerHostResourceId"] = cp.TargetContainerHostResourceID
+	}
+	if cp.TargetContainerHostCredentialsBase64 != nil {
+		objectMap["targetContainerHostCredentialsBase64"] = cp.TargetContainerHostCredentialsBase64
+	}
+	return json.Marshal(objectMap)
 }
 
 // ControllersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -687,6 +677,15 @@ type ResourceProviderOperationList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ResourceProviderOperationList.
+func (rpol ResourceProviderOperationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rpol.Value != nil {
+		objectMap["value"] = rpol.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ResourceProviderOperationListIterator provides access to a complete listing of
 // ResourceProviderOperationDefinition values.
 type ResourceProviderOperationListIterator struct {
@@ -756,10 +755,15 @@ func (rpol ResourceProviderOperationList) IsEmpty() bool {
 	return rpol.Value == nil || len(*rpol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rpol ResourceProviderOperationList) hasNextLink() bool {
+	return rpol.NextLink != nil && len(*rpol.NextLink) != 0
+}
+
 // resourceProviderOperationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rpol ResourceProviderOperationList) resourceProviderOperationListPreparer(ctx context.Context) (*http.Request, error) {
-	if rpol.NextLink == nil || len(to.String(rpol.NextLink)) < 1 {
+	if !rpol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -787,11 +791,16 @@ func (page *ResourceProviderOperationListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rpol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rpol)
+		if err != nil {
+			return err
+		}
+		page.rpol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rpol = next
 	return nil
 }
 
@@ -821,8 +830,11 @@ func (page ResourceProviderOperationListPage) Values() []ResourceProviderOperati
 }
 
 // Creates a new instance of the ResourceProviderOperationListPage type.
-func NewResourceProviderOperationListPage(getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
-	return ResourceProviderOperationListPage{fn: getNextPage}
+func NewResourceProviderOperationListPage(cur ResourceProviderOperationList, getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
+	return ResourceProviderOperationListPage{
+		fn:   getNextPage,
+		rpol: cur,
+	}
 }
 
 // Sku model representing SKU for Azure Dev Spaces Controller.

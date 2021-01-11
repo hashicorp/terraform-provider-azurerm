@@ -83,6 +83,7 @@ func (client AccountsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client AccountsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client AccountsClient) CreateOrUpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client AccountsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -198,7 +199,6 @@ func (client AccountsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client AccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -236,6 +236,7 @@ func (client AccountsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -273,7 +274,6 @@ func (client AccountsClient) GetSender(req *http.Request) (*http.Response, error
 func (client AccountsClient) GetResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -311,6 +311,7 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,7 +348,6 @@ func (client AccountsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client AccountsClient) ListByResourceGroupResponder(resp *http.Response) (result Accounts, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -383,6 +383,7 @@ func (client AccountsClient) ListBySubscription(ctx context.Context) (result Acc
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -418,7 +419,6 @@ func (client AccountsClient) ListBySubscriptionSender(req *http.Request) (*http.
 func (client AccountsClient) ListBySubscriptionResponder(resp *http.Response) (result Accounts, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -458,6 +458,7 @@ func (client AccountsClient) ListKeys(ctx context.Context, resourceGroupName str
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -495,7 +496,6 @@ func (client AccountsClient) ListKeysSender(req *http.Request) (*http.Response, 
 func (client AccountsClient) ListKeysResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -531,6 +531,7 @@ func (client AccountsClient) ListOperations(ctx context.Context) (result Operati
 	result, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "ListOperations", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -562,7 +563,6 @@ func (client AccountsClient) ListOperationsSender(req *http.Request) (*http.Resp
 func (client AccountsClient) ListOperationsResponder(resp *http.Response) (result Operations, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -608,6 +608,7 @@ func (client AccountsClient) Move(ctx context.Context, resourceGroupName string,
 	result, err = client.MoveResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "Move", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -646,7 +647,6 @@ func (client AccountsClient) MoveSender(req *http.Request) (*http.Response, erro
 func (client AccountsClient) MoveResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -686,6 +686,7 @@ func (client AccountsClient) RegenerateKeys(ctx context.Context, resourceGroupNa
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -725,7 +726,6 @@ func (client AccountsClient) RegenerateKeysSender(req *http.Request) (*http.Resp
 func (client AccountsClient) RegenerateKeysResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -765,6 +765,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maps.AccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -804,7 +805,6 @@ func (client AccountsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client AccountsClient) UpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

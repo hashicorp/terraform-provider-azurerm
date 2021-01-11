@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
+  name                = "tfex-servicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
@@ -30,7 +30,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_sevicebus_topic"
+  name                = "tfex_servicebus_topic"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
 
@@ -38,7 +38,7 @@ resource "azurerm_servicebus_topic" "example" {
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "tfex_sevicebus_subscription"
+  name                = "tfex_servicebus_subscription"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   topic_name          = azurerm_servicebus_topic.example.name
@@ -46,7 +46,7 @@ resource "azurerm_servicebus_subscription" "example" {
 }
 
 resource "azurerm_servicebus_subscription_rule" "example" {
-  name                = "tfex_sevicebus_rule"
+  name                = "tfex_servicebus_rule"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   topic_name          = azurerm_servicebus_topic.example.name
@@ -65,7 +65,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
+  name                = "tfex-servicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
@@ -76,7 +76,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_sevicebus_topic"
+  name                = "tfex_servicebus_topic"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
 
@@ -84,7 +84,7 @@ resource "azurerm_servicebus_topic" "example" {
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "tfex_sevicebus_subscription"
+  name                = "tfex_servicebus_subscription"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   topic_name          = azurerm_servicebus_topic.example.name
@@ -92,7 +92,7 @@ resource "azurerm_servicebus_subscription" "example" {
 }
 
 resource "azurerm_servicebus_subscription_rule" "example" {
-  name                = "tfex_sevicebus_rule"
+  name                = "tfex_servicebus_rule"
   resource_group_name = azurerm_resource_group.example.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   topic_name          = azurerm_servicebus_topic.example.name
@@ -102,6 +102,9 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   correlation_filter {
     correlation_id = "high"
     label          = "red"
+    properties = {
+      customProperty = "value"
+    }
   }
 }
 ```
@@ -145,6 +148,8 @@ The following arguments are supported:
 * `session_id` - (Optional) Session identifier.
 
 * `to` - (Optional) Address to send to.
+
+* `properties` - (Optional) A list of user defined properties to be included in the filter. Specified as a map of name/value pairs.
 
 ~> **NOTE:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 

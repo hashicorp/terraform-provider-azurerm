@@ -15,18 +15,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActivityLogAlert() *schema.Resource {
+func resourceMonitorActivityLogAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActivityLogAlertCreateUpdate,
-		Read:   resourceArmMonitorActivityLogAlertRead,
-		Update: resourceArmMonitorActivityLogAlertCreateUpdate,
-		Delete: resourceArmMonitorActivityLogAlertDelete,
+		Create: resourceMonitorActivityLogAlertCreateUpdate,
+		Read:   resourceMonitorActivityLogAlertRead,
+		Update: resourceMonitorActivityLogAlertCreateUpdate,
+		Delete: resourceMonitorActivityLogAlertDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -123,6 +122,36 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"recommendation_category": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Cost",
+								"Reliability",
+								"OperationalExcellence",
+								"Performance",
+							},
+								false,
+							),
+							ConflictsWith: []string{"criteria.0.recommendation_type"},
+						},
+						"recommendation_impact": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"High",
+								"Medium",
+								"Low",
+							},
+								false,
+							),
+							ConflictsWith: []string{"criteria.0.recommendation_type"},
+						},
+						"recommendation_type": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
+						},
 					},
 				},
 			},
@@ -146,7 +175,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmMonitorActivityLogAlertActionHash,
+				Set: resourceMonitorActivityLogAlertActionHash,
 			},
 
 			"description": {
@@ -165,7 +194,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +202,7 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -220,10 +249,10 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorActivityLogAlertRead(d, meta)
+	return resourceMonitorActivityLogAlertRead(d, meta)
 }
 
-func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +292,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -348,6 +377,26 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.Activi
 			Equals: utils.String(subStatus),
 		})
 	}
+	if recommendationType := v["recommendation_type"].(string); recommendationType != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("properties.recommendationType"),
+			Equals: utils.String(recommendationType),
+		})
+	}
+
+	if recommendationCategory := v["recommendation_category"].(string); recommendationCategory != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("properties.recommendationCategory"),
+			Equals: utils.String(recommendationCategory),
+		})
+	}
+
+	if recommendationImpact := v["recommendation_impact"].(string); recommendationImpact != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("properties.recommendationImpact"),
+			Equals: utils.String(recommendationImpact),
+		})
+	}
 
 	return &insights.ActivityLogAlertAllOfCondition{
 		AllOf: &conditions,
@@ -397,6 +446,12 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllO
 				result["resource_id"] = *condition.Equals
 			case "substatus":
 				result["sub_status"] = *condition.Equals
+			case "properties.recommendationtype":
+				result["recommendation_type"] = *condition.Equals
+			case "properties.recommendationcategory":
+				result["recommendation_category"] = *condition.Equals
+			case "properties.recommendationimpact":
+				result["recommendation_impact"] = *condition.Equals
 			case "caller", "category", "level", "status":
 				result[*condition.Field] = *condition.Equals
 			}
@@ -430,7 +485,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 	return result
 }
 
-func resourceArmMonitorActivityLogAlertActionHash(input interface{}) int {
+func resourceMonitorActivityLogAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))

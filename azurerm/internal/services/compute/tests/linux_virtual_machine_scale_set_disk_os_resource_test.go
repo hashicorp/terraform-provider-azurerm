@@ -24,7 +24,8 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-			), {
+			),
+			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
@@ -32,7 +33,8 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-			), {
+			),
+			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadWrite"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
@@ -95,18 +97,14 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *t
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDisk_diskEncryptionSet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(
+				"admin_password",
+			),
 		},
 	})
 }
@@ -302,10 +300,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 
 func testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	location := "westus2"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -323,9 +317,9 @@ resource "azurerm_key_vault" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "premium"
-  purge_protection_enabled    = true
+  sku_name                    = "standard"
   soft_delete_enabled         = true
+  purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
 
@@ -338,6 +332,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "create",
     "delete",
     "get",
+    "purge",
     "update",
   ]
 
@@ -379,7 +374,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
-`, data.RandomInteger, location, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetResource(data acceptance.TestData) string {

@@ -129,7 +129,6 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdateSender(req *http.Reques
 func (client InstanceFailoverGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client InstanceFailoverGroupsClient) DeleteSender(req *http.Request) (futu
 func (client InstanceFailoverGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -286,7 +284,6 @@ func (client InstanceFailoverGroupsClient) FailoverSender(req *http.Request) (fu
 func (client InstanceFailoverGroupsClient) FailoverResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,7 +363,6 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossSender(req 
 func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -407,6 +403,7 @@ func (client InstanceFailoverGroupsClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -445,7 +442,6 @@ func (client InstanceFailoverGroupsClient) GetSender(req *http.Request) (*http.R
 func (client InstanceFailoverGroupsClient) GetResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -486,6 +482,10 @@ func (client InstanceFailoverGroupsClient) ListByLocation(ctx context.Context, r
 	result.ifglr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "ListByLocation", resp, "Failure responding to request")
+		return
+	}
+	if result.ifglr.hasNextLink() && result.ifglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -523,7 +523,6 @@ func (client InstanceFailoverGroupsClient) ListByLocationSender(req *http.Reques
 func (client InstanceFailoverGroupsClient) ListByLocationResponder(resp *http.Response) (result InstanceFailoverGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -548,6 +547,7 @@ func (client InstanceFailoverGroupsClient) listByLocationNextResults(ctx context
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

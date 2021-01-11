@@ -76,6 +76,7 @@ func (client SynchronizationSettingsClient) Create(ctx context.Context, resource
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client SynchronizationSettingsClient) CreateSender(req *http.Request) (*ht
 func (client SynchronizationSettingsClient) CreateResponder(resp *http.Response) (result SynchronizationSettingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +197,6 @@ func (client SynchronizationSettingsClient) DeleteSender(req *http.Request) (fut
 func (client SynchronizationSettingsClient) DeleteResponder(resp *http.Response) (result OperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,6 +237,7 @@ func (client SynchronizationSettingsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,7 +277,6 @@ func (client SynchronizationSettingsClient) GetSender(req *http.Request) (*http.
 func (client SynchronizationSettingsClient) GetResponder(resp *http.Response) (result SynchronizationSettingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +318,10 @@ func (client SynchronizationSettingsClient) ListByShare(ctx context.Context, res
 	result.ssl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "ListByShare", resp, "Failure responding to request")
+		return
+	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -360,7 +363,6 @@ func (client SynchronizationSettingsClient) ListByShareSender(req *http.Request)
 func (client SynchronizationSettingsClient) ListByShareResponder(resp *http.Response) (result SynchronizationSettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -385,6 +387,7 @@ func (client SynchronizationSettingsClient) listByShareNextResults(ctx context.C
 	result, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "listByShareNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

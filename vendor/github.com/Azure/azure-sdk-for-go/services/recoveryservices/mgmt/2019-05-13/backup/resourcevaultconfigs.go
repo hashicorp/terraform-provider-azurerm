@@ -73,6 +73,7 @@ func (client ResourceVaultConfigsClient) Get(ctx context.Context, vaultName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceVaultConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client ResourceVaultConfigsClient) GetSender(req *http.Request) (*http.Res
 func (client ResourceVaultConfigsClient) GetResponder(resp *http.Response) (result ResourceVaultConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +150,7 @@ func (client ResourceVaultConfigsClient) Update(ctx context.Context, vaultName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceVaultConfigsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,7 +190,6 @@ func (client ResourceVaultConfigsClient) UpdateSender(req *http.Request) (*http.
 func (client ResourceVaultConfigsClient) UpdateResponder(resp *http.Response) (result ResourceVaultConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

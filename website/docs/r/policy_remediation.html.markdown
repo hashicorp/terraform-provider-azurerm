@@ -13,10 +13,6 @@ Manages an Azure Policy Remediation at the specified Scope.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -93,11 +89,13 @@ The following arguments are supported:
     1. A resource, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Compute/virtualMachines/myVM`
     1. A management group, e.g. `/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000`
 
-* `policy_assignment_id` - (Required) The resource ID of the policy assignment that should be remediated.
+* `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
-* `policy_definition_reference_id` - (Optional) The policy definition reference ID of the individual definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
+* `policy_definition_reference_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
+
+* `resource_discovery_mode` - (Optional) The way that resources to remediate are discovered. Possible values are `ExistingNonCompliant`, `ReEvaluateCompliance`. Defaults to `ExistingNonCompliant`.
 
 ## Attributes Reference
 

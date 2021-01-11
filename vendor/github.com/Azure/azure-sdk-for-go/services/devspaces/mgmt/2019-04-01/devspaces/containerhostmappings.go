@@ -81,6 +81,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Co
 	result, err = client.GetContainerHostMappingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ContainerHostMappingsClient", "GetContainerHostMapping", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingSender(req *htt
 func (client ContainerHostMappingsClient) GetContainerHostMappingResponder(resp *http.Response) (result ContainerHostMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -130,7 +130,6 @@ func (client WorkloadClassifiersClient) CreateOrUpdateSender(req *http.Request) 
 func (client WorkloadClassifiersClient) CreateOrUpdateResponder(resp *http.Response) (result WorkloadClassifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client WorkloadClassifiersClient) DeleteSender(req *http.Request) (future 
 func (client WorkloadClassifiersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -255,6 +253,7 @@ func (client WorkloadClassifiersClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -295,7 +294,6 @@ func (client WorkloadClassifiersClient) GetSender(req *http.Request) (*http.Resp
 func (client WorkloadClassifiersClient) GetResponder(resp *http.Response) (result WorkloadClassifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -338,6 +336,10 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroup(ctx context.Context,
 	result.wclr, err = client.ListByWorkloadGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "ListByWorkloadGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.wclr.hasNextLink() && result.wclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -377,7 +379,6 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroupSender(req *http.Requ
 func (client WorkloadClassifiersClient) ListByWorkloadGroupResponder(resp *http.Response) (result WorkloadClassifierListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -402,6 +403,7 @@ func (client WorkloadClassifiersClient) listByWorkloadGroupNextResults(ctx conte
 	result, err = client.ListByWorkloadGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "listByWorkloadGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

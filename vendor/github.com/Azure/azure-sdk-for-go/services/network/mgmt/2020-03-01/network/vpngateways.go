@@ -113,7 +113,6 @@ func (client VpnGatewaysClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client VpnGatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result VpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client VpnGatewaysClient) DeleteSender(req *http.Request) (future VpnGatew
 func (client VpnGatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,6 +225,7 @@ func (client VpnGatewaysClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +263,6 @@ func (client VpnGatewaysClient) GetSender(req *http.Request) (*http.Response, er
 func (client VpnGatewaysClient) GetResponder(resp *http.Response) (result VpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,6 +299,10 @@ func (client VpnGatewaysClient) List(ctx context.Context) (result ListVpnGateway
 	result.lvgr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lvgr.hasNextLink() && result.lvgr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -336,7 +338,6 @@ func (client VpnGatewaysClient) ListSender(req *http.Request) (*http.Response, e
 func (client VpnGatewaysClient) ListResponder(resp *http.Response) (result ListVpnGatewaysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,6 +362,7 @@ func (client VpnGatewaysClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -412,6 +414,10 @@ func (client VpnGatewaysClient) ListByResourceGroup(ctx context.Context, resourc
 	result.lvgr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lvgr.hasNextLink() && result.lvgr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -448,7 +454,6 @@ func (client VpnGatewaysClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client VpnGatewaysClient) ListByResourceGroupResponder(resp *http.Response) (result ListVpnGatewaysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,6 +478,7 @@ func (client VpnGatewaysClient) listByResourceGroupNextResults(ctx context.Conte
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -561,7 +567,6 @@ func (client VpnGatewaysClient) ResetSender(req *http.Request) (future VpnGatewa
 func (client VpnGatewaysClient) ResetResponder(resp *http.Response) (result VpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -601,6 +606,7 @@ func (client VpnGatewaysClient) UpdateTags(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -640,7 +646,6 @@ func (client VpnGatewaysClient) UpdateTagsSender(req *http.Request) (*http.Respo
 func (client VpnGatewaysClient) UpdateTagsResponder(resp *http.Response) (result VpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -7,24 +7,27 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationRunbook() *schema.Resource {
+func resourceAutomationRunbook() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationRunbookCreateUpdate,
-		Read:   resourceArmAutomationRunbookRead,
-		Update: resourceArmAutomationRunbookCreateUpdate,
-		Delete: resourceArmAutomationRunbookDelete,
+		Create: resourceAutomationRunbookCreateUpdate,
+		Read:   resourceAutomationRunbookRead,
+		Update: resourceAutomationRunbookCreateUpdate,
+		Delete: resourceAutomationRunbookDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -42,14 +45,14 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationRunbookName(),
+				ValidateFunc: validate.RunbookName(),
 			},
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -94,6 +97,8 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"job_schedule": helper.JobScheduleSchema(),
+
 			"publish_content_link": {
 				Type:         schema.TypeList,
 				Optional:     true,
@@ -137,8 +142,9 @@ func resourceArmAutomationRunbook() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
+	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -201,7 +207,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 
-		if _, err := draftClient.Publish(ctx, resGroup, accName, name); err != nil {
+		if _, err := client.Publish(ctx, resGroup, accName, name); err != nil {
 			return fmt.Errorf("Error publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 	}
@@ -217,11 +223,41 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationRunbookRead(d, meta)
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, resGroup, accName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+		if err != nil {
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accName, err)
+		}
+		if props := jsIterator.Value().JobScheduleProperties; props != nil {
+			if props.Runbook.Name != nil && *props.Runbook.Name == name {
+				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accName, err)
+				}
+				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				if err != nil {
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				}
+				if _, err := jsClient.Delete(ctx, resGroup, accName, jsId); err != nil {
+					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				}
+			}
+		}
+	}
+
+	if v, ok := d.GetOk("job_schedule"); ok {
+		jsMap := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
+		for jsuuid, js := range jsMap {
+			if _, err := jsClient.Create(ctx, resGroup, accName, jsuuid, js); err != nil {
+				return fmt.Errorf("creating Automation Runbook %q Job Schedules (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+			}
+		}
+	}
+
+	return resourceAutomationRunbookRead(d, meta)
 }
 
-func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
+	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -259,7 +295,11 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 
 	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		if utils.ResponseWasNotFound(response.Response) {
+			d.Set("content", "")
+		} else {
+			return fmt.Errorf("retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		}
 	}
 
 	if v := response.Value; v != nil {
@@ -273,6 +313,30 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	jsMap := make(map[uuid.UUID]automation.JobScheduleProperties)
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, resGroup, accName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+		if err != nil {
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accName, err)
+		}
+		if props := jsIterator.Value().JobScheduleProperties; props != nil {
+			if props.Runbook.Name != nil && *props.Runbook.Name == name {
+				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accName, err)
+				}
+				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				if err != nil {
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				}
+				jsMap[jsId] = *props
+			}
+		}
+	}
+
+	jobSchedule := helper.FlattenAutomationJobSchedule(jsMap)
+	if err := d.Set("job_schedule", jobSchedule); err != nil {
+		return fmt.Errorf("setting `job_schedule`: %+v", err)
+	}
+
 	if t := resp.Tags; t != nil {
 		return tags.FlattenAndSet(d, t)
 	}
@@ -280,7 +344,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

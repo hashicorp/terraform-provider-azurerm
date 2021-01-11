@@ -39,8 +39,8 @@ func TestPolicySetDefinitionID(t *testing.T) {
 			Expected: &PolicySetDefinitionId{
 				Name: "set1",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+					scopeId:             "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 				},
 			},
 		},
@@ -50,8 +50,8 @@ func TestPolicySetDefinitionID(t *testing.T) {
 			Expected: &PolicySetDefinitionId{
 				Name: "set1",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/Microsoft.Management/managementgroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+					scopeId:             "/providers/Microsoft.Management/managementgroups/00000000-0000-0000-0000-000000000000",
+					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 				},
 			},
 		},

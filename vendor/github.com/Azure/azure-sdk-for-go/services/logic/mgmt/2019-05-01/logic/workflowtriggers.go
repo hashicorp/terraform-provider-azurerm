@@ -75,6 +75,7 @@ func (client WorkflowTriggersClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client WorkflowTriggersClient) GetSender(req *http.Request) (*http.Respons
 func (client WorkflowTriggersClient) GetResponder(resp *http.Response) (result WorkflowTrigger, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,7 @@ func (client WorkflowTriggersClient) GetSchemaJSON(ctx context.Context, resource
 	result, err = client.GetSchemaJSONResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "GetSchemaJSON", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -191,7 +192,6 @@ func (client WorkflowTriggersClient) GetSchemaJSONSender(req *http.Request) (*ht
 func (client WorkflowTriggersClient) GetSchemaJSONResponder(resp *http.Response) (result JSONSchema, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -233,6 +233,10 @@ func (client WorkflowTriggersClient) List(ctx context.Context, resourceGroupName
 	result.wtlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -276,7 +280,6 @@ func (client WorkflowTriggersClient) ListSender(req *http.Request) (*http.Respon
 func (client WorkflowTriggersClient) ListResponder(resp *http.Response) (result WorkflowTriggerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,6 +304,7 @@ func (client WorkflowTriggersClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -353,6 +357,7 @@ func (client WorkflowTriggersClient) ListCallbackURL(ctx context.Context, resour
 	result, err = client.ListCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "ListCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -391,7 +396,6 @@ func (client WorkflowTriggersClient) ListCallbackURLSender(req *http.Request) (*
 func (client WorkflowTriggersClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -431,6 +435,7 @@ func (client WorkflowTriggersClient) Reset(ctx context.Context, resourceGroupNam
 	result, err = client.ResetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Reset", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -469,7 +474,6 @@ func (client WorkflowTriggersClient) ResetSender(req *http.Request) (*http.Respo
 func (client WorkflowTriggersClient) ResetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -508,6 +512,7 @@ func (client WorkflowTriggersClient) Run(ctx context.Context, resourceGroupName 
 	result, err = client.RunResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Run", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -546,7 +551,6 @@ func (client WorkflowTriggersClient) RunSender(req *http.Request) (*http.Respons
 func (client WorkflowTriggersClient) RunResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -592,6 +596,7 @@ func (client WorkflowTriggersClient) SetState(ctx context.Context, resourceGroup
 	result, err = client.SetStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "SetState", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -632,7 +637,6 @@ func (client WorkflowTriggersClient) SetStateSender(req *http.Request) (*http.Re
 func (client WorkflowTriggersClient) SetStateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

@@ -87,6 +87,7 @@ func (client ComponentsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -126,7 +127,6 @@ func (client ComponentsClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client ComponentsClient) CreateOrUpdateResponder(resp *http.Response) (result ApplicationInsightsComponent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -175,6 +175,7 @@ func (client ComponentsClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -212,7 +213,6 @@ func (client ComponentsClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client ComponentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -260,6 +260,7 @@ func (client ComponentsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -297,7 +298,6 @@ func (client ComponentsClient) GetSender(req *http.Request) (*http.Response, err
 func (client ComponentsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -347,6 +347,7 @@ func (client ComponentsClient) GetPurgeStatus(ctx context.Context, resourceGroup
 	result, err = client.GetPurgeStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "GetPurgeStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -385,7 +386,6 @@ func (client ComponentsClient) GetPurgeStatusSender(req *http.Request) (*http.Re
 func (client ComponentsClient) GetPurgeStatusResponder(resp *http.Response) (result ComponentPurgeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -428,6 +428,10 @@ func (client ComponentsClient) List(ctx context.Context) (result ApplicationInsi
 	result.aiclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -463,7 +467,6 @@ func (client ComponentsClient) ListSender(req *http.Request) (*http.Response, er
 func (client ComponentsClient) ListResponder(resp *http.Response) (result ApplicationInsightsComponentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -488,6 +491,7 @@ func (client ComponentsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -549,6 +553,10 @@ func (client ComponentsClient) ListByResourceGroup(ctx context.Context, resource
 	result.aiclr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -585,7 +593,6 @@ func (client ComponentsClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client ComponentsClient) ListByResourceGroupResponder(resp *http.Response) (result ApplicationInsightsComponentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -610,6 +617,7 @@ func (client ComponentsClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -680,6 +688,7 @@ func (client ComponentsClient) Purge(ctx context.Context, resourceGroupName stri
 	result, err = client.PurgeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "Purge", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -719,7 +728,6 @@ func (client ComponentsClient) PurgeSender(req *http.Request) (*http.Response, e
 func (client ComponentsClient) PurgeResponder(resp *http.Response) (result ComponentPurgeResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -769,6 +777,7 @@ func (client ComponentsClient) UpdateTags(ctx context.Context, resourceGroupName
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -808,7 +817,6 @@ func (client ComponentsClient) UpdateTagsSender(req *http.Request) (*http.Respon
 func (client ComponentsClient) UpdateTagsResponder(resp *http.Response) (result ApplicationInsightsComponent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

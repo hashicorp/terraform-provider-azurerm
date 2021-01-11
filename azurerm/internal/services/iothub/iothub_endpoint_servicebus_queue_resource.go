@@ -6,24 +6,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEndpointServiceBusQueue() *schema.Resource {
+func resourceIotHubEndpointServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubEndpointServiceBusQueueCreateUpdate,
-		Read:   resourceArmIotHubEndpointServiceBusQueueRead,
-		Update: resourceArmIotHubEndpointServiceBusQueueCreateUpdate,
-		Delete: resourceArmIotHubEndpointServiceBusQueueDelete,
+		Create: resourceIotHubEndpointServiceBusQueueCreateUpdate,
+		Read:   resourceIotHubEndpointServiceBusQueueRead,
+		Update: resourceIotHubEndpointServiceBusQueueCreateUpdate,
+		Delete: resourceIotHubEndpointServiceBusQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +68,7 @@ func resourceArmIotHubEndpointServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +118,7 @@ func resourceArmIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData
 	for _, existingEndpoint := range *routing.Endpoints.ServiceBusQueues {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, endpointName) {
-				if d.IsNewResource() && features.ShouldResourcesBeImported() {
+				if d.IsNewResource() {
 					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_queue", resourceId)
 				}
 				endpoints = append(endpoints, queueEndpoint)
@@ -148,16 +147,15 @@ func resourceArmIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubEndpointServiceBusQueueRead(d, meta)
+	return resourceIotHubEndpointServiceBusQueueRead(d, meta)
 }
 
-func resourceArmIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -192,13 +190,12 @@ func resourceArmIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}

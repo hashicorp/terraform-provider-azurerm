@@ -76,6 +76,10 @@ func (client PermissionsClient) ListForResource(ctx context.Context, resourceGro
 	result.pgr, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "ListForResource", resp, "Failure responding to request")
+		return
+	}
+	if result.pgr.hasNextLink() && result.pgr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -116,7 +120,6 @@ func (client PermissionsClient) ListForResourceSender(req *http.Request) (*http.
 func (client PermissionsClient) ListForResourceResponder(resp *http.Response) (result PermissionGetResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -141,6 +144,7 @@ func (client PermissionsClient) listForResourceNextResults(ctx context.Context, 
 	result, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "listForResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -192,6 +196,10 @@ func (client PermissionsClient) ListForResourceGroup(ctx context.Context, resour
 	result.pgr, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "ListForResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.pgr.hasNextLink() && result.pgr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -228,7 +236,6 @@ func (client PermissionsClient) ListForResourceGroupSender(req *http.Request) (*
 func (client PermissionsClient) ListForResourceGroupResponder(resp *http.Response) (result PermissionGetResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -253,6 +260,7 @@ func (client PermissionsClient) listForResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "listForResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

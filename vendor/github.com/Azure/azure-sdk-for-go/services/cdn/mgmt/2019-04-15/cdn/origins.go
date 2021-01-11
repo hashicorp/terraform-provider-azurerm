@@ -83,6 +83,7 @@ func (client OriginsClient) Get(ctx context.Context, resourceGroupName string, p
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client OriginsClient) GetSender(req *http.Request) (*http.Response, error)
 func (client OriginsClient) GetResponder(resp *http.Response) (result Origin, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -171,6 +171,10 @@ func (client OriginsClient) ListByEndpoint(ctx context.Context, resourceGroupNam
 	result.olr, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "ListByEndpoint", resp, "Failure responding to request")
+		return
+	}
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -209,7 +213,6 @@ func (client OriginsClient) ListByEndpointSender(req *http.Request) (*http.Respo
 func (client OriginsClient) ListByEndpointResponder(resp *http.Response) (result OriginListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,6 +237,7 @@ func (client OriginsClient) listByEndpointNextResults(ctx context.Context, lastR
 	result, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "listByEndpointNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -337,7 +341,6 @@ func (client OriginsClient) UpdateSender(req *http.Request) (future OriginsUpdat
 func (client OriginsClient) UpdateResponder(resp *http.Response) (result Origin, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

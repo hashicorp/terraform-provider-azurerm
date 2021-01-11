@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_mssql_server
+# azurerm_sql_server
 
 Manages a Microsoft SQL Azure Database Server.
 

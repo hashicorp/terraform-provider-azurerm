@@ -82,6 +82,7 @@ func (client IntegrationAccountSessionsClient) CreateOrUpdate(ctx context.Contex
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client IntegrationAccountSessionsClient) CreateOrUpdateSender(req *http.Re
 func (client IntegrationAccountSessionsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountSession, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,7 @@ func (client IntegrationAccountSessionsClient) Delete(ctx context.Context, resou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +201,6 @@ func (client IntegrationAccountSessionsClient) DeleteSender(req *http.Request) (
 func (client IntegrationAccountSessionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +239,7 @@ func (client IntegrationAccountSessionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,7 +278,6 @@ func (client IntegrationAccountSessionsClient) GetSender(req *http.Request) (*ht
 func (client IntegrationAccountSessionsClient) GetResponder(resp *http.Response) (result IntegrationAccountSession, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +319,10 @@ func (client IntegrationAccountSessionsClient) List(ctx context.Context, resourc
 	result.iaslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.iaslr.hasNextLink() && result.iaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -362,7 +366,6 @@ func (client IntegrationAccountSessionsClient) ListSender(req *http.Request) (*h
 func (client IntegrationAccountSessionsClient) ListResponder(resp *http.Response) (result IntegrationAccountSessionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,6 +390,7 @@ func (client IntegrationAccountSessionsClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

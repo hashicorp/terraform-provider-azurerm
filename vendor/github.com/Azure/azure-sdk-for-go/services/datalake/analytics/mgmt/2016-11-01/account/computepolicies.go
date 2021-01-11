@@ -89,6 +89,7 @@ func (client ComputePoliciesClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client ComputePoliciesClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client ComputePoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client ComputePoliciesClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -207,7 +208,6 @@ func (client ComputePoliciesClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ComputePoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -246,6 +246,7 @@ func (client ComputePoliciesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,7 +285,6 @@ func (client ComputePoliciesClient) GetSender(req *http.Request) (*http.Response
 func (client ComputePoliciesClient) GetResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +325,10 @@ func (client ComputePoliciesClient) ListByAccount(ctx context.Context, resourceG
 	result.cplr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.cplr.hasNextLink() && result.cplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -362,7 +366,6 @@ func (client ComputePoliciesClient) ListByAccountSender(req *http.Request) (*htt
 func (client ComputePoliciesClient) ListByAccountResponder(resp *http.Response) (result ComputePolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,6 +390,7 @@ func (client ComputePoliciesClient) listByAccountNextResults(ctx context.Context
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -440,6 +444,7 @@ func (client ComputePoliciesClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -483,7 +488,6 @@ func (client ComputePoliciesClient) UpdateSender(req *http.Request) (*http.Respo
 func (client ComputePoliciesClient) UpdateResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

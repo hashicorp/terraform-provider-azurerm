@@ -75,6 +75,7 @@ func (client JobCancellationsClient) Trigger(ctx context.Context, vaultName stri
 	result, err = client.TriggerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobCancellationsClient", "Trigger", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client JobCancellationsClient) TriggerSender(req *http.Request) (*http.Res
 func (client JobCancellationsClient) TriggerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

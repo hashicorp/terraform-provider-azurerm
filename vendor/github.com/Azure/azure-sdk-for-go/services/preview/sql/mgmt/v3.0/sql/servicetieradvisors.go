@@ -78,6 +78,7 @@ func (client ServiceTierAdvisorsClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServiceTierAdvisorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client ServiceTierAdvisorsClient) GetSender(req *http.Request) (*http.Resp
 func (client ServiceTierAdvisorsClient) GetResponder(resp *http.Response) (result ServiceTierAdvisor, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +158,7 @@ func (client ServiceTierAdvisorsClient) ListByDatabase(ctx context.Context, reso
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServiceTierAdvisorsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -196,7 +197,6 @@ func (client ServiceTierAdvisorsClient) ListByDatabaseSender(req *http.Request) 
 func (client ServiceTierAdvisorsClient) ListByDatabaseResponder(resp *http.Response) (result ServiceTierAdvisorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

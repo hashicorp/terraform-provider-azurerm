@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -41,6 +41,11 @@ func dataSourceArmSharedImage() *schema.Resource {
 
 			"os_type": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"specialized": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
@@ -94,6 +99,7 @@ func dataSourceArmSharedImage() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -125,12 +131,12 @@ func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("specialized", props.OsState == compute.Specialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
 
-		flattenedIdentifier := flattenGalleryImageDataSourceIdentifier(props.Identifier)
-		if err := d.Set("identifier", flattenedIdentifier); err != nil {
+		if err := d.Set("identifier", flattenGalleryImageDataSourceIdentifier(props.Identifier)); err != nil {
 			return fmt.Errorf("Error setting `identifier`: %+v", err)
 		}
 	}

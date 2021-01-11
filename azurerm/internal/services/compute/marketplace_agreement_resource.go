@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -77,32 +76,36 @@ func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta in
 
 	log.Printf("[DEBUG] Retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
 
-	if features.ShouldResourcesBeImported() {
-		agreement, err := client.Get(ctx, publisher, offer, plan)
+	term, err := client.Get(ctx, publisher, offer, plan)
+	if err != nil {
+		if !utils.ResponseWasNotFound(term.Response) {
+			return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		}
+	}
+
+	accepted := false
+	if props := term.AgreementProperties; props != nil {
+		if acc := props.Accepted; acc != nil {
+			accepted = *acc
+		}
+	}
+
+	if accepted {
+		agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
 		if err != nil {
 			if !utils.ResponseWasNotFound(agreement.Response) {
 				return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
 			}
 		}
-
-		accepted := false
-		if props := agreement.AgreementProperties; props != nil {
-			if acc := props.Accepted; acc != nil {
-				accepted = *acc
-			}
-		}
-
-		if accepted {
-			return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
-		}
+		return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
 	}
 
 	terms, err := client.Get(ctx, publisher, offer, plan)
 	if err != nil {
-		return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
 	}
 	if terms.AgreementProperties == nil {
-		return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: AgreementProperties was nil", publisher, offer, plan)
+		return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: AgreementProperties was nil", publisher, offer, plan)
 	}
 
 	terms.AgreementProperties.Accepted = utils.Bool(true)
@@ -137,22 +140,22 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 	offer := id.Path["offers"]
 	plan := id.Path["plans"]
 
-	resp, err := client.Get(ctx, publisher, offer, plan)
+	term, err := client.Get(ctx, publisher, offer, plan)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Agreement was not found for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
+		if utils.ResponseWasNotFound(term.Response) {
+			log.Printf("[DEBUG] The Marketplace Terms was not found for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
 	}
 
 	d.Set("publisher", publisher)
 	d.Set("offer", offer)
 	d.Set("plan", plan)
 
-	if props := resp.AgreementProperties; props != nil {
+	if props := term.AgreementProperties; props != nil {
 		if accepted := props.Accepted != nil && *props.Accepted; !accepted {
 			// if props.Accepted is not true, the agreement does not exist
 			d.SetId("")

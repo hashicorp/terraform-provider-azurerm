@@ -121,7 +121,6 @@ func (client CustomResourceProviderClient) CreateOrUpdateSender(req *http.Reques
 func (client CustomResourceProviderClient) CreateOrUpdateResponder(resp *http.Response) (result CustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client CustomResourceProviderClient) DeleteSender(req *http.Request) (futu
 func (client CustomResourceProviderClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -249,6 +247,7 @@ func (client CustomResourceProviderClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +285,6 @@ func (client CustomResourceProviderClient) GetSender(req *http.Request) (*http.R
 func (client CustomResourceProviderClient) GetResponder(resp *http.Response) (result CustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +323,10 @@ func (client CustomResourceProviderClient) ListByResourceGroup(ctx context.Conte
 	result.lbcrm, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lbcrm.hasNextLink() && result.lbcrm.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -361,7 +363,6 @@ func (client CustomResourceProviderClient) ListByResourceGroupSender(req *http.R
 func (client CustomResourceProviderClient) ListByResourceGroupResponder(resp *http.Response) (result ListByCustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +387,7 @@ func (client CustomResourceProviderClient) listByResourceGroupNextResults(ctx co
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -435,6 +437,10 @@ func (client CustomResourceProviderClient) ListBySubscription(ctx context.Contex
 	result.lbcrm, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.lbcrm.hasNextLink() && result.lbcrm.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -470,7 +476,6 @@ func (client CustomResourceProviderClient) ListBySubscriptionSender(req *http.Re
 func (client CustomResourceProviderClient) ListBySubscriptionResponder(resp *http.Response) (result ListByCustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -495,6 +500,7 @@ func (client CustomResourceProviderClient) listBySubscriptionNextResults(ctx con
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -555,6 +561,7 @@ func (client CustomResourceProviderClient) Update(ctx context.Context, resourceG
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -594,7 +601,6 @@ func (client CustomResourceProviderClient) UpdateSender(req *http.Request) (*htt
 func (client CustomResourceProviderClient) UpdateResponder(resp *http.Response) (result CustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

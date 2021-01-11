@@ -72,6 +72,7 @@ func (client StatusClient) Get(ctx context.Context, azureRegion string, paramete
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.StatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client StatusClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client StatusClient) GetResponder(resp *http.Response) (result StatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

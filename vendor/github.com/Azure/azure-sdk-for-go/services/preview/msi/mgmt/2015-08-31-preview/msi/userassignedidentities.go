@@ -74,6 +74,7 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdate(ctx context.Context, r
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdateSender(req *http.Reques
 func (client UserAssignedIdentitiesClient) CreateOrUpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,7 @@ func (client UserAssignedIdentitiesClient) Delete(ctx context.Context, resourceG
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -190,7 +191,6 @@ func (client UserAssignedIdentitiesClient) DeleteSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +228,7 @@ func (client UserAssignedIdentitiesClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +266,6 @@ func (client UserAssignedIdentitiesClient) GetSender(req *http.Request) (*http.R
 func (client UserAssignedIdentitiesClient) GetResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,6 +304,10 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroup(ctx context.Conte
 	result.uailr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -340,7 +344,6 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupSender(req *http.R
 func (client UserAssignedIdentitiesClient) ListByResourceGroupResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -365,6 +368,7 @@ func (client UserAssignedIdentitiesClient) listByResourceGroupNextResults(ctx co
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -414,6 +418,10 @@ func (client UserAssignedIdentitiesClient) ListBySubscription(ctx context.Contex
 	result.uailr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -449,7 +457,6 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionSender(req *http.Re
 func (client UserAssignedIdentitiesClient) ListBySubscriptionResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,6 +481,7 @@ func (client UserAssignedIdentitiesClient) listBySubscriptionNextResults(ctx con
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -526,6 +534,7 @@ func (client UserAssignedIdentitiesClient) Update(ctx context.Context, resourceG
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -566,7 +575,6 @@ func (client UserAssignedIdentitiesClient) UpdateSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) UpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -110,7 +110,6 @@ func (client LabsClient) ClaimAnyVMSender(req *http.Request) (future LabsClaimAn
 func (client LabsClient) ClaimAnyVMResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -203,7 +202,6 @@ func (client LabsClient) CreateEnvironmentSender(req *http.Request) (future Labs
 func (client LabsClient) CreateEnvironmentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -281,7 +279,6 @@ func (client LabsClient) CreateOrUpdateSender(req *http.Request) (future LabsCre
 func (client LabsClient) CreateOrUpdateResponder(resp *http.Response) (result Lab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client LabsClient) DeleteSender(req *http.Request) (future LabsDeleteFutur
 func (client LabsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -436,7 +432,6 @@ func (client LabsClient) ExportResourceUsageSender(req *http.Request) (future La
 func (client LabsClient) ExportResourceUsageResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -475,6 +470,7 @@ func (client LabsClient) GenerateUploadURI(ctx context.Context, resourceGroupNam
 	result, err = client.GenerateUploadURIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "GenerateUploadURI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -514,7 +510,6 @@ func (client LabsClient) GenerateUploadURISender(req *http.Request) (*http.Respo
 func (client LabsClient) GenerateUploadURIResponder(resp *http.Response) (result GenerateUploadURIResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -554,6 +549,7 @@ func (client LabsClient) Get(ctx context.Context, resourceGroupName string, name
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -594,7 +590,6 @@ func (client LabsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client LabsClient) GetResponder(resp *http.Response) (result Lab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -637,6 +632,10 @@ func (client LabsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.rwcl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -685,7 +684,6 @@ func (client LabsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client LabsClient) ListByResourceGroupResponder(resp *http.Response) (result ResponseWithContinuationLab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -710,6 +708,7 @@ func (client LabsClient) listByResourceGroupNextResults(ctx context.Context, las
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -764,6 +763,10 @@ func (client LabsClient) ListBySubscription(ctx context.Context, expand string, 
 	result.rwcl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -811,7 +814,6 @@ func (client LabsClient) ListBySubscriptionSender(req *http.Request) (*http.Resp
 func (client LabsClient) ListBySubscriptionResponder(resp *http.Response) (result ResponseWithContinuationLab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -836,6 +838,7 @@ func (client LabsClient) listBySubscriptionNextResults(ctx context.Context, last
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -888,6 +891,10 @@ func (client LabsClient) ListVhds(ctx context.Context, resourceGroupName string,
 	result.rwclv, err = client.ListVhdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListVhds", resp, "Failure responding to request")
+		return
+	}
+	if result.rwclv.hasNextLink() && result.rwclv.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -925,7 +932,6 @@ func (client LabsClient) ListVhdsSender(req *http.Request) (*http.Response, erro
 func (client LabsClient) ListVhdsResponder(resp *http.Response) (result ResponseWithContinuationLabVhd, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -950,6 +956,7 @@ func (client LabsClient) listVhdsNextResults(ctx context.Context, lastResults Re
 	result, err = client.ListVhdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "listVhdsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1002,6 +1009,7 @@ func (client LabsClient) Update(ctx context.Context, resourceGroupName string, n
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1041,7 +1049,6 @@ func (client LabsClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client LabsClient) UpdateResponder(resp *http.Response) (result Lab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

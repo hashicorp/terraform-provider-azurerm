@@ -98,6 +98,7 @@ func (client CacheClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -142,7 +143,6 @@ func (client CacheClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client CacheClient) CreateOrUpdateResponder(resp *http.Response) (result CacheContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,6 +197,7 @@ func (client CacheClient) Delete(ctx context.Context, resourceGroupName string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,7 +237,6 @@ func (client CacheClient) DeleteSender(req *http.Request) (*http.Response, error
 func (client CacheClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -288,6 +288,7 @@ func (client CacheClient) Get(ctx context.Context, resourceGroupName string, ser
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,7 +327,6 @@ func (client CacheClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client CacheClient) GetResponder(resp *http.Response) (result CacheContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -379,6 +379,7 @@ func (client CacheClient) GetEntityTag(ctx context.Context, resourceGroupName st
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -417,7 +418,6 @@ func (client CacheClient) GetEntityTagSender(req *http.Request) (*http.Response,
 func (client CacheClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -472,6 +472,10 @@ func (client CacheClient) ListByService(ctx context.Context, resourceGroupName s
 	result.cc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.cc.hasNextLink() && result.cc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -515,7 +519,6 @@ func (client CacheClient) ListByServiceSender(req *http.Request) (*http.Response
 func (client CacheClient) ListByServiceResponder(resp *http.Response) (result CacheCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -540,6 +543,7 @@ func (client CacheClient) listByServiceNextResults(ctx context.Context, lastResu
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -608,6 +612,7 @@ func (client CacheClient) Update(ctx context.Context, resourceGroupName string, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -649,7 +654,6 @@ func (client CacheClient) UpdateSender(req *http.Request) (*http.Response, error
 func (client CacheClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

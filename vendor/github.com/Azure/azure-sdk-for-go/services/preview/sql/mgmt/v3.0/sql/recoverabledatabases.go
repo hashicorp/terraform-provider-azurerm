@@ -77,6 +77,7 @@ func (client RecoverableDatabasesClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableDatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client RecoverableDatabasesClient) GetSender(req *http.Request) (*http.Res
 func (client RecoverableDatabasesClient) GetResponder(resp *http.Response) (result RecoverableDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -155,6 +155,7 @@ func (client RecoverableDatabasesClient) ListByServer(ctx context.Context, resou
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableDatabasesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,7 +193,6 @@ func (client RecoverableDatabasesClient) ListByServerSender(req *http.Request) (
 func (client RecoverableDatabasesClient) ListByServerResponder(resp *http.Response) (result RecoverableDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

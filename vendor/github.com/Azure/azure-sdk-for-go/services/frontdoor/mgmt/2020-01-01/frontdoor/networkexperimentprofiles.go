@@ -124,7 +124,6 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdateSender(req *http.Req
 func (client NetworkExperimentProfilesClient) CreateOrUpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client NetworkExperimentProfilesClient) DeleteSender(req *http.Request) (f
 func (client NetworkExperimentProfilesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -258,6 +256,7 @@ func (client NetworkExperimentProfilesClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -295,7 +294,6 @@ func (client NetworkExperimentProfilesClient) GetSender(req *http.Request) (*htt
 func (client NetworkExperimentProfilesClient) GetResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -332,6 +330,10 @@ func (client NetworkExperimentProfilesClient) List(ctx context.Context) (result 
 	result.pl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -367,7 +369,6 @@ func (client NetworkExperimentProfilesClient) ListSender(req *http.Request) (*ht
 func (client NetworkExperimentProfilesClient) ListResponder(resp *http.Response) (result ProfileList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -392,6 +393,7 @@ func (client NetworkExperimentProfilesClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -451,6 +453,10 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroup(ctx context.Co
 	result.pl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -487,7 +493,6 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroupSender(req *htt
 func (client NetworkExperimentProfilesClient) ListByResourceGroupResponder(resp *http.Response) (result ProfileList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -512,6 +517,7 @@ func (client NetworkExperimentProfilesClient) listByResourceGroupNextResults(ctx
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -613,7 +619,6 @@ func (client NetworkExperimentProfilesClient) UpdateSender(req *http.Request) (f
 func (client NetworkExperimentProfilesClient) UpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -73,6 +73,7 @@ func (client RoleDefinitionsClient) CreateOrUpdate(ctx context.Context, scope st
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client RoleDefinitionsClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client RoleDefinitionsClient) CreateOrUpdateResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,7 @@ func (client RoleDefinitionsClient) Delete(ctx context.Context, scope string, ro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,7 +190,6 @@ func (client RoleDefinitionsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client RoleDefinitionsClient) DeleteResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -228,6 +228,7 @@ func (client RoleDefinitionsClient) Get(ctx context.Context, scope string, roleD
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +265,6 @@ func (client RoleDefinitionsClient) GetSender(req *http.Request) (*http.Response
 func (client RoleDefinitionsClient) GetResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,6 +305,7 @@ func (client RoleDefinitionsClient) GetByID(ctx context.Context, roleID string) 
 	result, err = client.GetByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "GetByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -340,7 +341,6 @@ func (client RoleDefinitionsClient) GetByIDSender(req *http.Request) (*http.Resp
 func (client RoleDefinitionsClient) GetByIDResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -381,6 +381,10 @@ func (client RoleDefinitionsClient) List(ctx context.Context, scope string, filt
 	result.rdlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -419,7 +423,6 @@ func (client RoleDefinitionsClient) ListSender(req *http.Request) (*http.Respons
 func (client RoleDefinitionsClient) ListResponder(resp *http.Response) (result RoleDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -444,6 +447,7 @@ func (client RoleDefinitionsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

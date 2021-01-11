@@ -22,12 +22,14 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
-				Destroy: false,
+				Config: testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 				),
+			},
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersion(data, username, password, hostname),
 			},
 			{
 				Config: testAccDataSourceSharedImageVersion_basic(data, username, password, hostname),
@@ -55,12 +57,14 @@ func TestAccDataSourceAzureRMSharedImageVersion_latest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
-				Destroy: false,
+				Config: testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 				),
+			},
+			{
+				Config: testAccDataSourceSharedImageVersion_additionalVersion(data, username, password, hostname),
 			},
 			{
 				Config: testAccDataSourceSharedImageVersion_customName(data, username, password, hostname, "latest"),
@@ -96,6 +100,9 @@ func TestAccDataSourceAzureRMSharedImageVersion_recent(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccDataSourceSharedImageVersion_additionalVersion(data, username, password, hostname),
+			},
+			{
 				Config: testAccDataSourceSharedImageVersion_customName(data, username, password, hostname, "recent"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_image_id"),
@@ -121,7 +128,7 @@ data "azurerm_shared_image_version" "test" {
 `, template)
 }
 
-func testAccDataSourceSharedImageVersion_customName(data acceptance.TestData, username, password, hostname, name string) string {
+func testAccDataSourceSharedImageVersion_additionalVersion(data acceptance.TestData, username, password, hostname string) string {
 	template := testAccAzureRMSharedImageVersion_imageVersion(data, username, password, hostname)
 	return fmt.Sprintf(`
 %s
@@ -139,6 +146,13 @@ resource "azurerm_shared_image_version" "test2" {
     regional_replica_count = 1
   }
 }
+`, template)
+}
+
+func testAccDataSourceSharedImageVersion_customName(data acceptance.TestData, username, password, hostname, name string) string {
+	template := testAccDataSourceSharedImageVersion_additionalVersion(data, username, password, hostname)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_shared_image_version" "test" {
   name                = "%s"

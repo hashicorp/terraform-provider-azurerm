@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -36,8 +36,12 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
 		},
 		"MicrosoftPeering": {
-			"microsoftPeering":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
-			"microsoftPeeringCustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
+			"microsoftPeering":                    testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"microsoftPeeringCustomerRouting":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
+			"microsoftPeeringWithRouteFilter":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+			"microsoftPeeringIpv6":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6,
+			"microsoftPeeringIpv6CustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
+			"microsoftPeeringIpv6WithRouteFilter": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
 		},
 		"authorization": {
 			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
@@ -345,7 +349,6 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
