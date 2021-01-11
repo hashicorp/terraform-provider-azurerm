@@ -28,6 +28,24 @@ resource "azurerm_eventhub_namespace" "example" {
   capacity            = 2
 }
 
+resource "azurerm_eventhub" "example" {
+  name                = "acceptanceTestEventHub"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  partition_count     = 2
+  message_retention   = 2
+}
+
+resource "azurerm_eventhub_authorization_rule" "example" {
+  name                = "example-rule"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name       = azurerm_eventhub.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  listen              = true
+  send                = false
+  manage              = false
+}
+
 resource "azurerm_security_center_automation" "example" {
   name                = "example-automation"
   location            = azurerm_resource_group.example.location
@@ -35,8 +53,8 @@ resource "azurerm_security_center_automation" "example" {
 
   action {
     type              = "EventHub"
-    resource_id       = azurerm_eventhub_namespace.example.id
-    connection_string = azurerm_eventhub_namespace.example.default_primary_connection_string
+    resource_id       = azurerm_eventhub.example.id
+    connection_string = azurerm_eventhub_authorization_rule.example.primary_connection_string
   }
 
   source {

@@ -128,9 +128,11 @@ func resourceSecurityCenterAutomation() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Alerts",
-								"Assessments",
-								"SubAssessments",
+								string(security.Alerts),
+								string(security.Assessments),
+								string(security.SecureScoreControls),
+								string(security.SecureScores),
+								string(security.SubAssessments),
 							}, true),
 						},
 

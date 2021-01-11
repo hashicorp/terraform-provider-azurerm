@@ -195,10 +195,12 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 		{
 			Config: r.sourceMulti(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("source.#").HasValue("3"),
+				check.That(data.ResourceName).Key("source.#").HasValue("5"),
 				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.1.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.2.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.3.rule_set.#").HasValue("0"),
+				check.That(data.ResourceName).Key("source.4.rule_set.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
@@ -322,6 +324,26 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = 1
 }
 
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  partition_count   = 2
+  message_retention = 1
+}
+
+resource "azurerm_eventhub_authorization_rule" "test" {
+  name                = "acctest-eventhub-auth-rule-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  listen = true
+  send   = false
+  manage = false
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -336,15 +358,15 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type              = "EventHub"
-    resource_id       = azurerm_eventhub_namespace.test.id
-    connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
+    resource_id       = azurerm_eventhub.test.id
+    connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
 
   source {
     event_source = "Alerts"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r SecurityCenterAutomationResource) requiresImport(data acceptance.TestData) string {
@@ -735,6 +757,14 @@ resource "azurerm_security_center_automation" "test" {
         property_type  = "String"
       }
     }
+  }
+
+  source {
+    event_source = "SecureScores"
+  }
+
+  source {
+    event_source = "SecureScoreControls"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
