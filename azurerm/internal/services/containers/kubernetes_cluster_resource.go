@@ -2,6 +2,8 @@ package containers
 
 import (
 	"fmt"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"log"
 	"strconv"
 	"strings"
@@ -207,8 +209,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 						"user_assigned_identity_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Computed:     true,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},
 				},
@@ -1210,7 +1213,10 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `default_node_pool`: %+v", err)
 		}
 
-		kubeletIdentity := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		kubeletIdentity, err := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
 			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
@@ -1348,9 +1354,9 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 	}
 }
 
-func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) []interface{} {
+func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	kubeletIdentity := make([]interface{}, 0)
@@ -1367,7 +1373,12 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			userAssignedIdentityId = *resourceid
+			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			if err != nil {
+				return nil, err
+			}
+
+			userAssignedIdentityId = parsedId.ID()
 		}
 
 		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
@@ -1377,7 +1388,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 		})
 	}
 
-	return kubeletIdentity
+	return kubeletIdentity, nil
 }
 
 func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
