@@ -6,158 +6,134 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyAndPassword(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyAndPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSSHKey(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_authMultipleSSHKeys(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_authSSHKeyAndPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authMultipleSSHKeys(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// disable it
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// enable it
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// disable it
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSSHKeyAndPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func TestAccLinuxVirtualMachineScaleSet_authMultipleSSHKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authMultipleSSHKeys(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSSHKey(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authSSHKeyUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// disable it
+			Config: r.authSSHKey(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// enable it
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// disable it
+			Config: r.authSSHKey(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func (r LinuxVirtualMachineScaleSetResource) authPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -195,11 +171,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) authSSHKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -239,11 +214,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) authSSHKeyUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -283,11 +257,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyAndPassword(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) authSSHKeyAndPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,11 +301,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_authMultipleSSHKeys(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) authMultipleSSHKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -377,5 +349,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

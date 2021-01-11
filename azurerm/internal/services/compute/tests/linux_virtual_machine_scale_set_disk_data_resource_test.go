@@ -6,398 +6,338 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data, "None"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadOnly"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadWrite"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskCaching(data, "None"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.disksDataDiskCaching(data, "ReadOnly"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.disksDataDiskCaching(data, "ReadWrite"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDisk_diskEncryptionSet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// 30GB
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResize(data, 30),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// 60GB
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResize(data, 60),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// 30GB
+			Config: r.disksDataDiskResize(data, 30),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// 60GB
+			Config: r.disksDataDiskResize(data, 60),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// no disks
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// one disk
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// two disks
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// no disks
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// no disks
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// one disk
+			Config: r.disksDataDiskBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// two disks
+			Config: r.disksDataDiskMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// no disks
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardLRS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountType(data, "StandardSSD_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountType(data, "StandardSSD_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumLRS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountType(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountType(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRS(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRS(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksDataDiskWriteAcceleratorEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -442,11 +382,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data acceptance.TestData, caching string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskCaching(data acceptance.TestData, caching string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -491,10 +430,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger, caching)
+`, r.template(data), data.RandomInteger, caching)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
+func (LinuxVirtualMachineScaleSetResource) disksDataDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -572,8 +511,7 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetResource(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetDependencies(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDisk_diskEncryptionSetResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -606,11 +544,10 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, template, data.RandomInteger)
+`, r.disksDataDisk_diskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSet(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetResource(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDisk_diskEncryptionSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -661,11 +598,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger)
+`, r.disksDataDisk_diskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResize(data acceptance.TestData, diskSizeGb int) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskResize(data acceptance.TestData, diskSizeGb int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -710,11 +646,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger, diskSizeGb)
+`, r.template(data), data.RandomInteger, diskSizeGb)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskMultiple(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -766,11 +701,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountType(data acceptance.TestData, storageAccountType string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountType(data acceptance.TestData, storageAccountType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -815,11 +749,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger, storageAccountType)
+`, r.template(data), data.RandomInteger, storageAccountType)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRS(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -869,11 +802,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -924,11 +856,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -979,11 +910,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1035,11 +965,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) disksDataDiskWriteAcceleratorEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1085,5 +1014,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
