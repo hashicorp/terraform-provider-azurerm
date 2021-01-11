@@ -113,7 +113,7 @@ A `action` block defines where the data will be exported and sent to, it support
 
 A `source` block defines the source data in Security Center to be exported, supports the following:
 
-* `event_source` - (Required) Type of data that will trigger this automation. Must be one of `Alerts`, `Assessments` or `SubAssessments`. Note. assessments are also referred to as recommendations 
+* `event_source` - (Required) Type of data that will trigger this automation. Must be one of `Alerts`, `Assessments`, `SecureScoreControls`, `SecureScores` or `SubAssessments`. Note. assessments are also referred to as recommendations 
 
 * `rule_set` - (Optional) A set of rules which evaluate upon event and data interception. This is defined in one or more `rule_set` blocks as defined below.
   
