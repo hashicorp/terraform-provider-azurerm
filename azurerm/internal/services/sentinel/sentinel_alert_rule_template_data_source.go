@@ -12,12 +12,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmSentinelAlertRuleTemplate() *schema.Resource {
+func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSentinelAlertRuleTemplateRead,
+		Read: dataSourceSentinelAlertRuleTemplateRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -110,7 +111,7 @@ func dataSourceArmSentinelAlertRuleTemplate() *schema.Resource {
 	}
 }
 
-func dataSourceArmSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRuleTemplatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +123,7 @@ func dataSourceArmSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta int
 		return err
 	}
 
-	// Either "name" or "display_name" has to be specified, constrainted by schema.
+	// Either "name" or "display_name" must have been specified, constrained by the schema.
 	var resp securityinsight.BasicAlertRuleTemplate
 	var nameToLog string
 	if name != "" {
@@ -133,7 +134,7 @@ func dataSourceArmSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta int
 		resp, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
 	}
 	if err != nil {
-		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): %+v", nameToLog, workspaceID.Name, workspaceID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): %+v", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroup, err)
 	}
 
 	switch template := resp.(type) {
@@ -144,18 +145,18 @@ func dataSourceArmSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta int
 	case securityinsight.ScheduledAlertRuleTemplate:
 		err = setForScheduledAlertRuleTemplate(d, &template)
 	default:
-		return fmt.Errorf("unknown template type of Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.Name, workspaceID.ResourceGroup)
+		return fmt.Errorf("unknown template type of Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroup)
 	}
 
 	if err != nil {
-		return fmt.Errorf("setting ResourceData for Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.Name, workspaceID.ResourceGroup)
+		return fmt.Errorf("setting ResourceData for Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroup)
 	}
 
 	return nil
 }
 
 func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *loganalyticsParse.LogAnalyticsWorkspaceId, name string) (res securityinsight.BasicAlertRuleTemplate, err error) {
-	template, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
+	template, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +164,7 @@ func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.Ale
 }
 
 func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *loganalyticsParse.LogAnalyticsWorkspaceId, name string) (res securityinsight.BasicAlertRuleTemplate, err error) {
-	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name)
+	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +204,11 @@ func setForScheduledAlertRuleTemplate(d *schema.ResourceData, template *security
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}
-	d.SetId(*template.ID)
+	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
 	return d.Set("scheduled_template", flattenScheduledAlertRuleTemplate(template.ScheduledAlertRuleTemplateProperties))
@@ -213,7 +218,11 @@ func setForMsSecurityIncidentAlertRuleTemplate(d *schema.ResourceData, template 
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}
-	d.SetId(*template.ID)
+	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
 	return d.Set("ms_security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
@@ -223,7 +232,11 @@ func setForFusionAlertRuleTemplate(d *schema.ResourceData, template *securityins
 	if template.ID == nil || *template.ID == "" {
 		return errors.New("empty or nil ID")
 	}
-	d.SetId(*template.ID)
+	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
 	return nil
