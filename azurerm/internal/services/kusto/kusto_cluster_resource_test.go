@@ -447,7 +447,7 @@ resource "azurerm_kusto_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KustoClusterResource) languageExtensions(data acceptance.TestData) string {

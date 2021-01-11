@@ -240,6 +240,7 @@ func (client FlowLogsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -317,6 +318,7 @@ func (client FlowLogsClient) List(ctx context.Context, resourceGroupName string,
 	result.fllr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.fllr.hasNextLink() && result.fllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -381,6 +383,7 @@ func (client FlowLogsClient) listNextResults(ctx context.Context, lastResults Fl
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -69,6 +69,7 @@ func (client RuntimeVersionsClient) ListRuntimeVersions(ctx context.Context) (re
 	result, err = client.ListRuntimeVersionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.RuntimeVersionsClient", "ListRuntimeVersions", resp, "Failure responding to request")
+		return
 	}
 
 	return

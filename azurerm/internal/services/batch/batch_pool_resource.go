@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -413,6 +413,15 @@ func resourceBatchPool() *schema.Resource {
 							},
 							Set: schema.HashString,
 						},
+						"public_address_provisioning_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.BatchManaged),
+								string(batch.UserManaged),
+								string(batch.NoPublicIPAddresses),
+							}, false),
+						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -782,10 +791,8 @@ func resourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if props.NetworkConfiguration != nil {
-			if err := d.Set("network_configuration", FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
-				return fmt.Errorf("error setting `network_configuration`: %v", err)
-			}
+		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+			return fmt.Errorf("error setting `network_configuration`: %v", err)
 		}
 	}
 

@@ -83,6 +83,7 @@ func (client TestJobClient) Create(ctx context.Context, resourceGroupName string
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client TestJobClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -255,6 +257,7 @@ func (client TestJobClient) Resume(ctx context.Context, resourceGroupName string
 	result, err = client.ResumeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobClient", "Resume", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -339,6 +342,7 @@ func (client TestJobClient) Stop(ctx context.Context, resourceGroupName string, 
 	result, err = client.StopResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobClient", "Stop", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -423,6 +427,7 @@ func (client TestJobClient) Suspend(ctx context.Context, resourceGroupName strin
 	result, err = client.SuspendResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobClient", "Suspend", resp, "Failure responding to request")
+		return
 	}
 
 	return

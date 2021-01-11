@@ -38,6 +38,10 @@ func resourceDevSpaceController() *schema.Resource {
 			return err
 		}),
 
+		DeprecationMessage: `DevSpace Controllers are deprecated and will be retired on 31 October 2023 - at this time the Azure API does not allow new Controllers to be provisioned, but existing DevSpace Controllers can continue to be used.
+
+Since these are deprecated and can no longer be provisioned, version 3.0 of the Azure Provider will remove support for DevSpace Controllers.`,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,

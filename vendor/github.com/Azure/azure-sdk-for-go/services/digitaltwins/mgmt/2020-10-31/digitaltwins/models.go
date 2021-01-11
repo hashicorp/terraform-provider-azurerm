@@ -50,7 +50,8 @@ type CheckNameResult struct {
 	Reason Reason `json:"reason,omitempty"`
 }
 
-// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type CreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -359,8 +360,11 @@ func (page DescriptionListResultPage) Values() []Description {
 }
 
 // Creates a new instance of the DescriptionListResultPage type.
-func NewDescriptionListResultPage(getNextPage func(context.Context, DescriptionListResult) (DescriptionListResult, error)) DescriptionListResultPage {
-	return DescriptionListResultPage{fn: getNextPage}
+func NewDescriptionListResultPage(cur DescriptionListResult, getNextPage func(context.Context, DescriptionListResult) (DescriptionListResult, error)) DescriptionListResultPage {
+	return DescriptionListResultPage{
+		fn:  getNextPage,
+		dlr: cur,
+	}
 }
 
 // EndpointCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -392,7 +396,8 @@ func (future *EndpointCreateOrUpdateFuture) Result(client EndpointClient) (er En
 	return
 }
 
-// EndpointDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// EndpointDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type EndpointDeleteFuture struct {
 	azure.Future
 }
@@ -642,8 +647,11 @@ func (page EndpointResourceListResultPage) Values() []EndpointResource {
 }
 
 // Creates a new instance of the EndpointResourceListResultPage type.
-func NewEndpointResourceListResultPage(getNextPage func(context.Context, EndpointResourceListResult) (EndpointResourceListResult, error)) EndpointResourceListResultPage {
-	return EndpointResourceListResultPage{fn: getNextPage}
+func NewEndpointResourceListResultPage(cur EndpointResourceListResult, getNextPage func(context.Context, EndpointResourceListResult) (EndpointResourceListResult, error)) EndpointResourceListResultPage {
+	return EndpointResourceListResultPage{
+		fn:   getNextPage,
+		erlr: cur,
+	}
 }
 
 // BasicEndpointResourceProperties properties related to Digital Twins Endpoint
@@ -933,8 +941,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult a list of DigitalTwins service operations. It contains a list of operations and a URL
-// link to get the next set of results.
+// OperationListResult a list of DigitalTwins service operations. It contains a list of operations and a
+// URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// NextLink - The link used to get the next page of DigitalTwins description objects.
@@ -1095,8 +1103,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PatchDescription the description of the DigitalTwins service.

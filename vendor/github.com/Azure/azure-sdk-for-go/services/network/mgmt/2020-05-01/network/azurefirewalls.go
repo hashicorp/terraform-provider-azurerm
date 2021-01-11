@@ -233,6 +233,7 @@ func (client AzureFirewallsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -308,6 +309,7 @@ func (client AzureFirewallsClient) List(ctx context.Context, resourceGroupName s
 	result.aflr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -371,6 +373,7 @@ func (client AzureFirewallsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -420,6 +423,7 @@ func (client AzureFirewallsClient) ListAll(ctx context.Context) (result AzureFir
 	result.aflr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "ListAll", resp, "Failure responding to request")
+		return
 	}
 	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -482,6 +486,7 @@ func (client AzureFirewallsClient) listAllNextResults(ctx context.Context, lastR
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

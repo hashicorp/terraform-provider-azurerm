@@ -934,7 +934,10 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	future, err := client.Delete(ctx, resGroup, name)
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}

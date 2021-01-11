@@ -345,6 +345,7 @@ func (client LiveEventsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -422,6 +423,7 @@ func (client LiveEventsClient) List(ctx context.Context, resourceGroupName strin
 	result.lelr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lelr.hasNextLink() && result.lelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -486,6 +488,7 @@ func (client LiveEventsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

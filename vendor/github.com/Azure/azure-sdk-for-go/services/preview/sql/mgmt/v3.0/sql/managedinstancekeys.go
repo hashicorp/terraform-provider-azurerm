@@ -236,6 +236,7 @@ func (client ManagedInstanceKeysClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,6 +316,7 @@ func (client ManagedInstanceKeysClient) ListByInstance(ctx context.Context, reso
 	result.miklr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.miklr.hasNextLink() && result.miklr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -382,6 +384,7 @@ func (client ManagedInstanceKeysClient) listByInstanceNextResults(ctx context.Co
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

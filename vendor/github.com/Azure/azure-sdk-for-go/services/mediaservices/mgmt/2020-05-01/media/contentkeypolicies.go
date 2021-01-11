@@ -83,6 +83,7 @@ func (client ContentKeyPoliciesClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -162,6 +163,7 @@ func (client ContentKeyPoliciesClient) Delete(ctx context.Context, resourceGroup
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +240,7 @@ func (client ContentKeyPoliciesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,6 +318,7 @@ func (client ContentKeyPoliciesClient) GetPolicyPropertiesWithSecrets(ctx contex
 	result, err = client.GetPolicyPropertiesWithSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "GetPolicyPropertiesWithSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -396,6 +400,7 @@ func (client ContentKeyPoliciesClient) List(ctx context.Context, resourceGroupNa
 	result.ckpc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ckpc.hasNextLink() && result.ckpc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -469,6 +474,7 @@ func (client ContentKeyPoliciesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -522,6 +528,7 @@ func (client ContentKeyPoliciesClient) Update(ctx context.Context, resourceGroup
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

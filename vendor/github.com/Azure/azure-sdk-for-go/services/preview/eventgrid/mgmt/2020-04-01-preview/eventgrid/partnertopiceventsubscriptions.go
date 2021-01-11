@@ -234,6 +234,7 @@ func (client PartnerTopicEventSubscriptionsClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +313,7 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURL(ctx context.Contex
 	result, err = client.GetFullURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -397,6 +399,7 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopic(ctx contex
 	result.eslr, err = client.ListByPartnerTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "ListByPartnerTopic", resp, "Failure responding to request")
+		return
 	}
 	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -467,6 +470,7 @@ func (client PartnerTopicEventSubscriptionsClient) listByPartnerTopicNextResults
 	result, err = client.ListByPartnerTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "listByPartnerTopicNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

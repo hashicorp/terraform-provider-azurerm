@@ -40,7 +40,7 @@ data "azurerm_virtual_wan" "test" {
   name                = azurerm_virtual_wan.test.name
   resource_group_name = azurerm_virtual_wan.test.resource_group_name
 }
-	`, template)
+`, template)
 }
 
 func testAccDataSourceVirtualWan_template(data acceptance.TestData) string {

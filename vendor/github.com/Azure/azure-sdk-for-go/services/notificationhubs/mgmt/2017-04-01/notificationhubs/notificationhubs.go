@@ -80,6 +80,7 @@ func (client Client) CheckNotificationHubAvailability(ctx context.Context, resou
 	result, err = client.CheckNotificationHubAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "CheckNotificationHubAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -254,6 +256,7 @@ func (client Client) CreateOrUpdateAuthorizationRule(ctx context.Context, resour
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -335,6 +338,7 @@ func (client Client) DebugSend(ctx context.Context, resourceGroupName string, na
 	result, err = client.DebugSendResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "DebugSend", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -417,6 +421,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, names
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -494,6 +499,7 @@ func (client Client) DeleteAuthorizationRule(ctx context.Context, resourceGroupN
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -571,6 +577,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, namespac
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -649,6 +656,7 @@ func (client Client) GetAuthorizationRule(ctx context.Context, resourceGroupName
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -727,6 +735,7 @@ func (client Client) GetPnsCredentials(ctx context.Context, resourceGroupName st
 	result, err = client.GetPnsCredentialsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "GetPnsCredentials", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -804,6 +813,7 @@ func (client Client) List(ctx context.Context, resourceGroupName string, namespa
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -868,6 +878,7 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -921,6 +932,7 @@ func (client Client) ListAuthorizationRules(ctx context.Context, resourceGroupNa
 	result.saarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.saarlr.hasNextLink() && result.saarlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -986,6 +998,7 @@ func (client Client) listAuthorizationRulesNextResults(ctx context.Context, last
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1039,6 +1052,7 @@ func (client Client) ListKeys(ctx context.Context, resourceGroupName string, nam
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1118,6 +1132,7 @@ func (client Client) Patch(ctx context.Context, resourceGroupName string, namesp
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1202,6 +1217,7 @@ func (client Client) RegenerateKeys(ctx context.Context, resourceGroupName strin
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

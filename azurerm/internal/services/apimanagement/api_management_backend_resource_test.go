@@ -150,14 +150,12 @@ func TestAccApiManagementBackend_disappears(t *testing.T) {
 	r := ApiManagementAuthorizationBackendResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data, "disappears"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckApiManagementBackendDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config: func(d acceptance.TestData) string {
+				return r.basic(d, "disappears")
+			},
+			TestResource: r,
+		}),
 	})
 }
 
@@ -176,7 +174,7 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -193,34 +191,24 @@ func (t ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, c
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckApiManagementBackendDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
-		}
-
-		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return nil
-			}
-			return fmt.Errorf("Bad: Delete on BackendClient: %+v", err)
-		}
-
-		return nil
+func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["backends"]
+
+	resp, err := client.ApiManagement.BackendClient.Delete(ctx, resourceGroup, serviceName, name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return utils.Bool(true), nil
+		}
+		return nil, fmt.Errorf("deleting Backend: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r ApiManagementAuthorizationBackendResource) basic(data acceptance.TestData, testName string) string {

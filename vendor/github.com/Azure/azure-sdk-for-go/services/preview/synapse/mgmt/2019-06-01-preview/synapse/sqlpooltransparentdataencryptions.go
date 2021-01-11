@@ -87,6 +87,7 @@ func (client SQLPoolTransparentDataEncryptionsClient) CreateOrUpdate(ctx context
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,6 +179,7 @@ func (client SQLPoolTransparentDataEncryptionsClient) Get(ctx context.Context, r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -221,5 +223,135 @@ func (client SQLPoolTransparentDataEncryptionsClient) GetResponder(resp *http.Re
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// List get list of SQL pool's transparent data encryption configurations.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace
+// SQLPoolName - SQL pool name
+func (client SQLPoolTransparentDataEncryptionsClient) List(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string) (result TransparentDataEncryptionListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolTransparentDataEncryptionsClient.List")
+		defer func() {
+			sc := -1
+			if result.tdelr.Response.Response != nil {
+				sc = result.tdelr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("synapse.SQLPoolTransparentDataEncryptionsClient", "List", err.Error())
+	}
+
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName, SQLPoolName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "List", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.tdelr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "List", resp, "Failure sending request")
+		return
+	}
+
+	result.tdelr, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.tdelr.hasNextLink() && result.tdelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListPreparer prepares the List request.
+func (client SQLPoolTransparentDataEncryptionsClient) ListPreparer(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"sqlPoolName":       autorest.Encode("path", SQLPoolName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/sqlPools/{sqlPoolName}/transparentDataEncryption", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListSender sends the List request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLPoolTransparentDataEncryptionsClient) ListSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListResponder handles the response to the List request. The method always
+// closes the http.Response Body.
+func (client SQLPoolTransparentDataEncryptionsClient) ListResponder(resp *http.Response) (result TransparentDataEncryptionListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listNextResults retrieves the next set of results, if any.
+func (client SQLPoolTransparentDataEncryptionsClient) listNextResults(ctx context.Context, lastResults TransparentDataEncryptionListResult) (result TransparentDataEncryptionListResult, err error) {
+	req, err := lastResults.transparentDataEncryptionListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "listNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "listNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "listNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client SQLPoolTransparentDataEncryptionsClient) ListComplete(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string) (result TransparentDataEncryptionListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolTransparentDataEncryptionsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List(ctx, resourceGroupName, workspaceName, SQLPoolName)
 	return
 }

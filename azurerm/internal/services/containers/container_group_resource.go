@@ -345,6 +345,13 @@ func resourceArmContainerGroup() *schema.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
+									"empty_dir": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										ForceNew: true,
+										Default:  false,
+									},
+
 									"git_repo": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -971,6 +978,7 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 		name := volumeConfig["name"].(string)
 		mountPath := volumeConfig["mount_path"].(string)
 		readOnly := volumeConfig["read_only"].(bool)
+		emptyDir := volumeConfig["empty_dir"].(bool)
 		shareName := volumeConfig["share_name"].(string)
 		storageAccountName := volumeConfig["storage_account_name"].(string)
 		storageAccountKey := volumeConfig["storage_account_key"].(string)
@@ -992,19 +1000,24 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
 
 		switch {
+		case emptyDir:
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil || gitRepoVolume != nil {
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+			}
+			cv.EmptyDir = map[string]string{}
 		case gitRepoVolume != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil {
-				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.GitRepo = gitRepoVolume
 		case secret != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
-				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.Secret = secret
 		default:
 			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
-				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
 				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
 			}
@@ -1338,6 +1351,10 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 							volumeConfig["storage_account_name"] = *file.StorageAccountName
 						}
 						// skip storage_account_key, is always nil
+					}
+
+					if cgv.EmptyDir != nil {
+						volumeConfig["empty_dir"] = true
 					}
 
 					volumeConfig["git_repo"] = flattenGitRepoVolume(cgv.GitRepo)

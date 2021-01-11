@@ -601,7 +601,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
   traffic_view_enabled = %t
 }
-  `, template, data.RandomInteger, data.RandomInteger, enabled)
+`, template, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (r TrafficManagerProfileResource) withTTL(data acceptance.TestData, method string, ttl int) string {
