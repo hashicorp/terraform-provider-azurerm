@@ -7,10 +7,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-// /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
-// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
-// /providers/Microsoft.Management/managementGroups/74253c84-2d7f-4522-a73f-8897fd715d21/providers/Microsoft.Authorization/roleAssignments/4d6124f3-1888-5851-0ffa-3b86bd56a2e4
-
 type RoleAssignmentID struct {
 	SubscriptionID  string
 	ResourceGroup   string
