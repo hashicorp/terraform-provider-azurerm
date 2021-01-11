@@ -201,11 +201,11 @@ func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, s
 
 	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {
-		return nil, fmt.Errorf("updating LoadBalancer %s (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for update of LoadBalancer %s (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(true), nil
