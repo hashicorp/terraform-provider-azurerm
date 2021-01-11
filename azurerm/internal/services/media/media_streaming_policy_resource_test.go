@@ -115,11 +115,11 @@ resource "azurerm_media_streaming_policy" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
   no_encryption_enabled_protocols {
-	download = true
-	dash = true
-	hls = true
-	smooth_streaming = true
-  } 
+    download         = true
+    dash             = true
+    hls              = true
+    smooth_streaming = true
+  }
 }
 
 `, r.template(data))
@@ -134,11 +134,11 @@ resource "azurerm_media_streaming_policy" "import" {
   resource_group_name         = azurerm_media_streaming_policy.test.resource_group_name
   media_services_account_name = azurerm_media_streaming_policy.test.media_services_account_name
   no_encryption_enabled_protocols {
-	download = true
-	dash = true
-	hls = true
-	smooth_streaming = true
-  } 
+    download         = true
+    dash             = true
+    hls              = true
+    smooth_streaming = true
+  }
 }
 
 `, r.basic(data))
@@ -149,36 +149,36 @@ func (r StreamingPolicyResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_streaming_policy" "test" {
-	name                        = "Policy-1"
-	resource_group_name         = azurerm_resource_group.test.name
-	media_services_account_name = azurerm_media_services_account.test.name
-	common_encryption_cenc {
-	  enabled_protocols{
-		  download = false
-	      dash = true
-	      hls = false
-		  smooth_streaming = false
-	  }
-	  drm_playready{
-		  custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/playready/{ContentKeyId}"
-		  custom_attributes                       = "PlayReady CustomAttributes"
-	  }
-	  drm_widevine_custom_license_acquisition_url_template  = "https://contoso.com/{AssetAlternativeId}/widevine/{ContentKeyId"
-	}
-
-	common_encryption_cbcs {
-		enabled_protocols{
-			download = false
-			dash = true
-			hls = false
-			smooth_streaming = false
-		}
-		drm_fairplay{
-			custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/fairplay/{ContentKeyId}"
-			allow_persistent_license                =  true
-		}
-	  }
+  name                        = "Policy-1"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  common_encryption_cenc {
+    enabled_protocols {
+      download         = false
+      dash             = true
+      hls              = false
+      smooth_streaming = false
+    }
+    drm_playready {
+      custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/playready/{ContentKeyId}"
+      custom_attributes                       = "PlayReady CustomAttributes"
+    }
+    drm_widevine_custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/widevine/{ContentKeyId"
   }
+
+  common_encryption_cbcs {
+    enabled_protocols {
+      download         = false
+      dash             = true
+      hls              = false
+      smooth_streaming = false
+    }
+    drm_fairplay {
+      custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/fairplay/{ContentKeyId}"
+      allow_persistent_license                = true
+    }
+  }
+}
 
 `, r.template(data))
 }
