@@ -166,6 +166,7 @@ func (r LoadBalancerProbe) Destroy(ctx context.Context, client *clients.Client, 
 
 		probes = append(probes, probe)
 	}
+	lb.LoadBalancerPropertiesFormat.Probes = &probes
 
 	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
 	if err != nil {
