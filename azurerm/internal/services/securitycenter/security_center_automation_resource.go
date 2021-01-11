@@ -133,7 +133,7 @@ func resourceSecurityCenterAutomation() *schema.Resource {
 								string(security.SecureScoreControls),
 								string(security.SecureScores),
 								string(security.SubAssessments),
-							}, true),
+							}, false),
 						},
 
 						"rule_set": {
