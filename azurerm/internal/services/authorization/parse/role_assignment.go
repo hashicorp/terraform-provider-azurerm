@@ -21,7 +21,8 @@ func RoleAssignmentId(input string) (*RoleAssignmentID, error) {
 
 	roleAssignmentId := RoleAssignmentID{}
 
-	if strings.HasPrefix(input, "/subscriptions/") {
+	switch {
+	case strings.HasPrefix(input, "/subscriptions/"):
 		id, err := azure.ParseAzureResourceID(input)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse %q as Azure resource ID", input)
@@ -31,16 +32,14 @@ func RoleAssignmentId(input string) (*RoleAssignmentID, error) {
 		if roleAssignmentId.Name, err = id.PopSegment("roleAssignments"); err != nil {
 			return nil, err
 		}
-	} else if strings.HasPrefix(input, "/providers/Microsoft.Management/") {
+	case strings.HasPrefix(input, "/providers/Microsoft.Management/"):
 		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
 		if len(idParts) != 2 {
 			return nil, fmt.Errorf("could not parse Role Assignment ID %q for Management Group", input)
 		}
 		roleAssignmentId.Name = idParts[1]
-
 		roleAssignmentId.ManagementGroup = strings.Trim(idParts[0], "/providers/Microsoft.Management/managementGroups/")
-
-	} else {
+	default:
 		return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
 	}
 
