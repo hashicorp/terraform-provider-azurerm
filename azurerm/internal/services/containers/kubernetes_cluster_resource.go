@@ -208,8 +208,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 						"user_assigned_identity_id": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
