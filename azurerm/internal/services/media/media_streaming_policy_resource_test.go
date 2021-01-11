@@ -1,4 +1,4 @@
-package tests
+package media_test
 
 import (
 	"context"
@@ -133,7 +133,7 @@ resource "azurerm_media_streaming_policy" "import" {
   name                        = azurerm_media_streaming_policy.test.name
   resource_group_name         = azurerm_media_streaming_policy.test.resource_group_name
   media_services_account_name = azurerm_media_streaming_policy.test.media_services_account_name
-  no_encription_enabled_protocols {
+  no_encryption_enabled_protocols {
 	download = true
 	dash = true
 	hls = true

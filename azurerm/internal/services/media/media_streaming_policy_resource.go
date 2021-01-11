@@ -73,7 +73,29 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 
-						"drm_playready": drmPlayReadySchema(),
+						"drm_playready": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"custom_license_acquisition_url_template": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+
+									"custom_attributes": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
 
 						"default_content_key": defaultContentKeySchema(),
 					},
@@ -88,15 +110,6 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled_protocols": enabledProtocolsSchema(),
-
-						"drm_widevine_custom_license_acquisition_url_template": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.IsURLWithHTTPS,
-						},
-
-						"drm_playready": drmPlayReadySchema(),
 
 						"drm_fairplay": {
 							Type:     schema.TypeList,
@@ -211,7 +224,6 @@ func resourceMediaStreamingPolicyRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("media_services_account_name", id.MediaserviceName)
 
 	if props := resp.StreamingPolicyProperties; props != nil {
-
 		noEncryption := flattenNoEncryption(resp.NoEncryption)
 		if err := d.Set("no_encryption_enabled_protocols", noEncryption); err != nil {
 			return fmt.Errorf("Error flattening `no_encryption_enabled_protocols`: %s", err)
@@ -282,32 +294,6 @@ func enabledProtocolsSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					ForceNew: true,
-				},
-			},
-		},
-	}
-}
-
-func drmPlayReadySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"custom_license_acquisition_url_template": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.IsURLWithHTTPS,
-				},
-
-				"custom_attributes": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
