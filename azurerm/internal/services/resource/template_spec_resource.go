@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmTemplateSpec() *schema.Resource {
+func resourceTemplateSpec() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTemplateSpecCreate,
-		Read:   resourceArmTemplateSpecRead,
-		Update: resourceArmTemplateSpecUpdate,
-		Delete: resourceArmTemplateSpecDelete,
+		Create: resourceTemplateSpecCreate,
+		Read:   resourceTemplateSpecRead,
+		Update: resourceTemplateSpecUpdate,
+		Delete: resourceTemplateSpecDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -68,7 +68,7 @@ func resourceArmTemplateSpec() *schema.Resource {
 		},
 	}
 }
-func resourceArmTemplateSpecCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateSpecCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Resource.TemplateSpecClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -110,10 +110,10 @@ func resourceArmTemplateSpecCreate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	return resourceArmTemplateSpecRead(d, meta)
+	return resourceTemplateSpecRead(d, meta)
 }
 
-func resourceArmTemplateSpecRead(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateSpecRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.TemplateSpecClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,7 @@ func resourceArmTemplateSpecRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmTemplateSpecUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateSpecUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.TemplateSpecClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,10 +165,10 @@ func resourceArmTemplateSpecUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("updating Template Spec %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmTemplateSpecRead(d, meta)
+	return resourceTemplateSpecRead(d, meta)
 }
 
-func resourceArmTemplateSpecDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateSpecDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.TemplateSpecClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
