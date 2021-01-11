@@ -600,7 +600,7 @@ func resourceFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	publishProfileReader, err := client.ListPublishingProfileXMLWithSecrets(ctx, id.ResourceGroup, id.Name, web.CsmPublishingProfileOptions{})
+	publishProfileReader, err := client.ListPublishingProfileXMLWithSecretsSlot(ctx, id.ResourceGroup, id.SiteName, web.CsmPublishingProfileOptions{}, id.SlotName)
 	if err != nil {
 		return err
 	}

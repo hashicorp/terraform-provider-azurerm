@@ -595,7 +595,7 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	publishProfileReader, err := client.ListPublishingProfileXMLWithSecrets(ctx, id.ResourceGroup, id.Name, web.CsmPublishingProfileOptions{})
+	publishProfileReader, err := client.ListPublishingProfileXMLWithSecrets(ctx, id.ResourceGroup, id.SiteName, web.CsmPublishingProfileOptions{})
 	if err != nil {
 		return err
 	}
