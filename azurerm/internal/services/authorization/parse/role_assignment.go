@@ -45,5 +45,4 @@ func RoleAssignmentId(input string) (*RoleAssignmentID, error) {
 	}
 
 	return &roleAssignmentId, nil
-
 }
