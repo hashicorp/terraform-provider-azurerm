@@ -241,45 +241,6 @@ resource "azurerm_lb_outbound_rule" "import" {
 `, template)
 }
 
-func (r LoadBalancerOutboundRule) removal(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "be-%d"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-
-  frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (r LoadBalancerOutboundRule) multipleRules(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
