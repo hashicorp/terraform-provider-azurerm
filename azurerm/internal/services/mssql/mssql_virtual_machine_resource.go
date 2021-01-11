@@ -486,15 +486,33 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"disk_type":             string(input.DiskConfigurationType),
-			"storage_workload_type": storageWorkloadType,
-			"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
-			"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
-			"temp_db_settings":      flattenSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
-		},
+	output := make(map[string]interface{})
+
+	if v := string(input.DiskConfigurationType); v != "" {
+		output["disk_type"] = v
 	}
+
+	if storageWorkloadType != "" {
+		output["storage_workload_type"] = storageWorkloadType
+	}
+
+	if v := flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings); len(v) > 0 {
+		output["data_settings"] = v
+	}
+
+	if v := flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings); len(v) > 0 {
+		output["log_settings"] = v
+	}
+
+	if v := flattenSqlVirtualMachineStorageSettings(input.SQLTempDbSettings); len(v) > 0 {
+		output["temp_db_settings"] = v
+	}
+
+	if len(output) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{output}
 }
 
 func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtualmachine.SQLStorageSettings {
@@ -510,10 +528,10 @@ func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtual
 }
 
 func expandSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
-	expandedLuns := make([]int32, len(input))
+	expandedLuns := make([]int32, 0, len(input))
 	for i := range input {
 		if input[i] != nil {
-			expandedLuns[i] = int32(input[i].(int))
+			expandedLuns = append(expandedLuns, int32(input[i].(int)))
 		}
 	}
 
