@@ -150,7 +150,6 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
-	// TODO: we should switch this to use the timeout
 	if err := resource.Retry(d.Timeout(schema.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
