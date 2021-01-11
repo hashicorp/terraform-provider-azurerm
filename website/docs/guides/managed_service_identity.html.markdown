@@ -71,11 +71,11 @@ Terraform can be configured to use managed identity for authentication in one of
 
 ### Configuring with environment variables
 
-Setting the `ARM_USE_MSI` environment variable to `true` tells Terraform to use a managed identity.
+Setting the`ARM_USE_MSI` (equivalent to provider block argument [`use_msi`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_msi)) to `true` tells Terraform to use a managed identity.
 
-By default, Terraform will use the system assigned identity for authentication. If users want to use user assigned identity instead, the `ARM_CLIENT_ID` have to be specified to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
+By default, Terraform will use the system assigned identity for authentication. To use a user assigned identity instead, you will need to specify the `ARM_CLIENT_ID` (equivalent to provider block argument [`client_id`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#client_id)) to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
 
-By default, Terraform will use the MSI endpoint provided by MSI VM Extension to get the authentication token, which covers the most use cases. Whilst the endpoint might be different (e.g. Azure Function App) in other cases, where users need to explicitly specify the endpoint via `ARM_MSI_ENDPOINT`.
+By default, Terraform will use a well-known MSI endpoint to get the authentication token, which covers the most use cases. Whilst the endpoint might be different (e.g. Azure Function App) in other cases, where users need to explicitly specify the endpoint via `ARM_MSI_ENDPOINT` (equivalent to provider block argument [`msi_endpoint`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#msi_endpoint)).
 
 In addition to a properly-configured management identity, Terraform needs to know the subscription ID and tenant ID to identify the full context for the Azure provider.
 
