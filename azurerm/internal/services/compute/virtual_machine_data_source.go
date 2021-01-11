@@ -86,7 +86,7 @@ func dataSourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
-		return nil
+		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
