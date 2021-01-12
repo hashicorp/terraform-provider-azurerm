@@ -293,7 +293,7 @@ func resourceApiManagementService() *schema.Resource {
 							Default:  false,
 						},
 
-						// TODO: Remove after deprecation
+						// TODO: Remove in v3.0
 						"enable_triple_des_ciphers": {
 							Type:          schema.TypeBool,
 							Optional:      true,
