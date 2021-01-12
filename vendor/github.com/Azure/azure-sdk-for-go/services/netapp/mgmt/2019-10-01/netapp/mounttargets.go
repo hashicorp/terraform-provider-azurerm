@@ -83,6 +83,7 @@ func (client MountTargetsClient) List(ctx context.Context, resourceGroupName str
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.MountTargetsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

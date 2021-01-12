@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsMxRecord() *schema.Resource {
+func resourceDnsMxRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsMxRecordCreateUpdate,
-		Read:   resourceArmDnsMxRecordRead,
-		Update: resourceArmDnsMxRecordCreateUpdate,
-		Delete: resourceArmDnsMxRecordDelete,
+		Create: resourceDnsMxRecordCreateUpdate,
+		Read:   resourceDnsMxRecordRead,
+		Update: resourceDnsMxRecordCreateUpdate,
+		Delete: resourceDnsMxRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +35,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsMxRecordID(id)
+			_, err := parse.MxRecordID(id)
 			return err
 		}),
 
@@ -71,7 +71,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmDnsMxRecordHash,
+				Set: resourceDnsMxRecordHash,
 			},
 
 			"ttl": {
@@ -89,7 +89,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,31 +138,31 @@ func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsMxRecordRead(d, meta)
+	return resourceDnsMxRecordRead(d, meta)
 }
 
-func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsMxRecordID(d.Id())
+	id, err := parse.MxRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.MX)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS MX record %s: %v", id.Name, err)
+		return fmt.Errorf("Error reading DNS MX record %s: %v", id.MXName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.MXName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
@@ -173,19 +173,19 @@ func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsMxRecordID(d.Id())
+	id, err := parse.MxRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.MX, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", id.MXName, err)
 	}
 
 	return nil
@@ -234,7 +234,7 @@ func expandAzureRmDnsMxRecords(d *schema.ResourceData) *[]dns.MxRecord {
 	return &records
 }
 
-func resourceArmDnsMxRecordHash(v interface{}) int {
+func resourceDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {

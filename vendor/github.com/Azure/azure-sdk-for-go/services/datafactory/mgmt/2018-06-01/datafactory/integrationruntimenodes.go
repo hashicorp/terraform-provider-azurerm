@@ -97,6 +97,7 @@ func (client IntegrationRuntimeNodesClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimeNodesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -195,6 +196,7 @@ func (client IntegrationRuntimeNodesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimeNodesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -294,6 +296,7 @@ func (client IntegrationRuntimeNodesClient) GetIPAddress(ctx context.Context, re
 	result, err = client.GetIPAddressResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimeNodesClient", "GetIPAddress", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -394,6 +397,7 @@ func (client IntegrationRuntimeNodesClient) Update(ctx context.Context, resource
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimeNodesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

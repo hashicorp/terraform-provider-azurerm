@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryPipeline() *schema.Resource {
+func resourceDataFactoryPipeline() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryPipelineCreateUpdate,
-		Read:   resourceArmDataFactoryPipelineRead,
-		Update: resourceArmDataFactoryPipelineCreateUpdate,
-		Delete: resourceArmDataFactoryPipelineDelete,
+		Create: resourceDataFactoryPipelineCreateUpdate,
+		Read:   resourceDataFactoryPipelineRead,
+		Update: resourceDataFactoryPipelineCreateUpdate,
+		Delete: resourceDataFactoryPipelineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -90,7 +90,7 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,10 +156,10 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmDataFactoryPipelineRead(d, meta)
+	return resourceDataFactoryPipelineRead(d, meta)
 }
 
-func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +217,7 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

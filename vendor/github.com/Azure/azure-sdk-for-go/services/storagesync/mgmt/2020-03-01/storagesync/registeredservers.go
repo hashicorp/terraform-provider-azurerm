@@ -261,6 +261,7 @@ func (client RegisteredServersClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.RegisteredServersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +348,7 @@ func (client RegisteredServersClient) ListByStorageSyncService(ctx context.Conte
 	result, err = client.ListByStorageSyncServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.RegisteredServersClient", "ListByStorageSyncService", resp, "Failure responding to request")
+		return
 	}
 
 	return

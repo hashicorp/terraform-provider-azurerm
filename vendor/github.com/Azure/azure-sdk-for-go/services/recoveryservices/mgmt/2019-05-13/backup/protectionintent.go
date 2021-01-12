@@ -76,6 +76,7 @@ func (client ProtectionIntentClient) CreateOrUpdate(ctx context.Context, vaultNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -157,6 +158,7 @@ func (client ProtectionIntentClient) Delete(ctx context.Context, vaultName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +239,7 @@ func (client ProtectionIntentClient) Get(ctx context.Context, vaultName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,6 +317,7 @@ func (client ProtectionIntentClient) Validate(ctx context.Context, azureRegion s
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return

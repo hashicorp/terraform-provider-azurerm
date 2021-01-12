@@ -244,6 +244,7 @@ func (client VirtualRouterPeeringsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRouterPeeringsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,6 +322,7 @@ func (client VirtualRouterPeeringsClient) List(ctx context.Context, resourceGrou
 	result.vrplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRouterPeeringsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.vrplr.hasNextLink() && result.vrplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -385,6 +387,7 @@ func (client VirtualRouterPeeringsClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRouterPeeringsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

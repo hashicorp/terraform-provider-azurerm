@@ -248,6 +248,7 @@ func (client ReplicationMigrationItemsClient) Get(ctx context.Context, fabricNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -327,6 +328,7 @@ func (client ReplicationMigrationItemsClient) List(ctx context.Context, skipToke
 	result.mic, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.mic.hasNextLink() && result.mic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -397,6 +399,7 @@ func (client ReplicationMigrationItemsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -449,6 +452,7 @@ func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContain
 	result.mic, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
+		return
 	}
 	if result.mic.hasNextLink() && result.mic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -515,6 +519,7 @@ func (client ReplicationMigrationItemsClient) listByReplicationProtectionContain
 	result, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "listByReplicationProtectionContainersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

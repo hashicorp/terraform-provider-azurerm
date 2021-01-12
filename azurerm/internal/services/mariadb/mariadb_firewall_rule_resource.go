@@ -52,7 +52,7 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MariaDbServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {

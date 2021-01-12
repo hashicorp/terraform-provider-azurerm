@@ -85,6 +85,7 @@ func (client IotSecuritySolutionAnalyticsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSecuritySolutionAnalyticsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -171,6 +172,7 @@ func (client IotSecuritySolutionAnalyticsClient) List(ctx context.Context, resou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSecuritySolutionAnalyticsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

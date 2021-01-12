@@ -8,79 +8,71 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type BatchAccountDataSource struct {
+}
 
 func TestAccBatchAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBatchAccountDataSource_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
-					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+			),
 		},
 	})
 }
 
 func TestAccBatchAccountDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBatchAccountDataSource_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
-					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
 		},
 	})
 }
 
 func TestAccBatchAccountDataSource_userSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBatchAccountDataSource_userSubscription(data, tenantID, subscriptionID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
-					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "UserSubscription"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_vault_reference.#", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.userSubscription(data, tenantID, subscriptionID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("UserSubscription"),
+				check.That(data.ResourceName).Key("key_vault_reference.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func testAccBatchAccountDataSource_basic(data acceptance.TestData) string {
+func (BatchAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d-batch"
+  name     = "testaccRG-batch-%d"
   location = "%s"
 }
 
@@ -98,14 +90,14 @@ data "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccBatchAccountDataSource_complete(data acceptance.TestData) string {
+func (BatchAccountDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d-batch"
+  name     = "testaccRG-batch-%d"
   location = "%s"
 }
 
@@ -136,7 +128,7 @@ data "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccBatchAccountDataSource_userSubscription(data acceptance.TestData, tenantID string, subscriptionID string) string {
+func (BatchAccountDataSource) userSubscription(data acceptance.TestData, tenantID string, subscriptionID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -147,7 +139,7 @@ data "azuread_service_principal" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d-batchaccount"
+  name     = "testaccRG-batch-%d"
   location = "%s"
 }
 

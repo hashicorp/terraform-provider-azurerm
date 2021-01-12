@@ -254,6 +254,7 @@ func (client LocalNetworkGatewaysClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,6 +330,7 @@ func (client LocalNetworkGatewaysClient) List(ctx context.Context, resourceGroup
 	result.lnglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lnglr.hasNextLink() && result.lnglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -392,6 +394,7 @@ func (client LocalNetworkGatewaysClient) listNextResults(ctx context.Context, la
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -450,6 +453,7 @@ func (client LocalNetworkGatewaysClient) UpdateTags(ctx context.Context, resourc
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LocalNetworkGatewaysClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

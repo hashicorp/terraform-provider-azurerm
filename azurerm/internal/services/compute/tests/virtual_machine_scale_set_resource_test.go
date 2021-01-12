@@ -582,7 +582,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
+				Config:  ImageResource{}.standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -593,7 +593,6 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 				Config: testAccAzureRMVirtualMachineScaleSet_customImage(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMImageExists("azurerm_image", true),
 				),
 			},
 		},
@@ -1105,7 +1104,6 @@ func testCheckAzureRMVirtualMachineScaleSetDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}

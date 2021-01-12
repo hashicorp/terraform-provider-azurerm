@@ -70,6 +70,7 @@ func (client ReplicationVaultHealthClient) Get(ctx context.Context) (result Vaul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

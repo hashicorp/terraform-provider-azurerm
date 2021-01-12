@@ -216,8 +216,11 @@ func (page AppResourceCollectionPage) Values() []AppResource {
 }
 
 // Creates a new instance of the AppResourceCollectionPage type.
-func NewAppResourceCollectionPage(getNextPage func(context.Context, AppResourceCollection) (AppResourceCollection, error)) AppResourceCollectionPage {
-	return AppResourceCollectionPage{fn: getNextPage}
+func NewAppResourceCollectionPage(cur AppResourceCollection, getNextPage func(context.Context, AppResourceCollection) (AppResourceCollection, error)) AppResourceCollectionPage {
+	return AppResourceCollectionPage{
+		fn:  getNextPage,
+		arc: cur,
+	}
 }
 
 // AppResourceProperties app resource properties payload
@@ -476,8 +479,18 @@ func (page AvailableOperationsPage) Values() []OperationDetail {
 }
 
 // Creates a new instance of the AvailableOperationsPage type.
-func NewAvailableOperationsPage(getNextPage func(context.Context, AvailableOperations) (AvailableOperations, error)) AvailableOperationsPage {
-	return AvailableOperationsPage{fn: getNextPage}
+func NewAvailableOperationsPage(cur AvailableOperations, getNextPage func(context.Context, AvailableOperations) (AvailableOperations, error)) AvailableOperationsPage {
+	return AvailableOperationsPage{
+		fn: getNextPage,
+		ao: cur,
+	}
+}
+
+// AvailableRuntimeVersions ...
+type AvailableRuntimeVersions struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; A list of all supported runtime versions.
+	Value *[]SupportedRuntimeVersion `json:"value,omitempty"`
 }
 
 // BindingResource binding resource payload
@@ -502,8 +515,8 @@ func (br BindingResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// BindingResourceCollection object that includes an array of Binding resources and a possible link for next
-// set
+// BindingResourceCollection object that includes an array of Binding resources and a possible link for
+// next set
 type BindingResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of Binding resources
@@ -656,8 +669,11 @@ func (page BindingResourceCollectionPage) Values() []BindingResource {
 }
 
 // Creates a new instance of the BindingResourceCollectionPage type.
-func NewBindingResourceCollectionPage(getNextPage func(context.Context, BindingResourceCollection) (BindingResourceCollection, error)) BindingResourceCollectionPage {
-	return BindingResourceCollectionPage{fn: getNextPage}
+func NewBindingResourceCollectionPage(cur BindingResourceCollection, getNextPage func(context.Context, BindingResourceCollection) (BindingResourceCollection, error)) BindingResourceCollectionPage {
+	return BindingResourceCollectionPage{
+		fn:  getNextPage,
+		brc: cur,
+	}
 }
 
 // BindingResourceProperties binding resource properties payload
@@ -756,8 +772,8 @@ func (cr CertificateResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CertificateResourceCollection collection compose of certificate resources list and a possible link for next
-// page.
+// CertificateResourceCollection collection compose of certificate resources list and a possible link for
+// next page.
 type CertificateResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - The certificate resources list.
@@ -766,7 +782,8 @@ type CertificateResourceCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// CertificateResourceCollectionIterator provides access to a complete listing of CertificateResource values.
+// CertificateResourceCollectionIterator provides access to a complete listing of CertificateResource
+// values.
 type CertificateResourceCollectionIterator struct {
 	i    int
 	page CertificateResourceCollectionPage
@@ -909,8 +926,11 @@ func (page CertificateResourceCollectionPage) Values() []CertificateResource {
 }
 
 // Creates a new instance of the CertificateResourceCollectionPage type.
-func NewCertificateResourceCollectionPage(getNextPage func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)) CertificateResourceCollectionPage {
-	return CertificateResourceCollectionPage{fn: getNextPage}
+func NewCertificateResourceCollectionPage(cur CertificateResourceCollection, getNextPage func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)) CertificateResourceCollectionPage {
+	return CertificateResourceCollectionPage{
+		fn:  getNextPage,
+		crc: cur,
+	}
 }
 
 // CloudError an error response from the service.
@@ -1057,8 +1077,8 @@ func (cdr CustomDomainResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CustomDomainResourceCollection collection compose of a custom domain resources list and a possible link for
-// next page.
+// CustomDomainResourceCollection collection compose of a custom domain resources list and a possible link
+// for next page.
 type CustomDomainResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - The custom domain resources list.
@@ -1067,7 +1087,8 @@ type CustomDomainResourceCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// CustomDomainResourceCollectionIterator provides access to a complete listing of CustomDomainResource values.
+// CustomDomainResourceCollectionIterator provides access to a complete listing of CustomDomainResource
+// values.
 type CustomDomainResourceCollectionIterator struct {
 	i    int
 	page CustomDomainResourceCollectionPage
@@ -1210,8 +1231,11 @@ func (page CustomDomainResourceCollectionPage) Values() []CustomDomainResource {
 }
 
 // Creates a new instance of the CustomDomainResourceCollectionPage type.
-func NewCustomDomainResourceCollectionPage(getNextPage func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)) CustomDomainResourceCollectionPage {
-	return CustomDomainResourceCollectionPage{fn: getNextPage}
+func NewCustomDomainResourceCollectionPage(cur CustomDomainResourceCollection, getNextPage func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)) CustomDomainResourceCollectionPage {
+	return CustomDomainResourceCollectionPage{
+		fn:   getNextPage,
+		cdrc: cur,
+	}
 }
 
 // CustomDomainValidatePayload custom domain validate payload.
@@ -1239,6 +1263,8 @@ type DeploymentInstance struct {
 	Reason *string `json:"reason,omitempty"`
 	// DiscoveryStatus - READ-ONLY; Discovery status of the deployment instance
 	DiscoveryStatus *string `json:"discoveryStatus,omitempty"`
+	// StartTime - READ-ONLY; Start time of the deployment instance
+	StartTime *string `json:"startTime,omitempty"`
 }
 
 // DeploymentResource deployment resource payload
@@ -1263,7 +1289,8 @@ func (dr DeploymentResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// DeploymentResourceCollection object that includes an array of App resources and a possible link for next set
+// DeploymentResourceCollection object that includes an array of App resources and a possible link for next
+// set
 type DeploymentResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of Deployment resources
@@ -1416,8 +1443,11 @@ func (page DeploymentResourceCollectionPage) Values() []DeploymentResource {
 }
 
 // Creates a new instance of the DeploymentResourceCollectionPage type.
-func NewDeploymentResourceCollectionPage(getNextPage func(context.Context, DeploymentResourceCollection) (DeploymentResourceCollection, error)) DeploymentResourceCollectionPage {
-	return DeploymentResourceCollectionPage{fn: getNextPage}
+func NewDeploymentResourceCollectionPage(cur DeploymentResourceCollection, getNextPage func(context.Context, DeploymentResourceCollection) (DeploymentResourceCollection, error)) DeploymentResourceCollectionPage {
+	return DeploymentResourceCollectionPage{
+		fn:  getNextPage,
+		drc: cur,
+	}
 }
 
 // DeploymentResourceProperties deployment resource properties payload
@@ -1452,8 +1482,8 @@ func (drp DeploymentResourceProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// DeploymentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DeploymentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type DeploymentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -1489,11 +1519,13 @@ type DeploymentSettings struct {
 	MemoryInGB *int32 `json:"memoryInGB,omitempty"`
 	// JvmOptions - JVM parameter
 	JvmOptions *string `json:"jvmOptions,omitempty"`
+	// NetCoreMainEntryPath - The path to the .NET executable relative to zip root
+	NetCoreMainEntryPath *string `json:"netCoreMainEntryPath,omitempty"`
 	// InstanceCount - Instance count, basic tier should be in range (1, 25), standard tier should be in range (1, 500)
 	InstanceCount *int32 `json:"instanceCount,omitempty"`
 	// EnvironmentVariables - Collection of environment variables
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// RuntimeVersion - Runtime version. Possible values include: 'Java8', 'Java11'
+	// RuntimeVersion - Runtime version. Possible values include: 'Java8', 'Java11', 'NetCore31'
 	RuntimeVersion RuntimeVersion `json:"runtimeVersion,omitempty"`
 }
 
@@ -1508,6 +1540,9 @@ func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
 	}
 	if ds.JvmOptions != nil {
 		objectMap["jvmOptions"] = ds.JvmOptions
+	}
+	if ds.NetCoreMainEntryPath != nil {
+		objectMap["netCoreMainEntryPath"] = ds.NetCoreMainEntryPath
 	}
 	if ds.InstanceCount != nil {
 		objectMap["instanceCount"] = ds.InstanceCount
@@ -1544,7 +1579,8 @@ func (future *DeploymentsRestartFuture) Result(client DeploymentsClient) (ar aut
 	return
 }
 
-// DeploymentsStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DeploymentsStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DeploymentsStartFuture struct {
 	azure.Future
 }
@@ -1566,7 +1602,8 @@ func (future *DeploymentsStartFuture) Result(client DeploymentsClient) (ar autor
 	return
 }
 
-// DeploymentsStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DeploymentsStopFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DeploymentsStopFuture struct {
 	azure.Future
 }
@@ -1739,6 +1776,35 @@ type NetworkProfile struct {
 	ServiceRuntimeNetworkResourceGroup *string `json:"serviceRuntimeNetworkResourceGroup,omitempty"`
 	// AppNetworkResourceGroup - Name of the resource group containing network resources of Azure Spring Cloud Apps
 	AppNetworkResourceGroup *string `json:"appNetworkResourceGroup,omitempty"`
+	// OutboundIPs - READ-ONLY; Desired outbound IP resources for Azure Spring Cloud instance.
+	OutboundIPs *NetworkProfileOutboundIPs `json:"outboundIPs,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkProfile.
+func (np NetworkProfile) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if np.ServiceRuntimeSubnetID != nil {
+		objectMap["serviceRuntimeSubnetId"] = np.ServiceRuntimeSubnetID
+	}
+	if np.AppSubnetID != nil {
+		objectMap["appSubnetId"] = np.AppSubnetID
+	}
+	if np.ServiceCidr != nil {
+		objectMap["serviceCidr"] = np.ServiceCidr
+	}
+	if np.ServiceRuntimeNetworkResourceGroup != nil {
+		objectMap["serviceRuntimeNetworkResourceGroup"] = np.ServiceRuntimeNetworkResourceGroup
+	}
+	if np.AppNetworkResourceGroup != nil {
+		objectMap["appNetworkResourceGroup"] = np.AppNetworkResourceGroup
+	}
+	return json.Marshal(objectMap)
+}
+
+// NetworkProfileOutboundIPs desired outbound IP resources for Azure Spring Cloud instance.
+type NetworkProfileOutboundIPs struct {
+	// PublicIPs - READ-ONLY; A list of public IP addresses.
+	PublicIPs *[]string `json:"publicIPs,omitempty"`
 }
 
 // OperationDetail operation detail payload
@@ -2002,8 +2068,11 @@ func (page ResourceSkuCollectionPage) Values() []ResourceSku {
 }
 
 // Creates a new instance of the ResourceSkuCollectionPage type.
-func NewResourceSkuCollectionPage(getNextPage func(context.Context, ResourceSkuCollection) (ResourceSkuCollection, error)) ResourceSkuCollectionPage {
-	return ResourceSkuCollectionPage{fn: getNextPage}
+func NewResourceSkuCollectionPage(cur ResourceSkuCollection, getNextPage func(context.Context, ResourceSkuCollection) (ResourceSkuCollection, error)) ResourceSkuCollectionPage {
+	return ResourceSkuCollectionPage{
+		fn:  getNextPage,
+		rsc: cur,
+	}
 }
 
 // ResourceSkuLocationInfo ...
@@ -2246,8 +2315,11 @@ func (page ServiceResourceListPage) Values() []ServiceResource {
 }
 
 // Creates a new instance of the ServiceResourceListPage type.
-func NewServiceResourceListPage(getNextPage func(context.Context, ServiceResourceList) (ServiceResourceList, error)) ServiceResourceListPage {
-	return ServiceResourceListPage{fn: getNextPage}
+func NewServiceResourceListPage(cur ServiceResourceList, getNextPage func(context.Context, ServiceResourceList) (ServiceResourceList, error)) ServiceResourceListPage {
+	return ServiceResourceListPage{
+		fn:  getNextPage,
+		srl: cur,
+	}
 }
 
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -2279,7 +2351,8 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (sr Se
 	return
 }
 
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesDeleteFuture struct {
 	azure.Future
 }
@@ -2309,7 +2382,8 @@ type ServiceSpecification struct {
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesUpdateFuture struct {
 	azure.Future
 }
@@ -2357,6 +2431,16 @@ type SkuCapacity struct {
 	Default *int32 `json:"default,omitempty"`
 	// ScaleType - Gets or sets the type of the scale. Possible values include: 'SkuScaleTypeNone', 'SkuScaleTypeManual', 'SkuScaleTypeAutomatic'
 	ScaleType SkuScaleType `json:"scaleType,omitempty"`
+}
+
+// SupportedRuntimeVersion supported deployment runtime version descriptor.
+type SupportedRuntimeVersion struct {
+	// Value - The raw value which could be passed to deployment CRUD operations. Possible values include: 'SupportedRuntimeValueJava8', 'SupportedRuntimeValueJava11', 'SupportedRuntimeValueNetCore31'
+	Value SupportedRuntimeValue `json:"value,omitempty"`
+	// Platform - The platform of this runtime version (possible values: "Java" or ".NET"). Possible values include: 'Java', 'NETCore'
+	Platform SupportedRuntimePlatform `json:"platform,omitempty"`
+	// Version - The detailed version (major.minor) of the platform.
+	Version *string `json:"version,omitempty"`
 }
 
 // TemporaryDisk temporary disk payload
@@ -2437,7 +2521,7 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 
 // UserSourceInfo source information for a deployment
 type UserSourceInfo struct {
-	// Type - Type of the source uploaded. Possible values include: 'Jar', 'Source'
+	// Type - Type of the source uploaded. Possible values include: 'Jar', 'NetCoreZip', 'Source'
 	Type UserSourceType `json:"type,omitempty"`
 	// RelativePath - Relative path of the storage which stores the source
 	RelativePath *string `json:"relativePath,omitempty"`

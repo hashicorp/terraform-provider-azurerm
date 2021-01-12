@@ -239,6 +239,7 @@ func (client ReplicationProtectionContainerMappingsClient) Get(ctx context.Conte
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,6 +316,7 @@ func (client ReplicationProtectionContainerMappingsClient) List(ctx context.Cont
 	result.pcmc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pcmc.hasNextLink() && result.pcmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -379,6 +381,7 @@ func (client ReplicationProtectionContainerMappingsClient) listNextResults(ctx c
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -431,6 +434,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProt
 	result.pcmc, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
+		return
 	}
 	if result.pcmc.hasNextLink() && result.pcmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -497,6 +501,7 @@ func (client ReplicationProtectionContainerMappingsClient) listByReplicationProt
 	result, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "listByReplicationProtectionContainersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -24,7 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 	"golang.org/x/net/context"
 )
 
@@ -934,7 +934,10 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	future, err := client.Delete(ctx, resGroup, name)
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
@@ -1964,6 +1967,7 @@ func resourceArmVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *c
 
 	return &diskResp, nil
 }
+
 func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
 	nicClient := meta.(*clients.Client).Network.InterfacesClient
 	pipClient := meta.(*clients.Client).Network.PublicIPsClient

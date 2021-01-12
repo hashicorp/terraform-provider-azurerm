@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Load Balancer.
 
-* `frontend_ip_configuration` - (Optional) A `frontend_ip_configuration` block as documented below.
+* `frontend_ip_configuration` - A `frontend_ip_configuration` block as documented below.
 
 * `location` - The Azure location where the Load Balancer exists.
 

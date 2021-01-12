@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAvailabilitySet() *schema.Resource {
+func resourceAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAvailabilitySetCreateUpdate,
-		Read:   resourceArmAvailabilitySetRead,
-		Update: resourceArmAvailabilitySetCreateUpdate,
-		Delete: resourceArmAvailabilitySetDelete,
+		Create: resourceAvailabilitySetCreateUpdate,
+		Read:   resourceAvailabilitySetRead,
+		Update: resourceAvailabilitySetCreateUpdate,
+		Delete: resourceAvailabilitySetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,6 +42,10 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$"),
+					"The Availability set name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin a letter or number and end with a letter, number or underscore.",
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -87,7 +92,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 	}
 }
 
-func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,10 +151,10 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmAvailabilitySetRead(d, meta)
+	return resourceAvailabilitySetRead(d, meta)
 }
 
-func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +194,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -227,6 +227,7 @@ func (client VpnServerConfigurationsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -300,6 +301,7 @@ func (client VpnServerConfigurationsClient) List(ctx context.Context) (result Li
 	result.lvscr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -362,6 +364,7 @@ func (client VpnServerConfigurationsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -413,6 +416,7 @@ func (client VpnServerConfigurationsClient) ListByResourceGroup(ctx context.Cont
 	result.lvscr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -476,6 +480,7 @@ func (client VpnServerConfigurationsClient) listByResourceGroupNextResults(ctx c
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -528,6 +533,7 @@ func (client VpnServerConfigurationsClient) UpdateTags(ctx context.Context, reso
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

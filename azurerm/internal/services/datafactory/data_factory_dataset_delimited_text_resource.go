@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
+func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetDelimitedTextCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetDelimitedTextRead,
-		Update: resourceArmDataFactoryDatasetDelimitedTextCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetDelimitedTextDelete,
+		Create: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
+		Read:   resourceDataFactoryDatasetDelimitedTextRead,
+		Update: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
+		Delete: resourceDataFactoryDatasetDelimitedTextDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -64,7 +64,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"azure_blob_storage_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -92,7 +92,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"http_server_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -242,7 +242,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -340,10 +340,10 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetDelimitedTextRead(d, meta)
+	return resourceDataFactoryDatasetDelimitedTextRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -471,7 +471,7 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -519,6 +519,7 @@ func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafact
 	}
 	return httpServerLocation
 }
+
 func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
 	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
 	container := props["container"].(string)

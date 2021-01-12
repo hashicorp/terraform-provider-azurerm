@@ -15,11 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationInsightsAPIKey() *schema.Resource {
+func resourceApplicationInsightsAPIKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsAPIKeyCreate,
-		Read:   resourceArmApplicationInsightsAPIKeyRead,
-		Delete: resourceArmApplicationInsightsAPIKeyDelete,
+		Create: resourceApplicationInsightsAPIKeyCreate,
+		Read:   resourceApplicationInsightsAPIKeyRead,
+		Delete: resourceApplicationInsightsAPIKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,10 +149,10 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	// API key can only retrieved at key creation
 	d.Set("api_key", result.APIKey)
 
-	return resourceArmApplicationInsightsAPIKeyRead(d, meta)
+	return resourceApplicationInsightsAPIKeyRead(d, meta)
 }
 
-func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +193,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

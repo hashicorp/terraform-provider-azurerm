@@ -176,6 +176,7 @@ func (client JitRequestsClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.JitRequestsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,6 +259,7 @@ func (client JitRequestsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.JitRequestsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -340,6 +342,7 @@ func (client JitRequestsClient) ListByResourceGroup(ctx context.Context, resourc
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.JitRequestsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -411,6 +414,7 @@ func (client JitRequestsClient) ListBySubscription(ctx context.Context) (result 
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.JitRequestsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -493,6 +497,7 @@ func (client JitRequestsClient) Update(ctx context.Context, resourceGroupName st
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.JitRequestsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

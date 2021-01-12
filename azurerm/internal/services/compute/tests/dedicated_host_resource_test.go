@@ -1,233 +1,187 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDedicatedHost_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+type DedicatedHostResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHost_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccDedicatedHost_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHost_autoReplaceOnFailure(t *testing.T) {
+func TestAccDedicatedHost_basicNewSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testAccAzureRMDedicatedHost_autoReplaceOnFailure(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disabled
-				Config: testAccAzureRMDedicatedHost_autoReplaceOnFailure(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testAccAzureRMDedicatedHost_autoReplaceOnFailure(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicNewSku(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHost_licenseType(t *testing.T) {
+func TestAccDedicatedHost_autoReplaceOnFailure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHost_licenceType(data, "None"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDedicatedHost_licenceType(data, "Windows_Server_Hybrid"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDedicatedHost_licenceType(data, "Windows_Server_Perpetual"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDedicatedHost_licenceType(data, "None"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.autoReplaceOnFailure(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// Disabled
+			Config: r.autoReplaceOnFailure(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.autoReplaceOnFailure(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHost_complete(t *testing.T) {
+func TestAccDedicatedHost_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHost_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.licenceType(data, "None"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.licenceType(data, "Windows_Server_Hybrid"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.licenceType(data, "Windows_Server_Perpetual"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.licenceType(data, "None"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHost_update(t *testing.T) {
+func TestAccDedicatedHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHost_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDedicatedHost_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHost_requiresImport(t *testing.T) {
+func TestAccDedicatedHost_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHost_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMDedicatedHost_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMDedicatedHostExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Dedicated Host not found: %s", resourceName)
-		}
+func TestAccDedicatedHost_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
 
-		id, err := parse.DedicatedHostID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DedicatedHostsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", id.Name, id.HostGroup, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
-		}
-
-		return nil
-	}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
 }
 
-func testCheckAzureRMDedicatedHostDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DedicatedHostsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dedicated_host" {
-			continue
-		}
-
-		id, err := parse.DedicatedHostID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DedicatedHostID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Compute.DedicatedHostsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Dedicated Host %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMDedicatedHost_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDedicatedHost_template(data)
+func (r DedicatedHostResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -238,11 +192,24 @@ resource "azurerm_dedicated_host" "test" {
   sku_name                = "DSv3-Type1"
   platform_fault_domain   = 1
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMDedicatedHost_autoReplaceOnFailure(data acceptance.TestData, replace bool) string {
-	template := testAccAzureRMDedicatedHost_template(data)
+func (r DedicatedHostResource) basicNewSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctest-DH-%d"
+  location                = azurerm_resource_group.test.location
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  sku_name                = "DCSv2-Type1"
+  platform_fault_domain   = 1
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r DedicatedHostResource) autoReplaceOnFailure(data acceptance.TestData, replace bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -254,11 +221,10 @@ resource "azurerm_dedicated_host" "test" {
   platform_fault_domain   = 1
   auto_replace_on_failure = %t
 }
-`, template, data.RandomInteger, replace)
+`, r.template(data), data.RandomInteger, replace)
 }
 
-func testAccAzureRMDedicatedHost_licenceType(data acceptance.TestData, licenseType string) string {
-	template := testAccAzureRMDedicatedHost_template(data)
+func (r DedicatedHostResource) licenceType(data acceptance.TestData, licenseType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -270,11 +236,10 @@ resource "azurerm_dedicated_host" "test" {
   platform_fault_domain   = 1
   license_type            = %q
 }
-`, template, data.RandomInteger, licenseType)
+`, r.template(data), data.RandomInteger, licenseType)
 }
 
-func testAccAzureRMDedicatedHost_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDedicatedHost_template(data)
+func (r DedicatedHostResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -287,11 +252,10 @@ resource "azurerm_dedicated_host" "test" {
   license_type            = "Windows_Server_Hybrid"
   auto_replace_on_failure = false
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMDedicatedHost_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDedicatedHost_basic(data)
+func (r DedicatedHostResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_dedicated_host" "import" {
@@ -301,10 +265,10 @@ resource "azurerm_dedicated_host" "import" {
   sku_name                = azurerm_dedicated_host.test.sku_name
   platform_fault_domain   = azurerm_dedicated_host.test.platform_fault_domain
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMDedicatedHost_template(data acceptance.TestData) string {
+func (DedicatedHostResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

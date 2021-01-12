@@ -151,6 +151,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Get(ctx context.Con
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -228,6 +229,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Co
 	result.malr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.malr.hasNextLink() && result.malr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -292,6 +294,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) listNextResults(ctx
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
