@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -16,14 +16,12 @@ type WindowsVirtualMachineScaleSetResource struct {
 }
 
 func (t WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroupName := id.ResourceGroup
-	name := id.Path["hostGroups"]
 
-	resp, err := clients.Compute.DedicatedHostGroupsClient.Get(ctx, resourceGroupName, name, "")
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Windows Virtual Machine Scale Set %q", id)
 	}
