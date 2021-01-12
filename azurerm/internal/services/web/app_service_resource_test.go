@@ -4107,7 +4107,6 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   per_site_scaling    = true
 
-
   sku {
     tier = "Standard"
     size = "S1"
