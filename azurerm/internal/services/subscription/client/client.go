@@ -12,7 +12,6 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	client := subscriptions.NewClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		Client: &client,
 	}

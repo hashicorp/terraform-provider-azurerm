@@ -133,5 +133,5 @@ data "azurerm_key_vault" "test" {
   name                = azurerm_key_vault.test.name
   resource_group_name = azurerm_key_vault.test.resource_group_name
 }
-`, KeyVaultResource{}.softDelete(data, true))
+`, KeyVaultResource{}.softDelete(data))
 }

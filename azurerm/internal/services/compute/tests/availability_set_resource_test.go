@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,198 +9,160 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+type AvailabilitySetResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain_count", "3"),
-				),
-			},
-			data.ImportStep(),
+func TestAccAvailabilitySet_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("5"),
+				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAvailabilitySet_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("5"),
+				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_availability_set"),
 		},
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
+func TestAccAvailabilitySet_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain_count", "3"),
-				),
-			},
-			{
-				Config:      testAccAzureRMAvailabilitySet_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_availability_set"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("5"),
+				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
+				testCheckAvailabilitySetDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
+func TestAccAvailabilitySet_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain_count", "3"),
-					testCheckAzureRMAvailabilitySetDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
 		},
+		{
+			Config: r.withUpdatedTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
+func TestAccAvailabilitySet_withPPG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			{
-				Config: testAccAzureRMAvailabilitySet_withUpdatedTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withPPG(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proximity_placement_group_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
+func TestAccAvailabilitySet_withDomainCounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_withPPG(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "proximity_placement_group_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withDomainCounts(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("3"),
+				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
+func TestAccAvailabilitySet_unmanaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_withDomainCounts(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain_count", "3"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.unmanaged(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_unmanaged(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAvailabilitySet_unmanaged(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed", "false"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.AvailabilitySetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Availability Set %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
-		}
-
-		return nil
+func (t AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AvailabilitySetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Compute.AvailabilitySetsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Availability Set %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -226,35 +189,7 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 	}
 }
 
-func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_availability_set" {
-			continue
-		}
-
-		id, err := parse.AvailabilitySetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return fmt.Errorf("Bad: Availability Set still exists:\n%#v", resp.AvailabilitySetProperties)
-	}
-
-	return nil
-}
-
-func testAccAzureRMAvailabilitySet_basic(data acceptance.TestData) string {
+func (AvailabilitySetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -273,8 +208,7 @@ resource "azurerm_availability_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAvailabilitySet_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAvailabilitySet_basic(data)
+func (r AvailabilitySetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -283,10 +217,10 @@ resource "azurerm_availability_set" "import" {
   location            = azurerm_availability_set.test.location
   resource_group_name = azurerm_availability_set.test.resource_group_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMAvailabilitySet_withTags(data acceptance.TestData) string {
+func (AvailabilitySetResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -310,7 +244,7 @@ resource "azurerm_availability_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAvailabilitySet_withUpdatedTags(data acceptance.TestData) string {
+func (AvailabilitySetResource) withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -333,7 +267,7 @@ resource "azurerm_availability_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAvailabilitySet_withPPG(data acceptance.TestData) string {
+func (AvailabilitySetResource) withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -360,7 +294,7 @@ resource "azurerm_availability_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAvailabilitySet_withDomainCounts(data acceptance.TestData) string {
+func (AvailabilitySetResource) withDomainCounts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -381,7 +315,7 @@ resource "azurerm_availability_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAvailabilitySet_unmanaged(data acceptance.TestData) string {
+func (AvailabilitySetResource) unmanaged(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

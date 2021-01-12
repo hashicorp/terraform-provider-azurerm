@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -91,24 +92,17 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
+func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	r := LoadBalancerNatRule{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.template(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
-				r.IsMissing("azurerm_lb.test", fmt.Sprintf("NatRule-%d", data.RandomInteger)),
-			),
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config: func(data acceptance.TestData) string {
+				return r.basic(data, "Basic")
+			},
+			TestResource: r,
+		}),
 	})
 }
 
@@ -172,44 +166,43 @@ func (r LoadBalancerNatRule) Exists(ctx context.Context, client *clients.Client,
 	return utils.Bool(found), nil
 }
 
-func (r LoadBalancerNatRule) IsMissing(loadBalancerName string, natRuleName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[loadBalancerName]
-		if !ok {
-			return fmt.Errorf("not found: %q", loadBalancerName)
-		}
-
-		id, err := parse.LoadBalancerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		lb, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q (resource group %q) not found while checking for Nat Rule removal", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Rule removal", id.Name, id.ResourceGroup)
-		}
-		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.InboundNatRules == nil {
-			return fmt.Errorf("Nat Rule %q not found in Load Balancer %q (resource group %q)", natRuleName, id.Name, id.ResourceGroup)
-		}
-
-		found := false
-		for _, v := range *props.InboundNatRules {
-			if v.Name != nil && *v.Name == natRuleName {
-				found = true
-			}
-		}
-		if found {
-			return fmt.Errorf("Nat Rule %q not removed from Load Balancer %q (resource group %q)", natRuleName, id.Name, id.ResourceGroup)
-		}
-		return nil
+func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LoadBalancerInboundNatRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q)", id.LoadBalancerName, id.ResourceGroup)
+	}
+	if lb.LoadBalancerPropertiesFormat == nil {
+		return nil, fmt.Errorf("`properties` was nil")
+	}
+	if lb.LoadBalancerPropertiesFormat.InboundNatRules == nil {
+		return nil, fmt.Errorf("`properties.InboundNatRules` was nil")
+	}
+
+	inboundNatRules := make([]network.InboundNatRule, 0)
+	for _, inboundNatRule := range *lb.LoadBalancerPropertiesFormat.InboundNatRules {
+		if inboundNatRule.Name == nil || *inboundNatRule.Name == id.InboundNatRuleName {
+			continue
+		}
+
+		inboundNatRules = append(inboundNatRules, inboundNatRule)
+	}
+	lb.LoadBalancerPropertiesFormat.InboundNatRules = &inboundNatRules
+
+	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
+	if err != nil {
+		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r LoadBalancerNatRule) template(data acceptance.TestData, sku string) string {

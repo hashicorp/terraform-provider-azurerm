@@ -306,11 +306,11 @@ func revokeSASOnSnapshotForCleanup(resourceName string) resource.TestCheckFunc {
 
 // nolint: unparam
 func testAccAzureRMSharedImageVersion_setup(data acceptance.TestData, username, password, hostname string) string {
-	return testAccAzureRMImage_standaloneImage_setup(data, username, password, hostname, "LRS")
+	return ImageResource{}.standaloneImage_setup(data, username, password, hostname, "LRS")
 }
 
 func testAccAzureRMSharedImageVersion_provision(data acceptance.TestData, username, password, hostname string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(data, username, password, hostname, "LRS", "")
+	template := ImageResource{}.standaloneImage_provision(data, username, password, hostname, "LRS", "")
 	return fmt.Sprintf(`
 %s
 
