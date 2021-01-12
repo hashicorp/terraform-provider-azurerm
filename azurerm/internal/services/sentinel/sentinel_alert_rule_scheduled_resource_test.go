@@ -108,19 +108,19 @@ func TestAccSentinelAlertRuleScheduled_withAlertRuleTemplateGuid(t *testing.T) {
 }
 
 func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.SentinelAlertRuleID(state.ID)
+	id, err := parse.AlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q: %v", id, err)
 	}
 
 	rule, ok := resp.Value.(securityinsight.ScheduledAlertRule)
 	if !ok {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q (Resource Group %q) is not of ScheduledAlertRule kind", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q is not of ScheduledAlertRule kind", id)
 	}
 
 	return utils.Bool(rule.ID != nil), nil

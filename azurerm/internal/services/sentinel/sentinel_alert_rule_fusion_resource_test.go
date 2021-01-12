@@ -92,12 +92,12 @@ func TestAccSentinelAlertRuleFusion_requiresImport(t *testing.T) {
 
 func (r SentinelAlertRuleFusionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	alertRuleClient := client.Sentinel.AlertRulesClient
-	id, err := parse.SentinelAlertRuleID(state.ID)
+	id, err := parse.AlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := alertRuleClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
+	resp, err := alertRuleClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
