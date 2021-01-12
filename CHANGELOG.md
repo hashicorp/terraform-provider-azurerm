@@ -10,6 +10,7 @@ BUG FIXES:
 
 * `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block [GH-10031]
 * `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
+* `azurerm_role_assignment` - fix race condition in read after create [GH-10134]
 
 ## 2.42.0 (January 08, 2021)
 
