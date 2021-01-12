@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceCosmosDb() *schema.Resource {
+func resourceDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceCosmosDbRead,
-		Update: resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceCosmosDbDelete,
+		Create: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceCosmosDbRead,
+		Update: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceCosmosDbDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -121,7 +121,7 @@ func resourceArmDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,10 +213,10 @@ func resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceCosmosDbRead(d, meta)
+	return resourceDataFactoryLinkedServiceCosmosDbRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +278,7 @@ func resourceArmDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceCosmosDbDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

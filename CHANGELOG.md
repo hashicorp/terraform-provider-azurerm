@@ -2,9 +2,15 @@
 
 IMPROVEMENTS:
 
-* `azurerm_data_factory` - Add support for `public_network_enabled` [GH-9605]
+* `azurerm_data_factory` - support for `public_network_enabled` [GH-9605]
 * `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
 * `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
+
+BUG FIXES:
+
+* `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block [GH-10031]
+* `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
+* `azurerm_role_assignment` - fix race condition in read after create [GH-10134]
 
 ## 2.42.0 (January 08, 2021)
 
