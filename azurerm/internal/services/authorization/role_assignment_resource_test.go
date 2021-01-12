@@ -229,7 +229,7 @@ func testAccRoleAssignment_managementGroup(t *testing.T) {
 }
 
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.RoleAssignmentId(state.ID)
+	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
