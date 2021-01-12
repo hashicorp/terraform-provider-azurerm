@@ -50,7 +50,9 @@ The following attributes are exported:
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
-* `publishing_profile` - The XML publishing profile for this function app
+* `publishing_profile` - The XML formatted publishing profile for this function app.
+
+~> **NOTE:** This value contains sensitive information.
 
 * `os_type` - A string indicating the Operating System type for this function app.
 
