@@ -201,7 +201,7 @@ func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interfac
 		if *props.Scope != "" {
 			parseId, err := parse.ProductID(*props.Scope)
 			if err != nil {
-				fmt.Errorf("parsing product id %q: %+v", *props.Scope, err)
+				return fmt.Errorf("parsing product id %q: %+v", *props.Scope, err)
 			}
 			productId = parseId.ID()
 		}
