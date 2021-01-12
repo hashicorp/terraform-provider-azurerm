@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
+func resourceWindowsVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmWindowsVirtualMachineScaleSetCreate,
-		Read:   resourceArmWindowsVirtualMachineScaleSetRead,
-		Update: resourceArmWindowsVirtualMachineScaleSetUpdate,
-		Delete: resourceArmWindowsVirtualMachineScaleSetDelete,
+		Create: resourceWindowsVirtualMachineScaleSetCreate,
+		Read:   resourceWindowsVirtualMachineScaleSetRead,
+		Update: resourceWindowsVirtualMachineScaleSetUpdate,
+		Delete: resourceWindowsVirtualMachineScaleSetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
@@ -286,7 +286,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -563,10 +563,10 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmWindowsVirtualMachineScaleSetRead(d, meta)
+	return resourceWindowsVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -851,10 +851,10 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	return resourceArmWindowsVirtualMachineScaleSetRead(d, meta)
+	return resourceWindowsVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1061,7 +1061,7 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

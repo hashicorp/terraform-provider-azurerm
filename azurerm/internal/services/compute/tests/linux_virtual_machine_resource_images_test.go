@@ -7,104 +7,88 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				// create the original VM
-				Config: testLinuxVirtualMachine_imageFromExistingMachinePrep(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists("azurerm_linux_virtual_machine.source"),
-					generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
-				),
-			},
-			{
-				// then create an image from that VM, and then create a VM from that image
-				Config: testLinuxVirtualMachine_imageFromImage(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// create the original VM
+			Config: r.imageFromExistingMachinePrep(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+			),
 		},
+		{
+			// then create an image from that VM, and then create a VM from that image
+			Config: r.imageFromImage(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccLinuxVirtualMachine_imageFromPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_imageFromPlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imageFromPlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccLinuxVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				// create the original VM
-				Config: testLinuxVirtualMachine_imageFromExistingMachinePrep(data),
-				Check: resource.ComposeTestCheckFunc(
-
-					checkLinuxVirtualMachineExists("azurerm_linux_virtual_machine.source"),
-					generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
-				),
-			},
-			{
-				// then create an image from that VM, and then create a VM from that image
-				Config: testLinuxVirtualMachine_imageFromSharedImageGallery(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// create the original VM
+			Config: r.imageFromExistingMachinePrep(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+			),
 		},
+		{
+			// then create an image from that VM, and then create a VM from that image
+			Config: r.imageFromSharedImageGallery(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccLinuxVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_imageFromSourceImageReference(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imageFromSourceImageReference(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
-func testLinuxVirtualMachine_imageFromExistingMachineDependencies(data acceptance.TestData) string {
+func (LinuxVirtualMachineResource) imageFromExistingMachineDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {
@@ -173,8 +157,7 @@ resource "azurerm_shared_image_gallery" "test" {
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_imageFromExistingMachinePrep(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_imageFromExistingMachineDependencies(data)
+func (r LinuxVirtualMachineResource) imageFromExistingMachinePrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -208,11 +191,10 @@ resource "azurerm_linux_virtual_machine" "source" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.imageFromExistingMachineDependencies(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_imageFromImage(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_imageFromExistingMachinePrep(data)
+func (r LinuxVirtualMachineResource) imageFromImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -248,11 +230,10 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-`, template, data.RandomInteger)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_imageFromPlan(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) imageFromPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -300,11 +281,10 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_imageFromSharedImageGallery(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_imageFromExistingMachinePrep(data)
+func (r LinuxVirtualMachineResource) imageFromSharedImageGallery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -368,11 +348,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
-`, template, data.RandomInteger)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_imageFromSourceImageReference(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) imageFromSourceImageReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -406,7 +385,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func generalizeLinuxVirtualMachine(resourceName string) func(s *terraform.State) error {

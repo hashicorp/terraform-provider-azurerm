@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 /*
@@ -16,337 +17,288 @@ FrontDoor?
 
 func TestAccLinuxVirtualMachine_networkIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkIPv6(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkIPv6(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// update the Primary IP
-				Config: testLinuxVirtualMachine_networkMultipleUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// remove the secondary IP
-				Config: testLinuxVirtualMachine_networkMultipleRemoved(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			// update the Primary IP
+			Config: r.networkMultipleUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// remove the secondary IP
+			Config: r.networkMultipleRemoved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkMultiplePublic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkMultiplePublic(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "2"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// update the Primary IP
-				Config: testLinuxVirtualMachine_networkMultiplePublicUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "2"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// remove the secondary IP
-				Config: testLinuxVirtualMachine_networkMultiplePublicRemoved(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkMultiplePublic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
+		{
+			// update the Primary IP
+			Config: r.networkMultiplePublicUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// remove the secondary IP
+			Config: r.networkMultiplePublicRemoved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_networkPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.networkPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicDynamicPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicDynamicPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicDynamicPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.networkPublicDynamicPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicStaticPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPublicStaticPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPublicStaticPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicStaticPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_networkPublicStaticPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_networkPublicStaticPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicStaticPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.networkPublicStaticPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testLinuxVirtualMachine_networkIPv6(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBase(data)
+func (r LinuxVirtualMachineResource) networkIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -396,11 +348,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultipleTemplate(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBase(data)
+func (r LinuxVirtualMachineResource) networkMultipleTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -427,11 +378,10 @@ resource "azurerm_network_interface" "second" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultiple(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_networkMultipleTemplate(data)
+func (r LinuxVirtualMachineResource) networkMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -463,11 +413,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.networkMultipleTemplate(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultipleUpdated(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_networkMultipleTemplate(data)
+func (r LinuxVirtualMachineResource) networkMultipleUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -499,11 +448,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.networkMultipleTemplate(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultipleRemoved(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_networkMultipleTemplate(data)
+func (r LinuxVirtualMachineResource) networkMultipleRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -534,11 +482,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.networkMultipleTemplate(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultiplePublicTemplate(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBase(data)
+func (r LinuxVirtualMachineResource) networkMultiplePublicTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -581,11 +528,10 @@ resource "azurerm_network_interface" "second" {
     public_ip_address_id          = azurerm_public_ip.second.id
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.networkMultipleTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultiplePublic(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_networkMultiplePublicTemplate(data)
+func (r LinuxVirtualMachineResource) networkMultiplePublic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -617,11 +563,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.networkMultiplePublicTemplate(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultiplePublicUpdated(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_networkMultiplePublicTemplate(data)
+func (r LinuxVirtualMachineResource) networkMultiplePublicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -653,11 +598,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.networkMultiplePublicTemplate(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkMultiplePublicRemoved(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_networkMultiplePublicTemplate(data)
+func (r LinuxVirtualMachineResource) networkMultiplePublicRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -688,11 +632,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.networkMultiplePublicTemplate(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkPrivateDynamicIP(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) networkPrivateDynamicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -723,11 +666,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkPrivateStaticIP(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) networkPrivateStaticIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -758,12 +700,11 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) networkPublicDynamicPrivateDynamicIP(data acceptance.TestData) string {
 	privateIPIsStatic := false
-	template := testLinuxVirtualMachine_templatePrivateIP(data, privateIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -794,12 +735,11 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.templatePrivateIP(data, privateIPIsStatic), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) networkPublicDynamicPrivateStaticIP(data acceptance.TestData) string {
 	privateIPIsStatic := true
-	template := testLinuxVirtualMachine_templatePrivateIP(data, privateIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -830,13 +770,12 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.templatePrivateIP(data, privateIPIsStatic), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) networkPublicStaticPrivateDynamicIP(data acceptance.TestData) string {
 	privateIPIsStatic := false
 	publicIPIsStatic := true
-	template := testLinuxVirtualMachine_templatePublicIP(data, privateIPIsStatic, publicIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -867,13 +806,12 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.templatePublicIP(data, privateIPIsStatic, publicIPIsStatic), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_networkPublicStaticPrivateStaticIP(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) networkPublicStaticPrivateStaticIP(data acceptance.TestData) string {
 	privateIPIsStatic := true
 	publicIPIsStatic := true
-	template := testLinuxVirtualMachine_templatePublicIP(data, privateIPIsStatic, publicIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -904,11 +842,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.templatePublicIP(data, privateIPIsStatic, publicIPIsStatic), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_templatePrivateIP(data acceptance.TestData, static bool) string {
-	template := testLinuxVirtualMachine_templateBase(data)
+func (r LinuxVirtualMachineResource) templatePrivateIP(data acceptance.TestData, static bool) string {
 	if static {
 		return fmt.Sprintf(`
 %s
@@ -925,7 +862,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address            = "10.0.2.30"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -942,11 +879,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_templatePublicIP(data acceptance.TestData, privateStatic, publicStatic bool) string {
-	template := testLinuxVirtualMachine_templateBase(data)
+func (r LinuxVirtualMachineResource) templatePublicIP(data acceptance.TestData, privateStatic, publicStatic bool) string {
 	publicAllocationType := allocationType(publicStatic)
 
 	if privateStatic {
@@ -973,7 +909,7 @@ resource "azurerm_network_interface" "test" {
     public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
-`, template, data.RandomInteger, publicAllocationType, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, publicAllocationType, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -998,7 +934,7 @@ resource "azurerm_network_interface" "test" {
     public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
-`, template, data.RandomInteger, publicAllocationType, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, publicAllocationType, data.RandomInteger)
 }
 
 func allocationType(static bool) string {

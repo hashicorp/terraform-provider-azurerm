@@ -6,291 +6,251 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingAutoScale(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingAutoScale(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingInstanceCount(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.scalingInstanceCount(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.scalingInstanceCount(data, 5),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// update the count but the `sku` should be ignored
+			Config: r.scalingInstanceCountIgnoreUpdatedSku(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// confirm that the `sku` hasn't been changed
+			Config:   r.scalingInstanceCount(data, 3),
+			PlanOnly: true,
 		},
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingOverProvisionDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingProximityPlacementGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(data, 5),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingSinglePlacementGroupDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				// update the count but the `sku` should be ignored
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCountIgnoreUpdatedSku(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabledUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				// confirm that the `sku` hasn't been changed
-				Config:   testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(data, 3),
-				PlanOnly: true,
-			},
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.scalingSinglePlacementGroupDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingUpdateSku(data, "Standard_F2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.scalingUpdateSku(data, "Standard_F4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.scalingUpdateSku(data, "Standard_F2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// confirms that the `instances` count comes from the API
+			Config: r.scalingUpdateSkuIgnoredUpdatedCount(data, "Standard_F2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:   r.scalingUpdateSku(data, "Standard_F2"),
+			PlanOnly: true,
 		},
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingZonesSingle(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingZonesMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesBalance(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scalingZonesBalance(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabledUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-		},
-	})
-}
-
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(data, "Standard_F2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(data, "Standard_F4"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(data, "Standard_F2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// confirms that the `instances` count comes from the API
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSkuIgnoredUpdatedCount(data, "Standard_F2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			{
-				Config:   testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(data, "Standard_F2"),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesSingle(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesSingle(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-		},
-	})
-}
-
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-		},
-	})
-}
-
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesBalance(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesBalance(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-		},
-	})
-}
-
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingAutoScale(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingAutoScale(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -384,11 +344,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(data acceptance.TestData, instanceCount int) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingInstanceCount(data acceptance.TestData, instanceCount int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -424,11 +383,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, instanceCount)
+`, r.template(data), instanceCount)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCountIgnoreUpdatedSku(data acceptance.TestData, instanceCount int) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingInstanceCountIgnoreUpdatedSku(data acceptance.TestData, instanceCount int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -468,11 +426,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     ignore_changes = ["sku"]
   }
 }
-`, template, instanceCount)
+`, r.template(data), instanceCount)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingOverProvisionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -509,11 +466,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingProximityPlacementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -556,11 +512,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingSinglePlacementGroupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -597,11 +552,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(data acceptance.TestData, skuName string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingUpdateSku(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -637,11 +591,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, skuName)
+`, r.template(data), skuName)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSkuIgnoredUpdatedCount(data acceptance.TestData, skuName string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingUpdateSkuIgnoredUpdatedCount(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -681,11 +634,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     ignore_changes = ["instances"]
   }
 }
-`, template, skuName)
+`, r.template(data), skuName)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesSingle(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingZonesSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -722,11 +674,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesMultiple(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingZonesMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -763,11 +714,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesBalance(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) scalingZonesBalance(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -805,5 +755,5 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
