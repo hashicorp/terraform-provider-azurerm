@@ -37,9 +37,9 @@ The following arguments are supported:
 
 ---
 
-* `description` - (Optional) The description of the Template Spec. Changing this forces a new Template Spec to be created.
+* `description` - (Optional) The description of the Template Spec.
 
-* `display_name` - (Optional) The display name of the Template Spec. Changing this forces a new Template Spec to be created.
+* `display_name` - (Optional) The display name of the Template Spec.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Template Spec.
 

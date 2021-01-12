@@ -21,9 +21,9 @@ import (
 
 func resourceTemplateSpec() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceTemplateSpecCreate,
+		Create: resourceTemplateSpecCreateUpdate,
 		Read:   resourceTemplateSpecRead,
-		Update: resourceTemplateSpecUpdate,
+		Update: resourceTemplateSpecCreateUpdate,
 		Delete: resourceTemplateSpecDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -51,16 +51,16 @@ func resourceTemplateSpec() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				//ForceNew:     true,
 				ValidateFunc: validate.TemplateSpecDescription,
 			},
 
 			"display_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				//ForceNew:     true,
 				ValidateFunc: validate.TemplateSpecDisplayName,
 			},
 
@@ -68,7 +68,7 @@ func resourceTemplateSpec() *schema.Resource {
 		},
 	}
 }
-func resourceTemplateSpecCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateSpecCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Resource.TemplateSpecClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -79,15 +79,17 @@ func resourceTemplateSpecCreate(d *schema.ResourceData, meta interface{}) error 
 
 	id := parse.NewTemplateSpecID(subscriptionId, resourceGroup, name)
 
-	existing, err := client.Get(ctx, resourceGroup, name, "versions")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Template Spec %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name, "versions")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for present of existing Template Spec %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
 		}
-	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_template_spec", id.ID())
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_template_spec", id.ID())
+		}
 	}
 
 	templateSpec := templatespecs.TemplateSpec{
@@ -143,29 +145,6 @@ func resourceTemplateSpecRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceTemplateSpecUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.TemplateSpecClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.TemplateSpecID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	templateSpec := templatespecs.UpdateModel{}
-
-	if d.HasChange("tags") {
-		templateSpec.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, &templateSpec); err != nil {
-		return fmt.Errorf("updating Template Spec %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	return resourceTemplateSpecRead(d, meta)
 }
 
 func resourceTemplateSpecDelete(d *schema.ResourceData, meta interface{}) error {

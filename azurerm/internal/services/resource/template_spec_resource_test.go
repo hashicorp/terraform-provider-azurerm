@@ -153,11 +153,11 @@ resource "azurerm_template_spec" "test" {
   name                = "acctest-TemplateSpec-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  description         = "Test Description"
-  display_name        = "Test Display Name"
+  description         = "Updated Test Description"
+  display_name        = "Updated Test Display Name"
 
   tags = {
-    ENV = "Test2"
+    ENV = "UpdatedTest"
   }
 }
 `, r.template(data), data.RandomInteger)
