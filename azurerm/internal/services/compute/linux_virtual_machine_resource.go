@@ -490,7 +490,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	var vm compute.VirtualMachine
-	json.Unmarshal(vmResp, &vm)
+	_ = json.Unmarshal(vmResp, &vm)
 
 	if vm.ID == nil {
 		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
