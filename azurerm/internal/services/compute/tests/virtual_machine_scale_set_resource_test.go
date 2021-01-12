@@ -876,13 +876,6 @@ func testGetVirtualMachineScaleSet(s *terraform.State, resourceName string) (res
 	return &vmss, err
 }
 
-func testCheckVirtualMachineScaleSetExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, err := testGetVirtualMachineScaleSet(s, name)
-		return err
-	}
-}
-
 func testCheckVirtualMachineScaleSetDisappears(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient

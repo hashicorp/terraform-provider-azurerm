@@ -598,7 +598,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, r.disksDataDisk_diskEncryptionSetDependencies(data), data.RandomInteger)
+`, r.disksDataDisk_diskEncryptionSetResource(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskResize(data acceptance.TestData, diskSizeGb int) string {
