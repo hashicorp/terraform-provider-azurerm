@@ -1254,10 +1254,10 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 
 		// TODO: Remove and simplify after deprecation
-		if v, ok := d.GetOk("security.enable_triple_des_ciphers"); ok {
+		if v, exists := v["enable_triple_des_ciphers"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
-		if v, ok := d.GetOk("security.triple_des_ciphers_enabled"); ok {
+		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
 
