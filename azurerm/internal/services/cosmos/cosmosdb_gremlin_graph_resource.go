@@ -72,6 +72,12 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
+			"default_ttl": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -233,6 +239,12 @@ func resourceCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
+		if defaultTTL != 0 {
+			db.GremlinGraphCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+		}
+	}
+
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
 			db.GremlinGraphCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
@@ -304,6 +316,10 @@ func resourceCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}
 		db.GremlinGraphCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
+	}
+
+	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
+		db.GremlinGraphCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
 	future, err := client.CreateUpdateGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName, db)
