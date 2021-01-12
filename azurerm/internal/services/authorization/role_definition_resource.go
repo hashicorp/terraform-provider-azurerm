@@ -6,10 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -192,8 +191,8 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 				"OK",
 			},
 			Refresh:                   roleDefinitionUpdateStateRefreshFunc(ctx, client, id.ResourceID),
-			MinTimeout:                5 * time.Second,
-			ContinuousTargetOccurence: 5,
+			MinTimeout:                10 * time.Second,
+			ContinuousTargetOccurence: 3,
 			Timeout:                   d.Timeout(schema.TimeoutUpdate),
 		}
 
@@ -280,7 +279,7 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 			"NotFound",
 		},
 		Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id.ResourceID),
-		MinTimeout:                5 * time.Second,
+		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 3,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
