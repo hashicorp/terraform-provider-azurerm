@@ -318,7 +318,7 @@ func resourceMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := eventhubParse.NamespaceAuthorizationRuleID(*resp.EventHubAuthorizationRuleID)
+		parsedId, err := eventhubParse.NamespaceAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
 		if err != nil {
 			return err
 		}
