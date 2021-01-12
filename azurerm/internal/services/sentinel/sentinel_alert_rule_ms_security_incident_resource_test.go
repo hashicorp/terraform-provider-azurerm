@@ -149,7 +149,7 @@ func (t SentinelAlertRuleMsSecurityIncidentResource) Exists(ctx context.Context,
 
 	rule, ok := resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule)
 	if !ok {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Ms Security Incident %q is not of MicrosoftSecurityIncidentCreationAlertRule kind", id)
+		return nil, fmt.Errorf("the Alert Rule %q is not a MS Security Incident Alert Rule", id)
 	}
 
 	return utils.Bool(rule.ID != nil), nil

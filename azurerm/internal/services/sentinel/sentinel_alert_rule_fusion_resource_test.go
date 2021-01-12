@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -106,7 +108,12 @@ func (r SentinelAlertRuleFusionResource) Exists(ctx context.Context, client *cli
 		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Fusion (%q): %+v", state.String(), err)
 	}
 
-	return utils.Bool(resp.Value != nil), nil
+	rule, ok := resp.Value.(securityinsight.FusionAlertRule)
+	if !ok {
+		return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
+	}
+
+	return utils.Bool(rule.ID != nil), nil
 }
 
 func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string {

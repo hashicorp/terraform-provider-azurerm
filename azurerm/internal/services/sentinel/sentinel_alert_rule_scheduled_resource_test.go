@@ -120,7 +120,7 @@ func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients 
 
 	rule, ok := resp.Value.(securityinsight.ScheduledAlertRule)
 	if !ok {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q is not of ScheduledAlertRule kind", id)
+		return nil, fmt.Errorf("the Alert Rule %q is not a Scheduled Alert Rule", id)
 	}
 
 	return utils.Bool(rule.ID != nil), nil

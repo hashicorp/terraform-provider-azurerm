@@ -152,12 +152,13 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceD
 	if err != nil {
 		return err
 	}
+	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.ResourceGroup, name)
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q (Workspace: %q): %+v", name, workspaceID, err)
+				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 			}
 		}
 
@@ -196,35 +197,20 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceD
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 		if err != nil {
-			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q (Workspace: %q): %+v", name, workspaceID, err)
+			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 		}
 
 		if err := assertAlertRuleKind(resp.Value, securityinsight.MicrosoftSecurityIncidentCreation); err != nil {
-			return fmt.Errorf("asserting alert rule of %q (Workspace: %q): %+v", name, workspaceID, err)
+			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 		param.Etag = resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule).Etag
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name, param); err != nil {
-		return fmt.Errorf("creating Sentinel Alert Rule Ms Security Incident %q (Workspace: %q): %+v", name, workspaceID, err)
+		return fmt.Errorf("creating Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q (Workspace: %q): %+v", name, workspaceID, err)
-	}
-
-	id := alertRuleID(resp.Value)
-	if id == nil || *id == "" {
-		return fmt.Errorf("empty or nil ID returned for Sentinel Alert Rule Ms Security Incident %q (Workspace: %q) ID", name, workspaceID)
-	}
-
-	resId, err := parse.AlertRuleID(*id)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(resId.ID())
+	d.SetId(id.ID())
 
 	return resourceSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }

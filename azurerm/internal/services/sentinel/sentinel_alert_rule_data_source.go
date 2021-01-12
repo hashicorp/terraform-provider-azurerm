@@ -49,26 +49,18 @@ func dataSourceSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.ResourceGroup, name)
 
 	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Sentinel Alert Rule %q (Workspace: %q) was not found", name, workspaceID)
+			return fmt.Errorf("Sentinel Alert Rule %q was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Sentinel Alert Rule %q (Workspace: %q): %+v", name, workspaceID, err)
+		return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 	}
 
-	id := alertRuleID(resp.Value)
-	if id == nil || *id == "" {
-		return fmt.Errorf("nil or empty ID of Sentinel Alert Rule %q (Workspace: %q)", name, workspaceID)
-	}
-
-	resId, err := parse.AlertRuleID(*id)
-	if err != nil {
-		return err
-	}
-	d.SetId(resId.ID())
+	d.SetId(id.ID())
 
 	return nil
 }
