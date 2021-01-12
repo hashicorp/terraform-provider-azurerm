@@ -554,7 +554,6 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 	}
 
 	if repoType := config.Type; repoType != nil {
-
 		repo := map[string]interface{}{}
 
 		if *repoType == workspaceVSTSConfiguration {
