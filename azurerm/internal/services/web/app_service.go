@@ -455,6 +455,12 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
+				"number_of_workers": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 100),
+				},
+
 				"linux_fx_version": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -771,6 +777,11 @@ func schemaAppServiceDataSourceSiteConfig() *schema.Schema {
 
 				"health_check_path": {
 					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"number_of_workers": {
+					Type:     schema.TypeInt,
 					Computed: true,
 				},
 
@@ -1637,6 +1648,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
+	if v, ok := config["number_of_workers"]; ok {
+		siteConfig.NumberOfWorkers = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1748,6 +1763,10 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HealthCheckPath != nil {
 		result["health_check_path"] = *input.HealthCheckPath
+	}
+
+	if input.NumberOfWorkers != nil {
+		result["number_of_workers"] = *input.NumberOfWorkers
 	}
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
