@@ -14,33 +14,6 @@ import (
 type WindowsVirtualMachineResource struct {
 }
 
-func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if rs.Type != "azurerm_windows_virtual_machine" {
-			continue
-		}
-
-		id, err := parse.VirtualMachineID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	return nil
-}
-
 func (t WindowsVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineID(state.ID)
 	if err != nil {

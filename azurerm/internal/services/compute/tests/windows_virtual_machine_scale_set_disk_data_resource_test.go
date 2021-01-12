@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -26,7 +26,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -61,7 +61,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -78,7 +78,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -106,7 +106,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testin
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -123,7 +123,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testin
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -149,7 +149,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -197,7 +197,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -214,7 +214,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -231,7 +231,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -248,7 +248,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -266,7 +266,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -284,7 +284,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -302,7 +302,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -320,7 +320,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

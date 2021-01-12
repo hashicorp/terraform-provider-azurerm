@@ -67,7 +67,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_linux_virtual_machine_scale_set":        resourceLinuxVirtualMachineScaleSet(),
 		"azurerm_virtual_machine_scale_set_extension":    resourceArmVirtualMachineScaleSetExtension(),
 		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
-		"azurerm_windows_virtual_machine_scale_set":      resourceArmWindowsVirtualMachineScaleSet(),
+		"azurerm_windows_virtual_machine_scale_set":      resourceWindowsVirtualMachineScaleSet(),
 		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
 	}
 

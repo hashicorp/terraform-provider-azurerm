@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -44,7 +44,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -81,7 +81,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testin
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -98,7 +98,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -115,7 +115,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -132,7 +132,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeSt
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -149,7 +149,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeSt
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -166,7 +166,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePr
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

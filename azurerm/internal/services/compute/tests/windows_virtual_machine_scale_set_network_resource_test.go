@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -27,7 +27,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkAcceleratedNetworking(t 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -62,7 +62,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkAcceleratedNetworkingUpd
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationGateway(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkApplicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -79,7 +79,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationGateway(t *te
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationSecurityGroup(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -96,7 +96,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationSecurityGroup
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationSecurityGroupUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkApplicationSecurityGroupUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -144,7 +144,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationSecurityGroup
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkDNSServers(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkDNSServers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -170,7 +170,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkDNSServers(t *testing.T)
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkIPForwarding(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkIPForwarding(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -208,7 +208,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkIPForwarding(t *testing.
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkIPv6(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -223,7 +223,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkLoadBalancer(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -240,7 +240,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkLoadBalancer(t *testing.
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleIPConfigurations(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkMultipleIPConfigurations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -257,7 +257,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleIPConfigurations
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleIPConfigurationsIPv6(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkMultipleIPConfigurationsIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -274,7 +274,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleIPConfigurations
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICs(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -291,7 +291,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICs(t *testing.
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICsMultipleIPConfigurations(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICsMultipleIPConfigurations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -308,7 +308,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICsMultipleIPCo
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICsMultiplePublicIPs(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICsMultiplePublicIPs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -325,7 +325,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICsMultiplePubl
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICsWithDifferentDNSServers(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkMultipleNICsWithDifferentDNSServers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -342,7 +342,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkMultipleNICsWithDifferen
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkNetworkSecurityGroup(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -359,7 +359,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkNetworkSecurityGroup(t *
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -407,7 +407,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkNetworkSecurityGroupUpda
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPrivate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkPrivate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -424,7 +424,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPrivate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -441,7 +441,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -458,7 +458,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIPDomainNameLabel(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIPFromPrefix(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIPFromPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -475,7 +475,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIPFromPrefix(t *te
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_networkPublicIPTags(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIPTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

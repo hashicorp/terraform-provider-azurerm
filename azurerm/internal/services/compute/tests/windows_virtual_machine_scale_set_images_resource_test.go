@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -37,7 +37,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testin
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -77,7 +77,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachin
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -103,7 +103,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -129,7 +129,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -155,7 +155,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

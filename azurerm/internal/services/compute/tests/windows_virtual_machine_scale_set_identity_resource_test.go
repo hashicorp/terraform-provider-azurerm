@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_identityNone(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_identityNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -27,7 +27,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_identityNone(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -66,7 +66,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_identitySystemAssigned(t *testi
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -113,7 +113,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

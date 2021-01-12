@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -28,7 +28,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -66,7 +66,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -104,7 +104,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -121,7 +121,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *test
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefixInvalid(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherComputerNamePrefixInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -133,7 +133,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefixInvalid(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -172,7 +172,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -189,7 +189,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverPr
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachinesUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachinesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -224,7 +224,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverPr
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -260,7 +260,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisa
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -277,7 +277,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -294,7 +294,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *test
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -321,7 +321,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityRegular(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherPriorityRegular(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -338,7 +338,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityRegular(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherRequiresImport(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -356,7 +356,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherRequiresImport(t *testing.
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -394,7 +394,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -431,7 +431,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTimeZone(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -448,7 +448,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTimeZone(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -465,7 +465,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -482,7 +482,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTP(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherWinRMHTTP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -499,7 +499,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -516,7 +516,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -536,7 +536,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_updateHealthProbe(t *testing.T)
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -599,7 +599,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, template)
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -617,7 +617,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -661,7 +661,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(t *t
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -699,7 +699,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtension(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVmExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -715,7 +715,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtension(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionForceUpdateTag(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVmExtensionForceUpdateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -739,7 +739,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionForceUpdateTag(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionMultiple(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVmExtensionMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -755,7 +755,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionMultiple(t *tes
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVmExtensionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -787,7 +787,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionUpdate(t *testi
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -803,7 +803,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -835,7 +835,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledUpd
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledWithCMK(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledWithCMK(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -851,7 +851,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledWit
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

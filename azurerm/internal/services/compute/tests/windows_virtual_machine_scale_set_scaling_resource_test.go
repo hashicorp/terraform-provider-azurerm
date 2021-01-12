@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -26,7 +26,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -76,7 +76,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -93,7 +93,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -110,7 +110,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingProximityPlacementGroup(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -127,7 +127,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisa
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabledUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -153,7 +153,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisa
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -199,7 +199,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesSingle(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -216,7 +216,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesSingle(t *testing.T
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -233,7 +233,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesBalance(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesBalance(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
