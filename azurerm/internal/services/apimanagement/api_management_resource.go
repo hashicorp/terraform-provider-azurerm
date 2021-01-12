@@ -306,7 +306,7 @@ func resourceApiManagementService() *schema.Resource {
 							Type:          schema.TypeBool,
 							Optional:      true,
 							Default:       false,
-							ConflictsWith: []string{"security.enable_triple_des_ciphers"},
+							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
 						},
 
 						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
