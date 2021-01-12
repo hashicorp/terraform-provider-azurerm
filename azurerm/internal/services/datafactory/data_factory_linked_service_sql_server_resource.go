@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
+func resourceDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceSQLServerRead,
-		Update: resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceSQLServerDelete,
+		Create: resourceDataFactoryLinkedServiceSQLServerCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceSQLServerRead,
+		Update: resourceDataFactoryLinkedServiceSQLServerCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceSQLServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,7 +99,7 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,10 +169,10 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.Resource
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceSQLServerRead(d, meta)
+	return resourceDataFactoryLinkedServiceSQLServerRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +239,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

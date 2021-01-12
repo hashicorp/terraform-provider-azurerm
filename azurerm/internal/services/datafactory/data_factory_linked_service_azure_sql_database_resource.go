@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceAzureSQLDatabaseRead,
-		Update: resourceArmDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceAzureSQLDatabaseDelete,
+		Create: resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceAzureSQLDatabaseRead,
+		Update: resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,7 +99,7 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,10 +168,10 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.R
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceAzureSQLDatabaseRead(d, meta)
+	return resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +222,7 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactory() *schema.Resource {
+func resourceDataFactory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryCreateUpdate,
-		Read:   resourceArmDataFactoryRead,
-		Update: resourceArmDataFactoryCreateUpdate,
-		Delete: resourceArmDataFactoryDelete,
+		Create: resourceDataFactoryCreateUpdate,
+		Read:   resourceDataFactoryRead,
+		Update: resourceDataFactoryCreateUpdate,
+		Delete: resourceDataFactoryDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
@@ -172,7 +172,7 @@ func resourceArmDataFactory() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +227,7 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Cannot read Data Factory %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	if hasRepo, repo := expandArmDataFactoryRepoConfiguration(d); hasRepo {
+	if hasRepo, repo := expandDataFactoryRepoConfiguration(d); hasRepo {
 		repoUpdate := datafactory.FactoryRepoUpdate{
 			FactoryResourceID: resp.ID,
 			RepoConfiguration: repo,
@@ -239,10 +239,10 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryRead(d, meta)
+	return resourceDataFactoryRead(d, meta)
 }
 
-func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +272,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("vsts_configuration", []interface{}{})
 	d.Set("github_configuration", []interface{}{})
-	repoType, repo := flattenArmDataFactoryRepoConfiguration(&resp)
+	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
 	if repoType == datafactory.TypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
 			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
@@ -288,7 +288,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("github_configuration", repo)
 	}
 
-	if err := d.Set("identity", flattenArmDataFactoryIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenDataFactoryIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
 	}
 
@@ -300,7 +300,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,7 +322,7 @@ func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandArmDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafactory.BasicFactoryRepoConfiguration) {
+func expandDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafactory.BasicFactoryRepoConfiguration) {
 	if vstsList, ok := d.GetOk("vsts_configuration"); ok {
 		vsts := vstsList.([]interface{})[0].(map[string]interface{})
 		accountName := vsts["account_name"].(string)
@@ -360,7 +360,7 @@ func expandArmDataFactoryRepoConfiguration(d *schema.ResourceData) (bool, datafa
 	return false, nil
 }
 
-func flattenArmDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
+func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
 	result := make([]interface{}, 0)
 
 	if properties := factory.FactoryProperties; properties != nil {
@@ -411,7 +411,7 @@ func flattenArmDataFactoryRepoConfiguration(factory *datafactory.Factory) (dataf
 	return datafactory.TypeFactoryRepoConfiguration, result
 }
 
-func flattenArmDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
+func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
 	if identity == nil {
 		return make([]interface{}, 0)
 	}
