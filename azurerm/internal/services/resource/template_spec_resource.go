@@ -51,16 +51,14 @@ func resourceTemplateSpec() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				//ForceNew:     true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validate.TemplateSpecDescription,
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				//ForceNew:     true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validate.TemplateSpecDisplayName,
 			},
 
