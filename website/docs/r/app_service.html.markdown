@@ -195,7 +195,7 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The health check path to be pinged by App Service. [For more information - please see the corresponding Kudu Wiki page](https://github.com/projectkudu/kudu/wiki/Health-Check-(Preview)).
 
-* `number_of_workers` - (Optional) The scaled number of workers (for per site scaling) of this App Service. Requires that `per_site_scaling` is enabled on the `azurerm_app_service_plan`. [For more information - please see Microsoft Documentation on High-density hosting](https://docs.microsoft.com/en-us/azure/app-service/manage-scale-per-app).
+* `number_of_workers` - (Optional) The scaled number of workers (for per site scaling) of this App Service. Requires that `per_site_scaling` is enabled on the `azurerm_app_service_plan`. [For more information - please see Microsoft documentation on high-density hosting](https://docs.microsoft.com/en-us/azure/app-service/manage-scale-per-app).
 
 ~> **Note:** This functionality is in Preview and is subject to changes (including breaking changes) on Azure's end
 
