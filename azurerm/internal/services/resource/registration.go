@@ -26,6 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_resources":      dataSourceArmResources(),
 		"azurerm_resource_group": dataSourceArmResourceGroup(),
+		"azurerm_template_spec":  dataSourceTemplateSpec(),
 	}
 }
 
