@@ -18,7 +18,6 @@ func TestAccFunctionAppDataSource_basic(t *testing.T) {
 		{
 			Config: FunctionAppDataSource{}.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckFunctionAppHasNoContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),

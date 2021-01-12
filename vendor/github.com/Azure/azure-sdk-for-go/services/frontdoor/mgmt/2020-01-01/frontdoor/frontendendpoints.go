@@ -280,6 +280,7 @@ func (client FrontendEndpointsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -369,6 +370,7 @@ func (client FrontendEndpointsClient) ListByFrontDoor(ctx context.Context, resou
 	result.felr, err = client.ListByFrontDoorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "ListByFrontDoor", resp, "Failure responding to request")
+		return
 	}
 	if result.felr.hasNextLink() && result.felr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -433,6 +435,7 @@ func (client FrontendEndpointsClient) listByFrontDoorNextResults(ctx context.Con
 	result, err = client.ListByFrontDoorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "listByFrontDoorNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

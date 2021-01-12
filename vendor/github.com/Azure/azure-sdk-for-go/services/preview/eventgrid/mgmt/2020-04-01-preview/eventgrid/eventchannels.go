@@ -74,6 +74,7 @@ func (client EventChannelsClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -229,6 +230,7 @@ func (client EventChannelsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,6 +316,7 @@ func (client EventChannelsClient) ListByPartnerNamespace(ctx context.Context, re
 	result.eclr, err = client.ListByPartnerNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "ListByPartnerNamespace", resp, "Failure responding to request")
+		return
 	}
 	if result.eclr.hasNextLink() && result.eclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -384,6 +387,7 @@ func (client EventChannelsClient) listByPartnerNamespaceNextResults(ctx context.
 	result, err = client.ListByPartnerNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "listByPartnerNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -29,7 +29,7 @@ func TestAccKeyVault_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("premium"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
@@ -185,6 +185,29 @@ func TestAccKeyVault_update(t *testing.T) {
 	})
 }
 
+func TestAccKeyVault_upgradeSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+	r := KeyVaultResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("standard"),
+			),
+		},
+		data.ImportStep(), {
+			Config: r.basicPremiumSKU(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("premium"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKeyVault_updateContacts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 	r := KeyVaultResource{}
@@ -230,67 +253,19 @@ func TestAccKeyVault_justCert(t *testing.T) {
 	})
 }
 
-func TestAccKeyVault_softDeleteEnabled(t *testing.T) {
+func TestAccKeyVault_softDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 	r := KeyVaultResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.softDelete(data, true),
+			Config: r.softDelete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccKeyVault_softDeleteViaUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	r := KeyVaultResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.softDelete(data, false),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.softDelete(data, true),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKeyVault_softDeleteAttemptToDisable(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	r := KeyVaultResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.softDelete(data, true),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:      r.softDelete(data, false),
-			ExpectError: regexp.MustCompile("once Soft Delete has been Enabled it's not possible to disable it"),
-		},
 	})
 }
 
@@ -301,10 +276,9 @@ func TestAccKeyVault_softDeleteRecovery(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// create it regularly
-			Config: r.softDelete(data, true),
+			Config: r.softDelete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
 			),
 		},
@@ -315,10 +289,9 @@ func TestAccKeyVault_softDeleteRecovery(t *testing.T) {
 		},
 		{
 			// attempting to re-create it requires recovery, which is enabled by default
-			Config: r.softDelete(data, true),
+			Config: r.softDelete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
 			),
 		},
@@ -336,7 +309,6 @@ func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
 			Config: r.softDeleteRecoveryDisabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
 			),
 		},
@@ -363,7 +335,6 @@ func TestAccKeyVault_purgeProtectionEnabled(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -380,7 +351,6 @@ func TestAccKeyVault_purgeProtectionAndSoftDeleteEnabled(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -397,7 +367,6 @@ func TestAccKeyVault_purgeProtectionViaUpdate(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -406,7 +375,6 @@ func TestAccKeyVault_purgeProtectionViaUpdate(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -423,7 +391,6 @@ func TestAccKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -522,8 +489,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -556,7 +522,6 @@ resource "azurerm_key_vault" "import" {
   resource_group_name        = azurerm_key_vault.test.resource_group_name
   tenant_id                  = azurerm_key_vault.test.tenant_id
   sku_name                   = "premium"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -624,8 +589,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -659,8 +623,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -695,8 +658,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -739,8 +701,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -787,8 +748,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   enabled_for_deployment          = true
@@ -822,8 +782,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy = []
@@ -859,8 +818,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -907,8 +865,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -950,8 +907,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   %s
@@ -1020,14 +976,13 @@ resource "azurerm_key_vault" "test" {
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "premium"
-  soft_delete_enabled      = "%t"
+  sku_name                 = "standard"
   purge_protection_enabled = "%t"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
-func (KeyVaultResource) softDelete(data acceptance.TestData, enabled bool) string {
+func (KeyVaultResource) softDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1046,10 +1001,9 @@ resource "azurerm_key_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-  soft_delete_enabled = %t
+  sku_name            = "standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (KeyVaultResource) softDeleteAbsent(data acceptance.TestData) string {
@@ -1094,8 +1048,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1119,8 +1072,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 }
@@ -1146,8 +1098,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy = []
@@ -1174,8 +1125,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
-  soft_delete_enabled        = true
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   access_policy {
@@ -1199,6 +1149,48 @@ resource "azurerm_key_vault" "test" {
     email = "example@example.com"
     name  = "example"
     phone = "01234567890"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KeyVaultResource) basicPremiumSKU(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "managecontacts",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

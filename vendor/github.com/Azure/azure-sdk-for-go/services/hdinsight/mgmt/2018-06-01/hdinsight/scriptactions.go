@@ -73,6 +73,7 @@ func (client ScriptActionsClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -149,6 +150,7 @@ func (client ScriptActionsClient) GetExecutionDetail(ctx context.Context, resour
 	result, err = client.GetExecutionDetailResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "GetExecutionDetail", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -226,9 +228,11 @@ func (client ScriptActionsClient) ListByCluster(ctx context.Context, resourceGro
 	result.sal, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "ListByCluster", resp, "Failure responding to request")
+		return
 	}
 	if result.sal.hasNextLink() && result.sal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -84,6 +84,7 @@ func (client LocationBasedRecommendedActionSessionsResultClient) List(ctx contex
 	result.rarl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.LocationBasedRecommendedActionSessionsResultClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rarl.hasNextLink() && result.rarl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -148,6 +149,7 @@ func (client LocationBasedRecommendedActionSessionsResultClient) listNextResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.LocationBasedRecommendedActionSessionsResultClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

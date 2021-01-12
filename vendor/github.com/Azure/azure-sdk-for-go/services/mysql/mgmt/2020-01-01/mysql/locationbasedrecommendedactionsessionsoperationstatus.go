@@ -83,6 +83,7 @@ func (client LocationBasedRecommendedActionSessionsOperationStatusClient) Get(ct
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.LocationBasedRecommendedActionSessionsOperationStatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

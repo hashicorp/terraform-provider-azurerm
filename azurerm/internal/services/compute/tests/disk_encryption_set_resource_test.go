@@ -1,188 +1,135 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+type DiskEncryptionSetResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskEncryptionSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccDiskEncryptionSet_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDiskEncryptionSet_requiresImport(t *testing.T) {
+func TestAccDiskEncryptionSet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskEncryptionSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMDiskEncryptionSet_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMDiskEncryptionSet_complete(t *testing.T) {
+func TestAccDiskEncryptionSet_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskEncryptionSet_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDiskEncryptionSet_update(t *testing.T) {
+func TestAccDiskEncryptionSet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskEncryptionSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDiskEncryptionSet_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDiskEncryptionSet_keyRotate(t *testing.T) {
+func TestAccDiskEncryptionSet_keyRotate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskEncryptionSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			// we have to first grant the permission for DiskEncryptionSet to access the KeyVault
-			{
-				Config: testAccAzureRMDiskEncryptionSet_grantAccessToKeyVault(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			// after the access is granted, we can rotate the key in DiskEncryptionSet
-			{
-				Config: testAccAzureRMDiskEncryptionSet_keyRotate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		// we have to first grant the permission for DiskEncryptionSet to access the KeyVault
+		{
+			Config: r.grantAccessToKeyVault(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		// after the access is granted, we can rotate the key in DiskEncryptionSet
+		{
+			Config: r.keyRotate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMDiskEncryptionSetExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Disk Encryption Set not found: %s", resourceName)
-		}
-
-		id, err := parse.DiskEncryptionSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DiskEncryptionSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Disk Encryption Set %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on Compute.DiskEncryptionSetsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DiskEncryptionSetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_disk_encryption_set" {
-			continue
-		}
-
-		id, err := parse.DiskEncryptionSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Compute.DiskEncryptionSetsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t DiskEncryptionSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DiskEncryptionSetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Compute.DiskEncryptionSetsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Disk Encryption Set %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMDiskEncryptionSet_dependencies(data acceptance.TestData) string {
+func (DiskEncryptionSetResource) dependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -200,7 +147,7 @@ resource "azurerm_key_vault" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "premium"
+  sku_name                    = "standard"
   soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
@@ -215,6 +162,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "create",
     "delete",
     "get",
+    "purge",
     "update",
   ]
 
@@ -245,8 +193,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMDiskEncryptionSet_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+func (r DiskEncryptionSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -260,11 +207,10 @@ resource "azurerm_disk_encryption_set" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.dependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMDiskEncryptionSet_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDiskEncryptionSet_basic(data)
+func (r DiskEncryptionSetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -278,11 +224,10 @@ resource "azurerm_disk_encryption_set" "import" {
     type = "SystemAssigned"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMDiskEncryptionSet_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+func (r DiskEncryptionSetResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -300,11 +245,10 @@ resource "azurerm_disk_encryption_set" "test" {
     Hello = "woRld"
   }
 }
-`, template, data.RandomInteger)
+`, r.dependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMDiskEncryptionSet_grantAccessToKeyVault(data acceptance.TestData) string {
-	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+func (r DiskEncryptionSetResource) grantAccessToKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -331,11 +275,10 @@ resource "azurerm_disk_encryption_set" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.dependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMDiskEncryptionSet_keyRotate(data acceptance.TestData) string {
-	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+func (r DiskEncryptionSetResource) keyRotate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -380,5 +323,5 @@ resource "azurerm_disk_encryption_set" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.dependencies(data), data.RandomInteger)
 }

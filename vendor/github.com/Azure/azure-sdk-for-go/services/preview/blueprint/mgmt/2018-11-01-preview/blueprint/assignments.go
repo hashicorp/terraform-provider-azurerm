@@ -86,6 +86,7 @@ func (client AssignmentsClient) CreateOrUpdate(ctx context.Context, resourceScop
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -166,6 +167,7 @@ func (client AssignmentsClient) Delete(ctx context.Context, resourceScope string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,6 +247,7 @@ func (client AssignmentsClient) Get(ctx context.Context, resourceScope string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,6 +324,7 @@ func (client AssignmentsClient) List(ctx context.Context, resourceScope string) 
 	result.al, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -383,6 +387,7 @@ func (client AssignmentsClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -436,6 +441,7 @@ func (client AssignmentsClient) WhoIsBlueprint(ctx context.Context, resourceScop
 	result, err = client.WhoIsBlueprintResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "WhoIsBlueprint", resp, "Failure responding to request")
+		return
 	}
 
 	return

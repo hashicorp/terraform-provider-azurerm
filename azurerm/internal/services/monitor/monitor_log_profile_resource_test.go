@@ -118,49 +118,38 @@ func testAccMonitorLogProfile_disappears(t *testing.T) {
 	r := MonitorLogProfileResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckLogProfileDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicConfig,
+			TestResource: r,
+		}),
 	})
 }
 
 func (t MonitorLogProfileResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	name, err := monitor.ParseLogProfileNameFromID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing log profile name from ID %s: %s", state.ID, err)
+		return nil, fmt.Errorf("parsing log profile name from ID %s: %s", state.ID, err)
 	}
+
 	resp, err := clients.Monitor.LogProfilesClient.Get(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("reading log profile resource (%s): %+v", state.ID, err)
+		return nil, fmt.Errorf("reading log profile %q: %+v", state.ID, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckLogProfileDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-
-		if _, err := client.Delete(ctx, name); err != nil {
-			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
-		}
-
-		return nil
+func (t MonitorLogProfileResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name, err := monitor.ParseLogProfileNameFromID(state.ID)
+	if err != nil {
+		return nil, fmt.Errorf("parsing log profile name from ID %s: %s", state.ID, err)
 	}
+
+	if _, err := clients.Monitor.LogProfilesClient.Delete(ctx, name); err != nil {
+		return nil, fmt.Errorf("deleting log profile %q: %+v", state.ID, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (MonitorLogProfileResource) basicConfig(data acceptance.TestData) string {

@@ -87,6 +87,7 @@ func (client UsagesClient) List(ctx context.Context, resourceGroupName string, w
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.UsagesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

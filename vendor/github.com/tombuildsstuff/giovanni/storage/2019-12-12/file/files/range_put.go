@@ -47,9 +47,6 @@ func (client Client) PutByteRange(ctx context.Context, accountName, shareName, p
 	if expectedBytes != int64(actualBytes) {
 		return result, validation.NewError("files.Client", "PutByteRange", fmt.Sprintf("The specified byte-range (%d) didn't match the content size (%d).", expectedBytes, actualBytes))
 	}
-	if expectedBytes < (4 * 1024) {
-		return result, validation.NewError("files.Client", "PutByteRange", "Specified Byte Range must be at least 4KB.")
-	}
 
 	if expectedBytes > (4 * 1024 * 1024) {
 		return result, validation.NewError("files.Client", "PutByteRange", "Specified Byte Range must be at most 4MB.")

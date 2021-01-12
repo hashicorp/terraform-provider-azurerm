@@ -6,65 +6,63 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
+type ImageDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMImage_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_disk.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "os_disk.0.blob_uri"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_disk.0.caching", "None"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_disk.0.os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_disk.0.os_state", "Generalized"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_disk.0.size_gb", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "data_disk.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Dev"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost-center", "Ops"),
-				),
-			},
+func TestAccDataSourceImage_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
+	r := ImageDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("os_disk.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_disk.0.blob_uri").Exists(),
+				check.That(data.ResourceName).Key("os_disk.0.caching").HasValue("None"),
+				check.That(data.ResourceName).Key("os_disk.0.os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("os_disk.0.os_state").HasValue("Generalized"),
+				check.That(data.ResourceName).Key("os_disk.0.size_gb").HasValue("30"),
+				check.That(data.ResourceName).Key("data_disk.#").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Dev"),
+				check.That(data.ResourceName).Key("tags.cost-center").HasValue("Ops"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
+func TestAccDataSourceImage_localFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_image", "test1")
+	r := ImageDataSource{}
+
 	descDataSourceName := "data.azurerm_image.test2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources
-				Config: testAccDataSourceAzureRMImage_localFilter_setup(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMImage_localFilter(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
-
-					resource.TestCheckResourceAttrSet(descDataSourceName, "name"),
-					resource.TestCheckResourceAttrSet(descDataSourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(descDataSourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources
+			Config: r.localFilter_setup(data),
+		},
+		{
+			Config: r.localFilter(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
+				resource.TestCheckResourceAttrSet(descDataSourceName, "name"),
+				resource.TestCheckResourceAttrSet(descDataSourceName, "resource_group_name"),
+				resource.TestCheckResourceAttr(descDataSourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMImage_basic(data acceptance.TestData) string {
+func (ImageDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -197,7 +195,7 @@ output "location" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMImage_localFilter_setup(data acceptance.TestData) string {
+func (ImageDataSource) localFilter_setup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -339,8 +337,7 @@ resource "azurerm_image" "def" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMImage_localFilter(data acceptance.TestData) string {
-	setup := testAccDataSourceAzureRMImage_localFilter_setup(data)
+func (r ImageDataSource) localFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -354,5 +351,5 @@ data "azurerm_image" "test2" {
   sort_descending     = true
   resource_group_name = azurerm_resource_group.test.name
 }
-`, setup)
+`, r.localFilter_setup(data))
 }

@@ -93,6 +93,7 @@ func (client DscConfigurationClient) CreateOrUpdate(ctx context.Context, resourc
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,6 +181,7 @@ func (client DscConfigurationClient) Delete(ctx context.Context, resourceGroupNa
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,6 +266,7 @@ func (client DscConfigurationClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -349,6 +352,7 @@ func (client DscConfigurationClient) GetContent(ctx context.Context, resourceGro
 	result, err = client.GetContentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "GetContent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -437,6 +441,7 @@ func (client DscConfigurationClient) ListByAutomationAccount(ctx context.Context
 	result.dclr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.dclr.hasNextLink() && result.dclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -513,6 +518,7 @@ func (client DscConfigurationClient) listByAutomationAccountNextResults(ctx cont
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -574,6 +580,7 @@ func (client DscConfigurationClient) Update(ctx context.Context, resourceGroupNa
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscConfigurationClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

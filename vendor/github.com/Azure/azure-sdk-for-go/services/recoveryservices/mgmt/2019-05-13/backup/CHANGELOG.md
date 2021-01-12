@@ -1,0 +1,17 @@
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82
+
+Code generator @microsoft.azure/autorest.go@~2.1.161
+
+## Breaking Changes
+
+- Function `NewWorkloadProtectableItemResourceListPage` parameter(s) have been changed from `(func(context.Context, WorkloadProtectableItemResourceList) (WorkloadProtectableItemResourceList, error))` to `(WorkloadProtectableItemResourceList, func(context.Context, WorkloadProtectableItemResourceList) (WorkloadProtectableItemResourceList, error))`
+- Function `NewClientDiscoveryResponsePage` parameter(s) have been changed from `(func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error))` to `(ClientDiscoveryResponse, func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error))`
+- Function `NewProtectableContainerResourceListPage` parameter(s) have been changed from `(func(context.Context, ProtectableContainerResourceList) (ProtectableContainerResourceList, error))` to `(ProtectableContainerResourceList, func(context.Context, ProtectableContainerResourceList) (ProtectableContainerResourceList, error))`
+- Function `NewJobResourceListPage` parameter(s) have been changed from `(func(context.Context, JobResourceList) (JobResourceList, error))` to `(JobResourceList, func(context.Context, JobResourceList) (JobResourceList, error))`
+- Function `NewProtectionContainerResourceListPage` parameter(s) have been changed from `(func(context.Context, ProtectionContainerResourceList) (ProtectionContainerResourceList, error))` to `(ProtectionContainerResourceList, func(context.Context, ProtectionContainerResourceList) (ProtectionContainerResourceList, error))`
+- Function `NewWorkloadItemResourceListPage` parameter(s) have been changed from `(func(context.Context, WorkloadItemResourceList) (WorkloadItemResourceList, error))` to `(WorkloadItemResourceList, func(context.Context, WorkloadItemResourceList) (WorkloadItemResourceList, error))`
+- Function `NewProtectionPolicyResourceListPage` parameter(s) have been changed from `(func(context.Context, ProtectionPolicyResourceList) (ProtectionPolicyResourceList, error))` to `(ProtectionPolicyResourceList, func(context.Context, ProtectionPolicyResourceList) (ProtectionPolicyResourceList, error))`
+- Function `NewRecoveryPointResourceListPage` parameter(s) have been changed from `(func(context.Context, RecoveryPointResourceList) (RecoveryPointResourceList, error))` to `(RecoveryPointResourceList, func(context.Context, RecoveryPointResourceList) (RecoveryPointResourceList, error))`
+- Function `NewEngineBaseResourceListPage` parameter(s) have been changed from `(func(context.Context, EngineBaseResourceList) (EngineBaseResourceList, error))` to `(EngineBaseResourceList, func(context.Context, EngineBaseResourceList) (EngineBaseResourceList, error))`
+- Function `NewProtectionIntentResourceListPage` parameter(s) have been changed from `(func(context.Context, ProtectionIntentResourceList) (ProtectionIntentResourceList, error))` to `(ProtectionIntentResourceList, func(context.Context, ProtectionIntentResourceList) (ProtectionIntentResourceList, error))`
+- Function `NewProtectedItemResourceListPage` parameter(s) have been changed from `(func(context.Context, ProtectedItemResourceList) (ProtectedItemResourceList, error))` to `(ProtectedItemResourceList, func(context.Context, ProtectedItemResourceList) (ProtectedItemResourceList, error))`

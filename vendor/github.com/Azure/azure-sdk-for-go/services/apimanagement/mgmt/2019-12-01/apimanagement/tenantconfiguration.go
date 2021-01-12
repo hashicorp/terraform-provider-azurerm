@@ -174,6 +174,7 @@ func (client TenantConfigurationClient) GetSyncState(ctx context.Context, resour
 	result, err = client.GetSyncStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantConfigurationClient", "GetSyncState", resp, "Failure responding to request")
+		return
 	}
 
 	return

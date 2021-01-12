@@ -89,6 +89,7 @@ func (client TableServicesClient) GetServiceProperties(ctx context.Context, reso
 	result, err = client.GetServicePropertiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableServicesClient", "GetServiceProperties", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,6 +181,7 @@ func (client TableServicesClient) List(ctx context.Context, resourceGroupName st
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableServicesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -273,6 +275,7 @@ func (client TableServicesClient) SetServiceProperties(ctx context.Context, reso
 	result, err = client.SetServicePropertiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableServicesClient", "SetServiceProperties", resp, "Failure responding to request")
+		return
 	}
 
 	return
