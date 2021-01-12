@@ -528,7 +528,7 @@ func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtual
 }
 
 func expandSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
-	expandedLuns := make([]int32, 0, len(input))
+	expandedLuns := make([]int32, 0)
 	for i := range input {
 		if input[i] != nil {
 			expandedLuns = append(expandedLuns, int32(input[i].(int)))
