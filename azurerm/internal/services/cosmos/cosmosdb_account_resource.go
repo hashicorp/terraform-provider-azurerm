@@ -111,7 +111,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"enable_analytical_storage": {
+			"analytical_storage_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -394,7 +394,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
-	enableAnalyticalStorage := d.Get("enable_analytical_storage").(bool)
+	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -491,7 +491,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
-	enableAnalyticalStorage := d.Get("enable_analytical_storage").(bool)
+	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -641,7 +641,7 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("endpoint", resp.DocumentEndpoint)
 
 	d.Set("enable_free_tier", resp.EnableFreeTier)
-	d.Set("enable_analytical_storage", resp.EnableAnalyticalStorage)
+	d.Set("analytical_storage_enabled", resp.EnableAnalyticalStorage)
 	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == documentdb.Enabled)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {

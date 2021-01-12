@@ -1067,7 +1067,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
 
-  enable_analytical_storage = true
+  analytical_storage_enabled = true
 
   consistency_policy {
     consistency_level = "%s"
