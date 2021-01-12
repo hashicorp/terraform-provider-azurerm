@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachine_orchestratedZonal(t *testing.T) {
+func TestAccWindowsVirtualMachine_orchestratedZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -24,7 +24,7 @@ func TestAccAzureRMWindowsVirtualMachine_orchestratedZonal(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachine_orchestratedZonalWithProximityPlacementGroup(t *testing.T) {
+func TestAccWindowsVirtualMachine_orchestratedZonalWithProximityPlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -39,7 +39,7 @@ func TestAccAzureRMWindowsVirtualMachine_orchestratedZonalWithProximityPlacement
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachine_orchestratedNonZonal(t *testing.T) {
+func TestAccWindowsVirtualMachine_orchestratedNonZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -54,7 +54,7 @@ func TestAccAzureRMWindowsVirtualMachine_orchestratedNonZonal(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachine_orchestratedMultipleZonal(t *testing.T) {
+func TestAccWindowsVirtualMachine_orchestratedMultipleZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -69,7 +69,7 @@ func TestAccAzureRMWindowsVirtualMachine_orchestratedMultipleZonal(t *testing.T)
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachine_orchestratedMultipleNoneZonal(t *testing.T) {
+func TestAccWindowsVirtualMachine_orchestratedMultipleNoneZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
