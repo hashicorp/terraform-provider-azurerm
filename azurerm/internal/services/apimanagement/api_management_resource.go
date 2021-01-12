@@ -298,7 +298,7 @@ func resourceApiManagementService() *schema.Resource {
 							Type:          schema.TypeBool,
 							Optional:      true,
 							Default:       false,
-							ConflictsWith: []string{"security.triple_des_ciphers_enabled"},
+							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
 							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
 						},
 
