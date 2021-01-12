@@ -1,15 +1,18 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type WindowsVirtualMachineResource struct {
+}
 
 func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
@@ -38,35 +41,21 @@ func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 	return nil
 }
 
-func checkWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.VirtualMachineID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Windows Virtual Machine %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on VMClient: %+v", err)
-		}
-
-		return nil
+func (t WindowsVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualMachineID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Windows Virtual Machine %q", id)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testWindowsVirtualMachine_templateBase(data acceptance.TestData) string {
+func (WindowsVirtualMachineResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"
@@ -93,8 +82,7 @@ resource "azurerm_subnet" "test" {
 `, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_template(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_templateBase(data)
+func (r WindowsVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -109,5 +97,5 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger)
 }
