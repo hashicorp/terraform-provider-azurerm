@@ -53,21 +53,17 @@ func TestAccDataFactoryLinkedServiceSQLServer_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
 	r := LinkedServiceSQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataFactoryLinkedServiceSQLServer_key_vault_reference(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_password.0.linked_service_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_vault_password.0.secret_name", "secret"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.key_vault_reference(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_string").Exists(),
+				check.That(data.ResourceName).Key("key_vault_password.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("key_vault_password.0.secret_name").HasValue("secret"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -164,7 +160,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataFactoryLinkedServiceSQLServer_key_vault_reference(data acceptance.TestData) string {
+func (LinkedServiceSQLServerResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
