@@ -16,7 +16,7 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceDataSource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
