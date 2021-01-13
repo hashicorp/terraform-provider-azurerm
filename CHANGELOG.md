@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_kusto_cluster` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_linux_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_linux_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_security_center_automation` - the field `event_source` within the `source` block now supports `SecureScoreControls ` and `SecureScores` [GH-10126]
 * `azurerm_synapse_workspace` - support for the `sql_identity_control_enabled` property [GH-10033]
 * `azurerm_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
