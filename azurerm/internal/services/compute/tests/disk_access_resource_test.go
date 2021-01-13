@@ -1,112 +1,84 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDiskAccess_empty(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
-	var d compute.DiskAccess
+type DiskAccessResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskAccessDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskAccess_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskAccessExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
+func TestAccDiskAccess_empty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
+	r := DiskAccessResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDiskAccess_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
+	r := DiskAccessResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_disk_access"),
 		},
 	})
 }
 
-func TestAccAzureRMDiskAccess_requiresImport(t *testing.T) {
+func TestAccDiskAccess_import(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
-	var d compute.DiskAccess
+	r := DiskAccessResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskAccessDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskAccess_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskAccessExists(data.ResourceName, &d, true),
-				),
-			},
-			{
-				Config:      testAccAzureRMDiskAccess_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_disk_access"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.importConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMDiskAccess_import(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
-	var d compute.DiskAccess
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskAccessDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskAccess_import(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskAccessExists(data.ResourceName, &d, true),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMDiskAccessExists(resourceName string, d *compute.DiskAccess, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DiskAccessClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		daName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for disk access: %s", daName)
-		}
-		resp, err := client.Get(ctx, resourceGroup, daName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on diskAccessClient: %v", err)
-		}
-		if resp.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Bad: DiskAccess %q (resource group %q) does not exist", daName, resourceGroup)
-		}
-		if resp.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Bad: DiskAccess %q (resource group %q) still exists", daName, resourceGroup)
-		}
-
-		*d = resp
-
-		return nil
+func (t DiskAccessResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DiskAccessID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Compute.DiskAccessClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Disk Access %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMDiskAccess_empty(data acceptance.TestData) string {
+func (DiskAccessResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,8 +103,7 @@ resource "azurerm_disk_access" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDiskAccess_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDiskAccess_empty(data)
+func (r DiskAccessResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
@@ -146,10 +117,10 @@ resource "azurerm_disk_access" "import" {
     cost-center = "ops"
   }
 }
-		`, template)
+`, r.empty(data))
 }
 
-func testAccAzureRMDiskAccess_import(data acceptance.TestData) string {
+func (DiskAccessResource) importConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -170,32 +141,5 @@ resource "azurerm_disk_access" "test" {
     environment = "staging"
   }
 }
-
-
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testCheckAzureRMDiskAccessDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DiskAccessClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_disk_access" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Disk Access still exists: \n%#v", resp.DiskAccessProperties)
-		}
-	}
-
-	return nil
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

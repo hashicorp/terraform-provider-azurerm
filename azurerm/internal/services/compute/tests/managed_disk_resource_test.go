@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -9,397 +10,339 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMManagedDisk_empty(t *testing.T) {
+type ManagedDiskResource struct {
+}
+
+func TestAccManagedDisk_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+	var d compute.Disk
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_requiresImport(t *testing.T) {
+func TestAccManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			{
-				Config:      testAccAzureRMManagedDisk_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.zeroGbFromPlatformImage(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+			ExpectNonEmptyPlan: true, // since the `disk_size_gb` will have changed
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
+func TestAccManagedDisk_import(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	var d compute.Disk
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_zeroGbFromPlatformImage(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-				ExpectNonEmptyPlan: true, // since the `disk_size_gb` will have changed
-			},
-		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_import(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var vm compute.VirtualMachine
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then delete it so we can use the vhd to test import
-				Config:             VirtualMachineResource{}.basicLinuxMachine(data),
-				Destroy:            false,
-				ExpectNonEmptyPlan: true,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckVirtualMachineExists("azurerm_virtual_machine.test", &vm),
-					testDeleteAzureRMVirtualMachine("azurerm_virtual_machine.test"),
-				),
-			},
-			{
-				Config: testAccAzureRMManagedDisk_import(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then delete it so we can use the vhd to test import
+			Config:             VirtualMachineResource{}.basicLinuxMachine(data),
+			Destroy:            false,
+			ExpectNonEmptyPlan: true,
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				testDeleteVirtualMachine("azurerm_virtual_machine.test"),
+			),
+		},
+		{
+			Config: r.importConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_copy(t *testing.T) {
+func TestAccManagedDisk_copy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_copy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.copy(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
+func TestAccManagedDisk_fromPlatformImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_platformImage(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.platformImage(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_update(t *testing.T) {
+func TestAccManagedDisk_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "acctest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost-center", "ops"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_type", string(compute.StorageAccountTypesStandardLRS)),
-				),
-			},
-			{
-				Config: testAccAzureRMManagedDisk_empty_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "acctest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_type", string(compute.StorageAccountTypesPremiumLRS)),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
+				check.That(data.ResourceName).Key("tags.cost-center").HasValue("ops"),
+				check.That(data.ResourceName).Key("disk_size_gb").HasValue("1"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(compute.StorageAccountTypesStandardLRS)),
+			),
+		},
+		{
+			Config: r.empty_updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
+				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(compute.StorageAccountTypesPremiumLRS)),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
+func TestAccManagedDisk_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_encryption(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_settings.0.disk_encryption_key.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "encryption_settings.0.disk_encryption_key.0.secret_url"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "encryption_settings.0.disk_encryption_key.0.source_vault_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_settings.0.key_encryption_key.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "encryption_settings.0.key_encryption_key.0.key_url"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "encryption_settings.0.key_encryption_key.0.source_vault_id"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.encryption(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).Key("encryption_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.secret_url").Exists(),
+				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.source_vault_id").Exists(),
+				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.0.key_url").Exists(),
+				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.0.source_vault_id").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
+func TestAccManagedDisk_importEmpty_withZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_empty_withZone(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty_withZone(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_create_withUltraSSD(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+	var d compute.Disk
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.create_withUltraSSD(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_update_withUltraSSD(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+	var d compute.Disk
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.create_withUltraSSD(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).Key("disk_iops_read_write").HasValue("101"),
+				check.That(data.ResourceName).Key("disk_mbps_read_write").HasValue("10"),
+			),
+		},
+		{
+			Config: r.update_withUltraSSD(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).Key("disk_iops_read_write").HasValue("102"),
+				check.That(data.ResourceName).Key("disk_mbps_read_write").HasValue("11"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_create_withUltraSSD(t *testing.T) {
+func TestAccManagedDisk_import_withUltraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_create_withUltraSSD(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.create_withUltraSSD(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+		},
+		{
+			Config:      r.import_withUltraSSD(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
 		},
 	})
 }
 
-func TestAccAzureRMManagedDisk_update_withUltraSSD(t *testing.T) {
+func TestAccManagedDisk_diskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_create_withUltraSSD(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_iops_read_write", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_mbps_read_write", "10"),
-				),
-			},
-			{
-				Config: testAccAzureRMManagedDisk_update_withUltraSSD(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_iops_read_write", "102"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_mbps_read_write", "11"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskEncryptionSetEncrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMManagedDisk_import_withUltraSSD(t *testing.T) {
+func TestAccManagedDisk_diskEncryptionSet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_create_withUltraSSD(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			{
-				Config:      testAccAzureRMManagedDisk_import_withUltraSSD(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskEncryptionSetUnencrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.diskEncryptionSetEncrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
+func TestAccManagedDisk_attachedDiskUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetEncrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managedDiskAttached(data, 10),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.managedDiskAttached(data, 20),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).Key("disk_size_gb").HasValue("20"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMManagedDisk_diskEncryptionSet_update(t *testing.T) {
+func TestAccManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
 	var d compute.Disk
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetUnencrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetEncrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageTypeUpdateWhilstAttached(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_attachedDiskUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	var d compute.Disk
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_managedDiskAttached(data, 10),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMManagedDisk_managedDiskAttached(data, 20),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "20"),
-				),
-			},
-			data.ImportStep(),
+		data.ImportStep(),
+		{
+			Config: r.storageTypeUpdateWhilstAttached(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckManagedDiskExists(data.ResourceName, &d, true),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	var d compute.Disk
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_storageTypeUpdateWhilstAttached(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMManagedDisk_storageTypeUpdateWhilstAttached(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
-		},
+		data.ImportStep(),
 	})
 }
 
 // nolint unparam
-func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
+func testCheckManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -433,32 +376,7 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 	}
 }
 
-func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_managed_disk" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Disk still exists: \n%#v", resp.DiskProperties)
-		}
-	}
-
-	return nil
-}
-
-func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc {
+func testDeleteVirtualMachine(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -489,7 +407,21 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMManagedDisk_empty(data acceptance.TestData) string {
+func (t ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ManagedDiskID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Managed Disk %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (ManagedDiskResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -516,8 +448,8 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_empty(data)
+func (ManagedDiskResource) requiresImport(data acceptance.TestData) string {
+	template := ManagedDiskResource{}.empty(data)
 	return fmt.Sprintf(`
 %s
 
@@ -537,7 +469,7 @@ resource "azurerm_managed_disk" "import" {
 `, template)
 }
 
-func testAccAzureRMManagedDisk_empty_withZone(data acceptance.TestData) string {
+func (ManagedDiskResource) empty_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -565,7 +497,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_import(data acceptance.TestData) string {
+func (ManagedDiskResource) importConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -611,7 +543,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_copy(data acceptance.TestData) string {
+func (ManagedDiskResource) copy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -653,7 +585,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_empty_updated(data acceptance.TestData) string {
+func (ManagedDiskResource) empty_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -679,7 +611,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_platformImage(data acceptance.TestData) string {
+func (ManagedDiskResource) platformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -709,7 +641,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_zeroGbFromPlatformImage(data acceptance.TestData) string {
+func (ManagedDiskResource) zeroGbFromPlatformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -740,7 +672,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_encryption(data acceptance.TestData) string {
+func (ManagedDiskResource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -833,7 +765,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_create_withUltraSSD(data acceptance.TestData) string {
+func (ManagedDiskResource) create_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -863,7 +795,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_update_withUltraSSD(data acceptance.TestData) string {
+func (ManagedDiskResource) update_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -893,8 +825,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_import_withUltraSSD(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_create_withUltraSSD(data)
+func (r ManagedDiskResource) import_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -913,10 +844,10 @@ resource "azurerm_managed_disk" "import" {
     cost-center = "ops"
   }
 }
-`, template)
+`, r.create_withUltraSSD(data))
 }
 
-func testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
+func (ManagedDiskResource) diskEncryptionSetDependencies(data acceptance.TestData) string {
 	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
 	// TODO: switch back to default location
 	location := "westus2"
@@ -1014,8 +945,7 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 `, data.RandomInteger, location, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_diskEncryptionSetEncrypted(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
+func (r ManagedDiskResource) diskEncryptionSetEncrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1033,12 +963,10 @@ resource "azurerm_managed_disk" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger)
+`, r.diskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_diskEncryptionSetUnencrypted(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
-
+func (r ManagedDiskResource) diskEncryptionSetUnencrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1055,11 +983,10 @@ resource "azurerm_managed_disk" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger)
+`, r.diskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
-	template := testAccAzureRMManagedDisk_templateAttached(data)
+func (r ManagedDiskResource) managedDiskAttached(data acceptance.TestData, diskSize int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1082,11 +1009,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = "0"
   caching            = "None"
 }
-`, template, data.RandomInteger, diskSize)
+`, r.templateAttached(data), data.RandomInteger, diskSize)
 }
 
-func testAccAzureRMManagedDisk_storageTypeUpdateWhilstAttached(data acceptance.TestData, storageAccountType string) string {
-	template := testAccAzureRMManagedDisk_templateAttached(data)
+func (r ManagedDiskResource) storageTypeUpdateWhilstAttached(data acceptance.TestData, storageAccountType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1109,10 +1035,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = "0"
   caching            = "None"
 }
-`, template, data.RandomInteger, storageAccountType)
+`, r.templateAttached(data), data.RandomInteger, storageAccountType)
 }
 
-func testAccAzureRMManagedDisk_templateAttached(data acceptance.TestData) string {
+func (ManagedDiskResource) templateAttached(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

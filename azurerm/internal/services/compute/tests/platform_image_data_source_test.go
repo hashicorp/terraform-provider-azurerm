@@ -6,50 +6,48 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
+type PlatformImageDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMPlatformImageBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "offer", "UbuntuServer"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "16.04-LTS"),
-				),
-			},
+func TestAccDataSourcePlatformImage_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
+	r := PlatformImageDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("version").Exists(),
+				check.That(data.ResourceName).Key("publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("sku").HasValue("16.04-LTS"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMPlatformImage_withVersion(t *testing.T) {
+func TestAccDataSourcePlatformImage_withVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
+	r := PlatformImageDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMPlatformImageWithVersion(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "offer", "UbuntuServer"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "16.04-LTS"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "16.04.201811010"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.withVersion(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("version").Exists(),
+				check.That(data.ResourceName).Key("publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("offer").HasValue("UbuntuServer"),
+				check.That(data.ResourceName).Key("sku").HasValue("16.04-LTS"),
+				check.That(data.ResourceName).Key("version").HasValue("16.04.201811010"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMPlatformImageBasic(data acceptance.TestData) string {
+func (PlatformImageDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -64,7 +62,7 @@ data "azurerm_platform_image" "test" {
 `, data.Locations.Primary)
 }
 
-func testAccDataSourceAzureRMPlatformImageWithVersion(data acceptance.TestData) string {
+func (PlatformImageDataSource) withVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

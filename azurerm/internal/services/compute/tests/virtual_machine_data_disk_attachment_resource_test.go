@@ -1,8 +1,8 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
@@ -10,315 +10,221 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+type VirtualMachineDataDiskAttachmentResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_disk_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "lun", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "caching", "None"),
-				),
-			},
-			data.ImportStep(),
+func TestAccVirtualMachineDataDiskAttachment_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	r := VirtualMachineDataDiskAttachmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
+				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
+				check.That(data.ResourceName).Key("lun").HasValue("0"),
+				check.That(data.ResourceName).Key("caching").HasValue("None"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualMachineDataDiskAttachment_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	r := VirtualMachineDataDiskAttachmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_data_disk_attachment"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T) {
+func TestAccVirtualMachineDataDiskAttachment_destroy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	r := VirtualMachineDataDiskAttachmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_data_disk_attachment"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineDataDiskAttachmentDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_destroy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineDataDiskAttachmentDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) {
+func TestAccVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "first")
+	r := VirtualMachineDataDiskAttachmentResource{}
 
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_disk_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "lun", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "caching", "None"),
-
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(secondResourceName),
-					resource.TestCheckResourceAttrSet(secondResourceName, "virtual_machine_id"),
-					resource.TestCheckResourceAttrSet(secondResourceName, "managed_disk_id"),
-					resource.TestCheckResourceAttr(secondResourceName, "lun", "20"),
-					resource.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      secondResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleDisks(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
+				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
+				check.That(data.ResourceName).Key("lun").HasValue("10"),
+				check.That(data.ResourceName).Key("caching").HasValue("None"),
+				resource.TestCheckResourceAttrSet(secondResourceName, "virtual_machine_id"),
+				resource.TestCheckResourceAttrSet(secondResourceName, "managed_disk_id"),
+				resource.TestCheckResourceAttr(secondResourceName, "lun", "20"),
+				resource.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
+			),
+		},
+		data.ImportStep(),
+		{
+			ResourceName:      secondResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
+func TestAccVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "caching", "None"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_readOnly(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "caching", "ReadOnly"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_readWrite(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "caching", "ReadWrite"),
-				),
-			},
+	r := VirtualMachineDataDiskAttachmentResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("caching").HasValue("None"),
+			),
+		},
+		{
+			Config: r.readOnly(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("caching").HasValue("ReadOnly"),
+			),
+		},
+		{
+			Config: r.readWrite(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("caching").HasValue("ReadWrite"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
+func TestAccVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "write_accelerator_enabled", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "write_accelerator_enabled", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "write_accelerator_enabled", "false"),
-				),
-			},
+	r := VirtualMachineDataDiskAttachmentResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.writeAccelerator(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("write_accelerator_enabled").HasValue("false"),
+			),
+		},
+		{
+			Config: r.writeAccelerator(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("write_accelerator_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.writeAccelerator(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("write_accelerator_enabled").HasValue("false"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(t *testing.T) {
+func TestAccVirtualMachineDataDiskAttachment_managedServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	r := VirtualMachineDataDiskAttachmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_disk_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "lun", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "caching", "None"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managedServiceIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
+				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
+				check.That(data.ResourceName).Key("lun").HasValue("0"),
+				check.That(data.ResourceName).Key("caching").HasValue("None"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.T) {
+func TestAccVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(data),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_disk_id"),
-				),
-			},
+	r := VirtualMachineDataDiskAttachmentResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.virtualMachineExtensionPrep(data),
+		},
+		{
+			Config: r.virtualMachineExtensionComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
+				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
-
-		id, err := azure.ParseAzureResourceID(virtualMachineId)
-		if err != nil {
-			return err
-		}
-
-		virtualMachineName := id.Path["virtualMachines"]
-		resourceGroup := id.ResourceGroup
-
-		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: VirtualMachine %q (resource group: %q) does not exist", virtualMachineName, resourceGroup)
-		}
-
-		diskId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		diskName := diskId.Path["dataDisks"]
-
-		// deliberately not using strings.EqualFold as this is case sensitive
-		for _, disk := range *resp.StorageProfile.DataDisks {
-			if *disk.Name == diskName {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("Disk %q was not found on Virtual Machine %q (Resource Group %q)", diskName, virtualMachineName, resourceName)
+func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	virtualMachineName := id.Path["virtualMachines"]
+	name := id.Path["dataDisks"]
 
-func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	resp, err := clients.Compute.VMClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
+	}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine_data_disk_attachment" {
-			continue
-		}
-
-		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
-
-		id, err := azure.ParseAzureResourceID(virtualMachineId)
-		if err != nil {
-			return err
-		}
-
-		virtualMachineName := id.Path["virtualMachines"]
-		resourceGroup := id.ResourceGroup
-
-		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
-		}
-
-		diskId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		diskName := diskId.Path["dataDisks"]
-
-		for _, disk := range *resp.StorageProfile.DataDisks {
-			// deliberately not using strings.Equals as this is case sensitive
-			if *disk.Name == diskName {
-				return fmt.Errorf("Disk %q is still attached to Virtual Machine %q (Resource Group %q)", diskName, virtualMachineName, resourceGroup)
+	var disk *compute.DataDisk
+	if profile := resp.StorageProfile; profile != nil {
+		if dataDisks := profile.DataDisks; dataDisks != nil {
+			for _, dataDisk := range *dataDisks {
+				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
+				if *dataDisk.Name == name {
+					disk = &dataDisk
+					break
+				}
 			}
 		}
 	}
 
-	return nil
+	return utils.Bool(disk != nil), nil
 }
 
-func testCheckAzureRMVirtualMachineDataDiskAttachmentDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckVirtualMachineDataDiskAttachmentDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -384,8 +290,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDisappears(resourceName str
 	}
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(data)
+func (r VirtualMachineDataDiskAttachmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -395,11 +300,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = "0"
   caching            = "None"
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineDataDiskAttachment_basic(data)
+func (r VirtualMachineDataDiskAttachmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -409,10 +313,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "import" {
   lun                = azurerm_virtual_machine_data_disk_attachment.test.lun
   caching            = azurerm_virtual_machine_data_disk_attachment.test.caching
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(data acceptance.TestData) string {
+func (VirtualMachineDataDiskAttachmentResource) managedServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -503,8 +407,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(data)
+func (r VirtualMachineDataDiskAttachmentResource) multipleDisks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -530,11 +433,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "second" {
   lun                = "20"
   caching            = "ReadOnly"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_readOnly(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(data)
+func (r VirtualMachineDataDiskAttachmentResource) readOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -544,11 +446,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = "0"
   caching            = "ReadOnly"
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_readWrite(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(data)
+func (r VirtualMachineDataDiskAttachmentResource) readWrite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -558,10 +459,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = "0"
   caching            = "ReadWrite"
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(data acceptance.TestData, enabled bool) string {
+func (VirtualMachineDataDiskAttachmentResource) writeAccelerator(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -649,7 +550,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_template(data acceptance.TestData) string {
+func (VirtualMachineDataDiskAttachmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -729,7 +630,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(data acceptance.TestData) string {
+func (VirtualMachineDataDiskAttachmentResource) virtualMachineExtensionPrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -833,8 +734,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionComplete(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(data)
+func (r VirtualMachineDataDiskAttachmentResource) virtualMachineExtensionComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -853,5 +753,5 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = "11"
   caching            = "ReadWrite"
 }
-`, template, data.RandomInteger)
+`, r.virtualMachineExtensionPrep(data), data.RandomInteger)
 }

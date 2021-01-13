@@ -1,179 +1,118 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSharedImage_basic(t *testing.T) {
+type SharedImageResource struct {
+}
+
+func TestAccSharedImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImage_basic(data, ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-				),
-			},
-			data.ImportStep(),
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImage_basic(data, "V2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V2"),
-				),
-			},
-			data.ImportStep(),
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "V2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
+func TestAccSharedImage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImage_basic(data, ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSharedImage_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMSharedImage_complete(t *testing.T) {
+func TestAccSharedImage_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImage_complete(data, "V1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Wubba lubba dub dub"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eula", "Do you agree there's infinite Rick's and Infinite Morty's?"),
-					resource.TestCheckResourceAttr(data.ResourceName, "privacy_statement_uri", "https://council.of.ricks/privacy-statement"),
-					resource.TestCheckResourceAttr(data.ResourceName, "release_note_uri", "https://council.of.ricks/changelog.md"),
-				),
-			},
-			data.ImportStep(),
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data, "V1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
+				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub dub"),
+				check.That(data.ResourceName).Key("eula").HasValue("Do you agree there's infinite Rick's and Infinite Morty's?"),
+				check.That(data.ResourceName).Key("privacy_statement_uri").HasValue("https://council.of.ricks/privacy-statement"),
+				check.That(data.ResourceName).Key("release_note_uri").HasValue("https://council.of.ricks/changelog.md"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSharedImage_specialized(t *testing.T) {
+func TestAccSharedImage_specialized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImage_specialized(data, "V1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.specialized(data, "V1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_shared_image" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		galleryName := rs.Primary.Attributes["gallery_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, galleryName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Shared Image still exists:\n%+v", resp)
-		}
+func (t SharedImageResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SharedImageID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		imageName := rs.Primary.Attributes["name"]
-		galleryName := rs.Primary.Attributes["gallery_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Shared Image: %s", imageName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on galleryImagesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Shared Image %q (Gallery %q / Resource Group: %q) does not exist", imageName, galleryName, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.Compute.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Shared Image %q", id.String())
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMSharedImage_basic(data acceptance.TestData, hyperVGen string) string {
+func (SharedImageResource) basic(data acceptance.TestData, hyperVGen string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -211,7 +150,7 @@ resource "azurerm_shared_image" "test" {
 `, hyperVGen, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImage_specialized(data acceptance.TestData, hyperVGen string) string {
+func (SharedImageResource) specialized(data acceptance.TestData, hyperVGen string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -250,8 +189,7 @@ resource "azurerm_shared_image" "test" {
 `, hyperVGen, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImage_basic(data, "")
+func (r SharedImageResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -268,10 +206,10 @@ resource "azurerm_shared_image" "import" {
     sku       = "AccTesSku%d"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.basic(data, ""), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImage_complete(data acceptance.TestData, hyperVGen string) string {
+func (SharedImageResource) complete(data acceptance.TestData, hyperVGen string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

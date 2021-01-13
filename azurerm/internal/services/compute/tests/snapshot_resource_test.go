@@ -1,17 +1,23 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type SnapshotResource struct {
+}
 
 func TestSnapshotName_validation(t *testing.T) {
 	str := acctest.RandString(80)
@@ -62,201 +68,134 @@ func TestSnapshotName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
+func TestAccSnapshot_fromManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("source_uri"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fromManagedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_uri"),
+	})
+}
+
+func TestAccSnapshot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fromManagedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_snapshot"),
 		},
 	})
 }
 
-func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
+func TestAccSnapshot_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMSnapshot_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_snapshot"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.encryption(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_uri"),
+	})
+}
+
+func TestAccSnapshot_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fromManagedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.fromManagedDiskUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSnapshot_encryption(t *testing.T) {
+func TestAccSnapshot_extendingManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_encryption(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("source_uri"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extendingManagedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSnapshot_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMSnapshot_fromManagedDiskUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_extendingManagedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
+func TestAccSnapshot_fromExistingSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "second")
+	r := SnapshotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_fromExistingSnapshot(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fromExistingSnapshot(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
+func TestAccSnapshot_fromUnmanagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSnapshot_fromUnmanagedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSnapshotExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fromUnmanagedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_snapshot" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return fmt.Errorf("Snapshot still exists:\n%+v", resp)
+func (t SnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["snapshots"]
 
-func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Snapshot: %q", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Topic %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on snapshotsClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Compute.SnapshotsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMSnapshot_fromManagedDisk(data acceptance.TestData) string {
+func (SnapshotResource) fromManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -286,7 +225,7 @@ resource "azurerm_snapshot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSnapshot_requiresImport(data acceptance.TestData) string {
+func (r SnapshotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -297,10 +236,10 @@ resource "azurerm_snapshot" "import" {
   create_option       = azurerm_snapshot.test.create_option
   source_uri          = azurerm_snapshot.test.source_uri
 }
-`, testAccAzureRMSnapshot_fromManagedDisk(data))
+`, r.fromManagedDisk(data))
 }
 
-func testAccAzureRMSnapshot_fromManagedDiskUpdated(data acceptance.TestData) string {
+func (SnapshotResource) fromManagedDiskUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -334,7 +273,7 @@ resource "azurerm_snapshot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSnapshot_encryption(data acceptance.TestData) string {
+func (SnapshotResource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -431,7 +370,7 @@ resource "azurerm_snapshot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMSnapshot_extendingManagedDisk(data acceptance.TestData) string {
+func (SnapshotResource) extendingManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -462,7 +401,7 @@ resource "azurerm_snapshot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSnapshot_fromExistingSnapshot(data acceptance.TestData) string {
+func (SnapshotResource) fromExistingSnapshot(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -500,7 +439,7 @@ resource "azurerm_snapshot" "second" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSnapshot_fromUnmanagedDisk(data acceptance.TestData) string {
+func (SnapshotResource) fromUnmanagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

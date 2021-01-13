@@ -26,12 +26,12 @@ import (
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
 //       `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
 //       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
-func resourceArmVirtualMachineScaleSet() *schema.Resource {
+func resourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmVirtualMachineScaleSetCreateUpdate,
-		Read:          resourceArmVirtualMachineScaleSetRead,
-		Update:        resourceArmVirtualMachineScaleSetCreateUpdate,
-		Delete:        resourceArmVirtualMachineScaleSetDelete,
+		Create:        resourceVirtualMachineScaleSetCreateUpdate,
+		Read:          resourceVirtualMachineScaleSetRead,
+		Update:        resourceVirtualMachineScaleSetCreateUpdate,
+		Delete:        resourceVirtualMachineScaleSetDelete,
 		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
 		SchemaVersion: 1,
 
@@ -349,7 +349,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
+				Set: resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
 			// lintignore:S018
@@ -384,7 +384,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
+				Set: resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
 			// lintignore:S018
@@ -523,7 +523,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
+				Set: resourceVirtualMachineScaleSetNetworkConfigurationHash,
 			},
 
 			"boot_diagnostics": {
@@ -598,7 +598,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
+				Set: resourceVirtualMachineScaleSetStorageProfileOsDiskHash,
 			},
 
 			"storage_profile_data_disk": {
@@ -677,7 +677,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
+				Set: resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
 			// lintignore:S018
@@ -762,7 +762,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetExtensionHash,
+				Set: resourceVirtualMachineScaleSetExtensionHash,
 			},
 
 			"proximity_placement_group_id": {
@@ -784,7 +784,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -929,10 +929,10 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualMachineScaleSetRead(d, meta)
+	return resourceVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1091,7 +1091,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1539,7 +1539,7 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 	return result, nil
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
+func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1563,7 +1563,7 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
+func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1577,7 +1577,7 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
+func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1643,7 +1643,7 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
+func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1665,7 +1665,7 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
+func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1680,7 +1680,7 @@ func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) 
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
+func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {

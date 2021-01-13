@@ -1,142 +1,91 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+type SharedImageGalleryResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImageGallery_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageGalleryExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-				),
-			},
-			data.ImportStep(),
+func TestAccSharedImageGallery_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImageGallery_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_shared_image_gallery"),
 		},
 	})
 }
 
-func TestAccAzureRMSharedImageGallery_requiresImport(t *testing.T) {
+func TestAccSharedImageGallery_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImageGallery_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageGalleryExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-				),
-			},
-			{
-				Config:      testAccAzureRMSharedImageGallery_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_shared_image_gallery"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("Shared images and things."),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("There"),
+				check.That(data.ResourceName).Key("tags.World").HasValue("Example"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSharedImageGallery_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImageGallery_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageGalleryExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Shared images and things."),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "There"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.World", "Example"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMSharedImageGalleryDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleriesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_shared_image_gallery" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Shared Image Gallery still exists:\n%+v", resp)
-		}
+func (t SharedImageGalleryResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SharedImageGalleryID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMSharedImageGalleryExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleriesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		galleryName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Shared Image Gallery: %s", galleryName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, galleryName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on galleriesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Shared Image Gallery %q (resource group: %q) does not exist", galleryName, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.Compute.GalleriesClient.Get(ctx, id.ResourceGroup, id.GalleryName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id.String())
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMSharedImageGallery_basic(data acceptance.TestData) string {
+func (SharedImageGalleryResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -155,7 +104,7 @@ resource "azurerm_shared_image_gallery" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImageGallery_requiresImport(data acceptance.TestData) string {
+func (r SharedImageGalleryResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -164,10 +113,10 @@ resource "azurerm_shared_image_gallery" "import" {
   resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
   location            = azurerm_shared_image_gallery.test.location
 }
-`, testAccAzureRMSharedImageGallery_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMSharedImageGallery_complete(data acceptance.TestData) string {
+func (SharedImageGalleryResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

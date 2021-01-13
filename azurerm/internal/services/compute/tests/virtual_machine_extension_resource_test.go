@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -8,155 +9,103 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+type VirtualMachineExtensionResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineExtension_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
-				),
-			},
-			data.ImportStep("protected_settings"),
-			{
-				Config: testAccAzureRMVirtualMachineExtension_basicUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("whoami")),
-				),
-			},
-			data.ImportStep("protected_settings"),
+func TestAccVirtualMachineExtension_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
+			),
+		},
+		data.ImportStep("protected_settings"),
+		{
+			Config: r.basicUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("whoami")),
+			),
+		},
+		data.ImportStep("protected_settings"),
+	})
+}
+
+func TestAccVirtualMachineExtension_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_extension"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
+func TestAccVirtualMachineExtension_concurrent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineExtension_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualMachineExtension_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_extension"),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
 	secondResourceName := "azurerm_virtual_machine_extension.test2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineExtension_concurrent(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineExtensionExists(secondResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
-					resource.TestMatchResourceAttr(secondResourceName, "settings", regexp.MustCompile("whoami")),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.concurrent(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
+				resource.TestMatchResourceAttr(secondResourceName, "settings", regexp.MustCompile("whoami")),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
+func TestAccVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineExtension_linuxDiagnostics(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxDiagnostics(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMExtensionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.VirtualMachineExtensionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: VirtualMachine Extension %q (resource group: %q) does not exist", id.ExtensionName, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on vmExtensionClient: %s", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMExtensionClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine_extension" {
-			continue
-		}
-
-		id, err := parse.VirtualMachineExtensionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Compute.VMExtensionClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t VirtualMachineExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualMachineExtensionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Compute.VMExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Virtual Machine Extension %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualMachineExtension_basic(data acceptance.TestData) string {
+func (VirtualMachineExtensionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -264,8 +213,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineExtension_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineExtension_basic(data)
+func (r VirtualMachineExtensionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -278,10 +226,10 @@ resource "azurerm_virtual_machine_extension" "import" {
   settings             = azurerm_virtual_machine_extension.test.settings
   tags                 = azurerm_virtual_machine_extension.test.tags
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualMachineExtension_basicUpdate(data acceptance.TestData) string {
+func (VirtualMachineExtensionResource) basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -390,7 +338,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineExtension_concurrent(data acceptance.TestData) string {
+func (VirtualMachineExtensionResource) concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -509,7 +457,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineExtension_linuxDiagnostics(data acceptance.TestData) string {
+func (VirtualMachineExtensionResource) linuxDiagnostics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

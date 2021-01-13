@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSharedImageVersion() *schema.Resource {
+func dataSourceSharedImageVersion() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSharedImageVersionRead,
+		Read: dataSourceSharedImageVersionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -94,7 +94,7 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 	}
 }
 
-func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

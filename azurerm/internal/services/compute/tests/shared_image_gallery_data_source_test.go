@@ -6,49 +6,44 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMSharedImageGallery_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_gallery", "test")
+type SharedImageGalleryDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSharedImageGallery_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccDataSourceSharedImageGallery_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMSharedImageGallery_complete(t *testing.T) {
+func TestAccDataSourceSharedImageGallery_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSharedImageGallery_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Shared images and things."),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "There"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.World", "Example"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("description").HasValue("Shared images and things."),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("There"),
+				check.That(data.ResourceName).Key("tags.World").HasValue("Example"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceSharedImageGallery_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImageGallery_basic(data)
+func (SharedImageGalleryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -56,11 +51,10 @@ data "azurerm_shared_image_gallery" "test" {
   name                = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
 }
-`, template)
+`, SharedImageGalleryResource{}.basic(data))
 }
 
-func testAccDataSourceSharedImageGallery_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImageGallery_complete(data)
+func (SharedImageGalleryDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -68,5 +62,5 @@ data "azurerm_shared_image_gallery" "test" {
   name                = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
 }
-`, template)
+`, SharedImageGalleryResource{}.complete(data))
 }
