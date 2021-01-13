@@ -22,11 +22,19 @@ func TestAccRoleAssignment(t *testing.T) {
 	// Azure only being happy about provisioning a couple at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
-			"emptyName":      testAccRoleAssignment_emptyName,
-			"roleName":       testAccRoleAssignment_roleName,
-			"dataActions":    testAccRoleAssignment_dataActions,
-			"builtin":        testAccRoleAssignment_builtin,
-			"custom":         testAccRoleAssignment_custom,
+			"roleName": testAccRoleAssignment_roleName,
+			"custom":   testAccRoleAssignment_custom,
+		},
+		"basic_empty_name": {
+			"emptyName": testAccRoleAssignment_emptyName,
+		},
+		"built_in": {
+			"builtin": testAccRoleAssignment_builtin,
+		},
+		"data_actions": {
+			"dataActions": testAccRoleAssignment_dataActions,
+		},
+		"requires_import": {
 			"requiresImport": testAccRoleAssignment_requiresImport,
 		},
 		"assignment": {
@@ -41,7 +49,7 @@ func TestAccRoleAssignment(t *testing.T) {
 }
 
 func testAccRoleAssignment_emptyName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	r := RoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -49,7 +57,7 @@ func testAccRoleAssignment_emptyName(t *testing.T) {
 			Config: r.emptyNameConfig(),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+				check.That(data.ResourceName).Key("name").Exists(),
 			),
 		},
 		data.ImportStep("skip_service_principal_aad_check"),
@@ -67,8 +75,8 @@ func testAccRoleAssignment_roleName(t *testing.T) {
 			Config: r.roleNameConfig(id),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
-				resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
+				check.That(data.ResourceName).Key("role_definition_id").Exists(),
+				check.That(data.ResourceName).Key("role_definition_name").HasValue("Log Analytics Reader"),
 			),
 		},
 		data.ImportStep("skip_service_principal_aad_check"),
@@ -86,8 +94,8 @@ func testAccRoleAssignment_requiresImport(t *testing.T) {
 			Config: r.roleNameConfig(id),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
-				resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
+				check.That(data.ResourceName).Key("role_definition_id").Exists(),
+				check.That(data.ResourceName).Key("role_definition_name").HasValue("Log Analytics Reader"),
 			),
 		},
 		{
@@ -221,17 +229,17 @@ func testAccRoleAssignment_managementGroup(t *testing.T) {
 }
 
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.RoleDefinitionId(state.ID)
+	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Authorization.RoleAssignmentsClient.Get(ctx, id.Scope, id.RoleID)
+	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, state.ID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Role Assignment for role %q (Scope %q): %+v", id.RoleID, id.Scope, err)
+		return nil, fmt.Errorf("retrieving Role Assignment for role %q: %+v", id.Name, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -281,7 +289,7 @@ func (RoleAssignmentResource) requiresImportConfig(id string) string {
 
 resource "azurerm_role_assignment" "import" {
   name                 = azurerm_role_assignment.test.name
-  scope                = azurerm_role_assignment.test.id
+  scope                = azurerm_role_assignment.test.scope
   role_definition_name = azurerm_role_assignment.test.role_definition_name
   principal_id         = azurerm_role_assignment.test.principal_id
 }

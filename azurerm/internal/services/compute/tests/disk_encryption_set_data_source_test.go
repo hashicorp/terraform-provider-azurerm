@@ -6,30 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMDiskEncryptionSet_basic(t *testing.T) {
+type DiskEncryptionSetDataSource struct {
+}
+
+func TestAccDataSourceDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDiskEncryptionSet_basic(data),
-			},
-			{
-				Config: testAccDataSourceDiskEncryptionSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-				),
-			},
+	r := DiskEncryptionSetDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDiskEncryptionSet_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDiskEncryptionSet_basic(data)
+func (DiskEncryptionSetDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +36,5 @@ data "azurerm_disk_encryption_set" "test" {
   name                = azurerm_disk_encryption_set.test.name
   resource_group_name = azurerm_disk_encryption_set.test.resource_group_name
 }
-`, config)
+`, DiskEncryptionSetResource{}.basic(data))
 }

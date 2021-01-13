@@ -6,160 +6,140 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccWindowsVirtualMachine_identityNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_identityNone(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identityNone(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_identitySystemAssignedUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_identitySystemAssignedUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_identityUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_identityUserAssignedUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identityUserAssignedUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_identityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_identityNone(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identityNone(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
-			{
-				Config: testWindowsVirtualMachine_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				Config: testWindowsVirtualMachine_identityUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				Config: testWindowsVirtualMachine_identitySystemAssignedUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			{
-				Config: testWindowsVirtualMachine_identityNone(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identityNone(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func testWindowsVirtualMachine_identityNone(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) identityNone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -186,11 +166,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_identitySystemAssigned(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -221,11 +200,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_identitySystemAssignedUserAssigned(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -265,11 +243,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_identityUserAssigned(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) identityUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -309,11 +286,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_identityUserAssignedUpdated(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) identityUserAssignedUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -360,5 +336,5 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

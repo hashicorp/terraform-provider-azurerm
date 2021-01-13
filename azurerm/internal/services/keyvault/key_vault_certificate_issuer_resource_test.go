@@ -3,7 +3,6 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -93,33 +92,14 @@ func TestAccKeyVaultCertificateIssuer_disappears(t *testing.T) {
 	r := KeyVaultCertificateIssuerResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckKeyVaultCertificateIssuerDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
-func TestAccKeyVaultCertificateIssuer_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
-	r := KeyVaultCertificateIssuerResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultCertificateIssuerDisappears("azurerm_key_vault.test"),
-			),
-			ExpectNonEmptyPlan: true,
-		},
-	})
-}
-
-func (t KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultClient := clients.KeyVault.VaultsClient
 
@@ -146,44 +126,35 @@ func (t KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckKeyVaultCertificateIssuerDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	dataPlaneClient := client.KeyVault.ManagementClient
+	vaultClient := client.KeyVault.VaultsClient
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.DeleteCertificateIssuer(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
+	name := state.Attributes["name"]
+	keyVaultId := state.Attributes["key_vault_id"]
+	vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	if err != nil {
+		return utils.Bool(false), fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
 	}
+
+	ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+	}
+	if !ok {
+		return utils.Bool(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId, vaultBaseUrl)
+	}
+
+	resp, err := dataPlaneClient.DeleteCertificateIssuer(ctx, vaultBaseUrl, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(true), nil
+		}
+
+		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (KeyVaultCertificateIssuerResource) basic(data acceptance.TestData) string {

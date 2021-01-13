@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -239,7 +241,7 @@ func schemaAppServiceIdentity() *schema.Schema {
 					MinItems: 1,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validation.NoZeroValues,
+						ValidateFunc: validate.UserAssignedIdentityID,
 					},
 				},
 
@@ -1482,9 +1484,9 @@ func expandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
 	return &managedServiceIdentity
 }
 
-func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	principalId := ""
@@ -1500,7 +1502,11 @@ func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := parse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -1511,7 +1517,7 @@ func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
 		},
-	}
+	}, nil
 }
 
 func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {

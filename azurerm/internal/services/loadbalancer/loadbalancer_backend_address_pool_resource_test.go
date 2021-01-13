@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -53,19 +54,10 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 	r := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.removal(data),
-			Check: resource.ComposeTestCheckFunc(
-				r.IsMissing("azurerm_lb.test", fmt.Sprintf("Address-pool-%d", data.RandomInteger)),
-			),
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -99,44 +91,43 @@ func (r LoadBalancerBackendAddressPool) Exists(ctx context.Context, client *clie
 	return utils.Bool(true), nil
 }
 
-func (r LoadBalancerBackendAddressPool) IsMissing(loadBalancerName string, backendPoolName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[loadBalancerName]
-		if !ok {
-			return fmt.Errorf("not found: %q", loadBalancerName)
-		}
-
-		id, err := parse.LoadBalancerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		lb, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q (resource group %q) not found while checking for Backend Address Pool removal", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Backend Address Pool removal", id.Name, id.ResourceGroup)
-		}
-		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.BackendAddressPools == nil {
-			return fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", backendPoolName, id.Name, id.ResourceGroup)
-		}
-
-		found := false
-		for _, v := range *props.BackendAddressPools {
-			if v.Name != nil && *v.Name == backendPoolName {
-				found = true
-			}
-		}
-		if found {
-			return fmt.Errorf("Backend Pool %q not removed from Load Balancer %q (resource group %q)", backendPoolName, id.Name, id.ResourceGroup)
-		}
-		return nil
+func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LoadBalancerBackendAddressPoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q)", id.LoadBalancerName, id.ResourceGroup)
+	}
+	if lb.LoadBalancerPropertiesFormat == nil {
+		return nil, fmt.Errorf("`properties` was nil")
+	}
+	if lb.LoadBalancerPropertiesFormat.BackendAddressPools == nil {
+		return nil, fmt.Errorf("`properties.BackendAddressPools` was nil")
+	}
+
+	backendAddressPools := make([]network.BackendAddressPool, 0)
+	for _, backendAddressPool := range *lb.LoadBalancerPropertiesFormat.BackendAddressPools {
+		if backendAddressPool.Name == nil || *backendAddressPool.Name == id.BackendAddressPoolName {
+			continue
+		}
+
+		backendAddressPools = append(backendAddressPools, backendAddressPool)
+	}
+	lb.LoadBalancerPropertiesFormat.BackendAddressPools = &backendAddressPools
+
+	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
+	if err != nil {
+		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r LoadBalancerBackendAddressPool) basic(data acceptance.TestData) string {
@@ -187,35 +178,4 @@ resource "azurerm_lb_backend_address_pool" "import" {
   resource_group_name = azurerm_lb_backend_address_pool.test.resource_group_name
 }
 `, template)
-}
-
-func (r LoadBalancerBackendAddressPool) removal(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

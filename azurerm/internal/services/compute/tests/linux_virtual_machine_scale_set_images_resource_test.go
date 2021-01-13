@@ -6,195 +6,171 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(data, "16.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(data, "18.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesAutomaticUpdate(data, "16.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesAutomaticUpdate(data, "18.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// provision a standard Virtual Machine with an Unmanaged Disk
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithVM(data),
-			},
-			{
-				// then delete the Virtual Machine
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data),
-			},
-			{
-				// then capture two images of the Virtual Machine
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithImage(data),
-			},
-			{
-				// then provision a Virtual Machine Scale Set using this image
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachine(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// then update the image on this Virtual Machine Scale Set
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachine(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// provision a standard Virtual Machine with an Unmanaged Disk
+			Config: r.imagesFromVirtualMachinePrerequisitesWithVM(data),
+		},
+		{
+			// then delete the Virtual Machine
+			Config: r.imagesFromVirtualMachinePrerequisites(data),
+		},
+		{
+			// then capture two images of the Virtual Machine
+			Config: r.imagesFromVirtualMachinePrerequisitesWithImage(data),
+		},
+		{
+			// then provision a Virtual Machine Scale Set using this image
+			Config: r.imagesFromVirtualMachine(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// then update the image on this Virtual Machine Scale Set
+			Config: r.imagesFromVirtualMachine(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(data, "16.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(data, "18.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesManualUpdate(data, "16.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesManualUpdate(data, "18.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data, "16.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data, "18.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesManualUpdateExternalRoll(data, "16.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesManualUpdateExternalRoll(data, "18.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(data, "16.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(data, "18.04-LTS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesRollingUpdate(data, "16.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesRollingUpdate(data, "18.04-LTS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesPlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(data acceptance.TestData, version string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesAutomaticUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -305,11 +281,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -346,11 +321,10 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "blob"
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithVM(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisitesWithVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -386,11 +360,10 @@ resource "azurerm_virtual_machine" "source" {
     disable_password_authentication = false
   }
 }
-`, template)
+`, r.imagesFromVirtualMachinePrerequisites(data))
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithImage(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisitesWithImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -423,11 +396,10 @@ resource "azurerm_image" "second" {
 
   depends_on = ["azurerm_image.first"]
 }
-`, template)
+`, r.imagesFromVirtualMachinePrerequisites(data))
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachine(data acceptance.TestData, image string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithImage(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachine(data acceptance.TestData, image string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -459,11 +431,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger, image)
+`, r.imagesFromVirtualMachinePrerequisitesWithImage(data), data.RandomInteger, image)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(data acceptance.TestData, version string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesManualUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -501,11 +472,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, version)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data acceptance.TestData, version string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesManualUpdateExternalRoll(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -550,11 +520,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, version)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(data acceptance.TestData, version string) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesRollingUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -660,11 +629,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) imagesPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -716,5 +684,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

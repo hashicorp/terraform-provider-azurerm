@@ -6,323 +6,271 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccLinuxVirtualMachine_diskOSBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSCachingType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSCachingType(data, "None"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSCachingType(data, "ReadOnly"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSCachingType(data, "ReadWrite"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCachingType(data, "None"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSCachingType(data, "ReadOnly"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSCachingType(data, "ReadWrite"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSCustomName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSCustomName(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCustomName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSCustomSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSCustomSize(data, 30),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCustomSize(data, 30),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSCustomSizeExpanded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSCustomSize(data, 30),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSCustomSize(data, 60),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCustomSize(data, 30),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSCustomSize(data, 60),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSDiskDiskEncryptionSetEncrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSDiskDiskEncryptionSetUnencrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSDiskDiskEncryptionSetEncrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSEphemeral(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSEphemeral(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSEphemeral(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSStorageTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSStorageTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "StandardSSD_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "StandardSSD_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSStorageTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "StandardSSD_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSStorageAccountType(data, "StandardSSD_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disabled
-				Config: testLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.diskOSWriteAcceleratorEnabled(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// Disabled
+			Config: r.diskOSWriteAcceleratorEnabled(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.diskOSWriteAcceleratorEnabled(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testLinuxVirtualMachine_diskOSBasic(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -353,11 +301,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSCachingType(data acceptance.TestData, cachingType string) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSCachingType(data acceptance.TestData, cachingType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -388,11 +335,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, cachingType)
+`, r.template(data), data.RandomInteger, cachingType)
 }
 
-func testLinuxVirtualMachine_diskOSCustomName(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSCustomName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -424,11 +370,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSCustomSize(data acceptance.TestData, size int) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSCustomSize(data acceptance.TestData, size int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -461,10 +406,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, size)
+`, r.template(data), data.RandomInteger, size)
 }
 
-func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
+func (LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -561,8 +506,7 @@ resource "azurerm_network_interface" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data)
+func (r LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -595,11 +539,10 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, template, data.RandomInteger)
+`, r.diskOSDiskDiskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+func (r LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetUnencrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -635,11 +578,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger)
+`, r.diskOSDiskDiskEncryptionSetResource(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+func (r LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetEncrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -676,11 +618,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger)
+`, r.diskOSDiskDiskEncryptionSetResource(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSEphemeral(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSEphemeral(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -715,11 +656,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSStorageAccountType(data acceptance.TestData, accountType string) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSStorageAccountType(data acceptance.TestData, accountType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -750,11 +690,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, accountType)
+`, r.template(data), data.RandomInteger, accountType)
 }
 
-func testLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) diskOSWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -786,5 +725,5 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger, enabled)
 }

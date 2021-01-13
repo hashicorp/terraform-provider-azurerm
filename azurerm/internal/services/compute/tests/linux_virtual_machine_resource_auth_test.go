@@ -6,90 +6,74 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccLinuxVirtualMachine_authPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccLinuxVirtualMachine_authPasswordAndSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_authPasswordAndSSH(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authPasswordAndSSH(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccLinuxVirtualMachine_authSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_authSSH(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSSH(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLinuxVirtualMachine_authSSHMultipleKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_authSSHMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSSHMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testLinuxVirtualMachine_authPassword(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) authPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -117,11 +101,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_authPasswordAndSSH(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) authPasswordAndSSH(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -153,11 +136,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_authSSH(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) authSSH(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -188,11 +170,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_authSSHMultiple(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_template(data)
+func (r LinuxVirtualMachineResource) authSSHMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -228,5 +209,5 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

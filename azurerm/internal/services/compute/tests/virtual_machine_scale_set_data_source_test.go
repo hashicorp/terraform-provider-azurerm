@@ -6,67 +6,60 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMVirtualMachineScaleSet_basicLinux(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
+type VirtualMachineScaleSetDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMVirtualMachineScaleSet_basicLinux(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-				),
-			},
+func TestAccDataSourceVirtualMachineScaleSet_basicLinux(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicLinux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMVirtualMachineScaleSet_basicWindows(t *testing.T) {
+func TestAccDataSourceVirtualMachineScaleSet_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMVirtualMachineScaleSet_basicWindows(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicWindows(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMVirtualMachineScaleSet_orchestrated(t *testing.T) {
+func TestAccDataSourceVirtualMachineScaleSet_orchestrated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMVirtualMachineScaleSet_orchestrated(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.orchestrated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMVirtualMachineScaleSet_basicLinux(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(data)
+func (VirtualMachineScaleSetDataSource) basicLinux(data acceptance.TestData) string {
+	template := LinuxVirtualMachineScaleSetResource{}.identitySystemAssigned(data)
 	return fmt.Sprintf(`
 %s
 
@@ -77,8 +70,8 @@ data "azurerm_virtual_machine_scale_set" "test" {
 `, template)
 }
 
-func testAccDataSourceAzureRMVirtualMachineScaleSet_basicWindows(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_identitySystemAssigned(data)
+func (VirtualMachineScaleSetDataSource) basicWindows(data acceptance.TestData) string {
+	template := WindowsVirtualMachineScaleSetResource{}.identitySystemAssigned(data)
 	return fmt.Sprintf(`
 %s
 
@@ -89,8 +82,8 @@ data "azurerm_virtual_machine_scale_set" "test" {
 `, template)
 }
 
-func testAccDataSourceAzureRMVirtualMachineScaleSet_orchestrated(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachine_orchestratedZonal(data)
+func (VirtualMachineScaleSetDataSource) orchestrated(data acceptance.TestData) string {
+	template := WindowsVirtualMachineResource{}.orchestratedZonal(data)
 	return fmt.Sprintf(`
 %s
 
