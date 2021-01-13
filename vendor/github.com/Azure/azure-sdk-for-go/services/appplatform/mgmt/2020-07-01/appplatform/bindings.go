@@ -49,13 +49,13 @@ func NewBindingsClientWithBaseURI(baseURI string, subscriptionID string) Binding
 // appName - the name of the App resource.
 // bindingName - the name of the Binding resource.
 // bindingResource - parameters for the create or update operation
-func (client BindingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (result BindingResource, err error) {
+func (client BindingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (result BindingsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -66,16 +66,9 @@ func (client BindingsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -92,7 +85,7 @@ func (client BindingsClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -109,8 +102,14 @@ func (client BindingsClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (future BindingsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -118,7 +117,7 @@ func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client BindingsClient) CreateOrUpdateResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -132,13 +131,13 @@ func (client BindingsClient) CreateOrUpdateResponder(resp *http.Response) (resul
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
 // bindingName - the name of the Binding resource.
-func (client BindingsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string) (result autorest.Response, err error) {
+func (client BindingsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string) (result BindingsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -149,16 +148,9 @@ func (client BindingsClient) Delete(ctx context.Context, resourceGroupName strin
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -175,7 +167,7 @@ func (client BindingsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -190,8 +182,14 @@ func (client BindingsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client BindingsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client BindingsClient) DeleteSender(req *http.Request) (future BindingsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -199,7 +197,7 @@ func (client BindingsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client BindingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -255,7 +253,7 @@ func (client BindingsClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -338,7 +336,7 @@ func (client BindingsClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -415,13 +413,13 @@ func (client BindingsClient) ListComplete(ctx context.Context, resourceGroupName
 // appName - the name of the App resource.
 // bindingName - the name of the Binding resource.
 // bindingResource - parameters for the update operation
-func (client BindingsClient) Update(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (result BindingResource, err error) {
+func (client BindingsClient) Update(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (result BindingsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -432,16 +430,9 @@ func (client BindingsClient) Update(ctx context.Context, resourceGroupName strin
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -458,7 +449,7 @@ func (client BindingsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -475,8 +466,14 @@ func (client BindingsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client BindingsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client BindingsClient) UpdateSender(req *http.Request) (future BindingsUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -484,7 +481,7 @@ func (client BindingsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client BindingsClient) UpdateResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

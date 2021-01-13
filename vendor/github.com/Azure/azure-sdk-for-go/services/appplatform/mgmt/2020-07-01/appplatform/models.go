@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
 
 // AppResource app resource payload
 type AppResource struct {
@@ -295,6 +295,28 @@ func (future *AppsCreateOrUpdateFuture) Result(client AppsClient) (ar AppResourc
 			err = autorest.NewErrorWithError(err, "appplatform.AppsCreateOrUpdateFuture", "Result", ar.Response.Response, "Failure responding to request")
 		}
 	}
+	return
+}
+
+// AppsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type AppsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsDeleteFuture) Result(client AppsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.AppsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.AppsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -711,6 +733,87 @@ func (brp BindingResourceProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// BindingsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type BindingsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *BindingsCreateOrUpdateFuture) Result(client BindingsClient) (br BindingResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.BindingsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if br.Response.Response, err = future.GetResult(sender); err == nil && br.Response.Response.StatusCode != http.StatusNoContent {
+		br, err = client.CreateOrUpdateResponder(br.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsCreateOrUpdateFuture", "Result", br.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// BindingsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type BindingsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *BindingsDeleteFuture) Result(client BindingsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.BindingsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// BindingsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type BindingsUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *BindingsUpdateFuture) Result(client BindingsClient) (br BindingResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.BindingsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if br.Response.Response, err = future.GetResult(sender); err == nil && br.Response.Response.StatusCode != http.StatusNoContent {
+		br, err = client.UpdateResponder(br.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsUpdateFuture", "Result", br.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // CertificateProperties certificate resource payload.
 type CertificateProperties struct {
 	// Thumbprint - READ-ONLY; The thumbprint of certificate.
@@ -933,8 +1036,61 @@ func NewCertificateResourceCollectionPage(cur CertificateResourceCollection, get
 	}
 }
 
+// CertificatesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CertificatesCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CertificatesCreateOrUpdateFuture) Result(client CertificatesClient) (cr CertificateResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CertificatesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.CertificatesCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
+		cr, err = client.CreateOrUpdateResponder(cr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CertificatesCreateOrUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CertificatesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CertificatesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CertificatesDeleteFuture) Result(client CertificatesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CertificatesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.CertificatesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // CloudError an error response from the service.
 type CloudError struct {
+	// Error - An error response from the service.
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
@@ -954,10 +1110,6 @@ type CloudErrorBody struct {
 type ClusterResourceProperties struct {
 	// ProvisioningState - READ-ONLY; Provisioning state of the Service. Possible values include: 'ProvisioningStateCreating', 'ProvisioningStateUpdating', 'ProvisioningStateDeleting', 'ProvisioningStateDeleted', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving', 'ProvisioningStateMoved', 'ProvisioningStateMoveFailed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// ConfigServerProperties - Config server git properties of the Service
-	ConfigServerProperties *ConfigServerProperties `json:"configServerProperties,omitempty"`
-	// Trace - Trace properties of the Service
-	Trace *TraceProperties `json:"trace,omitempty"`
 	// NetworkProfile - Network profile of the Service
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
 	// Version - READ-ONLY; Version of the Service
@@ -969,12 +1121,6 @@ type ClusterResourceProperties struct {
 // MarshalJSON is the custom marshaler for ClusterResourceProperties.
 func (crp ClusterResourceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if crp.ConfigServerProperties != nil {
-		objectMap["configServerProperties"] = crp.ConfigServerProperties
-	}
-	if crp.Trace != nil {
-		objectMap["trace"] = crp.Trace
-	}
 	if crp.NetworkProfile != nil {
 		objectMap["networkProfile"] = crp.NetworkProfile
 	}
@@ -1007,8 +1153,8 @@ type ConfigServerGitProperty struct {
 
 // ConfigServerProperties config server git properties payload
 type ConfigServerProperties struct {
-	// State - READ-ONLY; State of the config server. Possible values include: 'ConfigServerStateNotAvailable', 'ConfigServerStateDeleted', 'ConfigServerStateFailed', 'ConfigServerStateSucceeded', 'ConfigServerStateUpdating'
-	State ConfigServerState `json:"state,omitempty"`
+	// ProvisioningState - READ-ONLY; State of the config server. Possible values include: 'ConfigServerStateNotAvailable', 'ConfigServerStateDeleted', 'ConfigServerStateFailed', 'ConfigServerStateSucceeded', 'ConfigServerStateUpdating'
+	ProvisioningState ConfigServerState `json:"provisioningState,omitempty"`
 	// Error - Error when apply config server settings.
 	Error *Error `json:"error,omitempty"`
 	// ConfigServer - Settings of config server.
@@ -1027,10 +1173,138 @@ func (csp ConfigServerProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ConfigServerResource config Server resource
+type ConfigServerResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the Config Server resource
+	Properties *ConfigServerProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConfigServerResource.
+func (csr ConfigServerResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if csr.Properties != nil {
+		objectMap["properties"] = csr.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
 // ConfigServerSettings the settings of config server.
 type ConfigServerSettings struct {
 	// GitProperty - Property of git environment.
 	GitProperty *ConfigServerGitProperty `json:"gitProperty,omitempty"`
+}
+
+// ConfigServerSettingsErrorRecord error record of the config server settings
+type ConfigServerSettingsErrorRecord struct {
+	// Name - The name of the config server settings error record
+	Name *string `json:"name,omitempty"`
+	// URI - The uri of the config server settings error record
+	URI *string `json:"uri,omitempty"`
+	// Messages - The detail error messages of the record
+	Messages *[]string `json:"messages,omitempty"`
+}
+
+// ConfigServerSettingsValidateResult validation result for config server settings
+type ConfigServerSettingsValidateResult struct {
+	autorest.Response `json:"-"`
+	// IsValid - Indicate if the config server settings are valid
+	IsValid *bool `json:"isValid,omitempty"`
+	// Details - The detail validation results
+	Details *[]ConfigServerSettingsErrorRecord `json:"details,omitempty"`
+}
+
+// ConfigServersUpdatePatchFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ConfigServersUpdatePatchFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ConfigServersUpdatePatchFuture) Result(client ConfigServersClient) (csr ConfigServerResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePatchFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersUpdatePatchFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if csr.Response.Response, err = future.GetResult(sender); err == nil && csr.Response.Response.StatusCode != http.StatusNoContent {
+		csr, err = client.UpdatePatchResponder(csr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePatchFuture", "Result", csr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ConfigServersUpdatePutFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ConfigServersUpdatePutFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ConfigServersUpdatePutFuture) Result(client ConfigServersClient) (csr ConfigServerResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePutFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersUpdatePutFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if csr.Response.Response, err = future.GetResult(sender); err == nil && csr.Response.Response.StatusCode != http.StatusNoContent {
+		csr, err = client.UpdatePutResponder(csr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePutFuture", "Result", csr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ConfigServersValidateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ConfigServersValidateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ConfigServersValidateFuture) Result(client ConfigServersClient) (cssvr ConfigServerSettingsValidateResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersValidateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersValidateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cssvr.Response.Response, err = future.GetResult(sender); err == nil && cssvr.Response.Response.StatusCode != http.StatusNoContent {
+		cssvr, err = client.ValidateResponder(cssvr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersValidateFuture", "Result", cssvr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // CustomDomainProperties custom domain of app resource payload.
@@ -1238,6 +1512,87 @@ func NewCustomDomainResourceCollectionPage(cur CustomDomainResourceCollection, g
 	}
 }
 
+// CustomDomainsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CustomDomainsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CustomDomainsCreateOrUpdateFuture) Result(client CustomDomainsClient) (cdr CustomDomainResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cdr.Response.Response, err = future.GetResult(sender); err == nil && cdr.Response.Response.StatusCode != http.StatusNoContent {
+		cdr, err = client.CreateOrUpdateResponder(cdr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsCreateOrUpdateFuture", "Result", cdr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CustomDomainsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CustomDomainsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CustomDomainsDeleteFuture) Result(client CustomDomainsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// CustomDomainsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CustomDomainsUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CustomDomainsUpdateFuture) Result(client CustomDomainsClient) (cdr CustomDomainResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cdr.Response.Response, err = future.GetResult(sender); err == nil && cdr.Response.Response.StatusCode != http.StatusNoContent {
+		cdr, err = client.UpdateResponder(cdr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsUpdateFuture", "Result", cdr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // CustomDomainValidatePayload custom domain validate payload.
 type CustomDomainValidatePayload struct {
 	// Name - Name to be validated
@@ -1272,6 +1627,8 @@ type DeploymentResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the Deployment resource
 	Properties *DeploymentResourceProperties `json:"properties,omitempty"`
+	// Sku - Sku of the Deployment resource
+	Sku *Sku `json:"sku,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource.
@@ -1285,6 +1642,9 @@ func (dr DeploymentResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dr.Properties != nil {
 		objectMap["properties"] = dr.Properties
+	}
+	if dr.Sku != nil {
+		objectMap["sku"] = dr.Sku
 	}
 	return json.Marshal(objectMap)
 }
@@ -1511,6 +1871,29 @@ func (future *DeploymentsCreateOrUpdateFuture) Result(client DeploymentsClient) 
 	return
 }
 
+// DeploymentsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DeploymentsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DeploymentsDeleteFuture) Result(client DeploymentsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // DeploymentSettings deployment settings payload
 type DeploymentSettings struct {
 	// CPU - Required CPU, basic tier should be 1, standard tier should be in range (1, 4)
@@ -1521,8 +1904,6 @@ type DeploymentSettings struct {
 	JvmOptions *string `json:"jvmOptions,omitempty"`
 	// NetCoreMainEntryPath - The path to the .NET executable relative to zip root
 	NetCoreMainEntryPath *string `json:"netCoreMainEntryPath,omitempty"`
-	// InstanceCount - Instance count, basic tier should be in range (1, 25), standard tier should be in range (1, 500)
-	InstanceCount *int32 `json:"instanceCount,omitempty"`
 	// EnvironmentVariables - Collection of environment variables
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`
 	// RuntimeVersion - Runtime version. Possible values include: 'Java8', 'Java11', 'NetCore31'
@@ -1543,9 +1924,6 @@ func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
 	}
 	if ds.NetCoreMainEntryPath != nil {
 		objectMap["netCoreMainEntryPath"] = ds.NetCoreMainEntryPath
-	}
-	if ds.InstanceCount != nil {
-		objectMap["instanceCount"] = ds.InstanceCount
 	}
 	if ds.EnvironmentVariables != nil {
 		objectMap["environmentVariables"] = ds.EnvironmentVariables
@@ -1707,10 +2085,12 @@ type LogSpecification struct {
 
 // ManagedIdentityProperties managed identity properties retrieved from ARM request headers.
 type ManagedIdentityProperties struct {
-	// Type - Possible values include: 'None', 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned'
-	Type        ManagedIdentityType `json:"type,omitempty"`
-	PrincipalID *string             `json:"principalId,omitempty"`
-	TenantID    *string             `json:"tenantId,omitempty"`
+	// Type - Type of the managed identity. Possible values include: 'None', 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned'
+	Type ManagedIdentityType `json:"type,omitempty"`
+	// PrincipalID - Principal Id
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - Tenant Id
+	TenantID *string `json:"tenantId,omitempty"`
 }
 
 // MetricDimension specifications of the Dimension of metrics
@@ -1743,6 +2123,113 @@ type MetricSpecification struct {
 	FillGapWithZero *bool `json:"fillGapWithZero,omitempty"`
 	// Dimensions - Dimensions of the metric
 	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+}
+
+// MonitoringSettingProperties monitoring Setting properties payload
+type MonitoringSettingProperties struct {
+	// ProvisioningState - READ-ONLY; State of the Monitoring Setting. Possible values include: 'MonitoringSettingStateNotAvailable', 'MonitoringSettingStateFailed', 'MonitoringSettingStateSucceeded', 'MonitoringSettingStateUpdating'
+	ProvisioningState MonitoringSettingState `json:"provisioningState,omitempty"`
+	// Error - Error when apply Monitoring Setting changes.
+	Error *Error `json:"error,omitempty"`
+	// TraceEnabled - Indicates whether enable the trace functionality
+	TraceEnabled *bool `json:"traceEnabled,omitempty"`
+	// AppInsightsInstrumentationKey - Target application insight instrumentation key
+	AppInsightsInstrumentationKey *string `json:"appInsightsInstrumentationKey,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MonitoringSettingProperties.
+func (msp MonitoringSettingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if msp.Error != nil {
+		objectMap["error"] = msp.Error
+	}
+	if msp.TraceEnabled != nil {
+		objectMap["traceEnabled"] = msp.TraceEnabled
+	}
+	if msp.AppInsightsInstrumentationKey != nil {
+		objectMap["appInsightsInstrumentationKey"] = msp.AppInsightsInstrumentationKey
+	}
+	return json.Marshal(objectMap)
+}
+
+// MonitoringSettingResource monitoring Setting resource
+type MonitoringSettingResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the Monitoring Setting resource
+	Properties *MonitoringSettingProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MonitoringSettingResource.
+func (msr MonitoringSettingResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if msr.Properties != nil {
+		objectMap["properties"] = msr.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// MonitoringSettingsUpdatePatchFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type MonitoringSettingsUpdatePatchFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MonitoringSettingsUpdatePatchFuture) Result(client MonitoringSettingsClient) (msr MonitoringSettingResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.MonitoringSettingsUpdatePatchFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.MonitoringSettingsUpdatePatchFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if msr.Response.Response, err = future.GetResult(sender); err == nil && msr.Response.Response.StatusCode != http.StatusNoContent {
+		msr, err = client.UpdatePatchResponder(msr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.MonitoringSettingsUpdatePatchFuture", "Result", msr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// MonitoringSettingsUpdatePutFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type MonitoringSettingsUpdatePutFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MonitoringSettingsUpdatePutFuture) Result(client MonitoringSettingsClient) (msr MonitoringSettingResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.MonitoringSettingsUpdatePutFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("appplatform.MonitoringSettingsUpdatePutFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if msr.Response.Response, err = future.GetResult(sender); err == nil && msr.Response.Response.StatusCode != http.StatusNoContent {
+		msr, err = client.UpdatePutResponder(msr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.MonitoringSettingsUpdatePutFuture", "Result", msr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // NameAvailability name availability result payload
@@ -1915,7 +2402,8 @@ type ResourceSkuCapabilities struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// ResourceSkuCollection ...
+// ResourceSkuCollection object that includes an array of Azure Spring Cloud SKU and a possible link for
+// next set
 type ResourceSkuCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of resource SKU
@@ -2075,7 +2563,7 @@ func NewResourceSkuCollectionPage(cur ResourceSkuCollection, getNextPage func(co
 	}
 }
 
-// ResourceSkuLocationInfo ...
+// ResourceSkuLocationInfo locations and availability zones where the SKU is available
 type ResourceSkuLocationInfo struct {
 	// Location - Gets location of the SKU
 	Location *string `json:"location,omitempty"`
@@ -2085,7 +2573,7 @@ type ResourceSkuLocationInfo struct {
 	ZoneDetails *[]ResourceSkuZoneDetails `json:"zoneDetails,omitempty"`
 }
 
-// ResourceSkuRestrictionInfo ...
+// ResourceSkuRestrictionInfo information about the restriction where the SKU cannot be used
 type ResourceSkuRestrictionInfo struct {
 	// Locations - Gets locations where the SKU is restricted
 	Locations *[]string `json:"locations,omitempty"`
@@ -2093,7 +2581,7 @@ type ResourceSkuRestrictionInfo struct {
 	Zones *[]string `json:"zones,omitempty"`
 }
 
-// ResourceSkuRestrictions ...
+// ResourceSkuRestrictions restrictions where the SKU cannot be used
 type ResourceSkuRestrictions struct {
 	// Type - Gets the type of restrictions. Possible values include: 'Location', 'Zone'
 	Type ResourceSkuRestrictionsType `json:"type,omitempty"`
@@ -2106,7 +2594,7 @@ type ResourceSkuRestrictions struct {
 	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
 }
 
-// ResourceSkuZoneDetails ...
+// ResourceSkuZoneDetails details of capabilities available to a SKU in specific zones
 type ResourceSkuZoneDetails struct {
 	// Name - Gets the set of zones that the SKU is available in with the
 	// specified capabilities.
@@ -2464,33 +2952,6 @@ type TestKeys struct {
 	SecondaryTestEndpoint *string `json:"secondaryTestEndpoint,omitempty"`
 	// Enabled - Indicates whether the test endpoint feature enabled or not
 	Enabled *bool `json:"enabled,omitempty"`
-}
-
-// TraceProperties trace properties payload
-type TraceProperties struct {
-	// State - READ-ONLY; State of the trace proxy. Possible values include: 'TraceProxyStateNotAvailable', 'TraceProxyStateFailed', 'TraceProxyStateSucceeded', 'TraceProxyStateUpdating'
-	State TraceProxyState `json:"state,omitempty"`
-	// Error - Error when apply trace proxy changes.
-	Error *Error `json:"error,omitempty"`
-	// Enabled - Indicates whether enable the tracing functionality
-	Enabled *bool `json:"enabled,omitempty"`
-	// AppInsightInstrumentationKey - Target application insight instrumentation key
-	AppInsightInstrumentationKey *string `json:"appInsightInstrumentationKey,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TraceProperties.
-func (tp TraceProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if tp.Error != nil {
-		objectMap["error"] = tp.Error
-	}
-	if tp.Enabled != nil {
-		objectMap["enabled"] = tp.Enabled
-	}
-	if tp.AppInsightInstrumentationKey != nil {
-		objectMap["appInsightInstrumentationKey"] = tp.AppInsightInstrumentationKey
-	}
-	return json.Marshal(objectMap)
 }
 
 // TrackedResource the resource model definition for a ARM tracked top level resource.

@@ -93,7 +93,7 @@ func (client ServicesClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -143,19 +143,6 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resource,
-			Constraints: []validation.Constraint{{Target: "resource.Properties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "resource.Properties.ConfigServerProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "resource.Properties.ConfigServerProperties.ConfigServer", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "resource.Properties.ConfigServerProperties.ConfigServer.GitProperty", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "resource.Properties.ConfigServerProperties.ConfigServer.GitProperty.URI", Name: validation.Null, Rule: true, Chain: nil}}},
-						}},
-					}},
-				}}}}}); err != nil {
-		return result, validation.NewError("appplatform.ServicesClient", "CreateOrUpdate", err.Error())
-	}
-
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, resource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -179,7 +166,7 @@ func (client ServicesClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -211,7 +198,7 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 func (client ServicesClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -257,7 +244,7 @@ func (client ServicesClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -293,7 +280,7 @@ func (client ServicesClient) DeleteResponder(resp *http.Response) (result autore
 	return
 }
 
-// DisableTestEndpoint sends the disable test endpoint request.
+// DisableTestEndpoint disable test endpoint functionality for a Service.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -339,7 +326,7 @@ func (client ServicesClient) DisableTestEndpointPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -369,7 +356,7 @@ func (client ServicesClient) DisableTestEndpointResponder(resp *http.Response) (
 	return
 }
 
-// EnableTestEndpoint sends the enable test endpoint request.
+// EnableTestEndpoint enable test endpoint functionality for a Service.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -415,7 +402,7 @@ func (client ServicesClient) EnableTestEndpointPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -492,7 +479,7 @@ func (client ServicesClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -571,7 +558,7 @@ func (client ServicesClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -684,7 +671,7 @@ func (client ServicesClient) ListBySubscriptionPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -799,7 +786,7 @@ func (client ServicesClient) ListTestKeysPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -877,7 +864,7 @@ func (client ServicesClient) RegenerateTestKeyPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -950,7 +937,7 @@ func (client ServicesClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

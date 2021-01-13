@@ -21,7 +21,6 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -50,13 +49,13 @@ func NewCustomDomainsClientWithBaseURI(baseURI string, subscriptionID string) Cu
 // appName - the name of the App resource.
 // domainName - the name of the custom domain resource.
 // domainResource - parameters for the create or update operation
-func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (result CustomDomainResource, err error) {
+func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (result CustomDomainsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -67,16 +66,9 @@ func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGr
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -93,7 +85,7 @@ func (client CustomDomainsClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -110,8 +102,14 @@ func (client CustomDomainsClient) CreateOrUpdatePreparer(ctx context.Context, re
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (future CustomDomainsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -119,7 +117,7 @@ func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client CustomDomainsClient) CreateOrUpdateResponder(resp *http.Response) (result CustomDomainResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -133,13 +131,13 @@ func (client CustomDomainsClient) CreateOrUpdateResponder(resp *http.Response) (
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
 // domainName - the name of the custom domain resource.
-func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string) (result autorest.Response, err error) {
+func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string) (result CustomDomainsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -150,16 +148,9 @@ func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName 
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -176,7 +167,7 @@ func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -191,8 +182,14 @@ func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGr
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client CustomDomainsClient) DeleteSender(req *http.Request) (future CustomDomainsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -200,7 +197,7 @@ func (client CustomDomainsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client CustomDomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -256,7 +253,7 @@ func (client CustomDomainsClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -339,7 +336,7 @@ func (client CustomDomainsClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -408,7 +405,7 @@ func (client CustomDomainsClient) ListComplete(ctx context.Context, resourceGrou
 	return
 }
 
-// Patch update custom domain of one lifecycle application.
+// Update update custom domain of one lifecycle application.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -416,41 +413,34 @@ func (client CustomDomainsClient) ListComplete(ctx context.Context, resourceGrou
 // appName - the name of the App resource.
 // domainName - the name of the custom domain resource.
 // domainResource - parameters for the create or update operation
-func (client CustomDomainsClient) Patch(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (result CustomDomainResource, err error) {
+func (client CustomDomainsClient) Update(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (result CustomDomainsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Patch")
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.PatchPreparer(ctx, resourceGroupName, serviceName, appName, domainName, domainResource)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, serviceName, appName, domainName, domainResource)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Patch", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.PatchSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Patch", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.PatchResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Patch", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
 	return
 }
 
-// PatchPreparer prepares the Patch request.
-func (client CustomDomainsClient) PatchPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (*http.Request, error) {
+// UpdatePreparer prepares the Update request.
+func (client CustomDomainsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"appName":           autorest.Encode("path", appName),
 		"domainName":        autorest.Encode("path", domainName),
@@ -459,7 +449,7 @@ func (client CustomDomainsClient) PatchPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -474,105 +464,24 @@ func (client CustomDomainsClient) PatchPreparer(ctx context.Context, resourceGro
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// PatchSender sends the Patch request. The method will close the
+// UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) PatchSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// PatchResponder handles the response to the Patch request. The method always
-// closes the http.Response Body.
-func (client CustomDomainsClient) PatchResponder(resp *http.Response) (result CustomDomainResource, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+func (client CustomDomainsClient) UpdateSender(req *http.Request) (future CustomDomainsUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
-// Validate check the resource name is valid as well as not in use.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serviceName - the name of the Service resource.
-// appName - the name of the App resource.
-func (client CustomDomainsClient) Validate(ctx context.Context, resourceGroupName string, serviceName string, appName string, validatePayload CustomDomainValidatePayload) (result CustomDomainValidateResult, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Validate")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: validatePayload,
-			Constraints: []validation.Constraint{{Target: "validatePayload.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("appplatform.CustomDomainsClient", "Validate", err.Error())
-	}
-
-	req, err := client.ValidatePreparer(ctx, resourceGroupName, serviceName, appName, validatePayload)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Validate", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ValidateSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Validate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ValidateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Validate", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// ValidatePreparer prepares the Validate request.
-func (client CustomDomainsClient) ValidatePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, validatePayload CustomDomainValidatePayload) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"appName":           autorest.Encode("path", appName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serviceName":       autorest.Encode("path", serviceName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2019-05-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/domains/validate", pathParameters),
-		autorest.WithJSON(validatePayload),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ValidateSender sends the Validate request. The method will close the
-// http.Response Body if it receives an error.
-func (client CustomDomainsClient) ValidateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// ValidateResponder handles the response to the Validate request. The method always
+// UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client CustomDomainsClient) ValidateResponder(resp *http.Response) (result CustomDomainValidateResult, err error) {
+func (client CustomDomainsClient) UpdateResponder(resp *http.Response) (result CustomDomainResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
