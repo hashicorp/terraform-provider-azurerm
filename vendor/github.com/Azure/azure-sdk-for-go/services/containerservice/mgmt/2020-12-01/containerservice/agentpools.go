@@ -65,7 +65,14 @@ func (client AgentPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}},
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.KubeletConfig", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.KubeletConfig.ContainerLogMaxFiles", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.KubeletConfig.ContainerLogMaxFiles", Name: validation.InclusiveMinimum, Rule: int64(2), Chain: nil}}},
+					}},
+				}}}}}); err != nil {
 		return result, validation.NewError("containerservice.AgentPoolsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -93,7 +100,7 @@ func (client AgentPoolsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,7 +189,7 @@ func (client AgentPoolsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -275,7 +282,7 @@ func (client AgentPoolsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -361,7 +368,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -450,7 +457,7 @@ func (client AgentPoolsClient) GetUpgradeProfilePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -528,6 +535,7 @@ func (client AgentPoolsClient) List(ctx context.Context, resourceGroupName strin
 	}
 	if result.aplr.hasNextLink() && result.aplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -541,7 +549,7 @@ func (client AgentPoolsClient) ListPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -589,7 +597,6 @@ func (client AgentPoolsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -660,7 +667,7 @@ func (client AgentPoolsClient) UpgradeNodeImageVersionPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

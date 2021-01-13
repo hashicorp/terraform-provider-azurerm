@@ -22,13 +22,14 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -366,63 +367,6 @@ func NewAgentPoolListResultPage(cur AgentPoolListResult, getNextPage func(contex
 	}
 }
 
-// AgentPoolProfile profile for the container service agent pool.
-type AgentPoolProfile struct {
-	// Name - Unique name of the agent pool profile in the context of the subscription and resource group.
-	Name *string `json:"name,omitempty"`
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
-	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
-	VMSize VMSizeTypes `json:"vmSize,omitempty"`
-	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
-	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
-	// DNSPrefix - DNS prefix to be used to create the FQDN for the agent pool.
-	DNSPrefix *string `json:"dnsPrefix,omitempty"`
-	// Fqdn - READ-ONLY; FQDN for the agent pool.
-	Fqdn *string `json:"fqdn,omitempty"`
-	// Ports - Ports number array used to expose on this agent pool. The default opened ports are different based on your choice of orchestrator.
-	Ports *[]int32 `json:"ports,omitempty"`
-	// StorageProfile - Storage profile specifies what kind of storage used. Choose from StorageAccount and ManagedDisks. Leave it empty, we will choose for you based on the orchestrator choice. Possible values include: 'StorageAccount', 'ManagedDisks'
-	StorageProfile StorageProfileTypes `json:"storageProfile,omitempty"`
-	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
-	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
-	OsType OSType `json:"osType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AgentPoolProfile.
-func (app AgentPoolProfile) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if app.Name != nil {
-		objectMap["name"] = app.Name
-	}
-	if app.Count != nil {
-		objectMap["count"] = app.Count
-	}
-	if app.VMSize != "" {
-		objectMap["vmSize"] = app.VMSize
-	}
-	if app.OsDiskSizeGB != nil {
-		objectMap["osDiskSizeGB"] = app.OsDiskSizeGB
-	}
-	if app.DNSPrefix != nil {
-		objectMap["dnsPrefix"] = app.DNSPrefix
-	}
-	if app.Ports != nil {
-		objectMap["ports"] = app.Ports
-	}
-	if app.StorageProfile != "" {
-		objectMap["storageProfile"] = app.StorageProfile
-	}
-	if app.VnetSubnetID != nil {
-		objectMap["vnetSubnetID"] = app.VnetSubnetID
-	}
-	if app.OsType != "" {
-		objectMap["osType"] = app.OsType
-	}
-	return json.Marshal(objectMap)
-}
-
 // AgentPoolsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AgentPoolsCreateOrUpdateFuture struct {
@@ -621,159 +565,6 @@ type CloudErrorBody struct {
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
-// ContainerService container service.
-type ContainerService struct {
-	autorest.Response `json:"-"`
-	// Properties - Properties of the container service.
-	*Properties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for ContainerService.
-func (cs ContainerService) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if cs.Properties != nil {
-		objectMap["properties"] = cs.Properties
-	}
-	if cs.Location != nil {
-		objectMap["location"] = cs.Location
-	}
-	if cs.Tags != nil {
-		objectMap["tags"] = cs.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ContainerService struct.
-func (cs *ContainerService) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var properties Properties
-				err = json.Unmarshal(*v, &properties)
-				if err != nil {
-					return err
-				}
-				cs.Properties = &properties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				cs.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				cs.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				cs.Type = &typeVar
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				cs.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				cs.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// ContainerServicesCreateOrUpdateFutureType an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ContainerServicesCreateOrUpdateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerServicesCreateOrUpdateFutureType) Result(client ContainerServicesClient) (cs ContainerService, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.ContainerServicesCreateOrUpdateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.ContainerServicesCreateOrUpdateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cs.Response.Response, err = future.GetResult(sender); err == nil && cs.Response.Response.StatusCode != http.StatusNoContent {
-		cs, err = client.CreateOrUpdateResponder(cs.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerservice.ContainerServicesCreateOrUpdateFutureType", "Result", cs.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ContainerServicesDeleteFutureType an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ContainerServicesDeleteFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerServicesDeleteFutureType) Result(client ContainerServicesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.ContainerServicesDeleteFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.ContainerServicesDeleteFutureType")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
 // CredentialResult the credential result response.
 type CredentialResult struct {
 	// Name - READ-ONLY; The name of the credential.
@@ -789,26 +580,48 @@ type CredentialResults struct {
 	Kubeconfigs *[]CredentialResult `json:"kubeconfigs,omitempty"`
 }
 
-// CustomProfile properties to configure a custom container service cluster.
-type CustomProfile struct {
-	// Orchestrator - The name of the custom orchestrator to use.
-	Orchestrator *string `json:"orchestrator,omitempty"`
-}
-
 // DiagnosticsProfile profile for diagnostics on the container service cluster.
 type DiagnosticsProfile struct {
 	// VMDiagnostics - Profile for diagnostics on the container service VMs.
 	VMDiagnostics *VMDiagnostics `json:"vmDiagnostics,omitempty"`
 }
 
-// KeyVaultSecretRef reference to a secret stored in Azure Key Vault.
-type KeyVaultSecretRef struct {
-	// VaultID - Key vault identifier.
-	VaultID *string `json:"vaultID,omitempty"`
-	// SecretName - The secret name.
-	SecretName *string `json:"secretName,omitempty"`
-	// Version - The secret version.
-	Version *string `json:"version,omitempty"`
+// KubeletConfig kubelet configurations of agent nodes.
+type KubeletConfig struct {
+	// CPUManagerPolicy - CPU Manager policy to use.
+	CPUManagerPolicy *string `json:"cpuManagerPolicy,omitempty"`
+	// CPUCfsQuota - Enable CPU CFS quota enforcement for containers that specify CPU limits.
+	CPUCfsQuota *bool `json:"cpuCfsQuota,omitempty"`
+	// CPUCfsQuotaPeriod - Sets CPU CFS quota period value.
+	CPUCfsQuotaPeriod *string `json:"cpuCfsQuotaPeriod,omitempty"`
+	// ImageGcHighThreshold - The percent of disk usage after which image garbage collection is always run.
+	ImageGcHighThreshold *int32 `json:"imageGcHighThreshold,omitempty"`
+	// ImageGcLowThreshold - The percent of disk usage before which image garbage collection is never run.
+	ImageGcLowThreshold *int32 `json:"imageGcLowThreshold,omitempty"`
+	// TopologyManagerPolicy - Topology Manager policy to use.
+	TopologyManagerPolicy *string `json:"topologyManagerPolicy,omitempty"`
+	// AllowedUnsafeSysctls - Allowlist of unsafe sysctls or unsafe sysctl patterns (ending in `*`).
+	AllowedUnsafeSysctls *[]string `json:"allowedUnsafeSysctls,omitempty"`
+	// FailSwapOn - If set to true it will make the Kubelet fail to start if swap is enabled on the node.
+	FailSwapOn *bool `json:"failSwapOn,omitempty"`
+	// ContainerLogMaxSizeMB - The maximum size (e.g. 10Mi) of container log file before it is rotated.
+	ContainerLogMaxSizeMB *int32 `json:"containerLogMaxSizeMB,omitempty"`
+	// ContainerLogMaxFiles - The maximum number of container log files that can be present for a container. The number must be ≥ 2.
+	ContainerLogMaxFiles *int32 `json:"containerLogMaxFiles,omitempty"`
+	// PodMaxPids - The maximum number of processes per pod.
+	PodMaxPids *int32 `json:"podMaxPids,omitempty"`
+}
+
+// LinuxOSConfig OS configurations of Linux agent nodes.
+type LinuxOSConfig struct {
+	// Sysctls - Sysctl settings for Linux agent nodes.
+	Sysctls *SysctlConfig `json:"sysctls,omitempty"`
+	// TransparentHugePageEnabled - Transparent Huge Page enabled configuration.
+	TransparentHugePageEnabled *string `json:"transparentHugePageEnabled,omitempty"`
+	// TransparentHugePageDefrag - Transparent Huge Page defrag configuration.
+	TransparentHugePageDefrag *string `json:"transparentHugePageDefrag,omitempty"`
+	// SwapFileSizeMB - SwapFileSizeMB specifies size in MB of a swap file will be created on each node.
+	SwapFileSizeMB *int32 `json:"swapFileSizeMB,omitempty"`
 }
 
 // LinuxProfile profile for Linux VMs in the container service cluster.
@@ -819,35 +632,120 @@ type LinuxProfile struct {
 	SSH *SSHConfiguration `json:"ssh,omitempty"`
 }
 
-// ListResult the response from the List Container Services operation.
-type ListResult struct {
+// MaintenanceConfiguration maintenance configuration.
+type MaintenanceConfiguration struct {
 	autorest.Response `json:"-"`
-	// Value - The list of container services.
-	Value *[]ContainerService `json:"value,omitempty"`
-	// NextLink - READ-ONLY; The URL to get the next set of container service results.
-	NextLink *string `json:"nextLink,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// MaintenanceConfigurationProperties - Properties of a default maintenance configuration.
+	*MaintenanceConfigurationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource that is unique within a resource group. This name can be used to access the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ListResult.
-func (lr ListResult) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for MaintenanceConfiguration.
+func (mc MaintenanceConfiguration) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if lr.Value != nil {
-		objectMap["value"] = lr.Value
+	if mc.MaintenanceConfigurationProperties != nil {
+		objectMap["properties"] = mc.MaintenanceConfigurationProperties
 	}
 	return json.Marshal(objectMap)
 }
 
-// ListResultIterator provides access to a complete listing of ContainerService values.
-type ListResultIterator struct {
+// UnmarshalJSON is the custom unmarshaler for MaintenanceConfiguration struct.
+func (mc *MaintenanceConfiguration) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				mc.SystemData = &systemData
+			}
+		case "properties":
+			if v != nil {
+				var maintenanceConfigurationProperties MaintenanceConfigurationProperties
+				err = json.Unmarshal(*v, &maintenanceConfigurationProperties)
+				if err != nil {
+					return err
+				}
+				mc.MaintenanceConfigurationProperties = &maintenanceConfigurationProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mc.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// MaintenanceConfigurationListResult the response from the List maintenance configurations operation.
+type MaintenanceConfigurationListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of maintenance configurations.
+	Value *[]MaintenanceConfiguration `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to get the next set of maintenance configuration results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MaintenanceConfigurationListResult.
+func (mclr MaintenanceConfigurationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mclr.Value != nil {
+		objectMap["value"] = mclr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// MaintenanceConfigurationListResultIterator provides access to a complete listing of
+// MaintenanceConfiguration values.
+type MaintenanceConfigurationListResultIterator struct {
 	i    int
-	page ListResultPage
+	page MaintenanceConfigurationListResultPage
 }
 
 // NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *ListResultIterator) NextWithContext(ctx context.Context) (err error) {
+func (iter *MaintenanceConfigurationListResultIterator) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ListResultIterator.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/MaintenanceConfigurationListResultIterator.NextWithContext")
 		defer func() {
 			sc := -1
 			if iter.Response().Response.Response != nil {
@@ -872,67 +770,67 @@ func (iter *ListResultIterator) NextWithContext(ctx context.Context) (err error)
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (iter *ListResultIterator) Next() error {
+func (iter *MaintenanceConfigurationListResultIterator) Next() error {
 	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter ListResultIterator) NotDone() bool {
+func (iter MaintenanceConfigurationListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
 // Response returns the raw server response from the last page request.
-func (iter ListResultIterator) Response() ListResult {
+func (iter MaintenanceConfigurationListResultIterator) Response() MaintenanceConfigurationListResult {
 	return iter.page.Response()
 }
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter ListResultIterator) Value() ContainerService {
+func (iter MaintenanceConfigurationListResultIterator) Value() MaintenanceConfiguration {
 	if !iter.page.NotDone() {
-		return ContainerService{}
+		return MaintenanceConfiguration{}
 	}
 	return iter.page.Values()[iter.i]
 }
 
-// Creates a new instance of the ListResultIterator type.
-func NewListResultIterator(page ListResultPage) ListResultIterator {
-	return ListResultIterator{page: page}
+// Creates a new instance of the MaintenanceConfigurationListResultIterator type.
+func NewMaintenanceConfigurationListResultIterator(page MaintenanceConfigurationListResultPage) MaintenanceConfigurationListResultIterator {
+	return MaintenanceConfigurationListResultIterator{page: page}
 }
 
 // IsEmpty returns true if the ListResult contains no values.
-func (lr ListResult) IsEmpty() bool {
-	return lr.Value == nil || len(*lr.Value) == 0
+func (mclr MaintenanceConfigurationListResult) IsEmpty() bool {
+	return mclr.Value == nil || len(*mclr.Value) == 0
 }
 
 // hasNextLink returns true if the NextLink is not empty.
-func (lr ListResult) hasNextLink() bool {
-	return lr.NextLink != nil && len(*lr.NextLink) != 0
+func (mclr MaintenanceConfigurationListResult) hasNextLink() bool {
+	return mclr.NextLink != nil && len(*mclr.NextLink) != 0
 }
 
-// listResultPreparer prepares a request to retrieve the next set of results.
+// maintenanceConfigurationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (lr ListResult) listResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !lr.hasNextLink() {
+func (mclr MaintenanceConfigurationListResult) maintenanceConfigurationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !mclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(lr.NextLink)))
+		autorest.WithBaseURL(to.String(mclr.NextLink)))
 }
 
-// ListResultPage contains a page of ContainerService values.
-type ListResultPage struct {
-	fn func(context.Context, ListResult) (ListResult, error)
-	lr ListResult
+// MaintenanceConfigurationListResultPage contains a page of MaintenanceConfiguration values.
+type MaintenanceConfigurationListResultPage struct {
+	fn   func(context.Context, MaintenanceConfigurationListResult) (MaintenanceConfigurationListResult, error)
+	mclr MaintenanceConfigurationListResult
 }
 
 // NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *ListResultPage) NextWithContext(ctx context.Context) (err error) {
+func (page *MaintenanceConfigurationListResultPage) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ListResultPage.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/MaintenanceConfigurationListResultPage.NextWithContext")
 		defer func() {
 			sc := -1
 			if page.Response().Response.Response != nil {
@@ -942,11 +840,11 @@ func (page *ListResultPage) NextWithContext(ctx context.Context) (err error) {
 		}()
 	}
 	for {
-		next, err := page.fn(ctx, page.lr)
+		next, err := page.fn(ctx, page.mclr)
 		if err != nil {
 			return err
 		}
-		page.lr = next
+		page.mclr = next
 		if !next.hasNextLink() || !next.IsEmpty() {
 			break
 		}
@@ -957,34 +855,42 @@ func (page *ListResultPage) NextWithContext(ctx context.Context) (err error) {
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (page *ListResultPage) Next() error {
+func (page *MaintenanceConfigurationListResultPage) Next() error {
 	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page ListResultPage) NotDone() bool {
-	return !page.lr.IsEmpty()
+func (page MaintenanceConfigurationListResultPage) NotDone() bool {
+	return !page.mclr.IsEmpty()
 }
 
 // Response returns the raw server response from the last page request.
-func (page ListResultPage) Response() ListResult {
-	return page.lr
+func (page MaintenanceConfigurationListResultPage) Response() MaintenanceConfigurationListResult {
+	return page.mclr
 }
 
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page ListResultPage) Values() []ContainerService {
-	if page.lr.IsEmpty() {
+func (page MaintenanceConfigurationListResultPage) Values() []MaintenanceConfiguration {
+	if page.mclr.IsEmpty() {
 		return nil
 	}
-	return *page.lr.Value
+	return *page.mclr.Value
 }
 
-// Creates a new instance of the ListResultPage type.
-func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{
-		fn: getNextPage,
-		lr: cur,
+// Creates a new instance of the MaintenanceConfigurationListResultPage type.
+func NewMaintenanceConfigurationListResultPage(cur MaintenanceConfigurationListResult, getNextPage func(context.Context, MaintenanceConfigurationListResult) (MaintenanceConfigurationListResult, error)) MaintenanceConfigurationListResultPage {
+	return MaintenanceConfigurationListResultPage{
+		fn:   getNextPage,
+		mclr: cur,
 	}
+}
+
+// MaintenanceConfigurationProperties default maintenance configuration properties.
+type MaintenanceConfigurationProperties struct {
+	// TimeInWeek - Weekday time slots allowed to upgrade.
+	TimeInWeek *[]TimeInWeek `json:"timeInWeek,omitempty"`
+	// NotAllowedTime - Time slots on which upgrade is not allowed.
+	NotAllowedTime *[]TimeSpan `json:"notAllowedTime,omitempty"`
 }
 
 // ManagedCluster managed cluster.
@@ -1273,14 +1179,18 @@ type ManagedClusterAgentPoolProfile struct {
 	Name *string `json:"name,omitempty"`
 	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive) for user pools and in the range of 1 to 100 (inclusive) for system pools. The default value is 1.
 	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
+	// VMSize - Size of agent VMs. Possible values include: 'StandardA1', 'StandardA10', 'StandardA11', 'StandardA1V2', 'StandardA2', 'StandardA2V2', 'StandardA2mV2', 'StandardA3', 'StandardA4', 'StandardA4V2', 'StandardA4mV2', 'StandardA5', 'StandardA6', 'StandardA7', 'StandardA8', 'StandardA8V2', 'StandardA8mV2', 'StandardA9', 'StandardB2ms', 'StandardB2s', 'StandardB4ms', 'StandardB8ms', 'StandardD1', 'StandardD11', 'StandardD11V2', 'StandardD11V2Promo', 'StandardD12', 'StandardD12V2', 'StandardD12V2Promo', 'StandardD13', 'StandardD13V2', 'StandardD13V2Promo', 'StandardD14', 'StandardD14V2', 'StandardD14V2Promo', 'StandardD15V2', 'StandardD16V3', 'StandardD16sV3', 'StandardD1V2', 'StandardD2', 'StandardD2V2', 'StandardD2V2Promo', 'StandardD2V3', 'StandardD2sV3', 'StandardD3', 'StandardD32V3', 'StandardD32sV3', 'StandardD3V2', 'StandardD3V2Promo', 'StandardD4', 'StandardD4V2', 'StandardD4V2Promo', 'StandardD4V3', 'StandardD4sV3', 'StandardD5V2', 'StandardD5V2Promo', 'StandardD64V3', 'StandardD64sV3', 'StandardD8V3', 'StandardD8sV3', 'StandardDS1', 'StandardDS11', 'StandardDS11V2', 'StandardDS11V2Promo', 'StandardDS12', 'StandardDS12V2', 'StandardDS12V2Promo', 'StandardDS13', 'StandardDS132V2', 'StandardDS134V2', 'StandardDS13V2', 'StandardDS13V2Promo', 'StandardDS14', 'StandardDS144V2', 'StandardDS148V2', 'StandardDS14V2', 'StandardDS14V2Promo', 'StandardDS15V2', 'StandardDS1V2', 'StandardDS2', 'StandardDS2V2', 'StandardDS2V2Promo', 'StandardDS3', 'StandardDS3V2', 'StandardDS3V2Promo', 'StandardDS4', 'StandardDS4V2', 'StandardDS4V2Promo', 'StandardDS5V2', 'StandardDS5V2Promo', 'StandardE16V3', 'StandardE16sV3', 'StandardE2V3', 'StandardE2sV3', 'StandardE3216sV3', 'StandardE328sV3', 'StandardE32V3', 'StandardE32sV3', 'StandardE4V3', 'StandardE4sV3', 'StandardE6416sV3', 'StandardE6432sV3', 'StandardE64V3', 'StandardE64sV3', 'StandardE8V3', 'StandardE8sV3', 'StandardF1', 'StandardF16', 'StandardF16s', 'StandardF16sV2', 'StandardF1s', 'StandardF2', 'StandardF2s', 'StandardF2sV2', 'StandardF32sV2', 'StandardF4', 'StandardF4s', 'StandardF4sV2', 'StandardF64sV2', 'StandardF72sV2', 'StandardF8', 'StandardF8s', 'StandardF8sV2', 'StandardG1', 'StandardG2', 'StandardG3', 'StandardG4', 'StandardG5', 'StandardGS1', 'StandardGS2', 'StandardGS3', 'StandardGS4', 'StandardGS44', 'StandardGS48', 'StandardGS5', 'StandardGS516', 'StandardGS58', 'StandardH16', 'StandardH16m', 'StandardH16mr', 'StandardH16r', 'StandardH8', 'StandardH8m', 'StandardL16s', 'StandardL32s', 'StandardL4s', 'StandardL8s', 'StandardM12832ms', 'StandardM12864ms', 'StandardM128ms', 'StandardM128s', 'StandardM6416ms', 'StandardM6432ms', 'StandardM64ms', 'StandardM64s', 'StandardNC12', 'StandardNC12sV2', 'StandardNC12sV3', 'StandardNC24', 'StandardNC24r', 'StandardNC24rsV2', 'StandardNC24rsV3', 'StandardNC24sV2', 'StandardNC24sV3', 'StandardNC6', 'StandardNC6sV2', 'StandardNC6sV3', 'StandardND12s', 'StandardND24rs', 'StandardND24s', 'StandardND6s', 'StandardNV12', 'StandardNV24', 'StandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
 	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
 	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
-	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
+	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'OS'
+	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
+	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier for nodes and maybe pods
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
+	// PodSubnetID - Pod SubnetID specifies the VNet's subnet identifier for pods.
+	PodSubnetID *string `json:"podSubnetID,omitempty"`
 	// MaxPods - Maximum number of pods that can run on a node.
 	MaxPods *int32 `json:"maxPods,omitempty"`
 	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
@@ -1323,6 +1233,12 @@ type ManagedClusterAgentPoolProfile struct {
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
 	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
 	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
+	// KubeletConfig - KubeletConfig specifies the configuration of kubelet on agent nodes.
+	KubeletConfig *KubeletConfig `json:"kubeletConfig,omitempty"`
+	// LinuxOSConfig - LinuxOSConfig specifies the OS configuration of linux agent nodes.
+	LinuxOSConfig *LinuxOSConfig `json:"linuxOSConfig,omitempty"`
+	// EnableEncryptionAtHost - Whether to enable EncryptionAtHost
+	EnableEncryptionAtHost *bool `json:"enableEncryptionAtHost,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfile.
@@ -1343,8 +1259,14 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.OsDiskType != "" {
 		objectMap["osDiskType"] = mcapp.OsDiskType
 	}
+	if mcapp.KubeletDiskType != "" {
+		objectMap["kubeletDiskType"] = mcapp.KubeletDiskType
+	}
 	if mcapp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcapp.VnetSubnetID
+	}
+	if mcapp.PodSubnetID != nil {
+		objectMap["podSubnetID"] = mcapp.PodSubnetID
 	}
 	if mcapp.MaxPods != nil {
 		objectMap["maxPods"] = mcapp.MaxPods
@@ -1400,6 +1322,15 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.ProximityPlacementGroupID != nil {
 		objectMap["proximityPlacementGroupID"] = mcapp.ProximityPlacementGroupID
 	}
+	if mcapp.KubeletConfig != nil {
+		objectMap["kubeletConfig"] = mcapp.KubeletConfig
+	}
+	if mcapp.LinuxOSConfig != nil {
+		objectMap["linuxOSConfig"] = mcapp.LinuxOSConfig
+	}
+	if mcapp.EnableEncryptionAtHost != nil {
+		objectMap["enableEncryptionAtHost"] = mcapp.EnableEncryptionAtHost
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1407,14 +1338,18 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 type ManagedClusterAgentPoolProfileProperties struct {
 	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive) for user pools and in the range of 1 to 100 (inclusive) for system pools. The default value is 1.
 	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
+	// VMSize - Size of agent VMs. Possible values include: 'StandardA1', 'StandardA10', 'StandardA11', 'StandardA1V2', 'StandardA2', 'StandardA2V2', 'StandardA2mV2', 'StandardA3', 'StandardA4', 'StandardA4V2', 'StandardA4mV2', 'StandardA5', 'StandardA6', 'StandardA7', 'StandardA8', 'StandardA8V2', 'StandardA8mV2', 'StandardA9', 'StandardB2ms', 'StandardB2s', 'StandardB4ms', 'StandardB8ms', 'StandardD1', 'StandardD11', 'StandardD11V2', 'StandardD11V2Promo', 'StandardD12', 'StandardD12V2', 'StandardD12V2Promo', 'StandardD13', 'StandardD13V2', 'StandardD13V2Promo', 'StandardD14', 'StandardD14V2', 'StandardD14V2Promo', 'StandardD15V2', 'StandardD16V3', 'StandardD16sV3', 'StandardD1V2', 'StandardD2', 'StandardD2V2', 'StandardD2V2Promo', 'StandardD2V3', 'StandardD2sV3', 'StandardD3', 'StandardD32V3', 'StandardD32sV3', 'StandardD3V2', 'StandardD3V2Promo', 'StandardD4', 'StandardD4V2', 'StandardD4V2Promo', 'StandardD4V3', 'StandardD4sV3', 'StandardD5V2', 'StandardD5V2Promo', 'StandardD64V3', 'StandardD64sV3', 'StandardD8V3', 'StandardD8sV3', 'StandardDS1', 'StandardDS11', 'StandardDS11V2', 'StandardDS11V2Promo', 'StandardDS12', 'StandardDS12V2', 'StandardDS12V2Promo', 'StandardDS13', 'StandardDS132V2', 'StandardDS134V2', 'StandardDS13V2', 'StandardDS13V2Promo', 'StandardDS14', 'StandardDS144V2', 'StandardDS148V2', 'StandardDS14V2', 'StandardDS14V2Promo', 'StandardDS15V2', 'StandardDS1V2', 'StandardDS2', 'StandardDS2V2', 'StandardDS2V2Promo', 'StandardDS3', 'StandardDS3V2', 'StandardDS3V2Promo', 'StandardDS4', 'StandardDS4V2', 'StandardDS4V2Promo', 'StandardDS5V2', 'StandardDS5V2Promo', 'StandardE16V3', 'StandardE16sV3', 'StandardE2V3', 'StandardE2sV3', 'StandardE3216sV3', 'StandardE328sV3', 'StandardE32V3', 'StandardE32sV3', 'StandardE4V3', 'StandardE4sV3', 'StandardE6416sV3', 'StandardE6432sV3', 'StandardE64V3', 'StandardE64sV3', 'StandardE8V3', 'StandardE8sV3', 'StandardF1', 'StandardF16', 'StandardF16s', 'StandardF16sV2', 'StandardF1s', 'StandardF2', 'StandardF2s', 'StandardF2sV2', 'StandardF32sV2', 'StandardF4', 'StandardF4s', 'StandardF4sV2', 'StandardF64sV2', 'StandardF72sV2', 'StandardF8', 'StandardF8s', 'StandardF8sV2', 'StandardG1', 'StandardG2', 'StandardG3', 'StandardG4', 'StandardG5', 'StandardGS1', 'StandardGS2', 'StandardGS3', 'StandardGS4', 'StandardGS44', 'StandardGS48', 'StandardGS5', 'StandardGS516', 'StandardGS58', 'StandardH16', 'StandardH16m', 'StandardH16mr', 'StandardH16r', 'StandardH8', 'StandardH8m', 'StandardL16s', 'StandardL32s', 'StandardL4s', 'StandardL8s', 'StandardM12832ms', 'StandardM12864ms', 'StandardM128ms', 'StandardM128s', 'StandardM6416ms', 'StandardM6432ms', 'StandardM64ms', 'StandardM64s', 'StandardNC12', 'StandardNC12sV2', 'StandardNC12sV3', 'StandardNC24', 'StandardNC24r', 'StandardNC24rsV2', 'StandardNC24rsV3', 'StandardNC24sV2', 'StandardNC24sV3', 'StandardNC6', 'StandardNC6sV2', 'StandardNC6sV3', 'StandardND12s', 'StandardND24rs', 'StandardND24s', 'StandardND6s', 'StandardNV12', 'StandardNV24', 'StandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
 	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
 	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
-	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
+	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'OS'
+	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
+	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier for nodes and maybe pods
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
+	// PodSubnetID - Pod SubnetID specifies the VNet's subnet identifier for pods.
+	PodSubnetID *string `json:"podSubnetID,omitempty"`
 	// MaxPods - Maximum number of pods that can run on a node.
 	MaxPods *int32 `json:"maxPods,omitempty"`
 	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
@@ -1457,6 +1392,12 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
 	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
 	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
+	// KubeletConfig - KubeletConfig specifies the configuration of kubelet on agent nodes.
+	KubeletConfig *KubeletConfig `json:"kubeletConfig,omitempty"`
+	// LinuxOSConfig - LinuxOSConfig specifies the OS configuration of linux agent nodes.
+	LinuxOSConfig *LinuxOSConfig `json:"linuxOSConfig,omitempty"`
+	// EnableEncryptionAtHost - Whether to enable EncryptionAtHost
+	EnableEncryptionAtHost *bool `json:"enableEncryptionAtHost,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfileProperties.
@@ -1474,8 +1415,14 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.OsDiskType != "" {
 		objectMap["osDiskType"] = mcappp.OsDiskType
 	}
+	if mcappp.KubeletDiskType != "" {
+		objectMap["kubeletDiskType"] = mcappp.KubeletDiskType
+	}
 	if mcappp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcappp.VnetSubnetID
+	}
+	if mcappp.PodSubnetID != nil {
+		objectMap["podSubnetID"] = mcappp.PodSubnetID
 	}
 	if mcappp.MaxPods != nil {
 		objectMap["maxPods"] = mcappp.MaxPods
@@ -1531,6 +1478,15 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.ProximityPlacementGroupID != nil {
 		objectMap["proximityPlacementGroupID"] = mcappp.ProximityPlacementGroupID
 	}
+	if mcappp.KubeletConfig != nil {
+		objectMap["kubeletConfig"] = mcappp.KubeletConfig
+	}
+	if mcappp.LinuxOSConfig != nil {
+		objectMap["linuxOSConfig"] = mcappp.LinuxOSConfig
+	}
+	if mcappp.EnableEncryptionAtHost != nil {
+		objectMap["enableEncryptionAtHost"] = mcappp.EnableEncryptionAtHost
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1540,6 +1496,14 @@ type ManagedClusterAPIServerAccessProfile struct {
 	AuthorizedIPRanges *[]string `json:"authorizedIPRanges,omitempty"`
 	// EnablePrivateCluster - Whether to create the cluster as a private cluster or not.
 	EnablePrivateCluster *bool `json:"enablePrivateCluster,omitempty"`
+	// PrivateDNSZone - Private dns zone mode for private cluster.
+	PrivateDNSZone *string `json:"privateDNSZone,omitempty"`
+}
+
+// ManagedClusterAutoUpgradeProfile auto upgrade profile for a managed cluster.
+type ManagedClusterAutoUpgradeProfile struct {
+	// UpgradeChannel - upgrade channel for auto upgrade. Possible values include: 'UpgradeChannelRapid', 'UpgradeChannelStable', 'UpgradeChannelPatch', 'UpgradeChannelNone'
+	UpgradeChannel UpgradeChannel `json:"upgradeChannel,omitempty"`
 }
 
 // ManagedClusterIdentity identity for the managed cluster.
@@ -1779,6 +1743,76 @@ type ManagedClusterLoadBalancerProfileOutboundIPs struct {
 	PublicIPs *[]ResourceReference `json:"publicIPs,omitempty"`
 }
 
+// ManagedClusterPodIdentity ...
+type ManagedClusterPodIdentity struct {
+	// Name - Name of the pod identity.
+	Name *string `json:"name,omitempty"`
+	// Namespace - Namespace of the pod identity.
+	Namespace *string `json:"namespace,omitempty"`
+	// Identity - Information of the user assigned identity.
+	Identity *UserAssignedIdentity `json:"identity,omitempty"`
+	// ProvisioningState - READ-ONLY; The current provisioning state of the pod identity. Possible values include: 'Assigned', 'Updating', 'Deleting', 'Failed'
+	ProvisioningState ManagedClusterPodIdentityProvisioningState `json:"provisioningState,omitempty"`
+	// ProvisioningInfo - READ-ONLY
+	ProvisioningInfo *ManagedClusterPodIdentityProvisioningInfo `json:"provisioningInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterPodIdentity.
+func (mcpi ManagedClusterPodIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcpi.Name != nil {
+		objectMap["name"] = mcpi.Name
+	}
+	if mcpi.Namespace != nil {
+		objectMap["namespace"] = mcpi.Namespace
+	}
+	if mcpi.Identity != nil {
+		objectMap["identity"] = mcpi.Identity
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedClusterPodIdentityException ...
+type ManagedClusterPodIdentityException struct {
+	// Name - Name of the pod identity exception.
+	Name *string `json:"name,omitempty"`
+	// Namespace - Namespace of the pod identity exception.
+	Namespace *string `json:"namespace,omitempty"`
+	// PodLabels - Pod labels to match.
+	PodLabels map[string]*string `json:"podLabels"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterPodIdentityException.
+func (mcpie ManagedClusterPodIdentityException) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcpie.Name != nil {
+		objectMap["name"] = mcpie.Name
+	}
+	if mcpie.Namespace != nil {
+		objectMap["namespace"] = mcpie.Namespace
+	}
+	if mcpie.PodLabels != nil {
+		objectMap["podLabels"] = mcpie.PodLabels
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedClusterPodIdentityProfile ...
+type ManagedClusterPodIdentityProfile struct {
+	// Enabled - Whether the pod identity addon is enabled.
+	Enabled *bool `json:"enabled,omitempty"`
+	// UserAssignedIdentities - User assigned pod identity settings.
+	UserAssignedIdentities *[]ManagedClusterPodIdentity `json:"userAssignedIdentities,omitempty"`
+	// UserAssignedIdentityExceptions - User assigned pod identity exception settings.
+	UserAssignedIdentityExceptions *[]ManagedClusterPodIdentityException `json:"userAssignedIdentityExceptions,omitempty"`
+}
+
+// ManagedClusterPodIdentityProvisioningInfo ...
+type ManagedClusterPodIdentityProvisioningInfo struct {
+	// Error - Pod identity assignment error (if any).
+	Error *CloudError `json:"error,omitempty"`
+}
+
 // ManagedClusterPoolUpgradeProfile the list of available upgrade versions.
 type ManagedClusterPoolUpgradeProfile struct {
 	// KubernetesVersion - Kubernetes version (major, minor, patch).
@@ -1825,6 +1859,8 @@ type ManagedClusterProperties struct {
 	ServicePrincipalProfile *ManagedClusterServicePrincipalProfile `json:"servicePrincipalProfile,omitempty"`
 	// AddonProfiles - Profile of managed cluster add-on.
 	AddonProfiles map[string]*ManagedClusterAddonProfile `json:"addonProfiles"`
+	// PodIdentityProfile - Profile of managed cluster pod identity.
+	PodIdentityProfile *ManagedClusterPodIdentityProfile `json:"podIdentityProfile,omitempty"`
 	// NodeResourceGroup - Name of the resource group containing agent pool nodes.
 	NodeResourceGroup *string `json:"nodeResourceGroup,omitempty"`
 	// EnableRBAC - Whether to enable Kubernetes Role-Based Access Control.
@@ -1832,9 +1868,11 @@ type ManagedClusterProperties struct {
 	// EnablePodSecurityPolicy - (DEPRECATING) Whether to enable Kubernetes pod security policy (preview). This feature is set for removal on October 15th, 2020. Learn more at aka.ms/aks/azpodpolicy.
 	EnablePodSecurityPolicy *bool `json:"enablePodSecurityPolicy,omitempty"`
 	// NetworkProfile - Profile of network configuration.
-	NetworkProfile *NetworkProfileType `json:"networkProfile,omitempty"`
+	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
 	// AadProfile - Profile of Azure Active Directory configuration.
 	AadProfile *ManagedClusterAADProfile `json:"aadProfile,omitempty"`
+	// AutoUpgradeProfile - Profile of auto upgrade configuration.
+	AutoUpgradeProfile *ManagedClusterAutoUpgradeProfile `json:"autoUpgradeProfile,omitempty"`
 	// AutoScalerProfile - Parameters to be applied to the cluster-autoscaler when enabled
 	AutoScalerProfile *ManagedClusterPropertiesAutoScalerProfile `json:"autoScalerProfile,omitempty"`
 	// APIServerAccessProfile - Access profile for managed cluster API server.
@@ -1869,6 +1907,9 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.AddonProfiles != nil {
 		objectMap["addonProfiles"] = mcp.AddonProfiles
 	}
+	if mcp.PodIdentityProfile != nil {
+		objectMap["podIdentityProfile"] = mcp.PodIdentityProfile
+	}
 	if mcp.NodeResourceGroup != nil {
 		objectMap["nodeResourceGroup"] = mcp.NodeResourceGroup
 	}
@@ -1883,6 +1924,9 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	}
 	if mcp.AadProfile != nil {
 		objectMap["aadProfile"] = mcp.AadProfile
+	}
+	if mcp.AutoUpgradeProfile != nil {
+		objectMap["autoUpgradeProfile"] = mcp.AutoUpgradeProfile
 	}
 	if mcp.AutoScalerProfile != nil {
 		objectMap["autoScalerProfile"] = mcp.AutoScalerProfile
@@ -1903,10 +1947,11 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 // enabled
 type ManagedClusterPropertiesAutoScalerProfile struct {
 	BalanceSimilarNodeGroups *string `json:"balance-similar-node-groups,omitempty"`
-	// Expander - Possible values include: 'LeastWaste', 'MostPods', 'Random'
+	// Expander - Possible values include: 'LeastWaste', 'MostPods', 'Priority', 'Random'
 	Expander                      Expander `json:"expander,omitempty"`
 	MaxEmptyBulkDelete            *string  `json:"max-empty-bulk-delete,omitempty"`
 	MaxGracefulTerminationSec     *string  `json:"max-graceful-termination-sec,omitempty"`
+	MaxNodeProvisionTime          *string  `json:"max-node-provision-time,omitempty"`
 	MaxTotalUnreadyPercentage     *string  `json:"max-total-unready-percentage,omitempty"`
 	NewPodScaleUpDelay            *string  `json:"new-pod-scale-up-delay,omitempty"`
 	OkTotalUnreadyCount           *string  `json:"ok-total-unready-count,omitempty"`
@@ -2241,7 +2286,7 @@ type MasterProfile struct {
 	Count *int32 `json:"count,omitempty"`
 	// DNSPrefix - DNS prefix to be used to create the FQDN for the master pool.
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
-	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
+	// VMSize - Size of agent VMs. Possible values include: 'StandardA1', 'StandardA10', 'StandardA11', 'StandardA1V2', 'StandardA2', 'StandardA2V2', 'StandardA2mV2', 'StandardA3', 'StandardA4', 'StandardA4V2', 'StandardA4mV2', 'StandardA5', 'StandardA6', 'StandardA7', 'StandardA8', 'StandardA8V2', 'StandardA8mV2', 'StandardA9', 'StandardB2ms', 'StandardB2s', 'StandardB4ms', 'StandardB8ms', 'StandardD1', 'StandardD11', 'StandardD11V2', 'StandardD11V2Promo', 'StandardD12', 'StandardD12V2', 'StandardD12V2Promo', 'StandardD13', 'StandardD13V2', 'StandardD13V2Promo', 'StandardD14', 'StandardD14V2', 'StandardD14V2Promo', 'StandardD15V2', 'StandardD16V3', 'StandardD16sV3', 'StandardD1V2', 'StandardD2', 'StandardD2V2', 'StandardD2V2Promo', 'StandardD2V3', 'StandardD2sV3', 'StandardD3', 'StandardD32V3', 'StandardD32sV3', 'StandardD3V2', 'StandardD3V2Promo', 'StandardD4', 'StandardD4V2', 'StandardD4V2Promo', 'StandardD4V3', 'StandardD4sV3', 'StandardD5V2', 'StandardD5V2Promo', 'StandardD64V3', 'StandardD64sV3', 'StandardD8V3', 'StandardD8sV3', 'StandardDS1', 'StandardDS11', 'StandardDS11V2', 'StandardDS11V2Promo', 'StandardDS12', 'StandardDS12V2', 'StandardDS12V2Promo', 'StandardDS13', 'StandardDS132V2', 'StandardDS134V2', 'StandardDS13V2', 'StandardDS13V2Promo', 'StandardDS14', 'StandardDS144V2', 'StandardDS148V2', 'StandardDS14V2', 'StandardDS14V2Promo', 'StandardDS15V2', 'StandardDS1V2', 'StandardDS2', 'StandardDS2V2', 'StandardDS2V2Promo', 'StandardDS3', 'StandardDS3V2', 'StandardDS3V2Promo', 'StandardDS4', 'StandardDS4V2', 'StandardDS4V2Promo', 'StandardDS5V2', 'StandardDS5V2Promo', 'StandardE16V3', 'StandardE16sV3', 'StandardE2V3', 'StandardE2sV3', 'StandardE3216sV3', 'StandardE328sV3', 'StandardE32V3', 'StandardE32sV3', 'StandardE4V3', 'StandardE4sV3', 'StandardE6416sV3', 'StandardE6432sV3', 'StandardE64V3', 'StandardE64sV3', 'StandardE8V3', 'StandardE8sV3', 'StandardF1', 'StandardF16', 'StandardF16s', 'StandardF16sV2', 'StandardF1s', 'StandardF2', 'StandardF2s', 'StandardF2sV2', 'StandardF32sV2', 'StandardF4', 'StandardF4s', 'StandardF4sV2', 'StandardF64sV2', 'StandardF72sV2', 'StandardF8', 'StandardF8s', 'StandardF8sV2', 'StandardG1', 'StandardG2', 'StandardG3', 'StandardG4', 'StandardG5', 'StandardGS1', 'StandardGS2', 'StandardGS3', 'StandardGS4', 'StandardGS44', 'StandardGS48', 'StandardGS5', 'StandardGS516', 'StandardGS58', 'StandardH16', 'StandardH16m', 'StandardH16mr', 'StandardH16r', 'StandardH8', 'StandardH8m', 'StandardL16s', 'StandardL32s', 'StandardL4s', 'StandardL8s', 'StandardM12832ms', 'StandardM12864ms', 'StandardM128ms', 'StandardM128s', 'StandardM6416ms', 'StandardM6432ms', 'StandardM64ms', 'StandardM64s', 'StandardNC12', 'StandardNC12sV2', 'StandardNC12sV3', 'StandardNC24', 'StandardNC24r', 'StandardNC24rsV2', 'StandardNC24rsV3', 'StandardNC24sV2', 'StandardNC24sV3', 'StandardNC6', 'StandardNC6sV2', 'StandardNC6sV3', 'StandardND12s', 'StandardND24rs', 'StandardND24s', 'StandardND6s', 'StandardNV12', 'StandardNV24', 'StandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
@@ -2282,18 +2327,8 @@ func (mp MasterProfile) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// NetworkProfile represents the OpenShift networking configuration
+// NetworkProfile profile of network configuration.
 type NetworkProfile struct {
-	// VnetCidr - CIDR for the OpenShift Vnet.
-	VnetCidr *string `json:"vnetCidr,omitempty"`
-	// PeerVnetID - CIDR of the Vnet to peer.
-	PeerVnetID *string `json:"peerVnetId,omitempty"`
-	// VnetID - ID of the Vnet created for OSA cluster.
-	VnetID *string `json:"vnetId,omitempty"`
-}
-
-// NetworkProfileType profile of network configuration.
-type NetworkProfileType struct {
 	// NetworkPlugin - Network plugin used for building Kubernetes network. Possible values include: 'Azure', 'Kubenet'
 	NetworkPlugin NetworkPlugin `json:"networkPlugin,omitempty"`
 	// NetworkPolicy - Network policy used for building Kubernetes network. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
@@ -2314,642 +2349,6 @@ type NetworkProfileType struct {
 	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
 	// LoadBalancerProfile - Profile of the cluster load balancer.
 	LoadBalancerProfile *ManagedClusterLoadBalancerProfile `json:"loadBalancerProfile,omitempty"`
-}
-
-// OpenShiftManagedCluster openShift Managed cluster.
-type OpenShiftManagedCluster struct {
-	autorest.Response `json:"-"`
-	// Plan - Define the resource plan as required by ARM for billing purposes
-	Plan *PurchasePlan `json:"plan,omitempty"`
-	// OpenShiftManagedClusterProperties - Properties of a OpenShift managed cluster.
-	*OpenShiftManagedClusterProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for OpenShiftManagedCluster.
-func (osmc OpenShiftManagedCluster) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if osmc.Plan != nil {
-		objectMap["plan"] = osmc.Plan
-	}
-	if osmc.OpenShiftManagedClusterProperties != nil {
-		objectMap["properties"] = osmc.OpenShiftManagedClusterProperties
-	}
-	if osmc.Location != nil {
-		objectMap["location"] = osmc.Location
-	}
-	if osmc.Tags != nil {
-		objectMap["tags"] = osmc.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for OpenShiftManagedCluster struct.
-func (osmc *OpenShiftManagedCluster) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "plan":
-			if v != nil {
-				var plan PurchasePlan
-				err = json.Unmarshal(*v, &plan)
-				if err != nil {
-					return err
-				}
-				osmc.Plan = &plan
-			}
-		case "properties":
-			if v != nil {
-				var openShiftManagedClusterProperties OpenShiftManagedClusterProperties
-				err = json.Unmarshal(*v, &openShiftManagedClusterProperties)
-				if err != nil {
-					return err
-				}
-				osmc.OpenShiftManagedClusterProperties = &openShiftManagedClusterProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				osmc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				osmc.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				osmc.Type = &typeVar
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				osmc.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				osmc.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// OpenShiftManagedClusterAADIdentityProvider defines the Identity provider for MS AAD.
-type OpenShiftManagedClusterAADIdentityProvider struct {
-	// ClientID - The clientId password associated with the provider.
-	ClientID *string `json:"clientId,omitempty"`
-	// Secret - The secret password associated with the provider.
-	Secret *string `json:"secret,omitempty"`
-	// TenantID - The tenantId associated with the provider.
-	TenantID *string `json:"tenantId,omitempty"`
-	// CustomerAdminGroupID - The groupId to be granted cluster admin role.
-	CustomerAdminGroupID *string `json:"customerAdminGroupId,omitempty"`
-	// Kind - Possible values include: 'KindOpenShiftManagedClusterBaseIdentityProvider', 'KindAADIdentityProvider'
-	Kind Kind `json:"kind,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenShiftManagedClusterAADIdentityProvider.
-func (osmcaip OpenShiftManagedClusterAADIdentityProvider) MarshalJSON() ([]byte, error) {
-	osmcaip.Kind = KindAADIdentityProvider
-	objectMap := make(map[string]interface{})
-	if osmcaip.ClientID != nil {
-		objectMap["clientId"] = osmcaip.ClientID
-	}
-	if osmcaip.Secret != nil {
-		objectMap["secret"] = osmcaip.Secret
-	}
-	if osmcaip.TenantID != nil {
-		objectMap["tenantId"] = osmcaip.TenantID
-	}
-	if osmcaip.CustomerAdminGroupID != nil {
-		objectMap["customerAdminGroupId"] = osmcaip.CustomerAdminGroupID
-	}
-	if osmcaip.Kind != "" {
-		objectMap["kind"] = osmcaip.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsOpenShiftManagedClusterAADIdentityProvider is the BasicOpenShiftManagedClusterBaseIdentityProvider implementation for OpenShiftManagedClusterAADIdentityProvider.
-func (osmcaip OpenShiftManagedClusterAADIdentityProvider) AsOpenShiftManagedClusterAADIdentityProvider() (*OpenShiftManagedClusterAADIdentityProvider, bool) {
-	return &osmcaip, true
-}
-
-// AsOpenShiftManagedClusterBaseIdentityProvider is the BasicOpenShiftManagedClusterBaseIdentityProvider implementation for OpenShiftManagedClusterAADIdentityProvider.
-func (osmcaip OpenShiftManagedClusterAADIdentityProvider) AsOpenShiftManagedClusterBaseIdentityProvider() (*OpenShiftManagedClusterBaseIdentityProvider, bool) {
-	return nil, false
-}
-
-// AsBasicOpenShiftManagedClusterBaseIdentityProvider is the BasicOpenShiftManagedClusterBaseIdentityProvider implementation for OpenShiftManagedClusterAADIdentityProvider.
-func (osmcaip OpenShiftManagedClusterAADIdentityProvider) AsBasicOpenShiftManagedClusterBaseIdentityProvider() (BasicOpenShiftManagedClusterBaseIdentityProvider, bool) {
-	return &osmcaip, true
-}
-
-// OpenShiftManagedClusterAgentPoolProfile defines the configuration of the OpenShift cluster VMs.
-type OpenShiftManagedClusterAgentPoolProfile struct {
-	// Name - Unique name of the pool profile in the context of the subscription and resource group.
-	Name *string `json:"name,omitempty"`
-	// Count - Number of agents (VMs) to host docker containers.
-	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs. Possible values include: 'StandardD2sV3', 'StandardD4sV3', 'StandardD8sV3', 'StandardD16sV3', 'StandardD32sV3', 'StandardD64sV3', 'StandardDS4V2', 'StandardDS5V2', 'StandardF8sV2', 'StandardF16sV2', 'StandardF32sV2', 'StandardF64sV2', 'StandardF72sV2', 'StandardF8s', 'StandardF16s', 'StandardE4sV3', 'StandardE8sV3', 'StandardE16sV3', 'StandardE20sV3', 'StandardE32sV3', 'StandardE64sV3', 'StandardGS2', 'StandardGS3', 'StandardGS4', 'StandardGS5', 'StandardDS12V2', 'StandardDS13V2', 'StandardDS14V2', 'StandardDS15V2', 'StandardL4s', 'StandardL8s', 'StandardL16s', 'StandardL32s'
-	VMSize OpenShiftContainerServiceVMSize `json:"vmSize,omitempty"`
-	// SubnetCidr - Subnet CIDR for the peering.
-	SubnetCidr *string `json:"subnetCidr,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
-	OsType OSType `json:"osType,omitempty"`
-	// Role - Define the role of the AgentPoolProfile. Possible values include: 'Compute', 'Infra'
-	Role OpenShiftAgentPoolProfileRole `json:"role,omitempty"`
-}
-
-// OpenShiftManagedClusterAuthProfile defines all possible authentication profiles for the OpenShift
-// cluster.
-type OpenShiftManagedClusterAuthProfile struct {
-	// IdentityProviders - Type of authentication profile to use.
-	IdentityProviders *[]OpenShiftManagedClusterIdentityProvider `json:"identityProviders,omitempty"`
-}
-
-// BasicOpenShiftManagedClusterBaseIdentityProvider structure for any Identity provider.
-type BasicOpenShiftManagedClusterBaseIdentityProvider interface {
-	AsOpenShiftManagedClusterAADIdentityProvider() (*OpenShiftManagedClusterAADIdentityProvider, bool)
-	AsOpenShiftManagedClusterBaseIdentityProvider() (*OpenShiftManagedClusterBaseIdentityProvider, bool)
-}
-
-// OpenShiftManagedClusterBaseIdentityProvider structure for any Identity provider.
-type OpenShiftManagedClusterBaseIdentityProvider struct {
-	// Kind - Possible values include: 'KindOpenShiftManagedClusterBaseIdentityProvider', 'KindAADIdentityProvider'
-	Kind Kind `json:"kind,omitempty"`
-}
-
-func unmarshalBasicOpenShiftManagedClusterBaseIdentityProvider(body []byte) (BasicOpenShiftManagedClusterBaseIdentityProvider, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["kind"] {
-	case string(KindAADIdentityProvider):
-		var osmcaip OpenShiftManagedClusterAADIdentityProvider
-		err := json.Unmarshal(body, &osmcaip)
-		return osmcaip, err
-	default:
-		var osmcbip OpenShiftManagedClusterBaseIdentityProvider
-		err := json.Unmarshal(body, &osmcbip)
-		return osmcbip, err
-	}
-}
-func unmarshalBasicOpenShiftManagedClusterBaseIdentityProviderArray(body []byte) ([]BasicOpenShiftManagedClusterBaseIdentityProvider, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	osmcbipArray := make([]BasicOpenShiftManagedClusterBaseIdentityProvider, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		osmcbip, err := unmarshalBasicOpenShiftManagedClusterBaseIdentityProvider(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		osmcbipArray[index] = osmcbip
-	}
-	return osmcbipArray, nil
-}
-
-// MarshalJSON is the custom marshaler for OpenShiftManagedClusterBaseIdentityProvider.
-func (osmcbip OpenShiftManagedClusterBaseIdentityProvider) MarshalJSON() ([]byte, error) {
-	osmcbip.Kind = KindOpenShiftManagedClusterBaseIdentityProvider
-	objectMap := make(map[string]interface{})
-	if osmcbip.Kind != "" {
-		objectMap["kind"] = osmcbip.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsOpenShiftManagedClusterAADIdentityProvider is the BasicOpenShiftManagedClusterBaseIdentityProvider implementation for OpenShiftManagedClusterBaseIdentityProvider.
-func (osmcbip OpenShiftManagedClusterBaseIdentityProvider) AsOpenShiftManagedClusterAADIdentityProvider() (*OpenShiftManagedClusterAADIdentityProvider, bool) {
-	return nil, false
-}
-
-// AsOpenShiftManagedClusterBaseIdentityProvider is the BasicOpenShiftManagedClusterBaseIdentityProvider implementation for OpenShiftManagedClusterBaseIdentityProvider.
-func (osmcbip OpenShiftManagedClusterBaseIdentityProvider) AsOpenShiftManagedClusterBaseIdentityProvider() (*OpenShiftManagedClusterBaseIdentityProvider, bool) {
-	return &osmcbip, true
-}
-
-// AsBasicOpenShiftManagedClusterBaseIdentityProvider is the BasicOpenShiftManagedClusterBaseIdentityProvider implementation for OpenShiftManagedClusterBaseIdentityProvider.
-func (osmcbip OpenShiftManagedClusterBaseIdentityProvider) AsBasicOpenShiftManagedClusterBaseIdentityProvider() (BasicOpenShiftManagedClusterBaseIdentityProvider, bool) {
-	return &osmcbip, true
-}
-
-// OpenShiftManagedClusterIdentityProvider defines the configuration of the identity providers to be used
-// in the OpenShift cluster.
-type OpenShiftManagedClusterIdentityProvider struct {
-	// Name - Name of the provider.
-	Name *string `json:"name,omitempty"`
-	// Provider - Configuration of the provider.
-	Provider BasicOpenShiftManagedClusterBaseIdentityProvider `json:"provider,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for OpenShiftManagedClusterIdentityProvider struct.
-func (osmcip *OpenShiftManagedClusterIdentityProvider) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				osmcip.Name = &name
-			}
-		case "provider":
-			if v != nil {
-				provider, err := unmarshalBasicOpenShiftManagedClusterBaseIdentityProvider(*v)
-				if err != nil {
-					return err
-				}
-				osmcip.Provider = provider
-			}
-		}
-	}
-
-	return nil
-}
-
-// OpenShiftManagedClusterListResult the response from the List OpenShift Managed Clusters operation.
-type OpenShiftManagedClusterListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The list of OpenShift managed clusters.
-	Value *[]OpenShiftManagedCluster `json:"value,omitempty"`
-	// NextLink - READ-ONLY; The URL to get the next set of OpenShift managed cluster results.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenShiftManagedClusterListResult.
-func (osmclr OpenShiftManagedClusterListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if osmclr.Value != nil {
-		objectMap["value"] = osmclr.Value
-	}
-	return json.Marshal(objectMap)
-}
-
-// OpenShiftManagedClusterListResultIterator provides access to a complete listing of
-// OpenShiftManagedCluster values.
-type OpenShiftManagedClusterListResultIterator struct {
-	i    int
-	page OpenShiftManagedClusterListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *OpenShiftManagedClusterListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OpenShiftManagedClusterListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *OpenShiftManagedClusterListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter OpenShiftManagedClusterListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter OpenShiftManagedClusterListResultIterator) Response() OpenShiftManagedClusterListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter OpenShiftManagedClusterListResultIterator) Value() OpenShiftManagedCluster {
-	if !iter.page.NotDone() {
-		return OpenShiftManagedCluster{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the OpenShiftManagedClusterListResultIterator type.
-func NewOpenShiftManagedClusterListResultIterator(page OpenShiftManagedClusterListResultPage) OpenShiftManagedClusterListResultIterator {
-	return OpenShiftManagedClusterListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (osmclr OpenShiftManagedClusterListResult) IsEmpty() bool {
-	return osmclr.Value == nil || len(*osmclr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (osmclr OpenShiftManagedClusterListResult) hasNextLink() bool {
-	return osmclr.NextLink != nil && len(*osmclr.NextLink) != 0
-}
-
-// openShiftManagedClusterListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (osmclr OpenShiftManagedClusterListResult) openShiftManagedClusterListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !osmclr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(osmclr.NextLink)))
-}
-
-// OpenShiftManagedClusterListResultPage contains a page of OpenShiftManagedCluster values.
-type OpenShiftManagedClusterListResultPage struct {
-	fn     func(context.Context, OpenShiftManagedClusterListResult) (OpenShiftManagedClusterListResult, error)
-	osmclr OpenShiftManagedClusterListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *OpenShiftManagedClusterListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OpenShiftManagedClusterListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.osmclr)
-		if err != nil {
-			return err
-		}
-		page.osmclr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *OpenShiftManagedClusterListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page OpenShiftManagedClusterListResultPage) NotDone() bool {
-	return !page.osmclr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page OpenShiftManagedClusterListResultPage) Response() OpenShiftManagedClusterListResult {
-	return page.osmclr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page OpenShiftManagedClusterListResultPage) Values() []OpenShiftManagedCluster {
-	if page.osmclr.IsEmpty() {
-		return nil
-	}
-	return *page.osmclr.Value
-}
-
-// Creates a new instance of the OpenShiftManagedClusterListResultPage type.
-func NewOpenShiftManagedClusterListResultPage(cur OpenShiftManagedClusterListResult, getNextPage func(context.Context, OpenShiftManagedClusterListResult) (OpenShiftManagedClusterListResult, error)) OpenShiftManagedClusterListResultPage {
-	return OpenShiftManagedClusterListResultPage{
-		fn:     getNextPage,
-		osmclr: cur,
-	}
-}
-
-// OpenShiftManagedClusterMasterPoolProfile openShiftManagedClusterMaterPoolProfile contains configuration
-// for OpenShift master VMs.
-type OpenShiftManagedClusterMasterPoolProfile struct {
-	// Name - Unique name of the master pool profile in the context of the subscription and resource group.
-	Name *string `json:"name,omitempty"`
-	// Count - Number of masters (VMs) to host docker containers. The default value is 3.
-	Count *int32 `json:"count,omitempty"`
-	// VMSize - Size of agent VMs. Possible values include: 'StandardD2sV3', 'StandardD4sV3', 'StandardD8sV3', 'StandardD16sV3', 'StandardD32sV3', 'StandardD64sV3', 'StandardDS4V2', 'StandardDS5V2', 'StandardF8sV2', 'StandardF16sV2', 'StandardF32sV2', 'StandardF64sV2', 'StandardF72sV2', 'StandardF8s', 'StandardF16s', 'StandardE4sV3', 'StandardE8sV3', 'StandardE16sV3', 'StandardE20sV3', 'StandardE32sV3', 'StandardE64sV3', 'StandardGS2', 'StandardGS3', 'StandardGS4', 'StandardGS5', 'StandardDS12V2', 'StandardDS13V2', 'StandardDS14V2', 'StandardDS15V2', 'StandardL4s', 'StandardL8s', 'StandardL16s', 'StandardL32s'
-	VMSize OpenShiftContainerServiceVMSize `json:"vmSize,omitempty"`
-	// SubnetCidr - Subnet CIDR for the peering.
-	SubnetCidr *string `json:"subnetCidr,omitempty"`
-	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
-	OsType OSType `json:"osType,omitempty"`
-}
-
-// OpenShiftManagedClusterProperties properties of the OpenShift managed cluster.
-type OpenShiftManagedClusterProperties struct {
-	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
-	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// OpenShiftVersion - Version of OpenShift specified when creating the cluster.
-	OpenShiftVersion *string `json:"openShiftVersion,omitempty"`
-	// ClusterVersion - READ-ONLY; Version of OpenShift specified when creating the cluster.
-	ClusterVersion *string `json:"clusterVersion,omitempty"`
-	// PublicHostname - READ-ONLY; Service generated FQDN for OpenShift API server.
-	PublicHostname *string `json:"publicHostname,omitempty"`
-	// Fqdn - READ-ONLY; Service generated FQDN for OpenShift API server loadbalancer internal hostname.
-	Fqdn *string `json:"fqdn,omitempty"`
-	// NetworkProfile - Configuration for OpenShift networking.
-	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
-	// RouterProfiles - Configuration for OpenShift router(s).
-	RouterProfiles *[]OpenShiftRouterProfile `json:"routerProfiles,omitempty"`
-	// MasterPoolProfile - Configuration for OpenShift master VMs.
-	MasterPoolProfile *OpenShiftManagedClusterMasterPoolProfile `json:"masterPoolProfile,omitempty"`
-	// AgentPoolProfiles - Configuration of OpenShift cluster VMs.
-	AgentPoolProfiles *[]OpenShiftManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
-	// AuthProfile - Configures OpenShift authentication.
-	AuthProfile *OpenShiftManagedClusterAuthProfile `json:"authProfile,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenShiftManagedClusterProperties.
-func (osmcp OpenShiftManagedClusterProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if osmcp.OpenShiftVersion != nil {
-		objectMap["openShiftVersion"] = osmcp.OpenShiftVersion
-	}
-	if osmcp.NetworkProfile != nil {
-		objectMap["networkProfile"] = osmcp.NetworkProfile
-	}
-	if osmcp.RouterProfiles != nil {
-		objectMap["routerProfiles"] = osmcp.RouterProfiles
-	}
-	if osmcp.MasterPoolProfile != nil {
-		objectMap["masterPoolProfile"] = osmcp.MasterPoolProfile
-	}
-	if osmcp.AgentPoolProfiles != nil {
-		objectMap["agentPoolProfiles"] = osmcp.AgentPoolProfiles
-	}
-	if osmcp.AuthProfile != nil {
-		objectMap["authProfile"] = osmcp.AuthProfile
-	}
-	return json.Marshal(objectMap)
-}
-
-// OpenShiftManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
-type OpenShiftManagedClustersCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *OpenShiftManagedClustersCreateOrUpdateFuture) Result(client OpenShiftManagedClustersClient) (osmc OpenShiftManagedCluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if osmc.Response.Response, err = future.GetResult(sender); err == nil && osmc.Response.Response.StatusCode != http.StatusNoContent {
-		osmc, err = client.CreateOrUpdateResponder(osmc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersCreateOrUpdateFuture", "Result", osmc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// OpenShiftManagedClustersDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type OpenShiftManagedClustersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *OpenShiftManagedClustersDeleteFuture) Result(client OpenShiftManagedClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// OpenShiftManagedClustersUpdateTagsFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type OpenShiftManagedClustersUpdateTagsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *OpenShiftManagedClustersUpdateTagsFuture) Result(client OpenShiftManagedClustersClient) (osmc OpenShiftManagedCluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersUpdateTagsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersUpdateTagsFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if osmc.Response.Response, err = future.GetResult(sender); err == nil && osmc.Response.Response.StatusCode != http.StatusNoContent {
-		osmc, err = client.UpdateTagsResponder(osmc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersUpdateTagsFuture", "Result", osmc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// OpenShiftRouterProfile represents an OpenShift router
-type OpenShiftRouterProfile struct {
-	// Name - Name of the router profile.
-	Name *string `json:"name,omitempty"`
-	// PublicSubdomain - READ-ONLY; DNS subdomain for OpenShift router.
-	PublicSubdomain *string `json:"publicSubdomain,omitempty"`
-	// Fqdn - READ-ONLY; Auto-allocated FQDN for the OpenShift router.
-	Fqdn *string `json:"fqdn,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenShiftRouterProfile.
-func (osrp OpenShiftRouterProfile) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if osrp.Name != nil {
-		objectMap["name"] = osrp.Name
-	}
-	return json.Marshal(objectMap)
 }
 
 // OperationListResult the List Compute Operation operation response.
@@ -3030,117 +2429,6 @@ type OperationValueDisplay struct {
 	Description *string `json:"description,omitempty"`
 	// Provider - READ-ONLY; The resource provider for the operation.
 	Provider *string `json:"provider,omitempty"`
-}
-
-// OrchestratorProfile contains information about orchestrator.
-type OrchestratorProfile struct {
-	// OrchestratorType - Orchestrator type.
-	OrchestratorType *string `json:"orchestratorType,omitempty"`
-	// OrchestratorVersion - Orchestrator version (major, minor, patch).
-	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
-}
-
-// OrchestratorProfileType profile for the container service orchestrator.
-type OrchestratorProfileType struct {
-	// OrchestratorType - The orchestrator to use to manage container service cluster resources. Valid values are Kubernetes, Swarm, DCOS, DockerCE and Custom. Possible values include: 'Kubernetes', 'Swarm', 'DCOS', 'DockerCE', 'Custom'
-	OrchestratorType OrchestratorTypes `json:"orchestratorType,omitempty"`
-	// OrchestratorVersion - The version of the orchestrator to use. You can specify the major.minor.patch part of the actual version.For example, you can specify version as "1.6.11".
-	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-}
-
-// OrchestratorVersionProfile the profile of an orchestrator and its available versions.
-type OrchestratorVersionProfile struct {
-	// OrchestratorType - Orchestrator type.
-	OrchestratorType *string `json:"orchestratorType,omitempty"`
-	// OrchestratorVersion - Orchestrator version (major, minor, patch).
-	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// Default - Installed by default if version is not specified.
-	Default *bool `json:"default,omitempty"`
-	// IsPreview - Whether Kubernetes version is currently in preview.
-	IsPreview *bool `json:"isPreview,omitempty"`
-	// Upgrades - The list of available upgrade versions.
-	Upgrades *[]OrchestratorProfile `json:"upgrades,omitempty"`
-}
-
-// OrchestratorVersionProfileListResult the list of versions for supported orchestrators.
-type OrchestratorVersionProfileListResult struct {
-	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Id of the orchestrator version profile list result.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the orchestrator version profile list result.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Type of the orchestrator version profile list result.
-	Type *string `json:"type,omitempty"`
-	// OrchestratorVersionProfileProperties - The properties of an orchestrator version profile.
-	*OrchestratorVersionProfileProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OrchestratorVersionProfileListResult.
-func (ovplr OrchestratorVersionProfileListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ovplr.OrchestratorVersionProfileProperties != nil {
-		objectMap["properties"] = ovplr.OrchestratorVersionProfileProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for OrchestratorVersionProfileListResult struct.
-func (ovplr *OrchestratorVersionProfileListResult) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ovplr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ovplr.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ovplr.Type = &typeVar
-			}
-		case "properties":
-			if v != nil {
-				var orchestratorVersionProfileProperties OrchestratorVersionProfileProperties
-				err = json.Unmarshal(*v, &orchestratorVersionProfileProperties)
-				if err != nil {
-					return err
-				}
-				ovplr.OrchestratorVersionProfileProperties = &orchestratorVersionProfileProperties
-			}
-		}
-	}
-
-	return nil
-}
-
-// OrchestratorVersionProfileProperties the properties of an orchestrator version profile.
-type OrchestratorVersionProfileProperties struct {
-	// Orchestrators - List of orchestrator version profiles.
-	Orchestrators *[]OrchestratorVersionProfile `json:"orchestrators,omitempty"`
 }
 
 // PowerState describes the Power State of the cluster
@@ -3237,7 +2525,7 @@ type PrivateEndpointConnectionListResult struct {
 
 // PrivateEndpointConnectionProperties properties of a private endpoint connection.
 type PrivateEndpointConnectionProperties struct {
-	// ProvisioningState - READ-ONLY; The current provisioning state. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Failed'
+	// ProvisioningState - READ-ONLY; The current provisioning state. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
 	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
 	// PrivateEndpoint - The resource of private endpoint.
 	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
@@ -3333,70 +2621,6 @@ type PrivateLinkServiceConnectionState struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// Properties properties of the container service.
-type Properties struct {
-	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
-	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// OrchestratorProfile - Profile for the container service orchestrator.
-	OrchestratorProfile *OrchestratorProfileType `json:"orchestratorProfile,omitempty"`
-	// CustomProfile - Properties to configure a custom container service cluster.
-	CustomProfile *CustomProfile `json:"customProfile,omitempty"`
-	// ServicePrincipalProfile - Information about a service principal identity for the cluster to use for manipulating Azure APIs. Exact one of secret or keyVaultSecretRef need to be specified.
-	ServicePrincipalProfile *ServicePrincipalProfile `json:"servicePrincipalProfile,omitempty"`
-	// MasterProfile - Profile for the container service master.
-	MasterProfile *MasterProfile `json:"masterProfile,omitempty"`
-	// AgentPoolProfiles - Properties of the agent pool.
-	AgentPoolProfiles *[]AgentPoolProfile `json:"agentPoolProfiles,omitempty"`
-	// WindowsProfile - Profile for Windows VMs in the container service cluster.
-	WindowsProfile *WindowsProfile `json:"windowsProfile,omitempty"`
-	// LinuxProfile - Profile for Linux VMs in the container service cluster.
-	LinuxProfile *LinuxProfile `json:"linuxProfile,omitempty"`
-	// DiagnosticsProfile - Profile for diagnostics in the container service cluster.
-	DiagnosticsProfile *DiagnosticsProfile `json:"diagnosticsProfile,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Properties.
-func (p Properties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if p.OrchestratorProfile != nil {
-		objectMap["orchestratorProfile"] = p.OrchestratorProfile
-	}
-	if p.CustomProfile != nil {
-		objectMap["customProfile"] = p.CustomProfile
-	}
-	if p.ServicePrincipalProfile != nil {
-		objectMap["servicePrincipalProfile"] = p.ServicePrincipalProfile
-	}
-	if p.MasterProfile != nil {
-		objectMap["masterProfile"] = p.MasterProfile
-	}
-	if p.AgentPoolProfiles != nil {
-		objectMap["agentPoolProfiles"] = p.AgentPoolProfiles
-	}
-	if p.WindowsProfile != nil {
-		objectMap["windowsProfile"] = p.WindowsProfile
-	}
-	if p.LinuxProfile != nil {
-		objectMap["linuxProfile"] = p.LinuxProfile
-	}
-	if p.DiagnosticsProfile != nil {
-		objectMap["diagnosticsProfile"] = p.DiagnosticsProfile
-	}
-	return json.Marshal(objectMap)
-}
-
-// PurchasePlan used for establishing the purchase context of any 3rd Party artifact through MarketPlace.
-type PurchasePlan struct {
-	// Name - The plan ID.
-	Name *string `json:"name,omitempty"`
-	// Product - Specifies the product of the image from the marketplace. This is the same value as Offer under the imageReference element.
-	Product *string `json:"product,omitempty"`
-	// PromotionCode - The promotion code.
-	PromotionCode *string `json:"promotionCode,omitempty"`
-	// Publisher - The plan ID.
-	Publisher *string `json:"publisher,omitempty"`
-}
-
 // Resource the Resource model definition.
 type Resource struct {
 	// ID - READ-ONLY; Resource Id
@@ -3429,17 +2653,6 @@ type ResourceReference struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// ServicePrincipalProfile information about a service principal identity for the cluster to use for
-// manipulating Azure APIs. Either secret or keyVaultSecretRef must be specified.
-type ServicePrincipalProfile struct {
-	// ClientID - The ID for the service principal.
-	ClientID *string `json:"clientId,omitempty"`
-	// Secret - The secret password associated with the service principal in plain text.
-	Secret *string `json:"secret,omitempty"`
-	// KeyVaultSecretRef - Reference to a secret stored in Azure Key Vault.
-	KeyVaultSecretRef *KeyVaultSecretRef `json:"keyVaultSecretRef,omitempty"`
-}
-
 // SSHConfiguration SSH configuration for Linux-based VMs running on Azure.
 type SSHConfiguration struct {
 	// PublicKeys - The list of SSH public keys used to authenticate with Linux-based VMs. Only expect one key specified.
@@ -3462,6 +2675,82 @@ type SubResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// SysctlConfig sysctl settings for Linux agent nodes.
+type SysctlConfig struct {
+	// NetCoreSomaxconn - Sysctl setting net.core.somaxconn.
+	NetCoreSomaxconn *int32 `json:"netCoreSomaxconn,omitempty"`
+	// NetCoreNetdevMaxBacklog - Sysctl setting net.core.netdev_max_backlog.
+	NetCoreNetdevMaxBacklog *int32 `json:"netCoreNetdevMaxBacklog,omitempty"`
+	// NetCoreRmemDefault - Sysctl setting net.core.rmem_default.
+	NetCoreRmemDefault *int32 `json:"netCoreRmemDefault,omitempty"`
+	// NetCoreRmemMax - Sysctl setting net.core.rmem_max.
+	NetCoreRmemMax *int32 `json:"netCoreRmemMax,omitempty"`
+	// NetCoreWmemDefault - Sysctl setting net.core.wmem_default.
+	NetCoreWmemDefault *int32 `json:"netCoreWmemDefault,omitempty"`
+	// NetCoreWmemMax - Sysctl setting net.core.wmem_max.
+	NetCoreWmemMax *int32 `json:"netCoreWmemMax,omitempty"`
+	// NetCoreOptmemMax - Sysctl setting net.core.optmem_max.
+	NetCoreOptmemMax *int32 `json:"netCoreOptmemMax,omitempty"`
+	// NetIpv4TCPMaxSynBacklog - Sysctl setting net.ipv4.tcp_max_syn_backlog.
+	NetIpv4TCPMaxSynBacklog *int32 `json:"netIpv4TcpMaxSynBacklog,omitempty"`
+	// NetIpv4TCPMaxTwBuckets - Sysctl setting net.ipv4.tcp_max_tw_buckets.
+	NetIpv4TCPMaxTwBuckets *int32 `json:"netIpv4TcpMaxTwBuckets,omitempty"`
+	// NetIpv4TCPFinTimeout - Sysctl setting net.ipv4.tcp_fin_timeout.
+	NetIpv4TCPFinTimeout *int32 `json:"netIpv4TcpFinTimeout,omitempty"`
+	// NetIpv4TCPKeepaliveTime - Sysctl setting net.ipv4.tcp_keepalive_time.
+	NetIpv4TCPKeepaliveTime *int32 `json:"netIpv4TcpKeepaliveTime,omitempty"`
+	// NetIpv4TCPKeepaliveProbes - Sysctl setting net.ipv4.tcp_keepalive_probes.
+	NetIpv4TCPKeepaliveProbes *int32 `json:"netIpv4TcpKeepaliveProbes,omitempty"`
+	// NetIpv4TcpkeepaliveIntvl - Sysctl setting net.ipv4.tcp_keepalive_intvl.
+	NetIpv4TcpkeepaliveIntvl *int32 `json:"netIpv4TcpkeepaliveIntvl,omitempty"`
+	// NetIpv4TCPTwReuse - Sysctl setting net.ipv4.tcp_tw_reuse.
+	NetIpv4TCPTwReuse *bool `json:"netIpv4TcpTwReuse,omitempty"`
+	// NetIpv4IPLocalPortRange - Sysctl setting net.ipv4.ip_local_port_range.
+	NetIpv4IPLocalPortRange *string `json:"netIpv4IpLocalPortRange,omitempty"`
+	// NetIpv4NeighDefaultGcThresh1 - Sysctl setting net.ipv4.neigh.default.gc_thresh1.
+	NetIpv4NeighDefaultGcThresh1 *int32 `json:"netIpv4NeighDefaultGcThresh1,omitempty"`
+	// NetIpv4NeighDefaultGcThresh2 - Sysctl setting net.ipv4.neigh.default.gc_thresh2.
+	NetIpv4NeighDefaultGcThresh2 *int32 `json:"netIpv4NeighDefaultGcThresh2,omitempty"`
+	// NetIpv4NeighDefaultGcThresh3 - Sysctl setting net.ipv4.neigh.default.gc_thresh3.
+	NetIpv4NeighDefaultGcThresh3 *int32 `json:"netIpv4NeighDefaultGcThresh3,omitempty"`
+	// NetNetfilterNfConntrackMax - Sysctl setting net.netfilter.nf_conntrack_max.
+	NetNetfilterNfConntrackMax *int32 `json:"netNetfilterNfConntrackMax,omitempty"`
+	// NetNetfilterNfConntrackBuckets - Sysctl setting net.netfilter.nf_conntrack_buckets.
+	NetNetfilterNfConntrackBuckets *int32 `json:"netNetfilterNfConntrackBuckets,omitempty"`
+	// FsInotifyMaxUserWatches - Sysctl setting fs.inotify.max_user_watches.
+	FsInotifyMaxUserWatches *int32 `json:"fsInotifyMaxUserWatches,omitempty"`
+	// FsFileMax - Sysctl setting fs.file-max.
+	FsFileMax *int32 `json:"fsFileMax,omitempty"`
+	// FsAioMaxNr - Sysctl setting fs.aio-max-nr.
+	FsAioMaxNr *int32 `json:"fsAioMaxNr,omitempty"`
+	// FsNrOpen - Sysctl setting fs.nr_open.
+	FsNrOpen *int32 `json:"fsNrOpen,omitempty"`
+	// KernelThreadsMax - Sysctl setting kernel.threads-max.
+	KernelThreadsMax *int32 `json:"kernelThreadsMax,omitempty"`
+	// VMMaxMapCount - Sysctl setting vm.max_map_count.
+	VMMaxMapCount *int32 `json:"vmMaxMapCount,omitempty"`
+	// VMSwappiness - Sysctl setting vm.swappiness.
+	VMSwappiness *int32 `json:"vmSwappiness,omitempty"`
+	// VMVfsCachePressure - Sysctl setting vm.vfs_cache_pressure.
+	VMVfsCachePressure *int32 `json:"vmVfsCachePressure,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The type of identity that last modified the resource.
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
 // TagsObject tags object for patch operations.
 type TagsObject struct {
 	// Tags - Resource tags.
@@ -3475,6 +2764,22 @@ func (toVar TagsObject) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = toVar.Tags
 	}
 	return json.Marshal(objectMap)
+}
+
+// TimeInWeek time in a week.
+type TimeInWeek struct {
+	// Day - A day in a week. Possible values include: 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+	Day WeekDay `json:"day,omitempty"`
+	// HourSlots - hour slots in a day.
+	HourSlots *[]int32 `json:"hourSlots,omitempty"`
+}
+
+// TimeSpan the time span with start and end properties.
+type TimeSpan struct {
+	// Start - The start of a time span
+	Start *date.Time `json:"start,omitempty"`
+	// End - The end of a time span
+	End *date.Time `json:"end,omitempty"`
 }
 
 // UserAssignedIdentity ...
@@ -3502,12 +2807,4 @@ func (vd VMDiagnostics) MarshalJSON() ([]byte, error) {
 		objectMap["enabled"] = vd.Enabled
 	}
 	return json.Marshal(objectMap)
-}
-
-// WindowsProfile profile for Windows VMs in the container service cluster.
-type WindowsProfile struct {
-	// AdminUsername - The administrator username to use for Windows VMs.
-	AdminUsername *string `json:"adminUsername,omitempty"`
-	// AdminPassword - The administrator password to use for Windows VMs.
-	AdminPassword *string `json:"adminPassword,omitempty"`
 }
