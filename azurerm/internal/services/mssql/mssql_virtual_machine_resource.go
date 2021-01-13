@@ -486,14 +486,12 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{})
+	output := map[string]interface{}{
+		"storage_workload_type": storageWorkloadType,
+	}
 
 	if v := string(input.DiskConfigurationType); v != "" {
 		output["disk_type"] = v
-	}
-
-	if storageWorkloadType != "" {
-		output["storage_workload_type"] = storageWorkloadType
 	}
 
 	if v := flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings); len(v) > 0 {
@@ -508,7 +506,7 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		output["temp_db_settings"] = v
 	}
 
-	if len(output) == 0 {
+	if len(output) <= 1 && output["storage_workload_type"].(string) == "" {
 		return []interface{}{}
 	}
 
