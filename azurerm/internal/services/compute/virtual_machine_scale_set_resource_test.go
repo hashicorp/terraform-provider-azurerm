@@ -1,4 +1,4 @@
-package compute
+package compute_test
 
 import (
 	"context"
