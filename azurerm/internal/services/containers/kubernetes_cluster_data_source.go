@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"strings"
 	"time"
 
@@ -649,7 +650,12 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if err := d.Set("identity", flattenKubernetesClusterDataSourceManagedClusterIdentity(resp.Identity)); err != nil {
+	identity, err := flattenKubernetesClusterDataSourceManagedClusterIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -1082,10 +1088,10 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) ([]interface{}, error) {
 	// if it's none, omit the block
 	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identity := make(map[string]interface{})
@@ -1106,10 +1112,14 @@ func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerse
 		for key := range input.UserAssignedIdentities {
 			keys = append(keys, key)
 		}
-		identity["user_assigned_identity_id"] = keys[0]
+		parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+		if err != nil {
+			return nil, err
+		}
+		identity["user_assigned_identity_id"] = parsedId.ID()
 	}
 
 	identity["type"] = string(input.Type)
 
-	return []interface{}{identity}
+	return []interface{}{identity}, nil
 }
