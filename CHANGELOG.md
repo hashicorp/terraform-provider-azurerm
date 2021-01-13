@@ -10,6 +10,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_log_analytics_workspace` - returning the Resource ID in the correct casing [GH-10162]
 * `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block [GH-10031]
 * `azurerm_databricks_workspace` - changing the sku no longer always forces a new resource to be created [GH-9541]
 * `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
