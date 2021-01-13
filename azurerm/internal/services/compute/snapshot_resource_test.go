@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +60,7 @@ func TestSnapshotName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateSnapshotName(tc.Value, "azurerm_snapshot")
+		_, errors := compute.ValidateSnapshotName(tc.Value, "azurerm_snapshot")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Snapshot Name to trigger a validation error for '%s'", tc.Value)

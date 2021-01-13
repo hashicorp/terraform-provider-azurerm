@@ -1,4 +1,4 @@
-package compute_test
+package compute
 
 import (
 	"testing"
