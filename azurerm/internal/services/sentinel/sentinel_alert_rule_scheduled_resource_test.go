@@ -256,8 +256,8 @@ AzureActivity |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
 
-  event_grouping_setting {
-    aggregation_kind = "SingleAlert"
+  event_grouping {
+    aggregation_method = "SingleAlert"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -280,8 +280,8 @@ AzureActivity |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
 
-  event_grouping_setting {
-    aggregation_kind = "AlertPerResult"
+  event_grouping {
+    aggregation_method = "AlertPerResult"
   }
 }
 `, r.template(data), data.RandomInteger)

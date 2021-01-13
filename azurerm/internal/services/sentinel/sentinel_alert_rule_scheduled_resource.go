@@ -73,13 +73,13 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"event_grouping_setting": {
+			"event_grouping": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"aggregation_kind": {
+						"aggregation_method": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -319,7 +319,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta
 		param.ScheduledAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("event_grouping_setting"); ok {
+	if v, ok := d.GetOk("event_grouping"); ok {
 		param.ScheduledAlertRuleProperties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
 	}
 
@@ -411,8 +411,8 @@ func resourceSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interfa
 		d.Set("suppression_duration", prop.SuppressionDuration)
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
-		if err := d.Set("event_grouping_setting", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
-			return fmt.Errorf("setting `event_grouping_setting`: %+v", err)
+		if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+			return fmt.Errorf("setting `event_grouping`: %+v", err)
 		}
 	}
 
@@ -525,7 +525,7 @@ func expandAlertRuleScheduledEventGroupingSetting(input []interface{}) *security
 	v := input[0].(map[string]interface{})
 	result := securityinsight.EventGroupingSettings{}
 
-	if aggregationKind := v["aggregation_kind"].(string); aggregationKind != "" {
+	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
 		result.AggregationKind = securityinsight.EventGroupingAggregationKind(aggregationKind)
 	}
 
@@ -582,7 +582,7 @@ func flattenAlertRuleScheduledEventGroupingSetting(input *securityinsight.EventG
 
 	return []interface{}{
 		map[string]interface{}{
-			"aggregation_kind": aggregationKind,
+			"aggregation_method": aggregationKind,
 		},
 	}
 }

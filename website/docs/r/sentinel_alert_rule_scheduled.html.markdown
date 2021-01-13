@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Sentinel Scheduled Alert Rule be enabled? Defaults to `true`.
 
-* `event_grouping_setting` - (Optional) A `event_grouping_setting` block as defined below.
+* `event_grouping` - (Optional) A `event_grouping` block as defined below.
 
 * `incident_configuration` - (Optional) A `incident_configuration` block as defined below.
 
@@ -89,9 +89,9 @@ The following arguments are supported:
 
 ---
 
-A `event_grouping_setting` block supports the following:
+A `event_grouping` block supports the following:
 
-* `aggregation_kind` - (Required) The aggregation type of grouping the events.
+* `aggregation_method` - (Required) The aggregation type of grouping the events.
 
 ---
 
