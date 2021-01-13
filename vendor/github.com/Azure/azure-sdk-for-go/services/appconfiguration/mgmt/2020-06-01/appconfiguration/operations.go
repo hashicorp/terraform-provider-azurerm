@@ -91,7 +91,7 @@ func (client OperationsClient) CheckNameAvailabilityPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,7 +168,7 @@ func (client OperationsClient) List(ctx context.Context, skipToken string) (resu
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context, skipToken string) (*http.Request, error) {
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
