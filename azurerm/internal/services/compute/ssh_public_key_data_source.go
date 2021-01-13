@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSshPublicKey() *schema.Resource {
+func dataSourceSshPublicKey() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSshPublicKeyRead,
+		Read: dataSourceSshPublicKeyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -45,7 +45,7 @@ func dataSourceArmSshPublicKey() *schema.Resource {
 	}
 }
 
-func dataSourceArmSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -20,6 +20,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -111,7 +113,7 @@ func resourceApiManagementService() *schema.Resource {
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
 							},
 						},
 					},
@@ -680,7 +682,10 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	identity, err := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -1108,9 +1113,9 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 	return &managedServiceIdentity, nil
 }
 
-func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
+func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
 	if identity == nil || identity.Type == apimanagement.None {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	result := make(map[string]interface{})
@@ -1127,12 +1132,16 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	identityIds := make([]interface{}, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
 	}
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func expandAzureRmApiManagementSkuName(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {

@@ -6,63 +6,54 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type SharedImageDataSource struct {
+}
 
 func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSharedImage_basic(data, ""),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	r := SharedImageDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSharedImage_basic(data, "V2"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V2"),
-				),
-			},
+	r := SharedImageDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data, "V2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V2"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMSharedImage_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSharedImage_complete(data, "V1"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V1"),
-				),
-			},
+	r := SharedImageDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data, "V1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceSharedImage_basic(data acceptance.TestData, hyperVGen string) string {
-	template := testAccAzureRMSharedImage_basic(data, hyperVGen)
+func (SharedImageDataSource) basic(data acceptance.TestData, hyperVGen string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -71,11 +62,10 @@ data "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image.test.gallery_name
   resource_group_name = azurerm_shared_image.test.resource_group_name
 }
-`, template)
+`, SharedImageResource{}.basic(data, hyperVGen))
 }
 
-func testAccDataSourceSharedImage_complete(data acceptance.TestData, hyperVGen string) string {
-	template := testAccAzureRMSharedImage_complete(data, hyperVGen)
+func (SharedImageDataSource) complete(data acceptance.TestData, hyperVGen string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -84,5 +74,5 @@ data "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image.test.gallery_name
   resource_group_name = azurerm_shared_image.test.resource_group_name
 }
-`, template)
+`, SharedImageResource{}.complete(data, hyperVGen))
 }

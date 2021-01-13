@@ -1,9 +1,9 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -11,63 +11,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testCheckAzureRMLinuxVirtualMachineScaleSetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_linux_virtual_machine_scale_set" {
-			continue
-		}
-
-		id, err := parse.VirtualMachineScaleSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	return nil
+type LinuxVirtualMachineScaleSetResource struct {
 }
 
-func testCheckAzureRMLinuxVirtualMachineScaleSetExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.VirtualMachineScaleSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Linux Virtual Machine Scale Set %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on VMScaleSetClient: %+v", err)
-		}
-
-		return nil
+func (t LinuxVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Linux Virtual Machine Scale Set %q", id)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_template(data acceptance.TestData) string {
+func (LinuxVirtualMachineScaleSetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {

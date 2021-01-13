@@ -1,165 +1,111 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicZonal(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+type OrchestratedVirtualMachineScaleSetResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccOrchestratedVirtualMachineScaleSet_basicZonal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_updateZonal(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_updateZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_basicNonZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicNonZonal(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_orchestrated_virtual_machine_scale_set" {
-			continue
-		}
-
-		id, err := parse.VirtualMachineScaleSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Compute.VMScaleSetClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		id, err := parse.VirtualMachineScaleSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Virtual Machine Scale Set VM Mode %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("bad: Get on Compute.VMScaleSetClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Marketplace Agreement %q", id.String())
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
+func (r OrchestratedVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +122,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_update(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
+func (r OrchestratedVirtualMachineScaleSetResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -198,11 +143,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     FOO = "Bar"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data)
+func (r OrchestratedVirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -214,11 +158,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
   platform_fault_domain_count = azurerm_orchestrated_virtual_machine_scale_set.test.platform_fault_domain_count
   single_placement_group      = azurerm_orchestrated_virtual_machine_scale_set.test.single_placement_group
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
+func (r OrchestratedVirtualMachineScaleSetResource) basicNonZonal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -233,10 +176,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

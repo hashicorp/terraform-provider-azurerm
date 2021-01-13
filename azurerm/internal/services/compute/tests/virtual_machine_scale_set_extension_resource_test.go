@@ -1,258 +1,185 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
+type VirtualMachineScaleSetExtensionResource struct {
+}
+
+func TestAccVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_basicLinux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicLinux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_basicWindows(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWindows(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
+	r := VirtualMachineScaleSetExtensionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_basicLinux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMVirtualMachineScaleSetExtension_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicLinux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_autoUpgradeDisabled(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_autoUpgradeDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_autoUpgradeDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoUpgradeDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_extensionChaining(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "first")
+	r := VirtualMachineScaleSetExtensionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists("azurerm_virtual_machine_scale_set_extension.first"),
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists("azurerm_virtual_machine_scale_set_extension.second"),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      "azurerm_virtual_machine_scale_set_extension.second",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionChaining(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			ResourceName:      "azurerm_virtual_machine_scale_set_extension.second",
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.forceUpdateTag(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.forceUpdateTag(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_protectedSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("protected_settings"),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.protectedSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("protected_settings"),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_protectedSettingsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("protected_settings"),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.protectedSettingsOnly(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("protected_settings"),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
+func TestAccVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
-		Steps: []resource.TestStep{
-			{
-				// old version
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_updateVersion(data, "1.2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtension_updateVersion(data, "1.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// old version
+			Config: r.updateVersion(data, "1.2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateVersion(data, "1.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.VirtualMachineScaleSetExtensionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine_scale_set_extension" {
-			continue
-		}
-
-		id, err := parse.VirtualMachineScaleSetExtensionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Compute.VMScaleSetExtensionsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t VirtualMachineScaleSetExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualMachineScaleSetExtensionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Compute.VMScaleSetExtensionsClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set Extension %q", id.String())
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_basicLinux(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) basicLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -266,11 +193,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
-`, template, data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_basicWindows(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateWindows(data)
+func (r VirtualMachineScaleSetExtensionResource) basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -284,11 +210,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "commandToExecute" = "Write-Host \"Hello\""
   })
 }
-`, template, data.RandomInteger)
+`, r.templateWindows(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_autoUpgradeDisabled(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) autoUpgradeDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -303,11 +228,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
-`, template, data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) extensionChaining(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -330,11 +254,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "second" {
   })
   provision_after_extensions = [azurerm_virtual_machine_scale_set_extension.first.name]
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(data acceptance.TestData, tag string) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) forceUpdateTag(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -349,11 +272,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
-`, template, data.RandomInteger, tag)
+`, r.templateLinux(data), data.RandomInteger, tag)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_updateVersion(data acceptance.TestData, version string) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) updateVersion(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -367,11 +289,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
-`, template, data.RandomInteger, version)
+`, r.templateLinux(data), data.RandomInteger, version)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) protectedSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -388,11 +309,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "secretValue" = "P@55W0rd1234!"
   })
 }
-`, template, data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) protectedSettingsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -407,11 +327,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
     "secretValue"      = "P@55W0rd1234!"
   })
 }
-`, template, data.RandomInteger)
+`, r.templateLinux(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSetExtension_basicLinux(data)
+func (r VirtualMachineScaleSetExtensionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -423,10 +342,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "import" {
   type_handler_version         = azurerm_virtual_machine_scale_set_extension.test.type_handler_version
   settings                     = azurerm_virtual_machine_scale_set_extension.test.settings
 }
-`, template)
+`, r.templateLinux(data))
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data acceptance.TestData) string {
+func (VirtualMachineScaleSetExtensionResource) templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -491,7 +410,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtension_templateWindows(data acceptance.TestData) string {
+func (VirtualMachineScaleSetExtensionResource) templateWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
