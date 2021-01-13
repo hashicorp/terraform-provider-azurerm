@@ -279,8 +279,8 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 			"NotFound",
 		},
 		Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id.ResourceID),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 3,
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 6,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
