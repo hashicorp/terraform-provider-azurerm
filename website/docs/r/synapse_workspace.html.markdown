@@ -121,7 +121,7 @@ A `github_configuration` block supports the following:
 
 * `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
 
--> **Note:** You must log in to the Data Factory management UI to complete the authentication to the GitHub repository.
+-> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 
 ## Attributes Reference
 
