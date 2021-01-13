@@ -24,13 +24,13 @@ func TestAccSentinelAlertRuleTemplateDataSource_fusion(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template").DoesNotExist(),
-				check.That(data.ResourceName).Key("ms_security_incident_template").DoesNotExist(),
+				check.That(data.ResourceName).Key("security_incident_template").DoesNotExist(),
 			),
 		},
 	})
 }
 
-func TestAccSentinelAlertRuleTemplateDataSource_msSecurityIncident(t *testing.T) {
+func TestAccSentinelAlertRuleTemplateDataSource_securityIncident(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sentinel_alert_rule_template", "test")
 	r := SentinelAlertRuleTemplateDataSource{}
 
@@ -41,8 +41,8 @@ func TestAccSentinelAlertRuleTemplateDataSource_msSecurityIncident(t *testing.T)
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("ms_security_incident_template.0.description").Exists(),
-				check.That(data.ResourceName).Key("ms_security_incident_template.0.product_filter").Exists(),
+				check.That(data.ResourceName).Key("security_incident_template.0.description").Exists(),
+				check.That(data.ResourceName).Key("security_incident_template.0.product_filter").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template").DoesNotExist(),
 			),
 		},
@@ -68,7 +68,7 @@ func TestAccSentinelAlertRuleTemplateDataSource_scheduled(t *testing.T) {
 				check.That(data.ResourceName).Key("scheduled_template.0.query_period").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template.0.trigger_operator").Exists(),
 				check.That(data.ResourceName).Key("scheduled_template.0.trigger_threshold").Exists(),
-				check.That(data.ResourceName).Key("ms_security_incident_template").DoesNotExist(),
+				check.That(data.ResourceName).Key("security_incident_template").DoesNotExist(),
 			),
 		},
 	})

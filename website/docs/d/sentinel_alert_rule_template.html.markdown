@@ -43,13 +43,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Sentinel.
 
-* `ms_security_incident_template` - A `ms_security_incident_template` block as defined below. This only applies to Sentinle MS Security Incident Alert Rule Template.
+* `security_incident_template` - A `security_incident_template` block as defined below. This only applies to Sentinel MS Security Incident Alert Rule Template.
 
 * `scheduled_template` - A `scheduled_template` block as defined below. This only applies to Sentinel Scheduled Alert Rule Template.
 
 ---
 
-A `ms_security_incident_template` block exports the following:
+A `security_incident_template` block exports the following:
 
 * `description` - The description of this Sentinel MS Security Incident Alert Rule Template.
 

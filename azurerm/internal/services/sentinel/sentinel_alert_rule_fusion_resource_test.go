@@ -113,6 +113,11 @@ func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_sentinel_alert_rule_template" "test" {
+  display_name               = "Advanced Multistage Attack Detection"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+}
+
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
@@ -124,6 +129,11 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
 func (r SentinelAlertRuleFusionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+data "azurerm_sentinel_alert_rule_template" "test" {
+  display_name               = "Advanced Multistage Attack Detection"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+}
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
@@ -162,12 +172,6 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
-}
-
-
-data "azurerm_sentinel_alert_rule_template" "test" {
-  display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

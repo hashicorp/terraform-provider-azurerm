@@ -25,7 +25,7 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"display_name": {
+			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -33,7 +33,7 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
-			"name": {
+			"display_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -91,7 +91,7 @@ func dataSourceSentinelAlertRuleTemplate() *schema.Resource {
 				},
 			},
 
-			"ms_security_incident_template": {
+			"security_incident_template": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -225,7 +225,7 @@ func setForMsSecurityIncidentAlertRuleTemplate(d *schema.ResourceData, template 
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
-	return d.Set("ms_security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
+	return d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
 }
 
 func setForFusionAlertRuleTemplate(d *schema.ResourceData, template *securityinsight.FusionAlertRuleTemplate) error {
