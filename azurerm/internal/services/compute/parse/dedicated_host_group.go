@@ -1,38 +1,63 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type DedicatedHostGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	HostGroupName  string
 }
 
-func NewDedicatedHostGroupId(resourceGroup, name string) DedicatedHostGroupId {
+func NewDedicatedHostGroupID(subscriptionId, resourceGroup, hostGroupName string) DedicatedHostGroupId {
 	return DedicatedHostGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		HostGroupName:  hostGroupName,
 	}
 }
 
-func (id DedicatedHostGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id DedicatedHostGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Host Group Name %q", id.HostGroupName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Dedicated Host Group", segmentsStr)
 }
 
+func (id DedicatedHostGroupId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName)
+}
+
+// DedicatedHostGroupID parses a DedicatedHostGroup ID into an DedicatedHostGroupId struct
 func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Dedicated Host Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	group := DedicatedHostGroupId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DedicatedHostGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if group.Name, err = id.PopSegment("hostGroups"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.HostGroupName, err = id.PopSegment("hostGroups"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +65,5 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 		return nil, err
 	}
 
-	return &group, nil
+	return &resourceId, nil
 }

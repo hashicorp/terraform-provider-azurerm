@@ -226,6 +226,7 @@ func (client NatGatewaysClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -304,6 +305,7 @@ func (client NatGatewaysClient) List(ctx context.Context, resourceGroupName stri
 	result.nglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.nglr.hasNextLink() && result.nglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -367,6 +369,7 @@ func (client NatGatewaysClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -416,6 +419,7 @@ func (client NatGatewaysClient) ListAll(ctx context.Context) (result NatGatewayL
 	result.nglr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "ListAll", resp, "Failure responding to request")
+		return
 	}
 	if result.nglr.hasNextLink() && result.nglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -478,6 +482,7 @@ func (client NatGatewaysClient) listAllNextResults(ctx context.Context, lastResu
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -530,6 +535,7 @@ func (client NatGatewaysClient) UpdateTags(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

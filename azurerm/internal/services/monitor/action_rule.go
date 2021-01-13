@@ -171,7 +171,7 @@ func schemaActionRuleCondition(operatorValidateItems, valuesValidateItems []stri
 	}
 }
 
-func expandArmActionRuleCondition(input []interface{}) *alertsmanagement.Condition {
+func expandActionRuleCondition(input []interface{}) *alertsmanagement.Condition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -183,7 +183,7 @@ func expandArmActionRuleCondition(input []interface{}) *alertsmanagement.Conditi
 	}
 }
 
-func expandArmActionRuleScope(input []interface{}) *alertsmanagement.Scope {
+func expandActionRuleScope(input []interface{}) *alertsmanagement.Scope {
 	if len(input) == 0 {
 		return nil
 	}
@@ -195,24 +195,24 @@ func expandArmActionRuleScope(input []interface{}) *alertsmanagement.Scope {
 	}
 }
 
-func expandArmActionRuleConditions(input []interface{}) *alertsmanagement.Conditions {
+func expandActionRuleConditions(input []interface{}) *alertsmanagement.Conditions {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
 	return &alertsmanagement.Conditions{
-		AlertContext:       expandArmActionRuleCondition(v["alert_context"].([]interface{})),
-		AlertRuleID:        expandArmActionRuleCondition(v["alert_rule_id"].([]interface{})),
-		Description:        expandArmActionRuleCondition(v["description"].([]interface{})),
-		MonitorCondition:   expandArmActionRuleCondition(v["monitor"].([]interface{})),
-		MonitorService:     expandArmActionRuleCondition(v["monitor_service"].([]interface{})),
-		Severity:           expandArmActionRuleCondition(v["severity"].([]interface{})),
-		TargetResourceType: expandArmActionRuleCondition(v["target_resource_type"].([]interface{})),
+		AlertContext:       expandActionRuleCondition(v["alert_context"].([]interface{})),
+		AlertRuleID:        expandActionRuleCondition(v["alert_rule_id"].([]interface{})),
+		Description:        expandActionRuleCondition(v["description"].([]interface{})),
+		MonitorCondition:   expandActionRuleCondition(v["monitor"].([]interface{})),
+		MonitorService:     expandActionRuleCondition(v["monitor_service"].([]interface{})),
+		Severity:           expandActionRuleCondition(v["severity"].([]interface{})),
+		TargetResourceType: expandActionRuleCondition(v["target_resource_type"].([]interface{})),
 	}
 }
 
-func flattenArmActionRuleCondition(input *alertsmanagement.Condition) []interface{} {
+func flattenActionRuleCondition(input *alertsmanagement.Condition) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -229,7 +229,7 @@ func flattenArmActionRuleCondition(input *alertsmanagement.Condition) []interfac
 	}
 }
 
-func flattenArmActionRuleScope(input *alertsmanagement.Scope) []interface{} {
+func flattenActionRuleScope(input *alertsmanagement.Scope) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -246,19 +246,19 @@ func flattenArmActionRuleScope(input *alertsmanagement.Scope) []interface{} {
 	}
 }
 
-func flattenArmActionRuleConditions(input *alertsmanagement.Conditions) []interface{} {
+func flattenActionRuleConditions(input *alertsmanagement.Conditions) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"alert_context":        flattenArmActionRuleCondition(input.AlertContext),
-			"alert_rule_id":        flattenArmActionRuleCondition(input.AlertRuleID),
-			"description":          flattenArmActionRuleCondition(input.Description),
-			"monitor":              flattenArmActionRuleCondition(input.MonitorCondition),
-			"monitor_service":      flattenArmActionRuleCondition(input.MonitorService),
-			"severity":             flattenArmActionRuleCondition(input.Severity),
-			"target_resource_type": flattenArmActionRuleCondition(input.TargetResourceType),
+			"alert_context":        flattenActionRuleCondition(input.AlertContext),
+			"alert_rule_id":        flattenActionRuleCondition(input.AlertRuleID),
+			"description":          flattenActionRuleCondition(input.Description),
+			"monitor":              flattenActionRuleCondition(input.MonitorCondition),
+			"monitor_service":      flattenActionRuleCondition(input.MonitorService),
+			"severity":             flattenActionRuleCondition(input.Severity),
+			"target_resource_type": flattenActionRuleCondition(input.TargetResourceType),
 		},
 	}
 }

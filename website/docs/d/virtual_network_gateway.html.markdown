@@ -43,6 +43,8 @@ output "virtual_network_gateway_id" {
 
 * `active_active` - Is this an Active-Active Gateway?
 
+* `private_ip_address_enabled` - Whether a private IP will be used for this  gateway for connections.
+
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunneling*). Refer to the
@@ -124,6 +126,10 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - The weight added to routes which have been learned
     through BGP peering.
+
+A `custom_route` block exports the following:
+
+* `address_prefixes` - A list of address blocks reserved for this virtual network in CIDR notation.
 
 The `root_certificate` block supports:
 

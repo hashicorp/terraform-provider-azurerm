@@ -208,6 +208,10 @@ A `network_profile` block exports the following:
 
 * `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
 
+* `network_mode` - Network mode to be used with Azure CNI. Eg: `bridge` or `transparent`
+
+-> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
+
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
 * `service_cidr` - Network range used by the Kubernetes service.

@@ -525,7 +525,6 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		isDefault := v["is_default"].(bool)
 
 		uri, err := url.Parse(storageContainerID)
-
 		if err != nil {
 			return nil, nil, fmt.Errorf("Error parsing %q: %s", storageContainerID, err)
 		}
@@ -637,6 +636,7 @@ func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
 		"Standard_DS12_V2",
 		"Standard_DS13_V2",
 		"Standard_DS14_V2",
+		"Standard_D4a_V4",
 		"Standard_E2_V3",
 		"Standard_E4_V3",
 		"Standard_E8_V3",
@@ -674,7 +674,7 @@ func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
 	}, true)
 }
 
-func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition) *schema.Schema {
+func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *schema.Schema {
 	result := map[string]*schema.Schema{
 		"vm_size": {
 			Type:             schema.TypeString,
@@ -754,14 +754,17 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 	}
 
-	return &schema.Schema{
+	s := &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
 		MaxItems: 1,
+		Required: required,
+		Optional: !required,
 		Elem: &schema.Resource{
 			Schema: result,
 		},
 	}
+
+	return s
 }
 
 func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition HDInsightNodeDefinition) (*hdinsight.Role, error) {

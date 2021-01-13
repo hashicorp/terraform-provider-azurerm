@@ -7,111 +7,94 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				// create the original VM
-				Config: testWindowsVirtualMachine_imageFromExistingMachinePrep(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists("azurerm_windows_virtual_machine.source"),
-					generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
-				),
-			},
-			{
-				// then create an image from that VM, and then create a VM from that image
-				Config: testWindowsVirtualMachine_imageFromImage(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// create the original VM
+			Config: r.imageFromExistingMachinePrep(data),
+			Check: resource.ComposeTestCheckFunc(
+				generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
 			),
 		},
+		{
+			// then create an image from that VM, and then create a VM from that image
+			Config: r.imageFromImage(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_imageFromPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_imageFromPlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imageFromPlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				// create the original VM
-				Config: testWindowsVirtualMachine_imageFromExistingMachinePrep(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists("azurerm_windows_virtual_machine.source"),
-					generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
-				),
-			},
-			{
-				// then create an image from that VM, and then create a VM from that image
-				Config: testWindowsVirtualMachine_imageFromSharedImageGallery(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// create the original VM
+			Config: r.imageFromExistingMachinePrep(data),
+			Check: resource.ComposeTestCheckFunc(
+				generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
 			),
 		},
+		{
+			// then create an image from that VM, and then create a VM from that image
+			Config: r.imageFromSharedImageGallery(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_imageFromSourceImageReference(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imageFromSourceImageReference(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testWindowsVirtualMachine_imageFromExistingMachineDependencies(data acceptance.TestData) string {
+func (WindowsVirtualMachineResource) imageFromExistingMachineDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctvm-%s"
@@ -177,8 +160,7 @@ resource "azurerm_shared_image_gallery" "test" {
 `, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_imageFromExistingMachinePrep(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_imageFromExistingMachineDependencies(data)
+func (r WindowsVirtualMachineResource) imageFromExistingMachinePrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -205,11 +187,10 @@ resource "azurerm_windows_virtual_machine" "source" {
     version   = "latest"
   }
 }
-`, template)
+`, r.imageFromExistingMachineDependencies(data))
 }
 
-func testWindowsVirtualMachine_imageFromImage(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_imageFromExistingMachinePrep(data)
+func (r WindowsVirtualMachineResource) imageFromImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -237,11 +218,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
-`, template)
+`, r.imageFromExistingMachinePrep(data))
 }
 
-func testWindowsVirtualMachine_imageFromPlan(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) imageFromPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -282,11 +262,10 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_imageFromSharedImageGallery(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_imageFromExistingMachinePrep(data)
+func (r WindowsVirtualMachineResource) imageFromSharedImageGallery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -343,11 +322,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
-`, template)
+`, r.imageFromExistingMachinePrep(data))
 }
 
-func testWindowsVirtualMachine_imageFromSourceImageReference(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) imageFromSourceImageReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -374,7 +352,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func generalizeWindowsVirtualMachine(resourceName string) func(s *terraform.State) error {

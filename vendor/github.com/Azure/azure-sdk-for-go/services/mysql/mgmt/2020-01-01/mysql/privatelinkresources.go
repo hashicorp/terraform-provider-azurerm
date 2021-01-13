@@ -87,6 +87,7 @@ func (client PrivateLinkResourcesClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.PrivateLinkResourcesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client PrivateLinkResourcesClient) ListByServer(ctx context.Context, resou
 	result.plrlr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.PrivateLinkResourcesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -238,6 +240,7 @@ func (client PrivateLinkResourcesClient) listByServerNextResults(ctx context.Con
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.PrivateLinkResourcesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

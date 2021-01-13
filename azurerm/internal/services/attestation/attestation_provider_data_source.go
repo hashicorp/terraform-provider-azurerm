@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -48,6 +49,7 @@ func dataSourceAttestationProvider() *schema.Resource {
 
 func dataSourceArmAttestationProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -59,8 +61,10 @@ func dataSourceArmAttestationProviderRead(d *schema.ResourceData, meta interface
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Attestation Provider %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("retrieving Attestation %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	d.SetId(parse.NewProviderID(subscriptionId, resourceGroup, name).ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
@@ -70,11 +74,6 @@ func dataSourceArmAttestationProviderRead(d *schema.ResourceData, meta interface
 		d.Set("attestation_uri", props.AttestURI)
 		d.Set("trust_model", props.TrustModel)
 	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Attestation Provider %q (Resource Group %q)", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -15,6 +15,20 @@ type KeyVaultChildID struct {
 	Version         string
 }
 
+func NewKeyVaultChildResourceID(keyVaultBaseUrl, childType, name, version string) (string, error) {
+	fmtString := "%s/%s/%s/%s"
+	keyVaultUrl, err := url.Parse(keyVaultBaseUrl)
+	if err != nil || keyVaultBaseUrl == "" {
+		return "", fmt.Errorf("failed to parse Key Vault Base URL %q: %+v", keyVaultBaseUrl, err)
+	}
+	// (@jackofallops) - Log Analytics service adds the port number to the API returns, so we strip it here
+	if hostParts := strings.Split(keyVaultUrl.Host, ":"); len(hostParts) > 1 {
+		keyVaultUrl.Host = hostParts[0]
+	}
+
+	return fmt.Sprintf(fmtString, keyVaultUrl.String(), childType, name, version), nil
+}
+
 func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	idURL, err := url.ParseRequestURI(id)

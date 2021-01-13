@@ -1,10 +1,14 @@
 package acceptance
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 type DisappearsStepData struct {
@@ -37,12 +41,43 @@ func (td TestData) DisappearsStep(data DisappearsStepData) resource.TestStep {
 	}
 }
 
+type ClientCheckFunc func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error
+
+// CheckWithClient returns a TestCheckFunc which will call a ClientCheckFunc
+// with the provider context and clients
+func (td TestData) CheckWithClient(check ClientCheckFunc) resource.TestCheckFunc {
+	return td.CheckWithClientForResource(check, td.ResourceName)
+}
+
+// CheckWithClientForResource returns a TestCheckFunc which will call a ClientCheckFunc
+// with the provider context and clients for the named resource
+func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceName string) resource.TestCheckFunc {
+	return resource.ComposeTestCheckFunc(
+		func(state *terraform.State) error {
+			rs, ok := state.RootModule().Resources[resourceName]
+			if !ok {
+				return fmt.Errorf("Resource not found: %s", resourceName)
+			}
+
+			clients := buildClient()
+			return check(clients.StopContext, clients, rs.Primary)
+		},
+	)
+}
+
 // ImportStep returns a Test Step which Imports the Resource, optionally
 // ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)
 func (td TestData) ImportStep(ignore ...string) resource.TestStep {
+	return td.ImportStepFor(td.ResourceName, ignore...)
+}
+
+// ImportStepFor returns a Test Step which Imports a given resource by name,
+// optionally ignoring any fields which may not be imported (for example, as they're
+// not returned from the API)
+func (td TestData) ImportStepFor(resourceName string, ignore ...string) resource.TestStep {
 	step := resource.TestStep{
-		ResourceName:      td.ResourceName,
+		ResourceName:      resourceName,
 		ImportState:       true,
 		ImportStateVerify: true,
 	}

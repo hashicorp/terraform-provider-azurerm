@@ -21,17 +21,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIntegrationServiceEnvironment() *schema.Resource {
+func resourceIntegrationServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIntegrationServiceEnvironmentCreateUpdate,
-		Read:   resourceArmIntegrationServiceEnvironmentRead,
-		Update: resourceArmIntegrationServiceEnvironmentCreateUpdate,
-		Delete: resourceArmIntegrationServiceEnvironmentDelete,
+		Create: resourceIntegrationServiceEnvironmentCreateUpdate,
+		Read:   resourceIntegrationServiceEnvironmentRead,
+		Update: resourceIntegrationServiceEnvironmentCreateUpdate,
+		Delete: resourceIntegrationServiceEnvironmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -93,7 +94,7 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 				ForceNew: true, // The network configuration subnets cannot be updated after integration service environment is created.
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.ValidateSubnetID,
+					ValidateFunc: networkValidate.SubnetID,
 				},
 				MinItems: 4,
 				MaxItems: 4,
@@ -137,7 +138,7 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 	}
 }
 
-func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,10 +206,10 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIntegrationServiceEnvironmentRead(d, meta)
+	return resourceIntegrationServiceEnvironmentRead(d, meta)
 }
 
-func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +268,7 @@ func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -457,7 +458,6 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 	}
 
 	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
@@ -486,7 +486,6 @@ func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceN
 	}
 
 	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil

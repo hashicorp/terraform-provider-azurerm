@@ -158,6 +158,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) Get(ctx context.Context,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +237,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstance(ctx conte
 	result.mieplr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mieplr.hasNextLink() && result.mieplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -300,6 +302,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) listByInstanceNextResult
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -1,130 +1,143 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
+type VirtualMachineResource struct {
+}
+
+func TestAccVirtualMachine_winTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	r := VirtualMachineResource{}
 
 	var vm compute.VirtualMachine
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachine_winTimeZone(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_profile_windows_config.59207889.timezone", "Pacific Standard Time"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.winTimeZone(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).Key("os_profile_windows_config.59207889.timezone").HasValue("Pacific Standard Time"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
+func TestAccVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	r := VirtualMachineResource{}
 
 	var vm compute.VirtualMachine
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineSystemAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "0"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
+func TestAccVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	r := VirtualMachineResource{}
 
 	var vm compute.VirtualMachine
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineUserAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").HasValue(""),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
+func TestAccVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	r := VirtualMachineResource{}
 
 	var vm compute.VirtualMachine
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineMultipleAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachine_withPPG(t *testing.T) {
+func TestAccVirtualMachine_withPPG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	r := VirtualMachineResource{}
 
 	var vm compute.VirtualMachine
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachinePPG(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "proximity_placement_group_id"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ppg(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).Key("proximity_placement_group_id").Exists(),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.VirtualMachine) resource.TestCheckFunc {
+func testCheckVirtualMachineDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_virtual_machine" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := client.Get(ctx, resourceGroup, name, "")
+		if err != nil {
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
+		}
+
+		return fmt.Errorf("Virtual Machine still exists:\n%#v", resp.VirtualMachineProperties)
+	}
+
+	return nil
+}
+
+func testCheckVirtualMachineExists(resourceName string, vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -156,35 +169,23 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 	}
 }
 
-func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["virtualMachines"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Virtual Machine still exists:\n%#v", resp.VirtualMachineProperties)
+	resp, err := clients.Compute.VMClient.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Virtual Machine %q", id)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualMachine_winTimeZone(data acceptance.TestData) string {
+func (VirtualMachineResource) winTimeZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -269,7 +270,7 @@ resource "azurerm_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineSystemAssignedIdentity(data acceptance.TestData) string {
+func (VirtualMachineResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -368,7 +369,7 @@ resource "azurerm_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineUserAssignedIdentity(data acceptance.TestData) string {
+func (VirtualMachineResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -475,7 +476,7 @@ resource "azurerm_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineMultipleAssignedIdentity(data acceptance.TestData) string {
+func (VirtualMachineResource) multipleAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -581,7 +582,7 @@ resource "azurerm_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachinePPG(data acceptance.TestData) string {
+func (VirtualMachineResource) ppg(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

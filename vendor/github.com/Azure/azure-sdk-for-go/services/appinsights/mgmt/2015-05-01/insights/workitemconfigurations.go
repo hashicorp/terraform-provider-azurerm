@@ -86,6 +86,7 @@ func (client WorkItemConfigurationsClient) Create(ctx context.Context, resourceG
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -175,6 +176,7 @@ func (client WorkItemConfigurationsClient) Delete(ctx context.Context, resourceG
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -260,6 +262,7 @@ func (client WorkItemConfigurationsClient) GetDefault(ctx context.Context, resou
 	result, err = client.GetDefaultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "GetDefault", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +350,7 @@ func (client WorkItemConfigurationsClient) GetItem(ctx context.Context, resource
 	result, err = client.GetItemResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "GetItem", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -433,6 +437,7 @@ func (client WorkItemConfigurationsClient) List(ctx context.Context, resourceGro
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -522,6 +527,7 @@ func (client WorkItemConfigurationsClient) UpdateItem(ctx context.Context, resou
 	result, err = client.UpdateItemResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WorkItemConfigurationsClient", "UpdateItem", resp, "Failure responding to request")
+		return
 	}
 
 	return

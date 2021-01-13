@@ -1,10 +1,12 @@
 package kusto
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +39,8 @@ func schemaIdentity() *schema.Schema {
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem: &schema.Schema{
-						Type: schema.TypeString,
+						Type:         schema.TypeString,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 			},
@@ -59,15 +62,19 @@ func expandIdentity(input []interface{}) *kusto.Identity {
 	return &kustoIdentity
 }
 
-func flattenIdentity(input *kusto.Identity) []interface{} {
+func flattenIdentity(input *kusto.Identity) ([]interface{}, error) {
 	if input == nil || input.Type == kusto.IdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -88,7 +95,7 @@ func flattenIdentity(input *kusto.Identity) []interface{} {
 			"principal_id": principalID,
 			"tenant_id":    tenantID,
 		},
-	}
+	}, nil
 }
 
 func expandTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalTenant {

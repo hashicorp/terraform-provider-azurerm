@@ -143,5 +143,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Door Custom Https Configurations can be imported using the `resource id` of the Frontend Endpoint, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/endpoint1
+terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1
 ```

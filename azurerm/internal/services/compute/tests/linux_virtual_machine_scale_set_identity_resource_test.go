@@ -6,169 +6,153 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_identityNone(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_identityNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// disable it
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// disable it
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// disable it
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// second
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssignedUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// disable it
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// second
+			Config: r.identityUserAssignedUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// disable it
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// disable it
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -210,11 +194,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) identityUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -265,11 +248,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssignedUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) identityUserAssignedUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -327,11 +309,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+func (r LinuxVirtualMachineScaleSetResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -382,5 +363,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

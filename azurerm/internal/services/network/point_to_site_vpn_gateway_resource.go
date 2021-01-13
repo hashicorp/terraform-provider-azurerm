@@ -52,7 +52,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ValidateVirtualHubID,
+				ValidateFunc: validate2.VirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {
@@ -104,7 +104,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 									"associated_route_table_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate2.VirtualHubRouteTableID,
+										ValidateFunc: validate2.HubRouteTableID,
 									},
 
 									"propagated_route_table": {
@@ -118,7 +118,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 													Required: true,
 													Elem: &schema.Schema{
 														Type:         schema.TypeString,
-														ValidateFunc: validate2.VirtualHubRouteTableID,
+														ValidateFunc: validate2.HubRouteTableID,
 													},
 												},
 

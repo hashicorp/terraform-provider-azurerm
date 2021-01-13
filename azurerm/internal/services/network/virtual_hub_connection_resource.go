@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -48,14 +47,14 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"remote_virtual_network_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualNetworkID,
 			},
 
 			// TODO 3.0: remove this property
@@ -90,7 +89,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.VirtualHubRouteTableID,
+							ValidateFunc: validate.HubRouteTableID,
 						},
 
 						"propagated_route_table": {
@@ -116,7 +115,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.VirtualHubRouteTableID,
+											ValidateFunc: validate.HubRouteTableID,
 										},
 									},
 								},
@@ -221,12 +220,11 @@ func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubConnectionID(d.Id())
+	id, err := parse.HubVirtualNetworkConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -242,7 +240,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
 		// The following two attributes are deprecated by API (which will always return `true`).
@@ -271,7 +269,7 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubConnectionID(d.Id())
+	id, err := parse.HubVirtualNetworkConnectionID(d.Id())
 	if err != nil {
 		return err
 	}

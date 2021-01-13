@@ -6,197 +6,173 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(data, "2016-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-				"enable_automatic_updates",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(data, "2019-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-				"enable_automatic_updates",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesAutomaticUpdate(data, "2016-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+			"enable_automatic_updates",
+		),
+		{
+			Config: r.imagesAutomaticUpdate(data, "2019-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"enable_automatic_updates",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// provision a standard Virtual Machine with an Unmanaged Disk
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithVM(data),
-			},
-			{
-				// then delete the Virtual Machine
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data),
-			},
-			{
-				// then capture two images of the Virtual Machine
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithImage(data),
-			},
-			{
-				// then provision a Virtual Machine Scale Set using this image
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachine(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// then update the image on this Virtual Machine Scale Set
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachine(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// provision a standard Virtual Machine with an Unmanaged Disk
+			Config: r.imagesFromVirtualMachinePrerequisitesWithVM(data),
+		},
+		{
+			// then delete the Virtual Machine
+			Config: r.imagesFromVirtualMachinePrerequisites(data),
+		},
+		{
+			// then capture two images of the Virtual Machine
+			Config: r.imagesFromVirtualMachinePrerequisitesWithImage(data),
+		},
+		{
+			// then provision a Virtual Machine Scale Set using this image
+			Config: r.imagesFromVirtualMachine(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// then update the image on this Virtual Machine Scale Set
+			Config: r.imagesFromVirtualMachine(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(data, "2016-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(data, "2019-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesManualUpdate(data, "2016-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesManualUpdate(data, "2019-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data, "2016-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data, "2019-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesManualUpdateExternalRoll(data, "2016-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesManualUpdateExternalRoll(data, "2019-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(data, "2019-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(data, "2019-Datacenter"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesRollingUpdate(data, "2019-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.imagesRollingUpdate(data, "2019-Datacenter"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imagesPlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(data acceptance.TestData, version string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesAutomaticUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -305,11 +281,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 }
-`, template, data.RandomInteger, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, data.RandomInteger, version)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -346,11 +321,10 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "blob"
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithVM(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisitesWithVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -384,11 +358,10 @@ resource "azurerm_virtual_machine" "source" {
 
   os_profile_windows_config {}
 }
-`, template)
+`, r.imagesFromVirtualMachinePrerequisites(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithImage(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisites(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisitesWithImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -421,11 +394,10 @@ resource "azurerm_image" "second" {
 
   depends_on = ["azurerm_image.first"]
 }
-`, template)
+`, r.imagesFromVirtualMachinePrerequisites(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachine(data acceptance.TestData, image string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_imagesFromVirtualMachinePrerequisitesWithImage(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachine(data acceptance.TestData, image string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -455,11 +427,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, image)
+`, r.imagesFromVirtualMachinePrerequisites(data), image)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(data acceptance.TestData, version string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesManualUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -495,11 +466,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, version)
+`, r.template(data), version)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data acceptance.TestData, version string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesManualUpdateExternalRoll(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -543,11 +513,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, version)
+`, r.template(data), version)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(data acceptance.TestData, version string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesRollingUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -651,11 +620,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 }
-`, template, data.RandomInteger, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, data.RandomInteger, version)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) imagesPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -705,5 +673,5 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, template)
+`, r.template(data))
 }

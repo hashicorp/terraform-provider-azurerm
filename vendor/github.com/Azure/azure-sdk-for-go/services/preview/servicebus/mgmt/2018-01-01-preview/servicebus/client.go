@@ -1,6 +1,6 @@
-// Package servicebus implements the Azure ARM Servicebus service API version 2018-01-01-preview.
+// Package servicebus implements the Azure ARM Servicebus service API version .
 //
-// Azure Service Bus client for managing Namespace, IPFilter Rules, VirtualNetworkRules and Zone Redundant
+//
 package servicebus
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.

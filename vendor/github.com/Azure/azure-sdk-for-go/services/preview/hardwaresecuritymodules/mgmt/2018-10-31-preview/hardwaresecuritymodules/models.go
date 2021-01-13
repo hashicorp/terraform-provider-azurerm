@@ -165,8 +165,8 @@ func (dh *DedicatedHsm) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DedicatedHsmCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DedicatedHsmCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type DedicatedHsmCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -375,8 +375,11 @@ func (page DedicatedHsmListResultPage) Values() []DedicatedHsm {
 }
 
 // Creates a new instance of the DedicatedHsmListResultPage type.
-func NewDedicatedHsmListResultPage(getNextPage func(context.Context, DedicatedHsmListResult) (DedicatedHsmListResult, error)) DedicatedHsmListResultPage {
-	return DedicatedHsmListResultPage{fn: getNextPage}
+func NewDedicatedHsmListResultPage(cur DedicatedHsmListResult, getNextPage func(context.Context, DedicatedHsmListResult) (DedicatedHsmListResult, error)) DedicatedHsmListResultPage {
+	return DedicatedHsmListResultPage{
+		fn:   getNextPage,
+		dhlr: cur,
+	}
 }
 
 // DedicatedHsmOperation REST API operation
@@ -412,8 +415,8 @@ type DedicatedHsmOperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// DedicatedHsmOperationListResult result of the request to list Dedicated HSM Provider operations. It contains
-// a list of operations.
+// DedicatedHsmOperationListResult result of the request to list Dedicated HSM Provider operations. It
+// contains a list of operations.
 type DedicatedHsmOperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Dedicated HSM Resource Provider operations.

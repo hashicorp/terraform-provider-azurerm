@@ -39,6 +39,23 @@ func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice
 		}
 	}
 
+	// ensure conditionally-required identity values are valid
+	if v, exists := d.GetOk("identity"); exists {
+		rawIdentity := v.([]interface{})
+
+		if len(rawIdentity) != 0 {
+			identity := rawIdentity[0].(map[string]interface{})
+
+			if identityType := identity["type"].(string); identityType == string(containerservice.ResourceIdentityTypeUserAssigned) {
+				userAssignedIdentityId := identity["user_assigned_identity_id"].(string)
+
+				if userAssignedIdentityId == "" {
+					return fmt.Errorf("when `identity.type` is UserAssigned then `user_assigned_identity_id` must be set")
+				}
+			}
+		}
+	}
+
 	// @tombuildsstuff: As of 2020-03-30 it's no longer possible to create a cluster using a Service Principal
 	// for authentication (albeit this worked on 2020-03-27 via API version 2019-10-01 :shrug:). However it's
 	// possible to rotate the Service Principal for an existing Cluster - so this needs to be supported via

@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsCaaRecord() *schema.Resource {
+func resourceDnsCaaRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCaaRecordCreateUpdate,
-		Read:   resourceArmDnsCaaRecordRead,
-		Update: resourceArmDnsCaaRecordCreateUpdate,
-		Delete: resourceArmDnsCaaRecordDelete,
+		Create: resourceDnsCaaRecordCreateUpdate,
+		Read:   resourceDnsCaaRecordRead,
+		Update: resourceDnsCaaRecordCreateUpdate,
+		Delete: resourceDnsCaaRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,7 +36,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsCaaRecordID(id)
+			_, err := parse.CaaRecordID(id)
 			return err
 		}),
 
@@ -81,7 +81,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmDnsCaaRecordHash,
+				Set: resourceDnsCaaRecordHash,
 			},
 
 			"ttl": {
@@ -99,7 +99,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,31 +150,31 @@ func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsCaaRecordRead(d, meta)
+	return resourceDnsCaaRecordRead(d, meta)
 }
 
-func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsCaaRecordID(d.Id())
+	id, err := parse.CaaRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS CAA record %s: %v", id.Name, err)
+		return fmt.Errorf("Error reading DNS CAA record %s: %v", id.CAAName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.CAAName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
@@ -185,19 +185,19 @@ func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsCaaRecordID(d.Id())
+	id, err := parse.CaaRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", id.CAAName, err)
 	}
 
 	return nil
@@ -241,7 +241,7 @@ func expandAzureRmDnsCaaRecords(d *schema.ResourceData) *[]dns.CaaRecord {
 	return &records
 }
 
-func resourceArmDnsCaaRecordHash(v interface{}) int {
+func resourceDnsCaaRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
