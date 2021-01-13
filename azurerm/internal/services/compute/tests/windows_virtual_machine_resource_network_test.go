@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 /*
@@ -16,375 +17,326 @@ FrontDoor?
 
 func TestAccWindowsVirtualMachine_networkIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkIPv6(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkIPv6(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// update the Primary IP
-				Config: testWindowsVirtualMachine_networkMultipleUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// remove the secondary IP
-				Config: testWindowsVirtualMachine_networkMultipleRemoved(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "0"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// update the Primary IP
+			Config: r.networkMultipleUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// remove the secondary IP
+			Config: r.networkMultipleRemoved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkMultiplePublic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkMultiplePublic(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "2"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// update the Primary IP
-				Config: testWindowsVirtualMachine_networkMultiplePublicUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "2"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// remove the secondary IP
-				Config: testWindowsVirtualMachine_networkMultiplePublicRemoved(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_addresses.#", "1"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkMultiplePublic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("2"),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// update the Primary IP
+			Config: r.networkMultiplePublicUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// remove the secondary IP
+			Config: r.networkMultiplePublicRemoved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_networkPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address", ""),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.networkPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").HasValue(""),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicDynamicPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicDynamicPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicDynamicPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.networkPublicDynamicPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicStaticPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicStaticPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_networkPublicStaticPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_address"),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkPublicStaticPrivateDynamicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.networkPublicStaticPrivateStaticIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testWindowsVirtualMachine_networkIPv6(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_templateBase(data)
+func (r WindowsVirtualMachineResource) networkIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -430,11 +382,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_networkMultipleTemplate(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_templateBase(data)
+func (r WindowsVirtualMachineResource) networkMultipleTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -461,11 +412,10 @@ resource "azurerm_network_interface" "second" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_networkMultiple(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_networkMultipleTemplate(data)
+func (r WindowsVirtualMachineResource) networkMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -493,11 +443,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.networkMultipleTemplate(data))
 }
 
-func testWindowsVirtualMachine_networkMultipleUpdated(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_networkMultipleTemplate(data)
+func (r WindowsVirtualMachineResource) networkMultipleUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -525,11 +474,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.networkMultipleTemplate(data))
 }
 
-func testWindowsVirtualMachine_networkMultipleRemoved(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_networkMultipleTemplate(data)
+func (r WindowsVirtualMachineResource) networkMultipleRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -556,11 +504,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.networkMultipleTemplate(data))
 }
 
-func testWindowsVirtualMachine_networkMultiplePublicTemplate(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_templateBase(data)
+func (r WindowsVirtualMachineResource) networkMultiplePublicTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -603,11 +550,10 @@ resource "azurerm_network_interface" "second" {
     public_ip_address_id          = azurerm_public_ip.second.id
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_networkMultiplePublic(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_networkMultiplePublicTemplate(data)
+func (r WindowsVirtualMachineResource) networkMultiplePublic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -635,11 +581,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.networkMultiplePublicTemplate(data))
 }
 
-func testWindowsVirtualMachine_networkMultiplePublicUpdated(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_networkMultiplePublicTemplate(data)
+func (r WindowsVirtualMachineResource) networkMultiplePublicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -667,11 +612,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.networkMultiplePublicTemplate(data))
 }
 
-func testWindowsVirtualMachine_networkMultiplePublicRemoved(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_networkMultiplePublicTemplate(data)
+func (r WindowsVirtualMachineResource) networkMultiplePublicRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -698,11 +642,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.networkMultiplePublicTemplate(data))
 }
 
-func testWindowsVirtualMachine_networkPrivateDynamicIP(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) networkPrivateDynamicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -729,11 +672,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_networkPrivateStaticIP(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) networkPrivateStaticIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -760,12 +702,11 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) networkPublicDynamicPrivateDynamicIP(data acceptance.TestData) string {
 	privateIPIsStatic := false
-	template := testWindowsVirtualMachine_templatePrivateIP(data, privateIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -792,12 +733,11 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.templatePrivateIP(data, privateIPIsStatic))
 }
 
-func testWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) networkPublicDynamicPrivateStaticIP(data acceptance.TestData) string {
 	privateIPIsStatic := true
-	template := testWindowsVirtualMachine_templatePrivateIP(data, privateIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -824,13 +764,12 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.templatePrivateIP(data, privateIPIsStatic))
 }
 
-func testWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) networkPublicStaticPrivateDynamicIP(data acceptance.TestData) string {
 	privateIPIsStatic := false
 	publicIPIsStatic := true
-	template := testWindowsVirtualMachine_templatePublicIP(data, privateIPIsStatic, publicIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -857,13 +796,12 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.templatePublicIP(data, privateIPIsStatic, publicIPIsStatic))
 }
 
-func testWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) networkPublicStaticPrivateStaticIP(data acceptance.TestData) string {
 	privateIPIsStatic := true
 	publicIPIsStatic := true
-	template := testWindowsVirtualMachine_templatePublicIP(data, privateIPIsStatic, publicIPIsStatic)
 	return fmt.Sprintf(`
 %s
 
@@ -890,11 +828,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.templatePublicIP(data, privateIPIsStatic, publicIPIsStatic))
 }
 
-func testWindowsVirtualMachine_templatePrivateIP(data acceptance.TestData, static bool) string {
-	template := testWindowsVirtualMachine_templateBase(data)
+func (r WindowsVirtualMachineResource) templatePrivateIP(data acceptance.TestData, static bool) string {
 	if static {
 		return fmt.Sprintf(`
 %s
@@ -911,7 +848,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address            = "10.0.2.30"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -928,11 +865,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_templatePublicIP(data acceptance.TestData, privateStatic, publicStatic bool) string {
-	template := testWindowsVirtualMachine_templateBase(data)
+func (r WindowsVirtualMachineResource) templatePublicIP(data acceptance.TestData, privateStatic, publicStatic bool) string {
 	publicAllocationType := allocationType(publicStatic)
 
 	if privateStatic {
@@ -959,7 +895,7 @@ resource "azurerm_network_interface" "test" {
     public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
-`, template, data.RandomInteger, publicAllocationType, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, publicAllocationType, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -984,5 +920,5 @@ resource "azurerm_network_interface" "test" {
     public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
-`, template, data.RandomInteger, publicAllocationType, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, publicAllocationType, data.RandomInteger)
 }

@@ -2,15 +2,52 @@
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* Data Source: `azurerm_kubernetes_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* Data Source: `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* Data Source: `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_api_management` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_container_group` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_data_factory` - support for `public_network_enabled` [GH-9605]
+* `azurerm_data_factory_linked_service_sql_server`: support for the `key_vault_password` block [GH-10032]
 * `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
 * `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
+* `azurerm_function_app` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_function_app_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_kusto_cluster` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_security_center_automation` - the field `event_source` within the `source` block now supports `SecureScoreControls ` and `SecureScores` [GH-10126]
+* `azurerm_synapse_workspace` - support for the `sql_identity_control_enabled` property [GH-10033]
+* `azurerm_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 
 BUG FIXES:
 
+* Data Source: `azurerm_log_analytics_workspace` - returning the Resource ID in the correct casing [GH-10162]
+* `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block [GH-10031]
+* `azurerm_blueprint_assignment` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_container_group` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_databricks_workspace` - changing the sku no longer always forces a new resource to be created [GH-9541]
+* `azurerm_function_app` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_function_app_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_kubernetes_cluster` - ensuring the casing of the `user_assigned_identity_id` field within the `kubelet_identity` block [GH-10105]
+* `azurerm_kusto_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
 * `azurerm_role_assignment` - fix race condition in read after create [GH-10134]
+* `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 
 ## 2.42.0 (January 08, 2021)
 

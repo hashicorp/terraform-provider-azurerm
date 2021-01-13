@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -602,7 +603,10 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
-		kubeletIdentity := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
+		kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
 			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
@@ -781,8 +785,10 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			workspaceID = *v
 		}
 
-		omsagentIdentity := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
-
+		omsagentIdentity, err := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
+		if err != nil {
+			return err
+		}
 		output := map[string]interface{}{
 			"enabled":                    enabled,
 			"log_analytics_workspace_id": workspaceID,
@@ -823,9 +829,9 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identity := make([]interface{}, 0)
@@ -841,7 +847,11 @@ func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containe
 
 	userAssignedIdentityID := ""
 	if resourceid := profile.ResourceID; resourceid != nil {
-		userAssignedIdentityID = *resourceid
+		parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+		if err != nil {
+			return nil, err
+		}
+		userAssignedIdentityID = parsedId.ID()
 	}
 
 	identity = append(identity, map[string]interface{}{
@@ -850,7 +860,7 @@ func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containe
 		"user_assigned_identity_id": userAssignedIdentityID,
 	})
 
-	return identity
+	return identity, nil
 }
 
 func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.ManagedClusterAgentPoolProfile) []interface{} {
@@ -935,9 +945,9 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) []interface{} {
+func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	kubeletIdentity := make([]interface{}, 0)
@@ -954,7 +964,11 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*conta
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			userAssignedIdentityId = *resourceid
+			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			if err != nil {
+				return nil, err
+			}
+			userAssignedIdentityId = parsedId.ID()
 		}
 
 		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
@@ -964,7 +978,7 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*conta
 		})
 	}
 
-	return kubeletIdentity
+	return kubeletIdentity, nil
 }
 
 func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
