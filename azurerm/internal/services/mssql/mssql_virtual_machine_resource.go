@@ -488,25 +488,16 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 
 	output := map[string]interface{}{
 		"storage_workload_type": storageWorkloadType,
+		"disk_type":             string(input.DiskConfigurationType),
+		"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
+		"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
+		"temp_db_settings":      flattenSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
 	}
 
-	if v := string(input.DiskConfigurationType); v != "" {
-		output["disk_type"] = v
-	}
-
-	if v := flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings); len(v) > 0 {
-		output["data_settings"] = v
-	}
-
-	if v := flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings); len(v) > 0 {
-		output["log_settings"] = v
-	}
-
-	if v := flattenSqlVirtualMachineStorageSettings(input.SQLTempDbSettings); len(v) > 0 {
-		output["temp_db_settings"] = v
-	}
-
-	if len(output) <= 1 && output["storage_workload_type"].(string) == "" {
+	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
+		len(output["data_settings"].([]interface{})) == 0 &&
+		len(output["log_settings"].([]interface{})) == 0 &&
+		len(output["temp_db_settings"].([]interface{})) == 0 {
 		return []interface{}{}
 	}
 
