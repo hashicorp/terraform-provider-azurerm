@@ -404,6 +404,10 @@ func resourceCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) 
 					return fmt.Errorf("Error setting `unique_key`: %+v", err)
 				}
 			}
+
+			if defaultTTL := props.DefaultTTL; defaultTTL != nil {
+				d.Set("default_ttl", defaultTTL)
+			}
 		}
 	}
 
