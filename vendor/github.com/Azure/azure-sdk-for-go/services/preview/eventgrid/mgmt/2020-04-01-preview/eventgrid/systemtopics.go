@@ -224,6 +224,7 @@ func (client SystemTopicsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -307,6 +308,7 @@ func (client SystemTopicsClient) ListByResourceGroup(ctx context.Context, resour
 	result.stlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.stlr.hasNextLink() && result.stlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -376,6 +378,7 @@ func (client SystemTopicsClient) listByResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -434,6 +437,7 @@ func (client SystemTopicsClient) ListBySubscription(ctx context.Context, filter 
 	result.stlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.stlr.hasNextLink() && result.stlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -502,6 +506,7 @@ func (client SystemTopicsClient) listBySubscriptionNextResults(ctx context.Conte
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

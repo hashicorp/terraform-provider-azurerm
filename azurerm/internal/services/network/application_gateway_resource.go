@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -1201,7 +1202,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 500),
+							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"request_body_check": {
@@ -1442,6 +1443,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
 
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(network.WAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.WAFV2)
+	}
+
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
 		id := v.(string)
 		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
@@ -1523,7 +1531,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("zones", applicationGateway.Zones)
 
-	identity := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	identity, err := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	if err != nil {
+		return err
+	}
 	if err = d.Set("identity", identity); err != nil {
 		return err
 	}
@@ -1682,9 +1693,9 @@ func expandAzureRmApplicationGatewayIdentity(d *schema.ResourceData) *network.Ma
 	return &appGatewayIdentity
 }
 
-func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) []interface{} {
+func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	result := make(map[string]interface{})
@@ -1696,12 +1707,16 @@ func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentit
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := parse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 	result["identity_ids"] = identityIds
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]network.ApplicationGatewayAuthenticationCertificate {

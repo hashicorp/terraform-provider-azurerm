@@ -160,6 +160,23 @@ func PossibleCassandraSourceReadConsistencyLevelsValues() []CassandraSourceReadC
 	return []CassandraSourceReadConsistencyLevels{ALL, EACHQUORUM, LOCALONE, LOCALQUORUM, LOCALSERIAL, ONE, QUORUM, SERIAL, THREE, TWO}
 }
 
+// CopyBehaviorType enumerates the values for copy behavior type.
+type CopyBehaviorType string
+
+const (
+	// FlattenHierarchy ...
+	FlattenHierarchy CopyBehaviorType = "FlattenHierarchy"
+	// MergeFiles ...
+	MergeFiles CopyBehaviorType = "MergeFiles"
+	// PreserveHierarchy ...
+	PreserveHierarchy CopyBehaviorType = "PreserveHierarchy"
+)
+
+// PossibleCopyBehaviorTypeValues returns an array of possible values for the CopyBehaviorType const type.
+func PossibleCopyBehaviorTypeValues() []CopyBehaviorType {
+	return []CopyBehaviorType{FlattenHierarchy, MergeFiles, PreserveHierarchy}
+}
+
 // DataFlowComputeType enumerates the values for data flow compute type.
 type DataFlowComputeType string
 
@@ -306,6 +323,19 @@ const (
 // PossibleDynamicsDeploymentTypeValues returns an array of possible values for the DynamicsDeploymentType const type.
 func PossibleDynamicsDeploymentTypeValues() []DynamicsDeploymentType {
 	return []DynamicsDeploymentType{Online, OnPremisesWithIfd}
+}
+
+// DynamicsSinkWriteBehavior enumerates the values for dynamics sink write behavior.
+type DynamicsSinkWriteBehavior string
+
+const (
+	// Upsert ...
+	Upsert DynamicsSinkWriteBehavior = "Upsert"
+)
+
+// PossibleDynamicsSinkWriteBehaviorValues returns an array of possible values for the DynamicsSinkWriteBehavior const type.
+func PossibleDynamicsSinkWriteBehaviorValues() []DynamicsSinkWriteBehavior {
+	return []DynamicsSinkWriteBehavior{Upsert}
 }
 
 // EventSubscriptionStatus enumerates the values for event subscription status.
@@ -820,6 +850,8 @@ func PossibleOraclePartitionOptionValues() []OraclePartitionOption {
 type OrcCompressionCodec string
 
 const (
+	// OrcCompressionCodecLzo ...
+	OrcCompressionCodecLzo OrcCompressionCodec = "lzo"
 	// OrcCompressionCodecNone ...
 	OrcCompressionCodecNone OrcCompressionCodec = "none"
 	// OrcCompressionCodecSnappy ...
@@ -830,7 +862,7 @@ const (
 
 // PossibleOrcCompressionCodecValues returns an array of possible values for the OrcCompressionCodec const type.
 func PossibleOrcCompressionCodecValues() []OrcCompressionCodec {
-	return []OrcCompressionCodec{OrcCompressionCodecNone, OrcCompressionCodecSnappy, OrcCompressionCodecZlib}
+	return []OrcCompressionCodec{OrcCompressionCodecLzo, OrcCompressionCodecNone, OrcCompressionCodecSnappy, OrcCompressionCodecZlib}
 }
 
 // ParameterType enumerates the values for parameter type.
@@ -903,6 +935,21 @@ const (
 // PossiblePrestoAuthenticationTypeValues returns an array of possible values for the PrestoAuthenticationType const type.
 func PossiblePrestoAuthenticationTypeValues() []PrestoAuthenticationType {
 	return []PrestoAuthenticationType{PrestoAuthenticationTypeAnonymous, PrestoAuthenticationTypeLDAP}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
 }
 
 // RecurrenceFrequency enumerates the values for recurrence frequency.
@@ -1051,15 +1098,15 @@ func PossibleRunQueryOrderByFieldValues() []RunQueryOrderByField {
 type SalesforceSinkWriteBehavior string
 
 const (
-	// Insert ...
-	Insert SalesforceSinkWriteBehavior = "Insert"
-	// Upsert ...
-	Upsert SalesforceSinkWriteBehavior = "Upsert"
+	// SalesforceSinkWriteBehaviorInsert ...
+	SalesforceSinkWriteBehaviorInsert SalesforceSinkWriteBehavior = "Insert"
+	// SalesforceSinkWriteBehaviorUpsert ...
+	SalesforceSinkWriteBehaviorUpsert SalesforceSinkWriteBehavior = "Upsert"
 )
 
 // PossibleSalesforceSinkWriteBehaviorValues returns an array of possible values for the SalesforceSinkWriteBehavior const type.
 func PossibleSalesforceSinkWriteBehaviorValues() []SalesforceSinkWriteBehavior {
-	return []SalesforceSinkWriteBehavior{Insert, Upsert}
+	return []SalesforceSinkWriteBehavior{SalesforceSinkWriteBehaviorInsert, SalesforceSinkWriteBehaviorUpsert}
 }
 
 // SalesforceSourceReadBehavior enumerates the values for salesforce source read behavior.
@@ -1081,15 +1128,15 @@ func PossibleSalesforceSourceReadBehaviorValues() []SalesforceSourceReadBehavior
 type SapCloudForCustomerSinkWriteBehavior string
 
 const (
-	// SapCloudForCustomerSinkWriteBehaviorInsert ...
-	SapCloudForCustomerSinkWriteBehaviorInsert SapCloudForCustomerSinkWriteBehavior = "Insert"
-	// SapCloudForCustomerSinkWriteBehaviorUpdate ...
-	SapCloudForCustomerSinkWriteBehaviorUpdate SapCloudForCustomerSinkWriteBehavior = "Update"
+	// Insert ...
+	Insert SapCloudForCustomerSinkWriteBehavior = "Insert"
+	// Update ...
+	Update SapCloudForCustomerSinkWriteBehavior = "Update"
 )
 
 // PossibleSapCloudForCustomerSinkWriteBehaviorValues returns an array of possible values for the SapCloudForCustomerSinkWriteBehavior const type.
 func PossibleSapCloudForCustomerSinkWriteBehaviorValues() []SapCloudForCustomerSinkWriteBehavior {
-	return []SapCloudForCustomerSinkWriteBehavior{SapCloudForCustomerSinkWriteBehaviorInsert, SapCloudForCustomerSinkWriteBehaviorUpdate}
+	return []SapCloudForCustomerSinkWriteBehavior{Insert, Update}
 }
 
 // SapHanaAuthenticationType enumerates the values for sap hana authentication type.
@@ -1425,11 +1472,13 @@ const (
 	TumblingWindowFrequencyHour TumblingWindowFrequency = "Hour"
 	// TumblingWindowFrequencyMinute ...
 	TumblingWindowFrequencyMinute TumblingWindowFrequency = "Minute"
+	// TumblingWindowFrequencyMonth ...
+	TumblingWindowFrequencyMonth TumblingWindowFrequency = "Month"
 )
 
 // PossibleTumblingWindowFrequencyValues returns an array of possible values for the TumblingWindowFrequency const type.
 func PossibleTumblingWindowFrequencyValues() []TumblingWindowFrequency {
-	return []TumblingWindowFrequency{TumblingWindowFrequencyHour, TumblingWindowFrequencyMinute}
+	return []TumblingWindowFrequency{TumblingWindowFrequencyHour, TumblingWindowFrequencyMinute, TumblingWindowFrequencyMonth}
 }
 
 // Type enumerates the values for type.
@@ -1561,6 +1610,8 @@ const (
 	TypeAvroSink TypeBasicCopySink = "AvroSink"
 	// TypeAzureBlobFSSink ...
 	TypeAzureBlobFSSink TypeBasicCopySink = "AzureBlobFSSink"
+	// TypeAzureDatabricksDeltaLakeSink ...
+	TypeAzureDatabricksDeltaLakeSink TypeBasicCopySink = "AzureDatabricksDeltaLakeSink"
 	// TypeAzureDataExplorerSink ...
 	TypeAzureDataExplorerSink TypeBasicCopySink = "AzureDataExplorerSink"
 	// TypeAzureDataLakeStoreSink ...
@@ -1635,7 +1686,7 @@ const (
 
 // PossibleTypeBasicCopySinkValues returns an array of possible values for the TypeBasicCopySink const type.
 func PossibleTypeBasicCopySinkValues() []TypeBasicCopySink {
-	return []TypeBasicCopySink{TypeAvroSink, TypeAzureBlobFSSink, TypeAzureDataExplorerSink, TypeAzureDataLakeStoreSink, TypeAzureMySQLSink, TypeAzurePostgreSQLSink, TypeAzureQueueSink, TypeAzureSearchIndexSink, TypeAzureSQLSink, TypeAzureTableSink, TypeBinarySink, TypeBlobSink, TypeCommonDataServiceForAppsSink, TypeCopySink, TypeCosmosDbMongoDbAPISink, TypeCosmosDbSQLAPISink, TypeDelimitedTextSink, TypeDocumentDbCollectionSink, TypeDynamicsCrmSink, TypeDynamicsSink, TypeFileSystemSink, TypeInformixSink, TypeJSONSink, TypeMicrosoftAccessSink, TypeOdbcSink, TypeOracleSink, TypeOrcSink, TypeParquetSink, TypeRestSink, TypeSalesforceServiceCloudSink, TypeSalesforceSink, TypeSapCloudForCustomerSink, TypeSnowflakeSink, TypeSQLDWSink, TypeSQLMISink, TypeSQLServerSink, TypeSQLSink}
+	return []TypeBasicCopySink{TypeAvroSink, TypeAzureBlobFSSink, TypeAzureDatabricksDeltaLakeSink, TypeAzureDataExplorerSink, TypeAzureDataLakeStoreSink, TypeAzureMySQLSink, TypeAzurePostgreSQLSink, TypeAzureQueueSink, TypeAzureSearchIndexSink, TypeAzureSQLSink, TypeAzureTableSink, TypeBinarySink, TypeBlobSink, TypeCommonDataServiceForAppsSink, TypeCopySink, TypeCosmosDbMongoDbAPISink, TypeCosmosDbSQLAPISink, TypeDelimitedTextSink, TypeDocumentDbCollectionSink, TypeDynamicsCrmSink, TypeDynamicsSink, TypeFileSystemSink, TypeInformixSink, TypeJSONSink, TypeMicrosoftAccessSink, TypeOdbcSink, TypeOracleSink, TypeOrcSink, TypeParquetSink, TypeRestSink, TypeSalesforceServiceCloudSink, TypeSalesforceSink, TypeSapCloudForCustomerSink, TypeSnowflakeSink, TypeSQLDWSink, TypeSQLMISink, TypeSQLServerSink, TypeSQLSink}
 }
 
 // TypeBasicCopySource enumerates the values for type basic copy source.
@@ -1650,6 +1701,8 @@ const (
 	TypeAvroSource TypeBasicCopySource = "AvroSource"
 	// TypeAzureBlobFSSource ...
 	TypeAzureBlobFSSource TypeBasicCopySource = "AzureBlobFSSource"
+	// TypeAzureDatabricksDeltaLakeSource ...
+	TypeAzureDatabricksDeltaLakeSource TypeBasicCopySource = "AzureDatabricksDeltaLakeSource"
 	// TypeAzureDataExplorerSource ...
 	TypeAzureDataExplorerSource TypeBasicCopySource = "AzureDataExplorerSource"
 	// TypeAzureDataLakeStoreSource ...
@@ -1734,6 +1787,8 @@ const (
 	TypeMarketoSource TypeBasicCopySource = "MarketoSource"
 	// TypeMicrosoftAccessSource ...
 	TypeMicrosoftAccessSource TypeBasicCopySource = "MicrosoftAccessSource"
+	// TypeMongoDbAtlasSource ...
+	TypeMongoDbAtlasSource TypeBasicCopySource = "MongoDbAtlasSource"
 	// TypeMongoDbSource ...
 	TypeMongoDbSource TypeBasicCopySource = "MongoDbSource"
 	// TypeMongoDbV2Source ...
@@ -1830,7 +1885,22 @@ const (
 
 // PossibleTypeBasicCopySourceValues returns an array of possible values for the TypeBasicCopySource const type.
 func PossibleTypeBasicCopySourceValues() []TypeBasicCopySource {
-	return []TypeBasicCopySource{TypeAmazonMWSSource, TypeAmazonRedshiftSource, TypeAvroSource, TypeAzureBlobFSSource, TypeAzureDataExplorerSource, TypeAzureDataLakeStoreSource, TypeAzureMariaDBSource, TypeAzureMySQLSource, TypeAzurePostgreSQLSource, TypeAzureSQLSource, TypeAzureTableSource, TypeBinarySource, TypeBlobSource, TypeCassandraSource, TypeCommonDataServiceForAppsSource, TypeConcurSource, TypeCopySource, TypeCosmosDbMongoDbAPISource, TypeCosmosDbSQLAPISource, TypeCouchbaseSource, TypeDb2Source, TypeDelimitedTextSource, TypeDocumentDbCollectionSource, TypeDrillSource, TypeDynamicsAXSource, TypeDynamicsCrmSource, TypeDynamicsSource, TypeEloquaSource, TypeExcelSource, TypeFileSystemSource, TypeGoogleAdWordsSource, TypeGoogleBigQuerySource, TypeGreenplumSource, TypeHBaseSource, TypeHdfsSource, TypeHiveSource, TypeHTTPSource, TypeHubspotSource, TypeImpalaSource, TypeInformixSource, TypeJiraSource, TypeJSONSource, TypeMagentoSource, TypeMariaDBSource, TypeMarketoSource, TypeMicrosoftAccessSource, TypeMongoDbSource, TypeMongoDbV2Source, TypeMySQLSource, TypeNetezzaSource, TypeODataSource, TypeOdbcSource, TypeOffice365Source, TypeOracleServiceCloudSource, TypeOracleSource, TypeOrcSource, TypeParquetSource, TypePaypalSource, TypePhoenixSource, TypePostgreSQLSource, TypePrestoSource, TypeQuickBooksSource, TypeRelationalSource, TypeResponsysSource, TypeRestSource, TypeSalesforceMarketingCloudSource, TypeSalesforceServiceCloudSource, TypeSalesforceSource, TypeSapBwSource, TypeSapCloudForCustomerSource, TypeSapEccSource, TypeSapHanaSource, TypeSapOpenHubSource, TypeSapTableSource, TypeServiceNowSource, TypeSharePointOnlineListSource, TypeShopifySource, TypeSnowflakeSource, TypeSparkSource, TypeSQLDWSource, TypeSQLMISource, TypeSQLServerSource, TypeSQLSource, TypeSquareSource, TypeSybaseSource, TypeTabularSource, TypeTeradataSource, TypeVerticaSource, TypeWebSource, TypeXeroSource, TypeXMLSource, TypeZohoSource}
+	return []TypeBasicCopySource{TypeAmazonMWSSource, TypeAmazonRedshiftSource, TypeAvroSource, TypeAzureBlobFSSource, TypeAzureDatabricksDeltaLakeSource, TypeAzureDataExplorerSource, TypeAzureDataLakeStoreSource, TypeAzureMariaDBSource, TypeAzureMySQLSource, TypeAzurePostgreSQLSource, TypeAzureSQLSource, TypeAzureTableSource, TypeBinarySource, TypeBlobSource, TypeCassandraSource, TypeCommonDataServiceForAppsSource, TypeConcurSource, TypeCopySource, TypeCosmosDbMongoDbAPISource, TypeCosmosDbSQLAPISource, TypeCouchbaseSource, TypeDb2Source, TypeDelimitedTextSource, TypeDocumentDbCollectionSource, TypeDrillSource, TypeDynamicsAXSource, TypeDynamicsCrmSource, TypeDynamicsSource, TypeEloquaSource, TypeExcelSource, TypeFileSystemSource, TypeGoogleAdWordsSource, TypeGoogleBigQuerySource, TypeGreenplumSource, TypeHBaseSource, TypeHdfsSource, TypeHiveSource, TypeHTTPSource, TypeHubspotSource, TypeImpalaSource, TypeInformixSource, TypeJiraSource, TypeJSONSource, TypeMagentoSource, TypeMariaDBSource, TypeMarketoSource, TypeMicrosoftAccessSource, TypeMongoDbAtlasSource, TypeMongoDbSource, TypeMongoDbV2Source, TypeMySQLSource, TypeNetezzaSource, TypeODataSource, TypeOdbcSource, TypeOffice365Source, TypeOracleServiceCloudSource, TypeOracleSource, TypeOrcSource, TypeParquetSource, TypePaypalSource, TypePhoenixSource, TypePostgreSQLSource, TypePrestoSource, TypeQuickBooksSource, TypeRelationalSource, TypeResponsysSource, TypeRestSource, TypeSalesforceMarketingCloudSource, TypeSalesforceServiceCloudSource, TypeSalesforceSource, TypeSapBwSource, TypeSapCloudForCustomerSource, TypeSapEccSource, TypeSapHanaSource, TypeSapOpenHubSource, TypeSapTableSource, TypeServiceNowSource, TypeSharePointOnlineListSource, TypeShopifySource, TypeSnowflakeSource, TypeSparkSource, TypeSQLDWSource, TypeSQLMISource, TypeSQLServerSource, TypeSQLSource, TypeSquareSource, TypeSybaseSource, TypeTabularSource, TypeTeradataSource, TypeVerticaSource, TypeWebSource, TypeXeroSource, TypeXMLSource, TypeZohoSource}
+}
+
+// TypeBasicCopyTranslator enumerates the values for type basic copy translator.
+type TypeBasicCopyTranslator string
+
+const (
+	// TypeCopyTranslator ...
+	TypeCopyTranslator TypeBasicCopyTranslator = "CopyTranslator"
+	// TypeTabularTranslator ...
+	TypeTabularTranslator TypeBasicCopyTranslator = "TabularTranslator"
+)
+
+// PossibleTypeBasicCopyTranslatorValues returns an array of possible values for the TypeBasicCopyTranslator const type.
+func PossibleTypeBasicCopyTranslatorValues() []TypeBasicCopyTranslator {
+	return []TypeBasicCopyTranslator{TypeCopyTranslator, TypeTabularTranslator}
 }
 
 // TypeBasicCustomSetupBase enumerates the values for type basic custom setup base.
@@ -1885,6 +1955,8 @@ const (
 	TypeAzureBlob TypeBasicDataset = "AzureBlob"
 	// TypeAzureBlobFSFile ...
 	TypeAzureBlobFSFile TypeBasicDataset = "AzureBlobFSFile"
+	// TypeAzureDatabricksDeltaLakeDataset ...
+	TypeAzureDatabricksDeltaLakeDataset TypeBasicDataset = "AzureDatabricksDeltaLakeDataset"
 	// TypeAzureDataExplorerTable ...
 	TypeAzureDataExplorerTable TypeBasicDataset = "AzureDataExplorerTable"
 	// TypeAzureDataLakeStoreFile ...
@@ -1973,6 +2045,8 @@ const (
 	TypeMarketoObject TypeBasicDataset = "MarketoObject"
 	// TypeMicrosoftAccessTable ...
 	TypeMicrosoftAccessTable TypeBasicDataset = "MicrosoftAccessTable"
+	// TypeMongoDbAtlasCollection ...
+	TypeMongoDbAtlasCollection TypeBasicDataset = "MongoDbAtlasCollection"
 	// TypeMongoDbCollection ...
 	TypeMongoDbCollection TypeBasicDataset = "MongoDbCollection"
 	// TypeMongoDbV2Collection ...
@@ -2061,7 +2135,7 @@ const (
 
 // PossibleTypeBasicDatasetValues returns an array of possible values for the TypeBasicDataset const type.
 func PossibleTypeBasicDatasetValues() []TypeBasicDataset {
-	return []TypeBasicDataset{TypeAmazonMWSObject, TypeAmazonRedshiftTable, TypeAmazonS3Object, TypeAvro, TypeAzureBlob, TypeAzureBlobFSFile, TypeAzureDataExplorerTable, TypeAzureDataLakeStoreFile, TypeAzureMariaDBTable, TypeAzureMySQLTable, TypeAzurePostgreSQLTable, TypeAzureSearchIndex, TypeAzureSQLDWTable, TypeAzureSQLMITable, TypeAzureSQLTable, TypeAzureTable, TypeBinary, TypeCassandraTable, TypeCommonDataServiceForAppsEntity, TypeConcurObject, TypeCosmosDbMongoDbAPICollection, TypeCosmosDbSQLAPICollection, TypeCouchbaseTable, TypeCustomDataset, TypeDataset, TypeDb2Table, TypeDelimitedText, TypeDocumentDbCollection, TypeDrillTable, TypeDynamicsAXResource, TypeDynamicsCrmEntity, TypeDynamicsEntity, TypeEloquaObject, TypeExcel, TypeFileShare, TypeGoogleAdWordsObject, TypeGoogleBigQueryObject, TypeGreenplumTable, TypeHBaseObject, TypeHiveObject, TypeHTTPFile, TypeHubspotObject, TypeImpalaObject, TypeInformixTable, TypeJiraObject, TypeJSON, TypeMagentoObject, TypeMariaDBTable, TypeMarketoObject, TypeMicrosoftAccessTable, TypeMongoDbCollection, TypeMongoDbV2Collection, TypeMySQLTable, TypeNetezzaTable, TypeODataResource, TypeOdbcTable, TypeOffice365Table, TypeOracleServiceCloudObject, TypeOracleTable, TypeOrc, TypeParquet, TypePaypalObject, TypePhoenixObject, TypePostgreSQLTable, TypePrestoObject, TypeQuickBooksObject, TypeRelationalTable, TypeResponsysObject, TypeRestResource, TypeSalesforceMarketingCloudObject, TypeSalesforceObject, TypeSalesforceServiceCloudObject, TypeSapBwCube, TypeSapCloudForCustomerResource, TypeSapEccResource, TypeSapHanaTable, TypeSapOpenHubTable, TypeSapTableResource, TypeServiceNowObject, TypeSharePointOnlineListResource, TypeShopifyObject, TypeSnowflakeTable, TypeSparkObject, TypeSQLServerTable, TypeSquareObject, TypeSybaseTable, TypeTeradataTable, TypeVerticaTable, TypeWebTable, TypeXeroObject, TypeXML, TypeZohoObject}
+	return []TypeBasicDataset{TypeAmazonMWSObject, TypeAmazonRedshiftTable, TypeAmazonS3Object, TypeAvro, TypeAzureBlob, TypeAzureBlobFSFile, TypeAzureDatabricksDeltaLakeDataset, TypeAzureDataExplorerTable, TypeAzureDataLakeStoreFile, TypeAzureMariaDBTable, TypeAzureMySQLTable, TypeAzurePostgreSQLTable, TypeAzureSearchIndex, TypeAzureSQLDWTable, TypeAzureSQLMITable, TypeAzureSQLTable, TypeAzureTable, TypeBinary, TypeCassandraTable, TypeCommonDataServiceForAppsEntity, TypeConcurObject, TypeCosmosDbMongoDbAPICollection, TypeCosmosDbSQLAPICollection, TypeCouchbaseTable, TypeCustomDataset, TypeDataset, TypeDb2Table, TypeDelimitedText, TypeDocumentDbCollection, TypeDrillTable, TypeDynamicsAXResource, TypeDynamicsCrmEntity, TypeDynamicsEntity, TypeEloquaObject, TypeExcel, TypeFileShare, TypeGoogleAdWordsObject, TypeGoogleBigQueryObject, TypeGreenplumTable, TypeHBaseObject, TypeHiveObject, TypeHTTPFile, TypeHubspotObject, TypeImpalaObject, TypeInformixTable, TypeJiraObject, TypeJSON, TypeMagentoObject, TypeMariaDBTable, TypeMarketoObject, TypeMicrosoftAccessTable, TypeMongoDbAtlasCollection, TypeMongoDbCollection, TypeMongoDbV2Collection, TypeMySQLTable, TypeNetezzaTable, TypeODataResource, TypeOdbcTable, TypeOffice365Table, TypeOracleServiceCloudObject, TypeOracleTable, TypeOrc, TypeParquet, TypePaypalObject, TypePhoenixObject, TypePostgreSQLTable, TypePrestoObject, TypeQuickBooksObject, TypeRelationalTable, TypeResponsysObject, TypeRestResource, TypeSalesforceMarketingCloudObject, TypeSalesforceObject, TypeSalesforceServiceCloudObject, TypeSapBwCube, TypeSapCloudForCustomerResource, TypeSapEccResource, TypeSapHanaTable, TypeSapOpenHubTable, TypeSapTableResource, TypeServiceNowObject, TypeSharePointOnlineListResource, TypeShopifyObject, TypeSnowflakeTable, TypeSparkObject, TypeSQLServerTable, TypeSquareObject, TypeSybaseTable, TypeTeradataTable, TypeVerticaTable, TypeWebTable, TypeXeroObject, TypeXML, TypeZohoObject}
 }
 
 // TypeBasicDatasetCompression enumerates the values for type basic dataset compression.
@@ -2170,6 +2244,8 @@ func PossibleTypeBasicDependencyReferenceValues() []TypeBasicDependencyReference
 type TypeBasicExportSettings string
 
 const (
+	// TypeAzureDatabricksDeltaLakeExportCommand ...
+	TypeAzureDatabricksDeltaLakeExportCommand TypeBasicExportSettings = "AzureDatabricksDeltaLakeExportCommand"
 	// TypeExportSettings ...
 	TypeExportSettings TypeBasicExportSettings = "ExportSettings"
 	// TypeSnowflakeExportCopyCommand ...
@@ -2178,7 +2254,7 @@ const (
 
 // PossibleTypeBasicExportSettingsValues returns an array of possible values for the TypeBasicExportSettings const type.
 func PossibleTypeBasicExportSettingsValues() []TypeBasicExportSettings {
-	return []TypeBasicExportSettings{TypeExportSettings, TypeSnowflakeExportCopyCommand}
+	return []TypeBasicExportSettings{TypeAzureDatabricksDeltaLakeExportCommand, TypeExportSettings, TypeSnowflakeExportCopyCommand}
 }
 
 // TypeBasicFactoryRepoConfiguration enumerates the values for type basic factory repo configuration.
@@ -2231,17 +2307,23 @@ const (
 	TypeFormatWriteSettings TypeBasicFormatWriteSettings = "FormatWriteSettings"
 	// TypeJSONWriteSettings ...
 	TypeJSONWriteSettings TypeBasicFormatWriteSettings = "JsonWriteSettings"
+	// TypeOrcWriteSettings ...
+	TypeOrcWriteSettings TypeBasicFormatWriteSettings = "OrcWriteSettings"
+	// TypeParquetWriteSettings ...
+	TypeParquetWriteSettings TypeBasicFormatWriteSettings = "ParquetWriteSettings"
 )
 
 // PossibleTypeBasicFormatWriteSettingsValues returns an array of possible values for the TypeBasicFormatWriteSettings const type.
 func PossibleTypeBasicFormatWriteSettingsValues() []TypeBasicFormatWriteSettings {
-	return []TypeBasicFormatWriteSettings{TypeAvroWriteSettings, TypeDelimitedTextWriteSettings, TypeFormatWriteSettings, TypeJSONWriteSettings}
+	return []TypeBasicFormatWriteSettings{TypeAvroWriteSettings, TypeDelimitedTextWriteSettings, TypeFormatWriteSettings, TypeJSONWriteSettings, TypeOrcWriteSettings, TypeParquetWriteSettings}
 }
 
 // TypeBasicImportSettings enumerates the values for type basic import settings.
 type TypeBasicImportSettings string
 
 const (
+	// TypeAzureDatabricksDeltaLakeImportCommand ...
+	TypeAzureDatabricksDeltaLakeImportCommand TypeBasicImportSettings = "AzureDatabricksDeltaLakeImportCommand"
 	// TypeImportSettings ...
 	TypeImportSettings TypeBasicImportSettings = "ImportSettings"
 	// TypeSnowflakeImportCopyCommand ...
@@ -2250,7 +2332,7 @@ const (
 
 // PossibleTypeBasicImportSettingsValues returns an array of possible values for the TypeBasicImportSettings const type.
 func PossibleTypeBasicImportSettingsValues() []TypeBasicImportSettings {
-	return []TypeBasicImportSettings{TypeImportSettings, TypeSnowflakeImportCopyCommand}
+	return []TypeBasicImportSettings{TypeAzureDatabricksDeltaLakeImportCommand, TypeImportSettings, TypeSnowflakeImportCopyCommand}
 }
 
 // TypeBasicIntegrationRuntime enumerates the values for type basic integration runtime.
@@ -2305,6 +2387,8 @@ const (
 	TypeAzureBlobStorage TypeBasicLinkedService = "AzureBlobStorage"
 	// TypeAzureDatabricks ...
 	TypeAzureDatabricks TypeBasicLinkedService = "AzureDatabricks"
+	// TypeAzureDatabricksDeltaLake ...
+	TypeAzureDatabricksDeltaLake TypeBasicLinkedService = "AzureDatabricksDeltaLake"
 	// TypeAzureDataExplorer ...
 	TypeAzureDataExplorer TypeBasicLinkedService = "AzureDataExplorer"
 	// TypeAzureDataLakeAnalytics ...
@@ -2409,6 +2493,8 @@ const (
 	TypeMicrosoftAccess TypeBasicLinkedService = "MicrosoftAccess"
 	// TypeMongoDb ...
 	TypeMongoDb TypeBasicLinkedService = "MongoDb"
+	// TypeMongoDbAtlas ...
+	TypeMongoDbAtlas TypeBasicLinkedService = "MongoDbAtlas"
 	// TypeMongoDbV2 ...
 	TypeMongoDbV2 TypeBasicLinkedService = "MongoDbV2"
 	// TypeMySQL ...
@@ -2489,7 +2575,7 @@ const (
 
 // PossibleTypeBasicLinkedServiceValues returns an array of possible values for the TypeBasicLinkedService const type.
 func PossibleTypeBasicLinkedServiceValues() []TypeBasicLinkedService {
-	return []TypeBasicLinkedService{TypeAmazonMWS, TypeAmazonRedshift, TypeAmazonS3, TypeAzureBatch, TypeAzureBlobFS, TypeAzureBlobStorage, TypeAzureDatabricks, TypeAzureDataExplorer, TypeAzureDataLakeAnalytics, TypeAzureDataLakeStore, TypeAzureFileStorage, TypeAzureFunction, TypeAzureKeyVault, TypeAzureMariaDB, TypeAzureML, TypeAzureMLService, TypeAzureMySQL, TypeAzurePostgreSQL, TypeAzureSearch, TypeAzureSQLDatabase, TypeAzureSQLDW, TypeAzureSQLMI, TypeAzureStorage, TypeAzureTableStorage, TypeCassandra, TypeCommonDataServiceForApps, TypeConcur, TypeCosmosDb, TypeCosmosDbMongoDbAPI, TypeCouchbase, TypeCustomDataSource, TypeDb2, TypeDrill, TypeDynamics, TypeDynamicsAX, TypeDynamicsCrm, TypeEloqua, TypeFileServer, TypeFtpServer, TypeGoogleAdWords, TypeGoogleBigQuery, TypeGoogleCloudStorage, TypeGreenplum, TypeHBase, TypeHdfs, TypeHDInsight, TypeHDInsightOnDemand, TypeHive, TypeHTTPServer, TypeHubspot, TypeImpala, TypeInformix, TypeJira, TypeLinkedService, TypeMagento, TypeMariaDB, TypeMarketo, TypeMicrosoftAccess, TypeMongoDb, TypeMongoDbV2, TypeMySQL, TypeNetezza, TypeOData, TypeOdbc, TypeOffice365, TypeOracle, TypeOracleServiceCloud, TypePaypal, TypePhoenix, TypePostgreSQL, TypePresto, TypeQuickBooks, TypeResponsys, TypeRestService, TypeSalesforce, TypeSalesforceMarketingCloud, TypeSalesforceServiceCloud, TypeSapBW, TypeSapCloudForCustomer, TypeSapEcc, TypeSapHana, TypeSapOpenHub, TypeSapTable, TypeServiceNow, TypeSftp, TypeSharePointOnlineList, TypeShopify, TypeSnowflake, TypeSpark, TypeSQLServer, TypeSquare, TypeSybase, TypeTeradata, TypeVertica, TypeWeb, TypeXero, TypeZoho}
+	return []TypeBasicLinkedService{TypeAmazonMWS, TypeAmazonRedshift, TypeAmazonS3, TypeAzureBatch, TypeAzureBlobFS, TypeAzureBlobStorage, TypeAzureDatabricks, TypeAzureDatabricksDeltaLake, TypeAzureDataExplorer, TypeAzureDataLakeAnalytics, TypeAzureDataLakeStore, TypeAzureFileStorage, TypeAzureFunction, TypeAzureKeyVault, TypeAzureMariaDB, TypeAzureML, TypeAzureMLService, TypeAzureMySQL, TypeAzurePostgreSQL, TypeAzureSearch, TypeAzureSQLDatabase, TypeAzureSQLDW, TypeAzureSQLMI, TypeAzureStorage, TypeAzureTableStorage, TypeCassandra, TypeCommonDataServiceForApps, TypeConcur, TypeCosmosDb, TypeCosmosDbMongoDbAPI, TypeCouchbase, TypeCustomDataSource, TypeDb2, TypeDrill, TypeDynamics, TypeDynamicsAX, TypeDynamicsCrm, TypeEloqua, TypeFileServer, TypeFtpServer, TypeGoogleAdWords, TypeGoogleBigQuery, TypeGoogleCloudStorage, TypeGreenplum, TypeHBase, TypeHdfs, TypeHDInsight, TypeHDInsightOnDemand, TypeHive, TypeHTTPServer, TypeHubspot, TypeImpala, TypeInformix, TypeJira, TypeLinkedService, TypeMagento, TypeMariaDB, TypeMarketo, TypeMicrosoftAccess, TypeMongoDb, TypeMongoDbAtlas, TypeMongoDbV2, TypeMySQL, TypeNetezza, TypeOData, TypeOdbc, TypeOffice365, TypeOracle, TypeOracleServiceCloud, TypePaypal, TypePhoenix, TypePostgreSQL, TypePresto, TypeQuickBooks, TypeResponsys, TypeRestService, TypeSalesforce, TypeSalesforceMarketingCloud, TypeSalesforceServiceCloud, TypeSapBW, TypeSapCloudForCustomer, TypeSapEcc, TypeSapHana, TypeSapOpenHub, TypeSapTable, TypeServiceNow, TypeSftp, TypeSharePointOnlineList, TypeShopify, TypeSnowflake, TypeSpark, TypeSQLServer, TypeSquare, TypeSybase, TypeTeradata, TypeVertica, TypeWeb, TypeXero, TypeZoho}
 }
 
 // TypeBasicSsisObjectMetadata enumerates the values for type basic ssis object metadata.

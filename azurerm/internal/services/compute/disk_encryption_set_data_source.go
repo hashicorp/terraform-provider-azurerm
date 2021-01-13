@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDiskEncryptionSet() *schema.Resource {
+func dataSourceDiskEncryptionSet() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDiskEncryptionSetRead,
+		Read: dataSourceDiskEncryptionSetRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -37,7 +37,7 @@ func dataSourceArmDiskEncryptionSet() *schema.Resource {
 	}
 }
 
-func dataSourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

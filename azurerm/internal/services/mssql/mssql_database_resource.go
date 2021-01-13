@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -26,14 +27,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlDatabase() *schema.Resource {
+func resourceMsSqlDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlDatabaseCreateUpdate,
-		Read:   resourceArmMsSqlDatabaseRead,
-		Update: resourceArmMsSqlDatabaseCreateUpdate,
-		Delete: resourceArmMsSqlDatabaseDelete,
+		Create: resourceMsSqlDatabaseCreateUpdate,
+		Read:   resourceMsSqlDatabaseRead,
+		Update: resourceMsSqlDatabaseCreateUpdate,
+		Delete: resourceMsSqlDatabaseDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MsSqlDatabaseID(id)
+			_, err := parse.DatabaseID(id)
 			return err
 		}),
 
@@ -56,14 +58,14 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"auto_pause_delay_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
+				ValidateFunc: validate.DatabaseAutoPauseDelay,
 			},
 
 			"create_mode": {
@@ -90,13 +92,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlDBCollation(),
+				ValidateFunc: validate.DatabaseCollation(),
 			},
 
 			"elastic_pool_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlElasticPoolID,
+				ValidateFunc: validate.ElasticPoolID,
 			},
 
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
@@ -140,13 +142,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"recover_database_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlRecoverableDatabaseID,
+				ValidateFunc: validate.RecoverableDatabaseID,
 			},
 
 			"restore_dropped_database_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlRestorableDatabaseID,
+				ValidateFunc: validate.RestorableDatabaseID,
 			},
 
 			"read_replica_count": {
@@ -175,7 +177,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateFunc:     validate.MsSqlDBSkuName(),
+				ValidateFunc:     validate.DatabaseSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -184,7 +186,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDatabaseID,
+				ValidateFunc: validate.DatabaseID,
 			},
 
 			"zone_redundant": {
@@ -291,7 +293,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
@@ -305,7 +307,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	sqlServerId := d.Get("server_id").(string)
-	serverId, _ := parse.MsSqlServerID(sqlServerId)
+	serverId, _ := parse.ServerID(sqlServerId)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
@@ -430,13 +432,13 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandArmMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
+	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
 		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmMsSqlDBBlobAuditingPolicies(auditingPolicies),
+			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandMsSqlDBBlobAuditingPolicies(auditingPolicies),
 		}
 		if _, err = auditingClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, auditingProps); err != nil {
 			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
@@ -486,10 +488,10 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	return resourceArmMsSqlDatabaseRead(d, meta)
+	return resourceMsSqlDatabaseRead(d, meta)
 }
 
-func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
@@ -498,27 +500,27 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MsSqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.MsSqlServer)
+	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil || *serverResp.ID == "" {
-		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 	d.Set("server_id", serverResp.ID)
 
@@ -545,37 +547,37 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
-	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
-		if err := d.Set("threat_detection_policy", flattenArmMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
+		if err := d.Set("threat_detection_policy", flattenMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
 
-	flattenBlobAuditing := helper.FlattenAzureRmMsSqlDBBlobAuditingPolicies(&auditingResp, d)
+	flattenBlobAuditing := helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
-		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 		flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
 		if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
 			return fmt.Errorf("failure in setting `long_term_retention_policy`: %+v", err)
 		}
 
-		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 
 		flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)
@@ -592,32 +594,32 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MsSqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func flattenArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
+func flattenMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
 	// The SQL database threat detection API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.DatabaseSecurityAlertPolicyProperties
@@ -666,7 +668,7 @@ func flattenArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy s
 	return []interface{}{threatDetectionPolicy}
 }
 
-func expandArmMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
+func expandMsSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		Location: utils.String(location),
 		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{

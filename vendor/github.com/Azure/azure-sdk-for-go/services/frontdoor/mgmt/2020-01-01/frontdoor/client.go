@@ -92,6 +92,7 @@ func (client BaseClient) CheckFrontDoorNameAvailability(ctx context.Context, che
 	result, err = client.CheckFrontDoorNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.BaseClient", "CheckFrontDoorNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client BaseClient) CheckFrontDoorNameAvailabilityWithSubscription(ctx cont
 	result, err = client.CheckFrontDoorNameAvailabilityWithSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.BaseClient", "CheckFrontDoorNameAvailabilityWithSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return

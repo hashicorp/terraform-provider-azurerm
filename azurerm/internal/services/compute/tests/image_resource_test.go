@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,8 +19,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func TestAccAzureRMImage_standaloneImage(t *testing.T) {
+type ImageResource struct {
+}
+
+func TestAccImage_standaloneImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
 
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	userName := "testadmin"
@@ -27,231 +32,202 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 	sshPort := "22"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config: testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image.test", true),
-				),
-			},
-			data.ImportStep(
-				"delete_data_disks_on_termination",
-				"delete_os_disk_on_termination",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config: r.standaloneImage_setup(data, userName, password, hostName, "LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
+		},
+		{
+			Config: r.standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckImageExists("azurerm_image.test", true),
+			),
+		},
+		data.ImportStep(
+			"delete_data_disks_on_termination",
+			"delete_os_disk_on_termination",
+		),
+	})
+}
+
+func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
+	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
+	sshPort := "22"
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config: r.standaloneImage_setup(data, userName, password, hostName, "LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
+		},
+		{
+			Config: r.standaloneImage_provision(data, userName, password, hostName, "LRS", "V2"),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckImageExists("azurerm_image.test", true),
+			),
+		},
+		data.ImportStep(
+			"delete_data_disks_on_termination",
+			"delete_os_disk_on_termination",
+		),
+	})
+}
+
+func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
+	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
+	sshPort := "22"
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.standaloneImage_setup(data, userName, password, hostName, "ZRS"),
+			Destroy: false,
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
+		},
+		{
+			Config: r.standaloneImage_provision(data, userName, password, hostName, "ZRS", ""),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckImageExists("azurerm_image.test", true),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccImage_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
+
+	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
+	sshPort := "22"
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config: r.standaloneImage_setup(data, userName, password, hostName, "LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
+		},
+		{
+			Config: r.standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckImageExists("azurerm_image.test", true),
+			),
+		},
+		{
+			Config:      r.standaloneImage_requiresImport(data, userName, password, hostName),
+			ExpectError: acceptance.RequiresImportError("azurerm_image"),
+		},
+	})
+}
+
+func TestAccImage_customImageVMFromVHD(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
+
+	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
+	sshPort := "22"
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config: r.customImage_fromVHD_setup(data, userName, password, hostName),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
+		},
+		{
+			Config: r.customImage_fromVHD_provision(data, userName, password, hostName),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testdestination", true),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
+func TestAccImage_customImageVMFromVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
+
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 	sshPort := "22"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config: testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", "V2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image.test", true),
-				),
-			},
-			data.ImportStep(
-				"delete_data_disks_on_termination",
-				"delete_os_disk_on_termination",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.customImage_fromVM_sourceVM(data, userName, password, hostName),
+			Destroy: false,
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
+		},
+		{
+			Config: r.customImage_fromVM_destinationVM(data, userName, password, hostName),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testdestination", true),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
+func TestAccImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	r := ImageResource{}
+
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 	sshPort := "22"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "ZRS"),
-				Destroy: false,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "ZRS", ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image.test", true),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.vmss_customImage_fromVHD_setup(data, userName, password, hostName),
+			Destroy: false,
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMImage_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config: testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageExists("azurerm_image.test", true),
-				),
-			},
-			{
-				Config:      testAccAzureRMImage_standaloneImage_requiresImport(data, userName, password, hostName),
-				ExpectError: acceptance.RequiresImportError("azurerm_image"),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config: testAccAzureRMImage_customImage_fromVHD_setup(data, userName, password, hostName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImage_customImage_fromVHD_provision(data, userName, password, hostName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testdestination", true),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_customImage_fromVM_sourceVM(data, userName, password, hostName),
-				Destroy: false,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImage_customImage_fromVM_destinationVM(data, userName, password, hostName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testdestination", true),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImageVMSS_customImage_fromVHD_setup(data, userName, password, hostName),
-				Destroy: false,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMImageVMSS_customImage_fromVHD_provision(data, userName, password, hostName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMSSExists("azurerm_virtual_machine_scale_set.testdestination", true),
-				),
-			},
+		{
+			Config: r.vmss_customImage_fromVHD_provision(data, userName, password, hostName),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMSSExists("azurerm_virtual_machine_scale_set.testdestination", true),
+			),
 		},
 	})
 }
@@ -365,7 +341,7 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 }
 
 // nolint unparam
-func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
+func testCheckImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ImagesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -436,6 +412,22 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 	}
 }
 
+func (t ImageResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["images"]
+
+	resp, err := clients.Compute.ImagesClient.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Image %q", id)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
 func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		vmssClient := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
@@ -472,33 +464,7 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 	}
 }
 
-func testCheckAzureRMImageDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_image" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Image still exists: \n%#v", resp.DiskProperties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMImage_standaloneImage_setup(data acceptance.TestData, userName string, password string, hostName string, storageType string) string {
+func (ImageResource) standaloneImage_setup(data acceptance.TestData, userName string, password string, hostName string, storageType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -603,13 +569,11 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, storageType, userName, password)
 }
 
-func testAccAzureRMImage_standaloneImage_provision(data acceptance.TestData, userName string, password string, hostName string, storageType string, hyperVGen string) string {
+func (r ImageResource) standaloneImage_provision(data acceptance.TestData, userName string, password string, hostName string, storageType string, hyperVGen string) string {
 	hyperVGenAtt := ""
 	if hyperVGen != "" {
 		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
 	}
-
-	setup := testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, storageType)
 
 	return fmt.Sprintf(`
 %s
@@ -635,11 +599,10 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, setup, storageType == "ZRS", hyperVGenAtt)
+`, r.standaloneImage_setup(data, userName, password, hostName, storageType), storageType == "ZRS", hyperVGenAtt)
 }
 
-func testAccAzureRMImage_standaloneImage_requiresImport(data acceptance.TestData, userName string, password string, hostName string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(data, userName, password, hostName, "LRS", "")
+func (r ImageResource) standaloneImage_requiresImport(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -661,10 +624,10 @@ resource "azurerm_image" "import" {
     cost-center = "Ops"
   }
 }
-`, template)
+`, r.standaloneImage_provision(data, userName, password, hostName, "LRS", ""))
 }
 
-func testAccAzureRMImage_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string) string {
+func (ImageResource) customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -768,7 +731,7 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImage_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
+func (ImageResource) customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -936,7 +899,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImage_customImage_fromVM_sourceVM(data acceptance.TestData, userName string, password string, hostName string) string {
+func (ImageResource) customImage_fromVM_sourceVM(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1020,7 +983,7 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImage_customImage_fromVM_destinationVM(data acceptance.TestData, userName string, password string, hostName string) string {
+func (ImageResource) customImage_fromVM_destinationVM(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1161,7 +1124,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, userName, password, data.RandomInteger, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImageVMSS_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string) string {
+func (ImageResource) vmss_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1265,8 +1228,8 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImageVMSS_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
-	setup := testAccAzureRMImageVMSS_customImage_fromVHD_setup(data, userName, password, hostName)
+func (r ImageResource) vmss_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
+	setup := r.vmss_customImage_fromVHD_setup(data, userName, password, hostName)
 	return fmt.Sprintf(`
 %s
 

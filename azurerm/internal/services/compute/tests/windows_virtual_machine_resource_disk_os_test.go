@@ -6,361 +6,309 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccWindowsVirtualMachine_diskOSBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSCachingType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSCachingType(data, "None"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_diskOSCachingType(data, "ReadOnly"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_diskOSCachingType(data, "ReadWrite"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCachingType(data, "None"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.diskOSCachingType(data, "ReadOnly"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.diskOSCachingType(data, "ReadWrite"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSCustomName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSCustomName(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCustomName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSCustomSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSCustomSize(data, 130),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCustomSize(data, 130),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSCustomSizeExpanded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSCustomSize(data, 130),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_diskOSCustomSize(data, 140),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSCustomSize(data, 130),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.diskOSCustomSize(data, 140),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSDiskDiskEncryptionSetEncrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
-			{
-				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSDiskDiskEncryptionSetUnencrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.diskOSDiskDiskEncryptionSetEncrypted(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSEphemeral(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSEphemeral(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSEphemeral(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "StandardSSD_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "StandardSSD_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "StandardSSD_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testWindowsVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.diskOSStorageAccountType(data, "StandardSSD_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
 func TestAccWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// Disabled
-				Config: testWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// Enabled
-				Config: testWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.diskOSWriteAcceleratorEnabled(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// Disabled
+			Config: r.diskOSWriteAcceleratorEnabled(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// Enabled
+			Config: r.diskOSWriteAcceleratorEnabled(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testWindowsVirtualMachine_diskOSBasic(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -387,11 +335,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_diskOSCachingType(data acceptance.TestData, cachingType string) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSCachingType(data acceptance.TestData, cachingType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -418,11 +365,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, cachingType)
+`, r.template(data), cachingType)
 }
 
-func testWindowsVirtualMachine_diskOSCustomName(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSCustomName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -450,11 +396,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_diskOSCustomSize(data acceptance.TestData, size int) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSCustomSize(data acceptance.TestData, size int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -483,10 +428,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, size)
+`, r.template(data), size)
 }
 
-func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
+func (WindowsVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -509,7 +454,7 @@ resource "azurerm_key_vault" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "premium"
+  sku_name                    = "standard"
   soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
@@ -524,6 +469,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "create",
     "delete",
     "get",
+    "purge",
     "update",
   ]
 
@@ -580,8 +526,7 @@ resource "azurerm_network_interface" "test" {
 `, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data)
+func (r WindowsVirtualMachineResource) diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -614,11 +559,10 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, template, data.RandomInteger)
+`, r.diskOSDiskDiskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+func (r WindowsVirtualMachineResource) diskOSDiskDiskEncryptionSetUnencrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -650,11 +594,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template)
+`, r.diskOSDiskDiskEncryptionSetResource(data))
 }
 
-func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+func (r WindowsVirtualMachineResource) diskOSDiskDiskEncryptionSetEncrypted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -687,11 +630,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template)
+`, r.diskOSDiskDiskEncryptionSetResource(data))
 }
 
-func testWindowsVirtualMachine_diskOSEphemeral(data acceptance.TestData) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSEphemeral(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -723,11 +665,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testWindowsVirtualMachine_diskOSStorageAccountType(data acceptance.TestData, accountType string) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSStorageAccountType(data acceptance.TestData, accountType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -754,11 +695,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, accountType)
+`, r.template(data), accountType)
 }
 
-func testWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
-	template := testWindowsVirtualMachine_template(data)
+func (r WindowsVirtualMachineResource) diskOSWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -786,5 +726,5 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, enabled)
+`, r.template(data), enabled)
 }

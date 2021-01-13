@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDiskEncryptionSet() *schema.Resource {
+func resourceDiskEncryptionSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDiskEncryptionSetCreateUpdate,
-		Read:   resourceArmDiskEncryptionSetRead,
-		Update: resourceArmDiskEncryptionSetCreateUpdate,
-		Delete: resourceArmDiskEncryptionSetDelete,
+		Create: resourceDiskEncryptionSetCreate,
+		Read:   resourceDiskEncryptionSetRead,
+		Update: resourceDiskEncryptionSetUpdate,
+		Delete: resourceDiskEncryptionSetDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -54,7 +54,6 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateKeyVaultChildId,
 			},
 
@@ -91,25 +90,23 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 	}
 }
 
-func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_disk_encryption_set", *existing.ID)
-		}
+	}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_disk_encryption_set", *existing.ID)
 	}
 
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
@@ -138,7 +135,7 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 				},
 			},
 		},
-		Identity: expandArmDiskEncryptionSetIdentity(identityRaw),
+		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
 	}
 
@@ -159,10 +156,10 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDiskEncryptionSetRead(d, meta)
+	return resourceDiskEncryptionSetRead(d, meta)
 }
 
-func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,14 +193,63 @@ func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("key_vault_key_id", keyVaultKeyId)
 	}
 
-	if err := d.Set("identity", flattenArmDiskEncryptionSetIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.DiskEncryptionSetID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	update := compute.DiskEncryptionSetUpdate{}
+	if d.HasChange("tags") {
+		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("key_vault_key_id") {
+		keyVaultKeyId := d.Get("key_vault_key_id").(string)
+		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, vaultClient, keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
+		}
+		if !keyVaultDetails.softDeleteEnabled {
+			return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		if !keyVaultDetails.purgeProtectionEnabled {
+			return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{
+			ActiveKey: &compute.KeyVaultAndKeyReference{
+				KeyURL: utils.String(keyVaultKeyId),
+				SourceVault: &compute.SourceVault{
+					ID: utils.String(keyVaultDetails.keyVaultId),
+				},
+			},
+		}
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
+	if err != nil {
+		return fmt.Errorf("Error updating Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return resourceDiskEncryptionSetRead(d, meta)
+}
+
+func resourceDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,14 +271,14 @@ func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandArmDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
+func expandDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
 	val := input[0].(map[string]interface{})
 	return &compute.EncryptionSetIdentity{
 		Type: compute.DiskEncryptionSetIdentityType(val["type"].(string)),
 	}
 }
 
-func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
+func flattenDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

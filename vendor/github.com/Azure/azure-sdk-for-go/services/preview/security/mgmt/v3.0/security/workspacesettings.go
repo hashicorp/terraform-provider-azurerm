@@ -85,6 +85,7 @@ func (client WorkspaceSettingsClient) Create(ctx context.Context, workspaceSetti
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.WorkspaceSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -166,6 +167,7 @@ func (client WorkspaceSettingsClient) Delete(ctx context.Context, workspaceSetti
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.WorkspaceSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,6 +247,7 @@ func (client WorkspaceSettingsClient) Get(ctx context.Context, workspaceSettingN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.WorkspaceSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -324,9 +327,11 @@ func (client WorkspaceSettingsClient) List(ctx context.Context) (result Workspac
 	result.wsl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.WorkspaceSettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wsl.hasNextLink() && result.wsl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -443,6 +448,7 @@ func (client WorkspaceSettingsClient) Update(ctx context.Context, workspaceSetti
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.WorkspaceSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

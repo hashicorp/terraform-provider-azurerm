@@ -8,16 +8,16 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateDnsZone() *schema.Resource {
+func dataSourcePrivateDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateDnsZoneRead,
+		Read: dataSourcePrivateDnsZoneRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -60,17 +60,16 @@ func dataSourceArmPrivateDnsZone() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	var (
-		resp *privatedns.PrivateZone
-	)
+	var resp *privatedns.PrivateZone
 	if resourceGroup != "" {
 		zone, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -96,10 +95,9 @@ func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) e
 		resourceGroup = zone.resourceGroup
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving Private DNS Zone %q (Resource Group %q)", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	resourceId := parse.NewPrivateDnsZoneID(subscriptionId, resourceGroup, name)
+	d.SetId(resourceId.ID())
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
@@ -121,7 +119,6 @@ type privateDnsZone struct {
 func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient, resourcesClient *resources.Client, name string) (*privateDnsZone, error) {
 	filter := fmt.Sprintf("resourceType eq 'Microsoft.Network/privateDnsZones' and name eq '%s'", name)
 	privateZones, err := resourcesClient.List(ctx, filter, "", nil)
-
 	if err != nil {
 		return nil, fmt.Errorf("Error listing Private DNS Zones: %+v", err)
 	}
@@ -135,16 +132,14 @@ func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient,
 			continue
 		}
 
-		id, err := azure.ParseAzureResourceID(*z.ID)
-
+		id, err := parse.PrivateDnsZoneID(*z.ID)
 		if err != nil {
 			continue
 		}
 
-		zone, err := client.Get(ctx, id.ResourceGroup, name)
-
+		zone, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving Private DNS Zone %q in resource group %q: %+v", name, id.ResourceGroup, err)
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return &privateDnsZone{

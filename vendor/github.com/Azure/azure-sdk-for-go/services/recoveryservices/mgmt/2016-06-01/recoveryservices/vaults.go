@@ -73,6 +73,7 @@ func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -150,6 +151,7 @@ func (client VaultsClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -224,6 +226,7 @@ func (client VaultsClient) Get(ctx context.Context, resourceGroupName string, va
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -299,9 +302,11 @@ func (client VaultsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.vl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.vl.hasNextLink() && result.vl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -411,9 +416,11 @@ func (client VaultsClient) ListBySubscriptionID(ctx context.Context) (result Vau
 	result.vl, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
 	}
 	if result.vl.hasNextLink() && result.vl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -525,6 +532,7 @@ func (client VaultsClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

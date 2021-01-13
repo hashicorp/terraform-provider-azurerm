@@ -14,12 +14,13 @@ Manages a SQL Container within a Cosmos DB Account.
 
 ```hcl
 resource "azurerm_cosmosdb_sql_container" "example" {
-  name                = "example-container"
-  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
-  account_name        = azurerm_cosmosdb_account.example.name
-  database_name       = azurerm_cosmosdb_sql_database.example.name
-  partition_key_path  = "/definition/id"
-  throughput          = 400
+  name                  = "example-container"
+  resource_group_name   = azurerm_cosmosdb_account.example.resource_group_name
+  account_name          = azurerm_cosmosdb_account.example.name
+  database_name         = azurerm_cosmosdb_sql_database.example.name
+  partition_key_path    = "/definition/id"
+  partition_key_version = 1
+  throughput            = 400
 
   indexing_policy {
     indexing_mode = "Consistent"
@@ -57,6 +58,8 @@ The following arguments are supported:
 
 * `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
 
+* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
+
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
 * `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon container creation otherwise it cannot be updated without a manual terraform destroy-apply.
@@ -92,7 +95,7 @@ An `indexing_policy` block supports the following:
 
 An `included_path` block supports the following:
 
-* `path` - Path for which the indexing behavior applies to.
+* `path` - Path for which the indexing behaviour applies to.
 
 An `excluded_path` block supports the following:
 
@@ -104,7 +107,7 @@ A `composite_index` block supports the following:
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behavior applies to.
+* `path` - Path for which the indexing behaviour applies to.
 
 * `order` - Order of the index. Possible values are `Ascending` or `Descending`.
 

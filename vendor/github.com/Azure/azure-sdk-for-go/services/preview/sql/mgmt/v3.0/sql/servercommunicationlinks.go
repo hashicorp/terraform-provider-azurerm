@@ -168,6 +168,7 @@ func (client ServerCommunicationLinksClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,6 +246,7 @@ func (client ServerCommunicationLinksClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,6 +324,7 @@ func (client ServerCommunicationLinksClient) ListByServer(ctx context.Context, r
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

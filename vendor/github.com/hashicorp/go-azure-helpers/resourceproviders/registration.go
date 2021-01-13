@@ -34,6 +34,7 @@ func DetermineResourceProvidersRequiringRegistration(availableResourceProviders 
 // RegisterForSubscription registers the specified Resource Providers in the current Subscription
 func RegisterForSubscription(ctx context.Context, client resources.ProvidersClient, providersToRegister map[string]struct{}) error {
 	var err error
+	var failedProviders []string
 	var wg sync.WaitGroup
 	wg.Add(len(providersToRegister))
 
@@ -42,13 +43,21 @@ func RegisterForSubscription(ctx context.Context, client resources.ProvidersClie
 			defer wg.Done()
 			log.Printf("[DEBUG] Registering Resource Provider %q with namespace", p)
 			if innerErr := registerWithSubscription(ctx, p, client); innerErr != nil {
-				err = innerErr
+				failedProviders = append(failedProviders, p)
+				if err == nil {
+					err = innerErr
+				} else {
+					err = fmt.Errorf("%s\n%s", err, innerErr)
+				}
 			}
 		}(providerName)
 	}
 
 	wg.Wait()
 
+	if len(failedProviders) > 0 {
+		err = fmt.Errorf("Cannnot register providers: %s. Errors were: %s", strings.Join(failedProviders, ", "), err)
+	}
 	return err
 }
 

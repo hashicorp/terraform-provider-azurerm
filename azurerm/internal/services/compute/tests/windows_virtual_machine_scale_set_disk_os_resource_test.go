@@ -6,214 +6,184 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "None"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			), {
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadOnly"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			), {
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadWrite"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDiskCaching(data, "None"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.disksOSDiskCaching(data, "ReadOnly"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.disksOSDiskCaching(data, "ReadWrite"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// unset
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_authPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(data, 128),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
-			{
-				// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(data, 256),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// unset
+			Config: r.authPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.disksOSDiskCustomSize(data, 128),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
+			Config: r.disksOSDiskCustomSize(data, 256),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDiskEphemeral(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDisk_diskEncryptionSet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountType(data, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDiskStorageAccountType(data, "Standard_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountType(data, "StandardSSD_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDiskStorageAccountType(data, "StandardSSD_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountType(data, "Premium_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDiskStorageAccountType(data, "Premium_LRS"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disksOSDiskWriteAcceleratorEnabled(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(
+			"admin_password",
+		),
 	})
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data acceptance.TestData, caching string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskCaching(data acceptance.TestData, caching string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -249,11 +219,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, caching)
+`, r.template(data), caching)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(data acceptance.TestData, diskSize int) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskCustomSize(data acceptance.TestData, diskSize int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -290,10 +259,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, diskSize)
+`, r.template(data), diskSize)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
+func (WindowsVirtualMachineScaleSetResource) disksOSDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "accVM-%d"
@@ -310,7 +279,7 @@ resource "azurerm_key_vault" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "premium"
+  sku_name                    = "standard"
   soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
@@ -325,6 +294,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "create",
     "delete",
     "get",
+    "purge",
     "update",
   ]
 
@@ -369,8 +339,7 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetResource(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDisk_diskEncryptionSetResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -403,11 +372,10 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, template, data.RandomInteger)
+`, r.disksOSDisk_diskEncryptionSetDependencies(data), data.RandomInteger)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSet(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetResource(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDisk_diskEncryptionSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -449,11 +417,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template)
+`, r.disksOSDisk_diskEncryptionSetResource(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskEphemeral(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -493,11 +460,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountType(data acceptance.TestData, storageAccountType string) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskStorageAccountType(data acceptance.TestData, storageAccountType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -533,11 +499,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, storageAccountType)
+`, r.template(data), storageAccountType)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -574,5 +539,5 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template, enabled)
+`, r.template(data), enabled)
 }

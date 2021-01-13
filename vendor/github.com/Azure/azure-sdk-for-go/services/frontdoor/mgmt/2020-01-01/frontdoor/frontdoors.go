@@ -261,6 +261,7 @@ func (client FrontDoorsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -334,6 +335,7 @@ func (client FrontDoorsClient) List(ctx context.Context) (result ListResultPage,
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -396,6 +398,7 @@ func (client FrontDoorsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -455,6 +458,7 @@ func (client FrontDoorsClient) ListByResourceGroup(ctx context.Context, resource
 	result.lr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -518,6 +522,7 @@ func (client FrontDoorsClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -585,6 +590,7 @@ func (client FrontDoorsClient) ValidateCustomDomain(ctx context.Context, resourc
 	result, err = client.ValidateCustomDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "ValidateCustomDomain", resp, "Failure responding to request")
+		return
 	}
 
 	return

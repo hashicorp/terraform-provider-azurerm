@@ -260,6 +260,7 @@ func (client AgentPoolsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,6 +347,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context
 	result, err = client.GetAvailableAgentPoolVersionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "GetAvailableAgentPoolVersions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -433,6 +435,7 @@ func (client AgentPoolsClient) GetUpgradeProfile(ctx context.Context, resourceGr
 	result, err = client.GetUpgradeProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "GetUpgradeProfile", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -521,6 +524,7 @@ func (client AgentPoolsClient) List(ctx context.Context, resourceGroupName strin
 	result.aplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aplr.hasNextLink() && result.aplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -585,6 +589,7 @@ func (client AgentPoolsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -602,5 +607,92 @@ func (client AgentPoolsClient) ListComplete(ctx context.Context, resourceGroupNa
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, resourceName)
+	return
+}
+
+// UpgradeNodeImageVersion upgrade node image version of an agent pool to the latest.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the managed cluster resource.
+// agentPoolName - the name of the agent pool.
+func (client AgentPoolsClient) UpgradeNodeImageVersion(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPoolsUpgradeNodeImageVersionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AgentPoolsClient.UpgradeNodeImageVersion")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceName,
+			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", err.Error())
+	}
+
+	req, err := client.UpgradeNodeImageVersionPreparer(ctx, resourceGroupName, resourceName, agentPoolName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpgradeNodeImageVersionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpgradeNodeImageVersionPreparer prepares the UpgradeNodeImageVersion request.
+func (client AgentPoolsClient) UpgradeNodeImageVersionPreparer(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"agentPoolName":     autorest.Encode("path", agentPoolName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-09-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/agentPools/{agentPoolName}/upgradeNodeImageVersion", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpgradeNodeImageVersionSender sends the UpgradeNodeImageVersion request. The method will close the
+// http.Response Body if it receives an error.
+func (client AgentPoolsClient) UpgradeNodeImageVersionSender(req *http.Request) (future AgentPoolsUpgradeNodeImageVersionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpgradeNodeImageVersionResponder handles the response to the UpgradeNodeImageVersion request. The method always
+// closes the http.Response Body.
+func (client AgentPoolsClient) UpgradeNodeImageVersionResponder(resp *http.Response) (result AgentPool, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

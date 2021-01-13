@@ -1,1031 +1,852 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+type VirtualMachineScaleSetResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					// testing default scaleset values
-					testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, true),
-					resource.TestCheckResourceAttr(data.ResourceName, "eviction_policy", ""),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+func TestAccVirtualMachineScaleSet_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// testing default scaleset values
+				testCheckVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, true),
+				check.That(data.ResourceName).Key("eviction_policy").HasValue(""),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_scale_set"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_requiresImport(t *testing.T) {
+func TestAccVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualMachineScaleSet_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_scale_set"),
-			},
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.evictionPolicyDelete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eviction_policy").HasValue("Delete"),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_standardSSD(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardSSD(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_withPPG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withPPG(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proximity_placement_group_id").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "eviction_policy", "Delete"),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicPublicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetIsPrimary(data.ResourceName, true),
+				testCheckVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
+			),
 		},
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_standardSSD(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_standardSSD(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEmptyPublicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetIsPrimary(data.ResourceName, true),
+				testCheckVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
+			),
 		},
+		data.ImportStep("os_profile.0.admin_password"),
+		{
+			Config: r.basicEmptyPublicIP_updated_tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_withPPG(t *testing.T) {
+func TestAccVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_withPPG(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "proximity_placement_group_id"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEmptyPublicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetIPForwarding(data.ResourceName, false),
+			),
 		},
+		{
+			Config: r.basicEmptyNetworkProfile_true_ipforwarding(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineScaleSetIPForwarding(data.ResourceName, true),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
+func TestAccVirtualMachineScaleSet_updateNetworkProfile_ipconfiguration_dns_name_label(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicPublicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetIsPrimary(data.ResourceName, true),
-					testCheckAzureRMVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetIsPrimary(data.ResourceName, true),
-					testCheckAzureRMVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updated_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetIPForwarding(data.ResourceName, false),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicEmptyNetworkProfile_true_ipforwarding(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetIPForwarding(data.ResourceName, true),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_updateNetworkProfile_ipconfiguration_dns_name_label(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
 	expectedDNS := fmt.Sprintf("test-domain-label-%[1]d", data.RandomInteger)
 	updatedDNS := fmt.Sprintf("test-updated-domain-label-%[1]d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetDomainNameLabel(data.ResourceName, expectedDNS),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updatedDNS_label(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetDomainNameLabel(data.ResourceName, updatedDNS),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEmptyPublicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetDomainNameLabel(data.ResourceName, expectedDNS),
+			),
+		},
+		{
+			Config: r.basicEmptyPublicIP_updatedDNS_label(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineScaleSetDomainNameLabel(data.ResourceName, updatedDNS),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) {
+func TestAccVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
 	initialKeyData := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
 	expectedKeyData := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetSshKey(data.ResourceName, initialKeyData),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linuxKeyDataUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetSshKey(data.ResourceName, expectedKeyData),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetSshKey(data.ResourceName, initialKeyData),
+			),
+		},
+		{
+			Config: r.linuxKeyDataUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckVirtualMachineScaleSetSshKey(data.ResourceName, expectedKeyData),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicApplicationSecurity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAcceleratedNetworking(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetAcceleratedNetworking(data.ResourceName, true),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicIPForwarding(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDNSSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.bootDiagnostic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("boot_diagnostics.0.enabled").HasValue("true"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.T) {
+func TestAccVirtualMachineScaleSet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetAcceleratedNetworking(data.ResourceName, true),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkSecurityGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicIPForwarding(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWindows(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				// single placement group should default to true
+				testCheckVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, true),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
+func TestAccVirtualMachineScaleSet_singlePlacementGroupFalse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicDNSSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singlePlacementGroupFalse(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, false),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
+func TestAccVirtualMachineScaleSet_linuxUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_bootDiagnostic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "boot_diagnostics.0.enabled", "true"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.linuxUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(t *testing.T) {
+func TestAccVirtualMachineScaleSet_customDataUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.linuxCustomDataUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicWindows(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicWindows(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicLinux_managedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
 
-					// single placement group should default to true
-					testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, true),
-				),
-			},
+func TestAccVirtualMachineScaleSet_basicWindows_managedDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWindows_managedDisk(data, "Standard_D1_v2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicWindows_managedDisk_resize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, false),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWindows_managedDisk(data, "Standard_D1_v2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicWindows_managedDisk(data, "Standard_D2_v2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_linuxUpdated(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicLinux_managedDiskNoName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linuxUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicLinux_managedDiskNoName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_customDataUpdated(t *testing.T) {
+func TestAccVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linuxCustomDataUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
+func TestAccVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.planManagedDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(t *testing.T) {
+func TestAccVirtualMachineScaleSet_customImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(data, "Standard_D1_v2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk_resize(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(data, "Standard_D1_v2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(data, "Standard_D2_v2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_planManagedDisk(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	userName := fmt.Sprintf("testadmin%d", data.RandomInteger)
 	password := fmt.Sprintf("Password1234!%d", data.RandomInteger)
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 	sshPort := "22"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
-				Destroy: false,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_customImage(data, userName, password, hostName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMImageExists("azurerm_image", true),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  ImageResource{}.standaloneImage_setup(data, userName, password, hostName, "LRS"),
+			Destroy: false,
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_applicationGateway(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetApplicationGatewayTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetHasApplicationGateway(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_loadBalancer(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetHasLoadbalancer(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplateManagedDataDisks(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetHasDataDisks(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetOverProvisionTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetOverprovision(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_priority(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetPriorityTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "priority", "Low"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eviction_policy", "Deallocate"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetSystemAssignedMSI(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "0"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetMultipleAssignedMSI(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_extension(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtensionTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetExtension(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtensionTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetExtension(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetExtensionTemplateUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetExtension(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetExtension(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_multipleExtensions_provision_after_extension(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate_provision_after_extension(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					testCheckAzureRMVirtualMachineScaleSetExtension(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(data),
-				ExpectError: regexp.MustCompile("Conflict between `vhd_containers`"),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSetNonStandardCasing(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			{
-				Config:             testAccAzureRMVirtualMachineScaleSetNonStandardCasing(data),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_linux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"os_profile.0.admin_password",
-				"os_profile.0.custom_data",
+		{
+			Config: r.customImage(data, userName, password, hostName),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) {
+func TestAccVirtualMachineScaleSet_applicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.applicationGatewayTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetHasApplicationGateway(data.ResourceName),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
+func TestAccVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_rollingAutoUpdates(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.loadBalancerTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetHasLoadbalancer(data.ResourceName),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.loadBalancerTemplateManagedDataDisks(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetHasDataDisks(data.ResourceName),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
+func TestAccVirtualMachineScaleSet_overprovision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Manual"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Manual"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "rolling_upgrade_policy.#"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Automatic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Automatic"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "rolling_upgrade_policy.#"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Rolling"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Rolling"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_batch_instance_percent", "21"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_unhealthy_instance_percent", "22"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_unhealthy_upgraded_instance_percent", "23"),
-				),
-			},
-			{
-				PreConfig: func() { time.Sleep(1 * time.Minute) }, // VM Scale Set updates are not allowed while there is a Rolling Upgrade in progress.
-				Config:    testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Automatic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Automatic"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_batch_instance_percent", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_unhealthy_instance_percent", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_unhealthy_upgraded_instance_percent", "20"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Manual"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Manual"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_batch_instance_percent", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_unhealthy_instance_percent", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rolling_upgrade_policy.0.max_unhealthy_upgraded_instance_percent", "20"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.overProvisionTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetOverprovision(data.ResourceName),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_priority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.priorityTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("priority").HasValue("Low"),
+				check.That(data.ResourceName).Key("eviction_policy").HasValue("Deallocate"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.T) {
+func TestAccVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk_withZones(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("os_profile.0.admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.systemAssignedMSI(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
-func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName string) (result *compute.VirtualMachineScaleSet, err error) {
+func TestAccVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedMSI(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").HasValue(""),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleAssignedMSI(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_extension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
+			),
+		},
+		{
+			Config: r.extensionTemplateUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleExtensionsTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_multipleExtensions_provision_after_extension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleExtensionsTemplate_provision_after_extension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_osDiskTypeConflict(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.osDiskTypeConflict(data),
+			ExpectError: regexp.MustCompile("Conflict between `vhd_containers`"),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nonStandardCasing(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:             r.nonStandardCasing(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_importLinux(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"os_profile.0.admin_password",
+			"os_profile.0.custom_data",
+		),
+	})
+}
+
+func TestAccVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleNetworkProfiles(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.rollingAutoUpdates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.upgradeModeUpdate(data, "Manual"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_policy_mode").HasValue("Manual"),
+				resource.TestCheckNoResourceAttr(data.ResourceName, "rolling_upgrade_policy.#"),
+			),
+		},
+		{
+			Config: r.upgradeModeUpdate(data, "Automatic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_policy_mode").HasValue("Automatic"),
+				resource.TestCheckNoResourceAttr(data.ResourceName, "rolling_upgrade_policy.#"),
+			),
+		},
+		{
+			Config: r.upgradeModeUpdate(data, "Rolling"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_policy_mode").HasValue("Rolling"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_batch_instance_percent").HasValue("21"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_unhealthy_instance_percent").HasValue("22"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_unhealthy_upgraded_instance_percent").HasValue("23"),
+			),
+		},
+		{
+			PreConfig: func() { time.Sleep(1 * time.Minute) }, // VM Scale Set updates are not allowed while there is a Rolling Upgrade in progress.
+			Config:    r.upgradeModeUpdate(data, "Automatic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_policy_mode").HasValue("Automatic"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_batch_instance_percent").HasValue("20"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_unhealthy_instance_percent").HasValue("20"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_unhealthy_upgraded_instance_percent").HasValue("20"),
+			),
+		},
+		{
+			Config: r.upgradeModeUpdate(data, "Manual"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_policy_mode").HasValue("Manual"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_batch_instance_percent").HasValue("20"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_unhealthy_instance_percent").HasValue("20"),
+				check.That(data.ResourceName).Key("rolling_upgrade_policy.0.max_unhealthy_upgraded_instance_percent").HasValue("20"),
+			),
+		},
+	})
+}
+
+func TestAccVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicLinux_managedDisk_withZones(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.admin_password"),
+	})
+}
+
+func testGetVirtualMachineScaleSet(s *terraform.State, resourceName string) (result *compute.VirtualMachineScaleSet, err error) {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -1055,14 +876,7 @@ func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName strin
 	return &vmss, err
 }
 
-func testCheckAzureRMVirtualMachineScaleSetExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, err := testGetAzureRMVirtualMachineScaleSet(s, name)
-		return err
-	}
-}
-
-func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetDisappears(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -1092,35 +906,9 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine_scale_set" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Machine Scale Set still exists:\n%#v", resp.VirtualMachineScaleSetProperties)
-		}
-	}
-
-	return nil
-}
-
-func testCheckAzureRMVirtualMachineScaleSetHasLoadbalancer(name string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetHasLoadbalancer(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1144,9 +932,9 @@ func testCheckAzureRMVirtualMachineScaleSetHasLoadbalancer(name string) resource
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetHasApplicationGateway(name string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetHasApplicationGateway(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1170,9 +958,9 @@ func testCheckAzureRMVirtualMachineScaleSetHasApplicationGateway(name string) re
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetIsPrimary(name string, boolean bool) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetIsPrimary(name string, boolean bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1196,9 +984,9 @@ func testCheckAzureRMVirtualMachineScaleSetIsPrimary(name string, boolean bool) 
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetPublicIPName(name, publicIPName string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetPublicIPName(name, publicIPName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1222,9 +1010,9 @@ func testCheckAzureRMVirtualMachineScaleSetPublicIPName(name, publicIPName strin
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetAcceleratedNetworking(name string, boolean bool) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetAcceleratedNetworking(name string, boolean bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1243,9 +1031,9 @@ func testCheckAzureRMVirtualMachineScaleSetAcceleratedNetworking(name string, bo
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetIPForwarding(name string, boolean bool) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetIPForwarding(name string, boolean bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1264,9 +1052,9 @@ func testCheckAzureRMVirtualMachineScaleSetIPForwarding(name string, boolean boo
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetDomainNameLabel(name string, expected string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetDomainNameLabel(name string, expected string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1286,9 +1074,9 @@ func testCheckAzureRMVirtualMachineScaleSetDomainNameLabel(name string, expected
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetSshKey(name string, expected string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetSshKey(name string, expected string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1308,9 +1096,9 @@ func testCheckAzureRMVirtualMachineScaleSetSshKey(name string, expected string) 
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetOverprovision(name string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetOverprovision(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1323,9 +1111,9 @@ func testCheckAzureRMVirtualMachineScaleSetOverprovision(name string) resource.T
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(name string, expectedSinglePlacementGroup bool) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetSinglePlacementGroup(name string, expectedSinglePlacementGroup bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1338,9 +1126,9 @@ func testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(name string, exp
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetExtension(name string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetExtension(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		resp, err := testGetVirtualMachineScaleSet(s, name)
 		if err != nil {
 			return err
 		}
@@ -1354,7 +1142,7 @@ func testCheckAzureRMVirtualMachineScaleSetExtension(name string) resource.TestC
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.TestCheckFunc {
+func testCheckVirtualMachineScaleSetHasDataDisks(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -1389,7 +1177,23 @@ func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.Te
 	}
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basic(data acceptance.TestData) string {
+func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["virtualMachineScaleSets"]
+
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set %q", id)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (VirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1479,8 +1283,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualMachineScaleSet_basic(data)
+func (r VirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1527,10 +1330,10 @@ resource "azurerm_virtual_machine_scale_set" "import" {
     version   = "latest"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) evictionPolicyDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1621,7 +1424,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_standardSSD(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) standardSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1711,7 +1514,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_withPPG(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1809,7 +1612,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicPublicIP(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1904,7 +1707,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2003,7 +1806,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2102,7 +1905,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2202,7 +2005,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2301,7 +2104,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2397,7 +2200,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2487,7 +2290,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicIPForwarding(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2577,7 +2380,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicDNSSettings(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2670,7 +2473,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_bootDiagnostic(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2763,7 +2566,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2865,7 +2668,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicWindows(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2963,7 +2766,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) singlePlacementGroupFalse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3053,7 +2856,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_linux(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) linux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3173,7 +2976,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_linuxUpdated(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) linuxUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3297,7 +3100,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_linuxCustomDataUpdated(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) linuxCustomDataUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3417,7 +3220,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_linuxKeyDataUpdated(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) linuxKeyDataUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3537,7 +3340,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicLinux_managedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3608,7 +3411,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk_withZones(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicLinux_managedDisk_withZones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3679,7 +3482,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(data acceptance.TestData, vmSize string) string {
+func (VirtualMachineScaleSetResource) basicWindows_managedDisk(data acceptance.TestData, vmSize string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3769,7 +3572,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, vmSize)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) basicLinux_managedDiskNoName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3839,7 +3642,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetApplicationGatewayTemplate(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4038,7 +3841,7 @@ resource "azurerm_application_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) loadBalancerTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4154,7 +3957,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetOverProvisionTemplate(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) overProvisionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4240,7 +4043,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetPriorityTemplate(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4328,7 +4131,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetSystemAssignedMSI(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) systemAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4426,7 +4229,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4532,7 +4335,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtensionTemplate(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4649,7 +4452,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetExtensionTemplateUpdated(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4767,7 +4570,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4884,7 +4687,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5002,7 +4805,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) osDiskTypeConflict(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5074,7 +4877,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) loadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5172,7 +4975,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSetNonStandardCasing(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5261,7 +5064,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_planManagedDisk(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) planManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5337,7 +5140,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_customImage(data acceptance.TestData, userName string, password string, hostName string) string {
+func (VirtualMachineScaleSetResource) customImage(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5500,7 +5303,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, hostName, userName, password)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5600,7 +5403,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_rollingAutoUpdates(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) rollingAutoUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5736,7 +5539,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data acceptance.TestData, mode string) string {
+func (VirtualMachineScaleSetResource) upgradeModeUpdate(data acceptance.TestData, mode string) string {
 	policy := ""
 	if mode == "Rolling" {
 		policy = `
@@ -5876,7 +5679,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, mode, policy)
 }
 
-func testAccAzureRMVirtualMachineScaleSetMultipleAssignedMSI(data acceptance.TestData) string {
+func (VirtualMachineScaleSetResource) multipleAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -107,6 +107,7 @@ output "public_ip_address" {
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone.
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
+* `sku` - The SKU of the Public IP.
 * `tags` - A mapping of tags to assigned to the resource.
 
 ## Timeouts

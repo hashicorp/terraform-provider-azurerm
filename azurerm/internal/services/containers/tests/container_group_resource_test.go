@@ -465,6 +465,44 @@ func TestAccAzureRMContainerGroup_gitRepoVolume(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_emptyDirVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_emptyDirVolume(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_secretVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_secretVolume(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("container.0.volume.0.secret"),
+		},
+	})
+}
+
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1309,6 +1347,124 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMContainerGroup_emptyDirVolume(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  dns_name_label      = "acctestcontainergroup-%d"
+  os_type             = "Linux"
+  restart_policy      = "OnFailure"
+
+  container {
+    name   = "hf"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
+    memory = "1.5"
+
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+
+    volume {
+      name       = "logs"
+      mount_path = "/aci/logs"
+      read_only  = false
+      empty_dir  = true
+    }
+
+    environment_variables = {
+      foo  = "bar"
+      foo1 = "bar1"
+    }
+
+    readiness_probe {
+      exec                  = ["cat", "/tmp/healthy"]
+      initial_delay_seconds = 1
+      period_seconds        = 1
+      failure_threshold     = 1
+      success_threshold     = 1
+      timeout_seconds       = 1
+    }
+
+    liveness_probe {
+      http_get {
+        path   = "/"
+        port   = 443
+        scheme = "Http"
+      }
+
+      initial_delay_seconds = 1
+      period_seconds        = 1
+      failure_threshold     = 1
+      success_threshold     = 1
+      timeout_seconds       = 1
+    }
+
+    commands = ["/bin/bash", "-c", "ls"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMContainerGroup_secretVolume(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+
+    volume {
+      name       = "config"
+      mount_path = "/var/config"
+
+      secret = {
+        mysecret1 = "TXkgZmlyc3Qgc2VjcmV0IEZPTwo="
+        mysecret2 = "TXkgc2Vjb25kIHNlY3JldCBCQVIK"
+      }
+    }
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
@@ -1350,7 +1506,6 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Container Group still exists:\n%#v", resp)

@@ -6,105 +6,85 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccAzureRMLinuxVirtualMachine_orchestratedZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachine_orchestratedZonal(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.orchestratedZonal(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.orchestratedZonalWithProximityPlacementGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.orchestratedNonZonal(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.orchestratedMultipleZonal(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("admin_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.orchestratedMultipleNonZonal(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("admin_password"),
 	})
 }
 
-func testAccAzureRMLinuxVirtualMachine_orchestratedZonal(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data)
+func (r LinuxVirtualMachineResource) orchestratedZonal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,11 +141,10 @@ resource "azurerm_linux_virtual_machine" "test" {
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
   zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data)
+func (r LinuxVirtualMachineResource) orchestratedZonalWithProximityPlacementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -233,11 +212,10 @@ resource "azurerm_linux_virtual_machine" "test" {
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
   zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data)
+func (r LinuxVirtualMachineResource) orchestratedNonZonal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -291,11 +269,10 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data)
+func (r LinuxVirtualMachineResource) orchestratedMultipleZonal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -392,11 +369,10 @@ resource "azurerm_linux_virtual_machine" "another" {
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
   zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data)
+func (r LinuxVirtualMachineResource) orchestratedMultipleNonZonal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -489,10 +465,10 @@ resource "azurerm_linux_virtual_machine" "another" {
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBaseForOchestratedVMSS(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data acceptance.TestData) string {
+func (LinuxVirtualMachineResource) templateBaseForOchestratedVMSS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"

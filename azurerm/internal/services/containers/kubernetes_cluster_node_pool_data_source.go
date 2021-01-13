@@ -113,12 +113,22 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_disk_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"priority": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"proximity_placement_group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -239,6 +249,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
+
+		osDiskType := containerservice.Managed
+		if props.OsDiskType != "" {
+			osDiskType = props.OsDiskType
+		}
+		d.Set("os_disk_type", string(osDiskType))
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
@@ -247,6 +263,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			priority = string(props.ScaleSetPriority)
 		}
 		d.Set("priority", priority)
+
+		proximityPlacementGroupId := ""
+		if props.ProximityPlacementGroupID != nil {
+			proximityPlacementGroupId = *props.ProximityPlacementGroupID
+		}
+		d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {

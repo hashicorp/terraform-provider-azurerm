@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevSpaceController() *schema.Resource {
+func resourceDevSpaceController() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevSpaceControllerCreate,
-		Read:   resourceArmDevSpaceControllerRead,
-		Update: resourceArmDevSpaceControllerUpdate,
-		Delete: resourceArmDevSpaceControllerDelete,
+		Create: resourceDevSpaceControllerCreate,
+		Read:   resourceDevSpaceControllerRead,
+		Update: resourceDevSpaceControllerUpdate,
+		Delete: resourceDevSpaceControllerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,9 +34,13 @@ func resourceArmDevSpaceController() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DevSpaceControllerID(id)
+			_, err := parse.ControllerID(id)
 			return err
 		}),
+
+		DeprecationMessage: `DevSpace Controllers are deprecated and will be retired on 31 October 2023 - at this time the Azure API does not allow new Controllers to be provisioned, but existing DevSpace Controllers can continue to be used.
+
+Since these are deprecated and can no longer be provisioned, version 3.0 of the Azure Provider will remove support for DevSpace Controllers.`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -89,7 +93,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 	}
 }
 
-func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,17 +153,17 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*result.ID)
 
-	return resourceArmDevSpaceControllerRead(d, meta)
+	return resourceDevSpaceControllerRead(d, meta)
 }
 
-func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
-	id, err := parse.DevSpaceControllerID(d.Id())
+	id, err := parse.ControllerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -177,15 +181,15 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*result.ID)
 
-	return resourceArmDevSpaceControllerRead(d, meta)
+	return resourceDevSpaceControllerRead(d, meta)
 }
 
-func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DevSpaceControllerID(d.Id())
+	id, err := parse.ControllerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,12 +224,12 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DevSpaceControllerID(d.Id())
+	id, err := parse.ControllerID(d.Id())
 	if err != nil {
 		return err
 	}

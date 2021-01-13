@@ -175,6 +175,7 @@ func (client DscCompilationJobClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +262,7 @@ func (client DscCompilationJobClient) GetStream(ctx context.Context, resourceGro
 	result, err = client.GetStreamResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "GetStream", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,6 +350,7 @@ func (client DscCompilationJobClient) ListByAutomationAccount(ctx context.Contex
 	result.dcjlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.dcjlr.hasNextLink() && result.dcjlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -415,6 +418,7 @@ func (client DscCompilationJobClient) listByAutomationAccountNextResults(ctx con
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

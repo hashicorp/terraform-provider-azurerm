@@ -40,6 +40,8 @@ The following attributes are exported:
 
 * `connection_string` - An `connection_string` block as defined below.
 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
+
 * `default_hostname` - The default hostname associated with the Function App.
 
 * `enabled` - Is the Function App enabled?
@@ -79,6 +81,8 @@ An `ip_restriction` block exports the following:
 
 * `ip_address` - The IP Address used for this IP Restriction.
 
+* `service_tag` - The Service Tag used for this IP Restriction.
+
 * `subnet_mask` - The Subnet mask used for this IP Restriction.
 
 * `name` - The name for this IP Restriction.
@@ -91,6 +95,8 @@ An `ip_restriction` block exports the following:
 An `scm_ip_restriction` block exports the following:  
 
 * `ip_address` - The IP Address used for this IP Restriction in CIDR notation.
+
+* `service_tag` - The Service Tag used for this IP Restriction.
 
 * `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
 

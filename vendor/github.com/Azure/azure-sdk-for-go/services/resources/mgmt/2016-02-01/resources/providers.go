@@ -73,6 +73,7 @@ func (client ProvidersClient) Get(ctx context.Context, resourceProviderNamespace
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,6 +153,7 @@ func (client ProvidersClient) List(ctx context.Context, top *int32, expand strin
 	result.plr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.plr.hasNextLink() && result.plr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -220,6 +222,7 @@ func (client ProvidersClient) listNextResults(ctx context.Context, lastResults P
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -270,6 +273,7 @@ func (client ProvidersClient) Register(ctx context.Context, resourceProviderName
 	result, err = client.RegisterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "Register", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -343,6 +347,7 @@ func (client ProvidersClient) Unregister(ctx context.Context, resourceProviderNa
 	result, err = client.UnregisterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "Unregister", resp, "Failure responding to request")
+		return
 	}
 
 	return
