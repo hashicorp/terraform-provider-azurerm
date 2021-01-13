@@ -19,10 +19,12 @@ type RoleDefinitionResource struct{}
 
 func TestAccRoleDefinition(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"coverage": {
+		"basic": {
 			"basic":            testAccRoleDefinition_basic,
-			"complete":         testAccRoleDefinition_complete,
 			"management_group": testAccRoleDefinition_managementGroup,
+		},
+		"complete": {
+			"complete": testAccRoleDefinition_complete,
 		},
 		"empty": {
 			"empty_name":      testAccRoleDefinition_emptyName,
