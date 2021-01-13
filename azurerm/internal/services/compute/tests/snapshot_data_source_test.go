@@ -6,46 +6,44 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
+type SnapshotDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSnapshot_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-				),
-			},
+func TestAccDataSourceSnapshot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
+	r := SnapshotDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
+func TestAccDataSourceSnapshot_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
+	r := SnapshotDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSnapshot_encryption(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_settings.0.enabled", "true"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.encryption(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMSnapshot_basic(data acceptance.TestData) string {
+func (SnapshotDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -80,7 +78,7 @@ data "azurerm_snapshot" "snapshot" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMSnapshot_encryption(data acceptance.TestData) string {
+func (SnapshotDataSource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
