@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
+	"github.com/Azure/azure-sdk-for-go/services/msi/mgmt/2018-11-30/msi"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -126,7 +126,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.IdentityProperties; props != nil {
+	if props := resp.UserAssignedIdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
 		}

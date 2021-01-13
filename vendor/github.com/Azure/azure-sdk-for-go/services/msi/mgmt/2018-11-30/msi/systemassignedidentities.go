@@ -84,7 +84,7 @@ func (client SystemAssignedIdentitiesClient) GetByScopePreparer(ctx context.Cont
 		"scope": scope,
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
