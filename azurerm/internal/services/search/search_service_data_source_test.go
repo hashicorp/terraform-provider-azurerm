@@ -35,7 +35,7 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 	})
 }
 
-func (SearchServiceResource) basic(data acceptance.TestData) string {
+func (SearchServiceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
