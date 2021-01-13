@@ -6,6 +6,7 @@ IMPROVEMENTS:
 * `azurerm_data_factory_linked_service_sql_server`: support for the `key_vault_password` block [GH-10032]
 * `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
 * `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
+* `azurerm_synapse_workspace`: support for the `sql_identity_control_enabled` property [GH-10033]
 
 BUG FIXES:
 
