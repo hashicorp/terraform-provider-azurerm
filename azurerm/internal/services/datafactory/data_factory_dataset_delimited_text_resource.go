@@ -240,6 +240,21 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 				},
 			},
 
+			"compression_codec": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"bzip2",
+					"gzip",
+					"deflate",
+					"ZipDeflate",
+					"TarGzip",
+					"Tar",
+					"snappy",
+					"lz4",
+				}, false),
+			},
+
 			"compression_level": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -289,6 +304,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData,
 		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
 		NullValue:        d.Get("null_value").(string),
 		CompressionLevel: d.Get("compression_level").(string),
+		CompressionCodec: d.Get("compression_codec").(string),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -468,6 +484,12 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta in
 			log.Printf("[DEBUG] skipping `compression_level` since it's not a string")
 		} else {
 			d.Set("compression_level", compressionLevel)
+		}
+		compressionCodec, ok := properties.CompressionCodec.(string)
+		if !ok {
+			log.Printf("[DEBUG] skipping `compression_codec` since it's not a string")
+		} else {
+			d.Set("compression_codec", compressionCodec)
 		}
 	}
 

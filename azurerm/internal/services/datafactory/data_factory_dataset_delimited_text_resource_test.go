@@ -46,6 +46,7 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 				check.That(data.ResourceName).Key("schema_column.#").HasValue("1"),
 				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
 				check.That(data.ResourceName).Key("description").HasValue("test description"),
+				check.That(data.ResourceName).Key("compression_codec").HasValue("gzip"),
 				check.That(data.ResourceName).Key("compression_level").HasValue("Optimal"),
 			),
 		},
@@ -59,7 +60,8 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 				check.That(data.ResourceName).Key("schema_column.#").HasValue("2"),
 				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
 				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
-				check.That(data.ResourceName).Key("compression_level").HasValue("Fastest"),
+				check.That(data.ResourceName).Key("compression_codec").HasValue("lz4"),
+				check.That(data.ResourceName).Key("compression_level").HasValue("Optimal"),
 			),
 		},
 		data.ImportStep(),
@@ -197,6 +199,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 
   folder = "testFolder"
 
+  compression_codec = "gzip"
+
   compression_level = "Optimal"
 
   parameters = {
@@ -267,6 +271,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   annotations = ["test1", "test2"]
 
   folder = "testFolder"
+
+  compression_codec = "lz4"
 
   compression_level = "Fastest"
 
