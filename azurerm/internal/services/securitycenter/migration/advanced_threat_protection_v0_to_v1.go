@@ -38,8 +38,7 @@ func advancedThreadProtectionV0toV1Upgrade(rawState map[string]interface{}, meta
 	oldId := rawState["id"].(string)
 
 	// remove the existing `/` if it's present (2.42+) which'll do nothing if it wasn't (2.38)
-	newId := strings.TrimPrefix(oldId, "/")
-	newId = fmt.Sprintf("/%s", oldId)
+	newId := fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/"))
 
 	parsedId, err := parse.AdvancedThreatProtectionID(newId)
 	if err != nil {
