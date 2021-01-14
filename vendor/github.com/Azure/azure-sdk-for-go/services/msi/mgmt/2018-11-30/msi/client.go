@@ -1,4 +1,4 @@
-// Package msi implements the Azure ARM Msi service API version 2015-08-31-preview.
+// Package msi implements the Azure ARM Msi service API version 2018-11-30.
 //
 // The Managed Service Identity Client.
 package msi

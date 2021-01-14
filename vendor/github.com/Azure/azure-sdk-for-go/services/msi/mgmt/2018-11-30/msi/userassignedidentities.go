@@ -88,12 +88,12 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	parameters.IdentityProperties = nil
+	parameters.UserAssignedIdentityProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -167,7 +167,7 @@ func (client UserAssignedIdentitiesClient) DeletePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -242,7 +242,7 @@ func (client UserAssignedIdentitiesClient) GetPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -320,7 +320,7 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -433,7 +433,7 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionPreparer(ctx contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -507,7 +507,7 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionComplete(ctx contex
 // resourceGroupName - the name of the Resource Group to which the identity belongs.
 // resourceName - the name of the identity resource.
 // parameters - parameters to update the identity
-func (client UserAssignedIdentitiesClient) Update(ctx context.Context, resourceGroupName string, resourceName string, parameters Identity) (result Identity, err error) {
+func (client UserAssignedIdentitiesClient) Update(ctx context.Context, resourceGroupName string, resourceName string, parameters IdentityUpdate) (result Identity, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/UserAssignedIdentitiesClient.Update")
 		defer func() {
@@ -541,19 +541,19 @@ func (client UserAssignedIdentitiesClient) Update(ctx context.Context, resourceG
 }
 
 // UpdatePreparer prepares the Update request.
-func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, parameters Identity) (*http.Request, error) {
+func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, parameters IdentityUpdate) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-31-preview"
+	const APIVersion = "2018-11-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	parameters.IdentityProperties = nil
+	parameters.UserAssignedIdentityProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
