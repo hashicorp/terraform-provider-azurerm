@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -475,35 +475,6 @@ func (future *AgentPoolsDeleteFuture) Result(client AgentPoolsClient) (ar autore
 	return
 }
 
-// AgentPoolsUpgradeNodeImageVersionFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type AgentPoolsUpgradeNodeImageVersionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AgentPoolsUpgradeNodeImageVersionFuture) Result(client AgentPoolsClient) (ap AgentPool, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsUpgradeNodeImageVersionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ap.Response.Response, err = future.GetResult(sender); err == nil && ap.Response.Response.StatusCode != http.StatusNoContent {
-		ap, err = client.UpgradeNodeImageVersionResponder(ap.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", ap.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
 // AgentPoolUpgradeProfile the list of available upgrades for an agent pool.
 type AgentPoolUpgradeProfile struct {
 	autorest.Response `json:"-"`
@@ -585,8 +556,6 @@ type AgentPoolUpgradeProfileProperties struct {
 	OsType OSType `json:"osType,omitempty"`
 	// Upgrades - List of orchestrator types and versions available for upgrade.
 	Upgrades *[]AgentPoolUpgradeProfilePropertiesUpgradesItem `json:"upgrades,omitempty"`
-	// LatestNodeImageVersion - LatestNodeImageVersion is the latest AKS supported node image version.
-	LatestNodeImageVersion *string `json:"latestNodeImageVersion,omitempty"`
 }
 
 // AgentPoolUpgradeProfilePropertiesUpgradesItem ...
@@ -595,12 +564,6 @@ type AgentPoolUpgradeProfilePropertiesUpgradesItem struct {
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
 	// IsPreview - Whether Kubernetes version is currently in preview.
 	IsPreview *bool `json:"isPreview,omitempty"`
-}
-
-// AgentPoolUpgradeSettings settings for upgrading an agentpool
-type AgentPoolUpgradeSettings struct {
-	// MaxSurge - Count or percentage of additional nodes to be added during upgrade. If empty uses AKS default
-	MaxSurge *string `json:"maxSurge,omitempty"`
 }
 
 // CloudError an error response from the Container service.
@@ -994,8 +957,6 @@ type ManagedCluster struct {
 	*ManagedClusterProperties `json:"properties,omitempty"`
 	// Identity - The identity of the managed cluster, if configured.
 	Identity *ManagedClusterIdentity `json:"identity,omitempty"`
-	// Sku - The managed cluster SKU.
-	Sku *ManagedClusterSKU `json:"sku,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -1016,9 +977,6 @@ func (mc ManagedCluster) MarshalJSON() ([]byte, error) {
 	}
 	if mc.Identity != nil {
 		objectMap["identity"] = mc.Identity
-	}
-	if mc.Sku != nil {
-		objectMap["sku"] = mc.Sku
 	}
 	if mc.Location != nil {
 		objectMap["location"] = mc.Location
@@ -1055,15 +1013,6 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mc.Identity = &identity
-			}
-		case "sku":
-			if v != nil {
-				var sku ManagedClusterSKU
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				mc.Sku = &sku
 			}
 		case "id":
 			if v != nil {
@@ -1118,12 +1067,6 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 
 // ManagedClusterAADProfile aADProfile specifies attributes for Azure Active Directory integration.
 type ManagedClusterAADProfile struct {
-	// Managed - Whether to enable managed AAD.
-	Managed *bool `json:"managed,omitempty"`
-	// EnableAzureRBAC - Whether to enable Azure RBAC for Kubernetes authorization.
-	EnableAzureRBAC *bool `json:"enableAzureRBAC,omitempty"`
-	// AdminGroupObjectIDs - AAD group object IDs that will have admin role of the cluster.
-	AdminGroupObjectIDs *[]string `json:"adminGroupObjectIDs,omitempty"`
 	// ClientAppID - The client AAD application ID.
 	ClientAppID *string `json:"clientAppID,omitempty"`
 	// ServerAppID - The server AAD application ID.
@@ -1241,8 +1184,6 @@ type ManagedClusterAddonProfile struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// Config - Key-value pairs for configuring an add-on.
 	Config map[string]*string `json:"config"`
-	// Identity - READ-ONLY; Information of user assigned identity used by this add-on.
-	Identity *ManagedClusterAddonProfileIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAddonProfile.
@@ -1257,28 +1198,16 @@ func (mcap ManagedClusterAddonProfile) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ManagedClusterAddonProfileIdentity information of user assigned identity used by this add-on.
-type ManagedClusterAddonProfileIdentity struct {
-	// ResourceID - The resource id of the user assigned identity.
-	ResourceID *string `json:"resourceId,omitempty"`
-	// ClientID - The client id of the user assigned identity.
-	ClientID *string `json:"clientId,omitempty"`
-	// ObjectID - The object id of the user assigned identity.
-	ObjectID *string `json:"objectId,omitempty"`
-}
-
 // ManagedClusterAgentPoolProfile profile for the container service agent pool.
 type ManagedClusterAgentPoolProfile struct {
 	// Name - Unique name of the agent pool profile in the context of the subscription and resource group.
 	Name *string `json:"name,omitempty"`
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive) for user pools and in the range of 1 to 100 (inclusive) for system pools. The default value is 1.
+	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
-	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
-	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
 	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
 	// MaxPods - Maximum number of pods that can run on a node.
@@ -1293,36 +1222,20 @@ type ManagedClusterAgentPoolProfile struct {
 	EnableAutoScaling *bool `json:"enableAutoScaling,omitempty"`
 	// Type - AgentPoolType represents types of an agent pool. Possible values include: 'VirtualMachineScaleSets', 'AvailabilitySet'
 	Type AgentPoolType `json:"type,omitempty"`
-	// Mode - AgentPoolMode represents mode of an agent pool. Possible values include: 'System', 'User'
-	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// NodeImageVersion - READ-ONLY; Version of node image
-	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
-	// UpgradeSettings - Settings for upgrading the agentpool
-	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
-	PowerState *PowerState `json:"powerState,omitempty"`
-	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
+	// AvailabilityZones - (PREVIEW) Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Regular'
+	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Low', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
+	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
-	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
-	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
-	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
-	Tags map[string]*string `json:"tags"`
-	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
-	NodeLabels map[string]*string `json:"nodeLabels"`
 	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
-	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
-	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfile.
@@ -1339,9 +1252,6 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.OsDiskSizeGB != nil {
 		objectMap["osDiskSizeGB"] = mcapp.OsDiskSizeGB
-	}
-	if mcapp.OsDiskType != "" {
-		objectMap["osDiskType"] = mcapp.OsDiskType
 	}
 	if mcapp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcapp.VnetSubnetID
@@ -1364,14 +1274,8 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.Type != "" {
 		objectMap["type"] = mcapp.Type
 	}
-	if mcapp.Mode != "" {
-		objectMap["mode"] = mcapp.Mode
-	}
 	if mcapp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcapp.OrchestratorVersion
-	}
-	if mcapp.UpgradeSettings != nil {
-		objectMap["upgradeSettings"] = mcapp.UpgradeSettings
 	}
 	if mcapp.AvailabilityZones != nil {
 		objectMap["availabilityZones"] = mcapp.AvailabilityZones
@@ -1385,34 +1289,20 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.ScaleSetEvictionPolicy != "" {
 		objectMap["scaleSetEvictionPolicy"] = mcapp.ScaleSetEvictionPolicy
 	}
-	if mcapp.SpotMaxPrice != nil {
-		objectMap["spotMaxPrice"] = mcapp.SpotMaxPrice
-	}
-	if mcapp.Tags != nil {
-		objectMap["tags"] = mcapp.Tags
-	}
-	if mcapp.NodeLabels != nil {
-		objectMap["nodeLabels"] = mcapp.NodeLabels
-	}
 	if mcapp.NodeTaints != nil {
 		objectMap["nodeTaints"] = mcapp.NodeTaints
-	}
-	if mcapp.ProximityPlacementGroupID != nil {
-		objectMap["proximityPlacementGroupID"] = mcapp.ProximityPlacementGroupID
 	}
 	return json.Marshal(objectMap)
 }
 
 // ManagedClusterAgentPoolProfileProperties properties for the container service agent pool profile.
 type ManagedClusterAgentPoolProfileProperties struct {
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive) for user pools and in the range of 1 to 100 (inclusive) for system pools. The default value is 1.
+	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
-	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
-	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
 	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
 	// MaxPods - Maximum number of pods that can run on a node.
@@ -1427,36 +1317,20 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	EnableAutoScaling *bool `json:"enableAutoScaling,omitempty"`
 	// Type - AgentPoolType represents types of an agent pool. Possible values include: 'VirtualMachineScaleSets', 'AvailabilitySet'
 	Type AgentPoolType `json:"type,omitempty"`
-	// Mode - AgentPoolMode represents mode of an agent pool. Possible values include: 'System', 'User'
-	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// NodeImageVersion - READ-ONLY; Version of node image
-	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
-	// UpgradeSettings - Settings for upgrading the agentpool
-	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
-	PowerState *PowerState `json:"powerState,omitempty"`
-	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
+	// AvailabilityZones - (PREVIEW) Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Regular'
+	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Low', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
+	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
-	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
-	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
-	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
-	Tags map[string]*string `json:"tags"`
-	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
-	NodeLabels map[string]*string `json:"nodeLabels"`
 	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
-	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
-	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfileProperties.
@@ -1470,9 +1344,6 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.OsDiskSizeGB != nil {
 		objectMap["osDiskSizeGB"] = mcappp.OsDiskSizeGB
-	}
-	if mcappp.OsDiskType != "" {
-		objectMap["osDiskType"] = mcappp.OsDiskType
 	}
 	if mcappp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcappp.VnetSubnetID
@@ -1495,14 +1366,8 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.Type != "" {
 		objectMap["type"] = mcappp.Type
 	}
-	if mcappp.Mode != "" {
-		objectMap["mode"] = mcappp.Mode
-	}
 	if mcappp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcappp.OrchestratorVersion
-	}
-	if mcappp.UpgradeSettings != nil {
-		objectMap["upgradeSettings"] = mcappp.UpgradeSettings
 	}
 	if mcappp.AvailabilityZones != nil {
 		objectMap["availabilityZones"] = mcappp.AvailabilityZones
@@ -1516,20 +1381,8 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.ScaleSetEvictionPolicy != "" {
 		objectMap["scaleSetEvictionPolicy"] = mcappp.ScaleSetEvictionPolicy
 	}
-	if mcappp.SpotMaxPrice != nil {
-		objectMap["spotMaxPrice"] = mcappp.SpotMaxPrice
-	}
-	if mcappp.Tags != nil {
-		objectMap["tags"] = mcappp.Tags
-	}
-	if mcappp.NodeLabels != nil {
-		objectMap["nodeLabels"] = mcappp.NodeLabels
-	}
 	if mcappp.NodeTaints != nil {
 		objectMap["nodeTaints"] = mcappp.NodeTaints
-	}
-	if mcappp.ProximityPlacementGroupID != nil {
-		objectMap["proximityPlacementGroupID"] = mcappp.ProximityPlacementGroupID
 	}
 	return json.Marshal(objectMap)
 }
@@ -1548,10 +1401,8 @@ type ManagedClusterIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant id of the system assigned identity which is used by master components.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the managed cluster. Type 'SystemAssigned' will use an implicitly created identity in master components and an auto-created user assigned identity in MC_ resource group in agent nodes. Type 'None' will not use MSI for the managed cluster, service principal will be used instead. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeNone'
+	// Type - The type of identity used for the managed cluster. Type 'SystemAssigned' will use an implicitly created identity in master components and an auto-created user assigned identity in MC_ resource group in agent nodes. Type 'None' will not use MSI for the managed cluster, service principal will be used instead. Possible values include: 'SystemAssigned', 'None'
 	Type ResourceIdentityType `json:"type,omitempty"`
-	// UserAssignedIdentities - The user identity associated with the managed cluster. This identity will be used in control plane and only one user assigned identity is allowed. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
-	UserAssignedIdentities map[string]*ManagedClusterIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterIdentity.
@@ -1560,18 +1411,7 @@ func (mci ManagedClusterIdentity) MarshalJSON() ([]byte, error) {
 	if mci.Type != "" {
 		objectMap["type"] = mci.Type
 	}
-	if mci.UserAssignedIdentities != nil {
-		objectMap["userAssignedIdentities"] = mci.UserAssignedIdentities
-	}
 	return json.Marshal(objectMap)
-}
-
-// ManagedClusterIdentityUserAssignedIdentitiesValue ...
-type ManagedClusterIdentityUserAssignedIdentitiesValue struct {
-	// PrincipalID - READ-ONLY; The principal id of user assigned identity.
-	PrincipalID *string `json:"principalId,omitempty"`
-	// ClientID - READ-ONLY; The client id of user assigned identity.
-	ClientID *string `json:"clientId,omitempty"`
 }
 
 // ManagedClusterListResult the response from the List Managed Clusters operation.
@@ -1742,7 +1582,7 @@ func NewManagedClusterListResultPage(cur ManagedClusterListResult, getNextPage f
 	}
 }
 
-// ManagedClusterLoadBalancerProfile profile of the managed cluster load balancer.
+// ManagedClusterLoadBalancerProfile profile of the managed cluster load balancer
 type ManagedClusterLoadBalancerProfile struct {
 	// ManagedOutboundIPs - Desired managed outbound IPs for the cluster load balancer.
 	ManagedOutboundIPs *ManagedClusterLoadBalancerProfileManagedOutboundIPs `json:"managedOutboundIPs,omitempty"`
@@ -1752,10 +1592,6 @@ type ManagedClusterLoadBalancerProfile struct {
 	OutboundIPs *ManagedClusterLoadBalancerProfileOutboundIPs `json:"outboundIPs,omitempty"`
 	// EffectiveOutboundIPs - The effective outbound IP resources of the cluster load balancer.
 	EffectiveOutboundIPs *[]ResourceReference `json:"effectiveOutboundIPs,omitempty"`
-	// AllocatedOutboundPorts - Desired number of allocated SNAT ports per VM. Allowed values must be in the range of 0 to 64000 (inclusive). The default value is 0 which results in Azure dynamically allocating ports.
-	AllocatedOutboundPorts *int32 `json:"allocatedOutboundPorts,omitempty"`
-	// IdleTimeoutInMinutes - Desired outbound flow idle timeout in minutes. Allowed values must be in the range of 4 to 120 (inclusive). The default value is 30 minutes.
-	IdleTimeoutInMinutes *int32 `json:"idleTimeoutInMinutes,omitempty"`
 }
 
 // ManagedClusterLoadBalancerProfileManagedOutboundIPs desired managed outbound IPs for the cluster load
@@ -1803,8 +1639,6 @@ type ManagedClusterPoolUpgradeProfileUpgradesItem struct {
 type ManagedClusterProperties struct {
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// PowerState - READ-ONLY; Represents the Power State of the cluster
-	PowerState *PowerState `json:"powerState,omitempty"`
 	// MaxAgentPools - READ-ONLY; The max number of agent pools for the managed cluster.
 	MaxAgentPools *int32 `json:"maxAgentPools,omitempty"`
 	// KubernetesVersion - Version of Kubernetes specified when creating the managed cluster.
@@ -1813,8 +1647,6 @@ type ManagedClusterProperties struct {
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
 	// Fqdn - READ-ONLY; FQDN for the master pool.
 	Fqdn *string `json:"fqdn,omitempty"`
-	// PrivateFQDN - READ-ONLY; FQDN of private cluster.
-	PrivateFQDN *string `json:"privateFQDN,omitempty"`
 	// AgentPoolProfiles - Properties of the agent pool.
 	AgentPoolProfiles *[]ManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
 	// LinuxProfile - Profile for Linux VMs in the container service cluster.
@@ -1835,14 +1667,8 @@ type ManagedClusterProperties struct {
 	NetworkProfile *NetworkProfileType `json:"networkProfile,omitempty"`
 	// AadProfile - Profile of Azure Active Directory configuration.
 	AadProfile *ManagedClusterAADProfile `json:"aadProfile,omitempty"`
-	// AutoScalerProfile - Parameters to be applied to the cluster-autoscaler when enabled
-	AutoScalerProfile *ManagedClusterPropertiesAutoScalerProfile `json:"autoScalerProfile,omitempty"`
 	// APIServerAccessProfile - Access profile for managed cluster API server.
 	APIServerAccessProfile *ManagedClusterAPIServerAccessProfile `json:"apiServerAccessProfile,omitempty"`
-	// DiskEncryptionSetID - ResourceId of the disk encryption set to use for enabling encryption at rest.
-	DiskEncryptionSetID *string `json:"diskEncryptionSetID,omitempty"`
-	// IdentityProfile - Identities associated with the cluster.
-	IdentityProfile map[string]*ManagedClusterPropertiesIdentityProfileValue `json:"identityProfile"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterProperties.
@@ -1884,51 +1710,10 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.AadProfile != nil {
 		objectMap["aadProfile"] = mcp.AadProfile
 	}
-	if mcp.AutoScalerProfile != nil {
-		objectMap["autoScalerProfile"] = mcp.AutoScalerProfile
-	}
 	if mcp.APIServerAccessProfile != nil {
 		objectMap["apiServerAccessProfile"] = mcp.APIServerAccessProfile
 	}
-	if mcp.DiskEncryptionSetID != nil {
-		objectMap["diskEncryptionSetID"] = mcp.DiskEncryptionSetID
-	}
-	if mcp.IdentityProfile != nil {
-		objectMap["identityProfile"] = mcp.IdentityProfile
-	}
 	return json.Marshal(objectMap)
-}
-
-// ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when
-// enabled
-type ManagedClusterPropertiesAutoScalerProfile struct {
-	BalanceSimilarNodeGroups *string `json:"balance-similar-node-groups,omitempty"`
-	// Expander - Possible values include: 'LeastWaste', 'MostPods', 'Random'
-	Expander                      Expander `json:"expander,omitempty"`
-	MaxEmptyBulkDelete            *string  `json:"max-empty-bulk-delete,omitempty"`
-	MaxGracefulTerminationSec     *string  `json:"max-graceful-termination-sec,omitempty"`
-	MaxTotalUnreadyPercentage     *string  `json:"max-total-unready-percentage,omitempty"`
-	NewPodScaleUpDelay            *string  `json:"new-pod-scale-up-delay,omitempty"`
-	OkTotalUnreadyCount           *string  `json:"ok-total-unready-count,omitempty"`
-	ScanInterval                  *string  `json:"scan-interval,omitempty"`
-	ScaleDownDelayAfterAdd        *string  `json:"scale-down-delay-after-add,omitempty"`
-	ScaleDownDelayAfterDelete     *string  `json:"scale-down-delay-after-delete,omitempty"`
-	ScaleDownDelayAfterFailure    *string  `json:"scale-down-delay-after-failure,omitempty"`
-	ScaleDownUnneededTime         *string  `json:"scale-down-unneeded-time,omitempty"`
-	ScaleDownUnreadyTime          *string  `json:"scale-down-unready-time,omitempty"`
-	ScaleDownUtilizationThreshold *string  `json:"scale-down-utilization-threshold,omitempty"`
-	SkipNodesWithLocalStorage     *string  `json:"skip-nodes-with-local-storage,omitempty"`
-	SkipNodesWithSystemPods       *string  `json:"skip-nodes-with-system-pods,omitempty"`
-}
-
-// ManagedClusterPropertiesIdentityProfileValue ...
-type ManagedClusterPropertiesIdentityProfileValue struct {
-	// ResourceID - The resource id of the user assigned identity.
-	ResourceID *string `json:"resourceId,omitempty"`
-	// ClientID - The client id of the user assigned identity.
-	ClientID *string `json:"clientId,omitempty"`
-	// ObjectID - The object id of the user assigned identity.
-	ObjectID *string `json:"objectId,omitempty"`
 }
 
 // ManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -1990,14 +1775,6 @@ type ManagedClusterServicePrincipalProfile struct {
 	ClientID *string `json:"clientId,omitempty"`
 	// Secret - The secret password associated with the service principal in plain text.
 	Secret *string `json:"secret,omitempty"`
-}
-
-// ManagedClusterSKU ...
-type ManagedClusterSKU struct {
-	// Name - Name of a managed cluster SKU. Possible values include: 'ManagedClusterSKUNameBasic'
-	Name ManagedClusterSKUName `json:"name,omitempty"`
-	// Tier - Tier of a managed cluster SKU. Possible values include: 'Paid', 'Free'
-	Tier ManagedClusterSKUTier `json:"tier,omitempty"`
 }
 
 // ManagedClustersResetAADProfileFuture an abstraction for monitoring and retrieving the results of a
@@ -2063,52 +1840,6 @@ func (future *ManagedClustersRotateClusterCertificatesFuture) Result(client Mana
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersRotateClusterCertificatesFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// ManagedClustersStartFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type ManagedClustersStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ManagedClustersStartFuture) Result(client ManagedClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// ManagedClustersStopFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type ManagedClustersStopFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ManagedClustersStopFuture) Result(client ManagedClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersStopFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -2231,8 +1962,6 @@ type ManagedClusterWindowsProfile struct {
 	AdminUsername *string `json:"adminUsername,omitempty"`
 	// AdminPassword - Specifies the password of the administrator account. <br><br> **Minimum-length:** 8 characters <br><br> **Max-length:** 123 characters <br><br> **Complexity requirements:** 3 out of 4 conditions below need to be fulfilled <br> Has lower characters <br>Has upper characters <br> Has a digit <br> Has a special character (Regex match [\W_]) <br><br> **Disallowed values:** "abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!"
 	AdminPassword *string `json:"adminPassword,omitempty"`
-	// LicenseType - The licenseType to use for Windows VMs. Windows_Server is used to enable Azure Hybrid User Benefits for Windows VMs. Possible values include: 'None', 'WindowsServer'
-	LicenseType LicenseType `json:"licenseType,omitempty"`
 }
 
 // MasterProfile profile for the container service master.
@@ -2298,8 +2027,6 @@ type NetworkProfileType struct {
 	NetworkPlugin NetworkPlugin `json:"networkPlugin,omitempty"`
 	// NetworkPolicy - Network policy used for building Kubernetes network. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
 	NetworkPolicy NetworkPolicy `json:"networkPolicy,omitempty"`
-	// NetworkMode - Network mode used for building Kubernetes network. Possible values include: 'Transparent', 'Bridge'
-	NetworkMode NetworkMode `json:"networkMode,omitempty"`
 	// PodCidr - A CIDR notation IP range from which to assign pod IPs when kubenet is used.
 	PodCidr *string `json:"podCidr,omitempty"`
 	// ServiceCidr - A CIDR notation IP range from which to assign service cluster IPs. It must not overlap with any Subnet IP ranges.
@@ -2308,8 +2035,6 @@ type NetworkProfileType struct {
 	DNSServiceIP *string `json:"dnsServiceIP,omitempty"`
 	// DockerBridgeCidr - A CIDR notation IP range assigned to the Docker bridge network. It must not overlap with any Subnet IP ranges or the Kubernetes service address range.
 	DockerBridgeCidr *string `json:"dockerBridgeCidr,omitempty"`
-	// OutboundType - The outbound (egress) routing method. Possible values include: 'LoadBalancer', 'UserDefinedRouting'
-	OutboundType OutboundType `json:"outboundType,omitempty"`
 	// LoadBalancerSku - The load balancer sku for the managed cluster. Possible values include: 'Standard', 'Basic'
 	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
 	// LoadBalancerProfile - Profile of the cluster load balancer.
@@ -3143,196 +2868,6 @@ type OrchestratorVersionProfileProperties struct {
 	Orchestrators *[]OrchestratorVersionProfile `json:"orchestrators,omitempty"`
 }
 
-// PowerState describes the Power State of the cluster
-type PowerState struct {
-	// Code - Tells whether the cluster is Running or Stopped. Possible values include: 'Running', 'Stopped'
-	Code Code `json:"code,omitempty"`
-}
-
-// PrivateEndpoint private endpoint which a connection belongs to.
-type PrivateEndpoint struct {
-	// ID - The resource Id for private endpoint
-	ID *string `json:"id,omitempty"`
-}
-
-// PrivateEndpointConnection a private endpoint connection
-type PrivateEndpointConnection struct {
-	autorest.Response `json:"-"`
-	// ID - READ-ONLY; The ID of the private endpoint connection.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the private endpoint connection.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The resource type.
-	Type *string `json:"type,omitempty"`
-	// PrivateEndpointConnectionProperties - The properties of a private endpoint connection.
-	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
-func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pec.PrivateEndpointConnectionProperties != nil {
-		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
-func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				pec.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				pec.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				pec.Type = &typeVar
-			}
-		case "properties":
-			if v != nil {
-				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
-				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
-				if err != nil {
-					return err
-				}
-				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
-			}
-		}
-	}
-
-	return nil
-}
-
-// PrivateEndpointConnectionListResult a list of private endpoint connections
-type PrivateEndpointConnectionListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The collection value.
-	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
-}
-
-// PrivateEndpointConnectionProperties properties of a private endpoint connection.
-type PrivateEndpointConnectionProperties struct {
-	// ProvisioningState - READ-ONLY; The current provisioning state. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Failed'
-	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
-	// PrivateEndpoint - The resource of private endpoint.
-	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
-	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
-	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PrivateEndpointConnectionProperties.
-func (pecp PrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if pecp.PrivateEndpoint != nil {
-		objectMap["privateEndpoint"] = pecp.PrivateEndpoint
-	}
-	if pecp.PrivateLinkServiceConnectionState != nil {
-		objectMap["privateLinkServiceConnectionState"] = pecp.PrivateLinkServiceConnectionState
-	}
-	return json.Marshal(objectMap)
-}
-
-// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type PrivateEndpointConnectionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateEndpointConnectionsDeleteFuture) Result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.PrivateEndpointConnectionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// PrivateLinkResource a private link resource
-type PrivateLinkResource struct {
-	autorest.Response `json:"-"`
-	// ID - The ID of the private link resource.
-	ID *string `json:"id,omitempty"`
-	// Name - The name of the private link resource.
-	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
-	Type *string `json:"type,omitempty"`
-	// GroupID - The group ID of the resource.
-	GroupID *string `json:"groupId,omitempty"`
-	// RequiredMembers - RequiredMembers of the resource
-	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
-	// PrivateLinkServiceID - READ-ONLY; The private link service ID of the resource, this field is exposed only to NRP internally.
-	PrivateLinkServiceID *string `json:"privateLinkServiceID,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PrivateLinkResource.
-func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if plr.ID != nil {
-		objectMap["id"] = plr.ID
-	}
-	if plr.Name != nil {
-		objectMap["name"] = plr.Name
-	}
-	if plr.Type != nil {
-		objectMap["type"] = plr.Type
-	}
-	if plr.GroupID != nil {
-		objectMap["groupId"] = plr.GroupID
-	}
-	if plr.RequiredMembers != nil {
-		objectMap["requiredMembers"] = plr.RequiredMembers
-	}
-	return json.Marshal(objectMap)
-}
-
-// PrivateLinkResourcesListResult a list of private link resources
-type PrivateLinkResourcesListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The collection value.
-	Value *[]PrivateLinkResource `json:"value,omitempty"`
-}
-
-// PrivateLinkServiceConnectionState the state of a private link service connection.
-type PrivateLinkServiceConnectionState struct {
-	// Status - The private link service connection status. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
-	Status ConnectionStatus `json:"status,omitempty"`
-	// Description - The private link service connection description.
-	Description *string `json:"description,omitempty"`
-}
-
 // Properties properties of the container service.
 type Properties struct {
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
@@ -3475,16 +3010,6 @@ func (toVar TagsObject) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = toVar.Tags
 	}
 	return json.Marshal(objectMap)
-}
-
-// UserAssignedIdentity ...
-type UserAssignedIdentity struct {
-	// ResourceID - The resource id of the user assigned identity.
-	ResourceID *string `json:"resourceId,omitempty"`
-	// ClientID - The client id of the user assigned identity.
-	ClientID *string `json:"clientId,omitempty"`
-	// ObjectID - The object id of the user assigned identity.
-	ObjectID *string `json:"objectId,omitempty"`
 }
 
 // VMDiagnostics profile for diagnostics on the container service VMs.

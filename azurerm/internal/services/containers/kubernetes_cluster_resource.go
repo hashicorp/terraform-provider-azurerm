@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -1464,7 +1464,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1481,7 +1481,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	outboundType := config["outbound_type"].(string)
 
-	networkProfile := containerservice.NetworkProfileType{
+	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
 		NetworkMode:     containerservice.NetworkMode(networkMode),
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
@@ -1594,7 +1594,7 @@ func resourceReferencesToIds(refs *[]containerservice.ResourceReference) []strin
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
