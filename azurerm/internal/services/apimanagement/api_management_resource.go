@@ -1278,29 +1278,64 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 		if skuIsConsumption && tripleDesCiphers {
 			return nil, fmt.Errorf("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
 		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128GcmSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes256CbcSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128CbcSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
 	}
 
 	customProperties := map[string]*string{
-		apimBackendProtocolSsl3:                  utils.String(strconv.FormatBool(backendProtocolSsl3)),
-		apimBackendProtocolTls10:                 utils.String(strconv.FormatBool(backendProtocolTls10)),
-		apimBackendProtocolTls11:                 utils.String(strconv.FormatBool(backendProtocolTls11)),
-		apimFrontendProtocolTls10:                utils.String(strconv.FormatBool(frontendProtocolTls10)),
-		apimFrontendProtocolTls11:                utils.String(strconv.FormatBool(frontendProtocolTls11)),
-		apimTripleDesCiphers:                     utils.String(strconv.FormatBool(tripleDesCiphers)),
-		apimTlsEcdheEcdsaWithAes256CbcShaCiphers: utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers)),
-		apimTlsEcdheEcdsaWithAes128CbcShaCiphers: utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcShaCiphers)),
-		apimTlsEcdheRsaWithAes256CbcShaCiphers:   utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers)),
-		apimTlsEcdheRsaWithAes128CbcShaCiphers:   utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers)),
-		apimTlsRsaWithAes128GcmSha256Ciphers:     utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers)),
-		apimTlsRsaWithAes256CbcSha256Ciphers:     utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers)),
-		apimTlsRsaWithAes128CbcSha256Ciphers:     utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers)),
-		apimTlsRsaWithAes256CbcShaCiphers:        utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers)),
-		apimTlsRsaWithAes128CbcShaCiphers:        utils.String(strconv.FormatBool(tlsRsaWithAes128CbcShaCiphers)),
+		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
+		apimBackendProtocolTls10:  utils.String(strconv.FormatBool(backendProtocolTls10)),
+		apimBackendProtocolTls11:  utils.String(strconv.FormatBool(backendProtocolTls11)),
+		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
+		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
 	}
 
 	if !skuIsConsumption {
 		customProperties[apimFrontendProtocolSsl3] = utils.String(strconv.FormatBool(frontendProtocolSsl3))
 		customProperties[apimTripleDesCiphers] = utils.String(strconv.FormatBool(tripleDesCiphers))
+		customProperties[apimTlsEcdheEcdsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsEcdheEcdsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcShaCiphers))
+		customProperties[apimTlsEcdheRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsEcdheRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers))
+		customProperties[apimTlsRsaWithAes128GcmSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers))
+		customProperties[apimTlsRsaWithAes128CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcShaCiphers))
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
@@ -1334,22 +1369,20 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 	output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
 	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
-	output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"] // TODO: remove in v3.0
-
-	output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
-	output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
-	output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
-	output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
-	output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
-	output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
-	output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
-	output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
-	output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
 
 	if !skuIsConsumption {
 		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
-		output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+		output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"] // TODO: remove in v3.0
+		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
+		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+		output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
+		output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
+		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
+		output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
+		output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
 	}
 
 	return []interface{}{output}
