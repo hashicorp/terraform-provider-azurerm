@@ -18,9 +18,9 @@ import (
 
 func resourceSpringCloudActiveDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSpringCloudActiveDeploymentCreateUpdate,
+		Create: resourceSpringCloudActiveDeploymentCreate,
 		Read:   resourceSpringCloudActiveDeploymentRead,
-		Update: resourceSpringCloudActiveDeploymentCreateUpdate,
+		Update: resourceSpringCloudActiveDeploymentUpdate,
 		Delete: resourceSpringCloudActiveDeploymentDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -52,9 +52,9 @@ func resourceSpringCloudActiveDeployment() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudActiveDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	deploymentName := d.Get("deployment_name").(string)
@@ -79,14 +79,47 @@ func resourceSpringCloudActiveDeploymentCreateUpdate(d *schema.ResourceData, met
 		existing.Properties = &appplatform.AppResourceProperties{}
 	}
 	existing.Properties.ActiveDeploymentName = &deploymentName
+
 	future, err := client.CreateOrUpdate(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, existing)
 	if err != nil {
-		return fmt.Errorf("swapping active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+		return fmt.Errorf("setting active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for swapping active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+		return fmt.Errorf("waiting for setting active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
 	}
+
 	d.SetId(resourceId)
+
+	return resourceSpringCloudActiveDeploymentRead(d, meta)
+}
+
+func resourceSpringCloudActiveDeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppPlatform.AppsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SpringCloudAppID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	deploymentName := d.Get("deployment_name").(string)
+	app := appplatform.AppResource{
+		Properties: &appplatform.AppResourceProperties{
+			ActiveDeploymentName: utils.String(deploymentName),
+		},
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	if err != nil {
+		return fmt.Errorf("swapping active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for swapping active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+	}
+
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
 }
 
@@ -107,7 +140,7 @@ func resourceSpringCloudActiveDeploymentRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Active Deployment for Spring Cloud App %q (Spring Cloud Service %q / resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
 	}
 
 	if resp.Properties == nil || resp.Properties.ActiveDeploymentName == nil {
@@ -137,12 +170,15 @@ func resourceSpringCloudActiveDeploymentDelete(d *schema.ResourceData, meta inte
 			ActiveDeploymentName: utils.String(""),
 		},
 	}
+
 	future, err := client.Update(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("deleting active deployment (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deleting active deployment (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
+
 	return nil
 }

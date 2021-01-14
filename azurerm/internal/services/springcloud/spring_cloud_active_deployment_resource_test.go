@@ -47,7 +47,7 @@ func TestAccSpringCloudActiveDeployment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSpringCloudActiveDeployment_swap(t *testing.T) {
+func TestAccSpringCloudActiveDeployment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_active_deployment", "test")
 	r := SpringCloudActiveDeploymentResource{}
 
@@ -60,7 +60,7 @@ func TestAccSpringCloudActiveDeployment_swap(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.swap(data),
+			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -105,7 +105,7 @@ resource "azurerm_spring_cloud_active_deployment" "import" {
 `, r.basic(data))
 }
 
-func (r SpringCloudActiveDeploymentResource) swap(data acceptance.TestData) string {
+func (r SpringCloudActiveDeploymentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

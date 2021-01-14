@@ -140,7 +140,8 @@ resource "azurerm_spring_cloud_java_deployment" "test" {
   jvm_options         = "-XX:+PrintGC"
   runtime_version     = "Java_8"
 
-  env = {
+  environment_variables = {
+    "Foo" : "Bar"
     "Env" : "Staging"
   }
 }

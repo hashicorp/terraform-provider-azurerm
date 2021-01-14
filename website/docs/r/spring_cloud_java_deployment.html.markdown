@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_java_deployment"
 description: |-
-  Manage an Azure Spring Cloud Deployment which runtime is Java.
+  Manages an Azure Spring Cloud Deployment which runtime is Java.
 ---
 
 # azurerm_spring_cloud_java_deployment
 
-Manage an Azure Spring Cloud Deployment which runtime is Java.
+Manages an Azure Spring Cloud Deployment which runtime is Java.
 
 ## Example Usage
 
@@ -42,12 +42,13 @@ resource "azurerm_spring_cloud_java_deployment" "example" {
   name                = "deploy1"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
   cpu                 = 2
-  memory_in_gb        = 4
   instance_count      = 2
   jvm_options         = "-XX:+PrintGC"
-  runtime_version     = "Java_8"
+  memory_in_gb        = 4
+  runtime_version     = "Java_11"
 
-  env = {
+  environment_variables = {
+    "Foo" : "Bar"
     "Env" : "Staging"
   }
 }
@@ -61,17 +62,17 @@ The following arguments are supported:
 
 * `spring_cloud_app_id` - (Required) Specifies the id of the Spring Cloud Application in which to create the Deployment. Changing this forces a new resource to be created.
 
-* `cpu` - (Optional) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are between `1` and `4`.
+* `cpu` - (Optional) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are between `1` and `4`. Defaults to `1` if not specified.
 
-* `memory_in_gb` - (Optional) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are between `1` and `8`.
+* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Deployment as a map of key-value pairs.
 
-* `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`.
+* `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
 * `jvm_options` - (Optional) Specifies the jvm option of the Spring Cloud Deployment.
 
-* `runtime_version` - (Optional) Specifies the runtime version of the Spring Cloud Deployment. Possible Values are `Java_8` and `Java_11`. Defaults to `Java_8`.
+* `memory_in_gb` - (Optional) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are between `1` and `8`. Defaults to `1` if not specified.
 
-* `env` - (Optional) Specifies the environment variables of the Spring Cloud Deployment.
+* `runtime_version` - (Optional) Specifies the runtime version of the Spring Cloud Deployment. Possible Values are `Java_8` and `Java_11`. Defaults to `Java_8`.
 
 ## Attributes Reference
 

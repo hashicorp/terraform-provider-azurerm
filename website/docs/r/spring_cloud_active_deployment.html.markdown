@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_active_deployment"
 description: |-
-  Manage an Active Azure Spring Cloud Deployment.
+  Manages an Active Azure Spring Cloud Deployment.
 ---
 
 # azurerm_spring_cloud_active_deployment
 
-Manage an Active Azure Spring Cloud Deployment.
+Manages an Active Azure Spring Cloud Deployment.
 
 ## Example Usage
 
@@ -45,14 +45,14 @@ resource "azurerm_spring_cloud_java_deployment" "example" {
   memory_in_gb        = 4
   instance_count      = 2
   jvm_options         = "-XX:+PrintGC"
-  runtime_version     = "Java_8"
+  runtime_version     = "Java_11"
 
-  env = {
+  environment_variables = {
     "Env" : "Staging"
   }
 }
 
-resource "azurerm_spring_cloud_active_deployment" "test" {
+resource "azurerm_spring_cloud_active_deployment" "example" {
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
   deployment_name     = azurerm_spring_cloud_java_deployment.example.name
 }

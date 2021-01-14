@@ -58,11 +58,12 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 4),
 			},
 
-			"memory_in_gb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 8),
+			"environment_variables": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"instance_count": {
@@ -77,12 +78,11 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 				Optional: true,
 			},
 
-			"env": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"memory_in_gb": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 8),
 			},
 
 			"runtime_version": {
@@ -91,7 +91,7 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(appplatform.Java8),
 					string(appplatform.Java11),
-				}, true),
+				}, false),
 				Default: string(appplatform.Java8),
 			},
 		},
@@ -134,7 +134,7 @@ func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta 
 				MemoryInGB:           utils.Int32(int32(d.Get("memory_in_gb").(int))),
 				JvmOptions:           utils.String(d.Get("jvm_options").(string)),
 				InstanceCount:        utils.Int32(int32(d.Get("instance_count").(int))),
-				EnvironmentVariables: expandSpringCloudDeploymentEnv(d.Get("env").(map[string]interface{})),
+				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				RuntimeVersion:       appplatform.RuntimeVersion(d.Get("runtime_version").(string)),
 			},
 		},
@@ -179,7 +179,7 @@ func resourceSpringCloudJavaDeploymentRead(d *schema.ResourceData, meta interfac
 		d.Set("memory_in_gb", settings.MemoryInGB)
 		d.Set("instance_count", settings.InstanceCount)
 		d.Set("jvm_options", settings.JvmOptions)
-		d.Set("env", flattenSpringCloudDeploymentEnv(settings.EnvironmentVariables))
+		d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 		d.Set("runtime_version", settings.RuntimeVersion)
 	}
 
@@ -203,7 +203,7 @@ func resourceSpringCloudJavaDeploymentDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func expandSpringCloudDeploymentEnv(envMap map[string]interface{}) map[string]*string {
+func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]interface{}) map[string]*string {
 	output := make(map[string]*string, len(envMap))
 
 	for k, v := range envMap {
@@ -213,7 +213,7 @@ func expandSpringCloudDeploymentEnv(envMap map[string]interface{}) map[string]*s
 	return output
 }
 
-func flattenSpringCloudDeploymentEnv(envMap map[string]*string) map[string]interface{} {
+func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string) map[string]interface{} {
 	output := make(map[string]interface{}, len(envMap))
 	for i, v := range envMap {
 		if v == nil {
