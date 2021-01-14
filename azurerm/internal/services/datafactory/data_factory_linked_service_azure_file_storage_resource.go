@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceAzureFileStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceAzureFileStorageDelete,
+		Create: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceAzureFileStorageRead,
+		Update: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceAzureFileStorageDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -123,7 +123,7 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,10 +205,10 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
+	return resourceDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +268,7 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

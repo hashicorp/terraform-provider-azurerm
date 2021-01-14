@@ -164,7 +164,7 @@ func resourceHDInsightKafkaCluster() *schema.Resource {
 }
 
 func resourceHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	groupClient := meta.(*clients.Client).AzureAD.GroupsClient
+	groupClient := meta.(*clients.Client).Authorization.GroupsClient
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient

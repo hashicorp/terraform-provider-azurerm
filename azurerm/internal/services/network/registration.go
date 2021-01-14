@@ -21,8 +21,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_application_security_group":                dataSourceArmApplicationSecurityGroup(),
-		"azurerm_express_route_circuit":                     dataSourceArmExpressRouteCircuit(),
+		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
+		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
 		"azurerm_ip_group":                                  dataSourceArmIpGroup(),
 		"azurerm_nat_gateway":                               dataSourceArmNatGateway(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),
@@ -51,13 +51,13 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_application_gateway":                 resourceArmApplicationGateway(),
-		"azurerm_application_security_group":          resourceArmApplicationSecurityGroup(),
-		"azurerm_bastion_host":                        resourceArmBastionHost(),
-		"azurerm_express_route_circuit_authorization": resourceArmExpressRouteCircuitAuthorization(),
-		"azurerm_express_route_circuit_peering":       resourceArmExpressRouteCircuitPeering(),
-		"azurerm_express_route_circuit":               resourceArmExpressRouteCircuit(),
-		"azurerm_express_route_gateway":               resourceArmExpressRouteGateway(),
+		"azurerm_application_gateway":                 resourceApplicationGateway(),
+		"azurerm_application_security_group":          resourceApplicationSecurityGroup(),
+		"azurerm_bastion_host":                        resourceBastionHost(),
+		"azurerm_express_route_circuit_authorization": resourceExpressRouteCircuitAuthorization(),
+		"azurerm_express_route_circuit_peering":       resourceExpressRouteCircuitPeering(),
+		"azurerm_express_route_circuit":               resourceExpressRouteCircuit(),
+		"azurerm_express_route_gateway":               resourceExpressRouteGateway(),
 		"azurerm_ip_group":                            resourceArmIpGroup(),
 		"azurerm_local_network_gateway":               resourceArmLocalNetworkGateway(),
 		"azurerm_nat_gateway":                         resourceArmNatGateway(),
