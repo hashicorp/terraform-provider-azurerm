@@ -442,11 +442,6 @@ func resourceSpringCloudServiceDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigServersClient, id parse.SpringCloudServiceId, gitProperty *appplatform.ConfigServerGitProperty) error {
-	if gitProperty == nil {
-		log.Printf("[DEBUG] Skipping update of Config Server Settings for %s..", id)
-		return nil
-	}
-
 	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
 	configServer := appplatform.ConfigServerResource{
 		Properties: &appplatform.ConfigServerProperties{
