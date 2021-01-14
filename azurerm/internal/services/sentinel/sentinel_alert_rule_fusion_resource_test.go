@@ -113,10 +113,15 @@ func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_sentinel_alert_rule_template" "test" {
+  display_name               = "Advanced Multistage Attack Detection"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+}
+
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
+  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -125,10 +130,15 @@ func (r SentinelAlertRuleFusionResource) complete(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_sentinel_alert_rule_template" "test" {
+  display_name               = "Advanced Multistage Attack Detection"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+}
+
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
+  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
 }
 `, r.template(data), data.RandomInteger)
