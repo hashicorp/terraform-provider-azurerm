@@ -756,7 +756,7 @@ resource "azurerm_api_management" "test" {
     tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled   = true
     tls_rsa_with_aes128_cbc_sha256_ciphers_enabled      = true
     tls_rsa_with_aes128_cbc_sha_ciphers_enabled         = true
-    tls_rsa_with_aes128Gcm_sha256_ciphers_enabled       = true
+    tls_rsa_with_aes128_gcm_sha256_ciphers_enabled      = true
     tls_rsa_with_aes256_cbc_sha256_ciphers_enabled      = true
     tls_rsa_with_aes256_cbc_sha_ciphers_enabled         = true
     triple_des_ciphers_enabled                          = true
