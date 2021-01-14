@@ -71,6 +71,8 @@ func resourceBackupProtectedFileShare() *schema.Resource {
 }
 
 func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
+	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -93,16 +95,62 @@ func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("[ERROR] parsed source_storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
 	}
 
-	protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
+	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
+	fileShareSystemName := ""
+	// @aristosvo: preferred filter would be like below but the 'and' expression seems to fail
+	//   filter := fmt.Sprintf("backupManagementType eq 'AzureStorage' and friendlyName eq '%s'", fileShareName)
+	// this means which means we have to do it client side and loop over backupProtectedItems en backupProtectableItems until share is found
+	filter := "backupManagementType eq 'AzureStorage'"
+	backupProtectableItemsResponse, err := protectableClient.List(ctx, vaultName, resourceGroup, filter, "")
+	if err != nil {
+		return fmt.Errorf("Error checking for protectable fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+	}
 
-	log.Printf("[DEBUG] Creating/updating Recovery Service Protected File Share %q (Container Name %q)", protectedItemName, containerName)
+	for _, protectableItem := range backupProtectableItemsResponse.Values() {
+		if *protectableItem.Name == "" || protectableItem.Properties == nil {
+			continue
+		}
+		azureFileShareProtectableItem, check := protectableItem.Properties.AsAzureFileShareProtectableItem()
+
+		// check if protected item has the same fileshare name and is from the same storage account
+		if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == accountName {
+			fileShareSystemName = *protectableItem.Name
+			break
+		}
+	}
+
+	// fileShareSystemName not found? Check if already protected by this vault!
+	if fileShareSystemName == "" {
+		backupProtectedItemsResponse, err := protectedClient.List(ctx, vaultName, resourceGroup, filter, "")
+		if err != nil {
+			return fmt.Errorf("Error checking for protected fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+		}
+
+		for _, protectedItem := range backupProtectedItemsResponse.Values() {
+			if *protectedItem.Name == "" || protectedItem.Properties == nil {
+				continue
+			}
+			azureFileShareProtectedItem, check := protectedItem.Properties.AsAzureFileshareProtectedItem()
+
+			// check if protected item has the same fileshare name and is from the same storage account
+			if check && *azureFileShareProtectedItem.FriendlyName == fileShareName && strings.EqualFold(*azureFileShareProtectedItem.SourceResourceID, storageAccountID) {
+				fileShareSystemName = *protectedItem.Name
+				break
+			}
+		}
+	}
+	if fileShareSystemName == "" {
+		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, accountName, vaultName, resourceGroup)
+	}
+
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
+	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	if d.IsNewResource() {
-		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err2)
 			}
 		}
 
@@ -121,9 +169,9 @@ func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item)
+	resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, item)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
 	}
 
 	locationURL, err := resp.Response.Location()
@@ -143,10 +191,10 @@ func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	resp, err = client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+	resp, err = client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
 
 	if err != nil {
-		return fmt.Errorf("Error creating/udpating Azure File Share backup item %q (Vault %q): %+v", protectedItemName, vaultName, err)
+		return fmt.Errorf("Error creating/updating Azure File Share backup item %q (Vault %q): %+v", fileShareName, vaultName, err)
 	}
 
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
@@ -165,21 +213,21 @@ func resourceBackupProtectedFileShareRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	protectedItemName := id.Path["protectedItems"]
+	fileShareSystemName := id.Path["protectedItems"]
 	vaultName := id.Path["vaults"]
 	resourceGroup := id.ResourceGroup
 	containerName := id.Path["protectionContainers"]
 
-	log.Printf("[DEBUG] Reading Recovery Service Protected File Share %q (resource group %q)", protectedItemName, resourceGroup)
+	log.Printf("[DEBUG] Reading Recovery Service Protected File Share %q (resource group %q)", fileShareSystemName, resourceGroup)
 
-	resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+	resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", protectedItemName, vaultName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", fileShareSystemName, vaultName, resourceGroup, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -211,17 +259,17 @@ func resourceBackupProtectedFileShareDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	protectedItemName := id.Path["protectedItems"]
+	fileShareSystemName := id.Path["protectedItems"]
 	resourceGroup := id.ResourceGroup
 	vaultName := id.Path["vaults"]
 	containerName := id.Path["protectionContainers"]
 
-	log.Printf("[DEBUG] Deleting Recovery Service Protected Item %q (resource group %q)", protectedItemName, resourceGroup)
+	log.Printf("[DEBUG] Deleting Recovery Service Protected Item %q (resource group %q)", fileShareSystemName, resourceGroup)
 
-	resp, err := client.Delete(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName)
+	resp, err := client.Delete(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Recovery Service Protected File Share %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			return fmt.Errorf("Error issuing delete request for Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareSystemName, resourceGroup, err)
 		}
 	}
 
