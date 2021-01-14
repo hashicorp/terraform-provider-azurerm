@@ -192,7 +192,6 @@ func resourceMsSqlDatabase() *schema.Resource {
 			"storage_account_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 				Default:  string(sql.GRS),
 				ValidateFunc: validation.StringInSlice([]string{
