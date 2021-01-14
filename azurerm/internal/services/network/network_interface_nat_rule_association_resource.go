@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceNatRuleAssociation() *schema.Resource {
+func resourceNetworkInterfaceNatRuleAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceNatRuleAssociationCreate,
-		Read:   resourceArmNetworkInterfaceNatRuleAssociationRead,
-		Delete: resourceArmNetworkInterfaceNatRuleAssociationDelete,
+		Create: resourceNetworkInterfaceNatRuleAssociationCreate,
+		Read:   resourceNetworkInterfaceNatRuleAssociationRead,
+		Delete: resourceNetworkInterfaceNatRuleAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceArmNetworkInterfaceNatRuleAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,10 +145,10 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceNatRuleAssociationRead(d, meta)
+	return resourceNetworkInterfaceNatRuleAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +226,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
