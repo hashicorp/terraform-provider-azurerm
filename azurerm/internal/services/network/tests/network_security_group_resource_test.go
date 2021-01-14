@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,279 +9,229 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
+type NetworkSecurityGroupResource struct {
+}
+
+func TestAccNetworkSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkSecurityGroup_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_security_group"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_requiresImport(t *testing.T) {
+func TestAccNetworkSecurityGroup_singleRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkSecurityGroup_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_security_group"),
-			},
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkSecurityGroup_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				// The configuration for this step contains one security_rule
+				// block, which should now be reflected in the state.
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				// The configuration for this step contains no security_rule
+				// blocks at all, which means "ignore any existing security groups"
+				// and thus the one from the previous step is preserved.
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.rulesExplicitZero(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				// The configuration for this step assigns security_rule = []
+				// to state explicitly that no rules are desired, so the
+				// rule from the first step should now be removed.
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
+func TestAccNetworkSecurityGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_singleRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkSecurityGroupDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_update(t *testing.T) {
+func TestAccNetworkSecurityGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_singleRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-					// The configuration for this step contains one security_rule
-					// block, which should now be reflected in the state.
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
+func TestAccNetworkSecurityGroup_addingExtraRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
+		},
 
-					// The configuration for this step contains no security_rule
-					// blocks at all, which means "ignore any existing security groups"
-					// and thus the one from the previous step is preserved.
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_rulesExplicitZero(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-
-					// The configuration for this step assigns security_rule = []
-					// to state explicitly that no rules are desired, so the
-					// rule from the first step should now be removed.
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
-				),
-			},
+		{
+			Config: r.anotherRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
+func TestAccNetworkSecurityGroup_augmented(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					testCheckAzureRMNetworkSecurityGroupDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.augmented(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
+func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.applicationSecurityGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
+func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_singleRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
-				),
-			},
-
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_anotherRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "2"),
-				),
-			},
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.deleteRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_augmented(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkSecurityGroup_deleteRule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_singleRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkSecurityGroup_deleteRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		sgName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, sgName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Security Group %q (resource group: %q) does not exist", sgName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on secGroupClient: %+v", err)
-		}
-
-		return nil
+func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := network.ParseNetworkSecurityGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Network.SecurityGroupClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Security Group (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkSecurityGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -307,33 +258,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 	}
 }
 
-func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_security_group" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return fmt.Errorf("Network Security Group still exists:\n%#v", resp.SecurityGroupPropertiesFormat)
-	}
-
-	return nil
-}
-
-func testAccAzureRMNetworkSecurityGroup_basic(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -352,8 +277,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkSecurityGroup_basic(data)
+func (r NetworkSecurityGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -362,10 +286,10 @@ resource "azurerm_network_security_group" "import" {
   location            = azurerm_network_security_group.test.location
   resource_group_name = azurerm_network_security_group.test.resource_group_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkSecurityGroup_rulesExplicitZero(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) rulesExplicitZero(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -386,7 +310,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_singleRule(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) singleRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -417,7 +341,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_anotherRule(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) anotherRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -460,7 +384,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_withTags(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -496,7 +420,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_withTagsUpdate(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -531,7 +455,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_augmented(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) augmented(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -562,7 +486,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) applicationSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -605,7 +529,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkSecurityGroup_deleteRule(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) deleteRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
