@@ -160,12 +160,12 @@ func resourceMediaStreamingPolicyCreate(d *schema.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Streaming Policy %q (Media Service account %q) (ResourceGroup %q): %s", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceID, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_media_streaming_policy", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) { {
+			return tf.ImportAsExistsError("azurerm_media_streaming_policy", resourceID.ID())
 		}
 	}
 
@@ -190,7 +190,7 @@ func resourceMediaStreamingPolicyCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if _, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters); err != nil {
-		return fmt.Errorf("Error creating Streaming Policy %q in Media Services Account %q (Resource Group %q): %+v", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", resourceID, err)
 	}
 
 	d.SetId(resourceID.ID())
@@ -211,12 +211,12 @@ func resourceMediaStreamingPolicyRead(d *schema.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Streaming Policy %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Streaming Policy %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -241,7 +241,7 @@ func resourceMediaStreamingPolicyRead(d *schema.ResourceData, meta interface{}) 
 
 		if resp.DefaultContentKeyPolicyName != nil {
 			d.Set("default_content_key_policy_name", *resp.DefaultContentKeyPolicyName)
-		}
+		d.Set("default_content_key_policy_name", props.DefaultContentKeyPolicyName)
 	}
 
 	return nil
@@ -258,7 +258,7 @@ func resourceMediaStreamingPolicyDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Streaming Policy %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %: %+v", *id, err)
 	}
 
 	return nil
@@ -566,7 +566,7 @@ func flattenCommonEncryptionCenc(input *media.CommonEncryptionCenc) []interface{
 	}
 
 	widevineTemplate := ""
-	if input.Drm != nil && input.Drm.Widevine != nil {
+	if input.Drm != nil && input.Drm.Widevine != nil && input.Drm.Widevine.CustomLicenseAcquisitionURLTemplate != nil {
 		widevineTemplate = *input.Drm.Widevine.CustomLicenseAcquisitionURLTemplate
 	}
 

@@ -98,7 +98,6 @@ func resourceMediaServicesAccount() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(media.ManagedIdentityTypeSystemAssigned),
-								string(media.ManagedIdentityTypeNone),
 							}, true),
 						},
 					},

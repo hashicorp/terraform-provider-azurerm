@@ -50,7 +50,7 @@ resource "azurerm_media_streaming_policy" "example" {
 }
 ```
 
-## Example Usage with Secure Streaming
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -92,7 +92,7 @@ resource "azurerm_media_streaming_policy" "example" {
       custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/playready/{ContentKeyId}"
       custom_attributes                       = "PlayReady CustomAttributes"
     }
-    drm_widevine_custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/widevine/{ContentKeyId"
+    drm_widevine_custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/widevine/{ContentKeyId}"
   }
 
   common_encryption_cbcs {
@@ -166,7 +166,7 @@ A `drm_fairplay` block supports the following:
 
 * `allow_persistent_license` - (Optional) All license to be persistent or not. Changing this forces a new Streaming Policy to be created.
 
-* `custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are {AlternativeMediaId}, which is replaced with the value of StreamingLocatorId.AlternativeMediaId, and {ContentKeyId}, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
+* `custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
 
 ---
 
@@ -174,7 +174,7 @@ A `drm_playready` block supports the following:
 
 * `custom_attributes` - (Optional) Custom attributes for PlayReady. Changing this forces a new Streaming Policy to be created.
 
-* `custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are {AlternativeMediaId}, which is replaced with the value of StreamingLocatorId.AlternativeMediaId, and {ContentKeyId}, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
+* `custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
 
 ---
 

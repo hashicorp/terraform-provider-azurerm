@@ -163,7 +163,7 @@ resource "azurerm_media_streaming_policy" "test" {
       custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/playready/{ContentKeyId}"
       custom_attributes                       = "PlayReady CustomAttributes"
     }
-    drm_widevine_custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/widevine/{ContentKeyId"
+    drm_widevine_custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/widevine/{ContentKeyId}"
   }
 
   common_encryption_cbcs {
