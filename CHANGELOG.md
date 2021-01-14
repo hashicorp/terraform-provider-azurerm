@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_data_factory_linked_service_sql_server`: support for the `key_vault_password` block [GH-10032]
 * `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
 * `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
+* `azurerm_eventhub_namespace` - support the `trusted_service_access_enabled` property [GH-10169]
 * `azurerm_function_app` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_function_app_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_kusto_cluster` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
