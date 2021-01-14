@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmExpressRouteCircuit() *schema.Resource {
+func dataSourceExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmExpressRouteCircuitRead,
+		Read: dataSourceExpressRouteCircuitRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -121,7 +121,7 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 	}
 }
 
-func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

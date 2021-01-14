@@ -1,53 +1,76 @@
-## 2.43.0 (Unreleased)
+## 2.44.0 (Unreleased)
 
-IMPROVEMENTS:
-
-* Data Source: `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* Data Source: `azurerm_kubernetes_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* Data Source: `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* Data Source: `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_api_management` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_app_service` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_app_service_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_container_group` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_data_factory` - support for `public_network_enabled` [GH-9605]
-* `azurerm_data_factory_linked_service_sql_server`: support for the `key_vault_password` block [GH-10032]
-* `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
-* `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
-* `azurerm_function_app` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_function_app_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_kusto_cluster` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_linux_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_linux_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_security_center_automation` - the field `event_source` within the `source` block now supports `SecureScoreControls ` and `SecureScores` [GH-10126]
-* `azurerm_synapse_workspace` - support for the `sql_identity_control_enabled` property [GH-10033]
-* `azurerm_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_windows_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_windows_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* dependencies: updating github.com/Azure/go-autorest to `v0.11.16` [GH-10164]
+* dependencies: updating `appconfiguration` to API version `2020-06-01` [GH-10176]
+* dependencies: updating `containerservice` to API version `2020-12-01` [GH-1017610171
+* dependencies: updating `msi` to API version `2018-11-30` [GH-10171]
+* dependencies: updating `appplatform` to API version `2020-07-01` [GH-10175]
 
 BUG FIXES:
 
-* Data Source: `azurerm_log_analytics_workspace` - returning the Resource ID in the correct casing [GH-10162]
-* `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_app_service` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_app_service_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block [GH-10031]
-* `azurerm_blueprint_assignment` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_container_group` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_databricks_workspace` - changing the sku no longer always forces a new resource to be created [GH-9541]
-* `azurerm_function_app` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_function_app_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_kubernetes_cluster` - ensuring the casing of the `user_assigned_identity_id` field within the `kubelet_identity` block [GH-10105]
-* `azurerm_kusto_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_linux_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_linux_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
-* `azurerm_role_assignment` - fix race condition in read after create [GH-10134]
-* `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_windows_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
-* `azurerm_windows_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+`azurerm_backup_protected_file_share` - address brekaing API change so resource now functions again [GH-9015]
+
+## 2.43.0 (January 14, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_sentinel_alert_rule_template` ([#7020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7020))
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* Data Source: `azurerm_kubernetes_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* Data Source: `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* Data Source: `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_api_management` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_app_service` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_app_service_slot` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_container_group` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_cosmosdb_account` - support for `analytical_storage_enabled property` ([#10055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10055))
+* `azurerm_cosmosdb_gremlin_graph` - support the `default_ttl` property ([#10159](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10159))
+* `azurerm_data_factory` - support for `public_network_enabled` ([#9605](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9605))
+* `azurerm_data_factory_dataset_delimited_text` - support for the `compression_type` property ([#10070](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10070))
+* `azurerm_data_factory_linked_service_sql_server`: support for the `key_vault_password` block ([#10032](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10032))
+* `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  ([#9922](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9922))
+* `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  ([#9922](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9922))
+* `azurerm_eventhub_namespace` - support the `trusted_service_access_enabled` property ([#10169](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10169))
+* `azurerm_function_app` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_function_app_slot` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_kusto_cluster` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_linux_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_linux_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_security_center_automation` - the field `event_source` within the `source` block now supports `SecureScoreControls ` and `SecureScores` ([#10126](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10126))
+* `azurerm_synapse_workspace` - support for the `sql_identity_control_enabled` property ([#10033](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10033))
+* `azurerm_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_windows_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_windows_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+
+BUG FIXES:
+
+* Data Source: `azurerm_log_analytics_workspace` - returning the Resource ID in the correct casing ([#10162](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10162))
+* `azurerm_advanced_threat_protection` - fix a regression in the Resouce ID format ([#10190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10190))
+* `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_app_service` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_app_service_slot` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block ([#10031](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10031))
+* `azurerm_blueprint_assignment` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_container_group` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_databricks_workspace` - changing the sku no longer always forces a new resource to be created ([#9541](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9541))
+* `azurerm_function_app` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_function_app_slot` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_kubernetes_cluster` - ensuring the casing of the `user_assigned_identity_id` field within the `kubelet_identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_kusto_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_linux_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_linux_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID ([#10104](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10104))
+* `azurerm_mssql_virtual_machine` - address persistent diff and use relative expiry for service principal password ([#10125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10125))
+* `azurerm_role_assignment` - fix race condition in read after create ([#10134](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10134))
+* `azurerm_role_definition` - address eventual consistency issues in update and delete ([#10170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10170))
+* `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_windows_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
+* `azurerm_windows_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block ([#10105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10105))
 
 ## 2.42.0 (January 08, 2021)
 

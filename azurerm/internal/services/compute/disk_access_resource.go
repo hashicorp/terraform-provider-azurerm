@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDiskAccess() *schema.Resource {
+func resourceDiskAccess() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDiskAccessCreateUpdate,
-		Read:   resourceArmDiskAccessRead,
-		Update: resourceArmDiskAccessCreateUpdate,
-		Delete: resourceArmDiskAccessDelete,
+		Create: resourceDiskAccessCreateUpdate,
+		Read:   resourceDiskAccessRead,
+		Update: resourceDiskAccessCreateUpdate,
+		Delete: resourceDiskAccessDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.DiskAccessID(id)
@@ -52,7 +52,7 @@ func resourceArmDiskAccess() *schema.Resource {
 	}
 }
 
-func resourceArmDiskAccessCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskAccessCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,10 +102,10 @@ func resourceArmDiskAccessCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmDiskAccessRead(d, meta)
+	return resourceDiskAccessRead(d, meta)
 }
 
-func resourceArmDiskAccessRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskAccessRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +135,7 @@ func resourceArmDiskAccessRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDiskAccessDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskAccessDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
