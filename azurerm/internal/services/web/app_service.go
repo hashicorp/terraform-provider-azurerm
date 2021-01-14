@@ -459,6 +459,7 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
+					Computed:     true,
 				},
 
 				"linux_fx_version": {
