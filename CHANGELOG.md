@@ -1,6 +1,7 @@
 ## 2.44.0 (Unreleased)
 
-dependencies: updating to `v0.11.16` of github.com/Azure/go-autorest [GH-10164]
+* dependencies: updating to `v0.11.16` of github.com/Azure/go-autorest [GH-10164]
+* appconfiguration: updating to API version `2020-06-01` [GH-10176]
 
 ## 2.43.0 (January 14, 2021)
 
