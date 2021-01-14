@@ -22,10 +22,10 @@ import (
 
 func resourceArmGuestConfigurationAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmGuestConfigurationAssignmentCreateUpdate,
-		Read:   resourceArmGuestConfigurationAssignmentRead,
-		Update: resourceArmGuestConfigurationAssignmentCreateUpdate,
-		Delete: resourceArmGuestConfigurationAssignmentDelete,
+		Create: resourceGuestConfigurationAssignmentCreateUpdate,
+		Read:   resourceGuestConfigurationAssignmentRead,
+		Update: resourceGuestConfigurationAssignmentCreateUpdate,
+		Delete: resourceGuestConfigurationAssignmentDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -131,13 +131,9 @@ func resourceArmGuestConfigurationAssignment() *schema.Resource {
 									},
 
 									"reboot_if_needed": {
-										Type:     schema.TypeString,
+										Type:     schema.TypeBool,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(guestconfiguration.RebootIfNeededTrue),
-											string(guestconfiguration.RebootIfNeededFalse),
-										}, false),
-										Default: guestconfiguration.RebootIfNeededFalse,
+										Default:  false,
 									},
 
 									"refresh_frequency_mins": {
@@ -147,14 +143,6 @@ func resourceArmGuestConfigurationAssignment() *schema.Resource {
 									},
 								},
 							},
-						},
-
-						"kind": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(guestconfiguration.DSC),
-							}, false),
 						},
 
 						"version": {
@@ -192,7 +180,7 @@ func resourceArmGuestConfigurationAssignment() *schema.Resource {
 		},
 	}
 }
-func resourceArmGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -245,10 +233,10 @@ func resourceArmGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(id.ID())
 
-	return resourceArmGuestConfigurationAssignmentRead(d, meta)
+	return resourceGuestConfigurationAssignmentRead(d, meta)
 }
 
-func resourceArmGuestConfigurationAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -284,7 +272,7 @@ func resourceArmGuestConfigurationAssignmentRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -311,7 +299,7 @@ func expandArmGuestConfigurationAssignmentNavigation(input []interface{}) *guest
 	}
 	v := input[0].(map[string]interface{})
 	return &guestconfiguration.Navigation{
-		Kind:                   guestconfiguration.Kind(v["kind"].(string)),
+		Kind:                   guestconfiguration.DSC, // hard-code here since this is the only valid value
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
 		ConfigurationParameter: expandArmGuestConfigurationAssignmentConfigurationParameterArray(v["configuration_parameter"].(*schema.Set).List()),
@@ -336,12 +324,16 @@ func expandArmGuestConfigurationAssignmentConfigurationSetting(input []interface
 		return nil
 	}
 	v := input[0].(map[string]interface{})
+	rebootIfNeeded := guestconfiguration.RebootIfNeededFalse
+	if v["reboot_if_needed"].(bool) {
+		rebootIfNeeded = guestconfiguration.RebootIfNeededTrue
+	}
 	return &guestconfiguration.ConfigurationSetting{
 		ConfigurationMode:              guestconfiguration.ConfigurationMode(v["configuration_mode"].(string)),
 		AllowModuleOverwrite:           guestconfiguration.AllowModuleOverwrite(v["allow_module_overwrite"].(string)),
 		ActionAfterReboot:              guestconfiguration.ActionAfterReboot(v["action_after_reboot"].(string)),
 		RefreshFrequencyMins:           utils.Float(v["refresh_frequency_mins"].(float64)),
-		RebootIfNeeded:                 guestconfiguration.RebootIfNeeded(v["reboot_if_needed"].(string)),
+		RebootIfNeeded:                 rebootIfNeeded,
 		ConfigurationModeFrequencyMins: utils.Float(v["configuration_mode_frequency_mins"].(float64)),
 	}
 }
@@ -354,10 +346,6 @@ func flattenArmGuestConfigurationAssignmentNavigation(input *guestconfiguration.
 	var name string
 	if input.Name != nil {
 		name = *input.Name
-	}
-	var kind guestconfiguration.Kind
-	if input.Kind != "" {
-		kind = input.Kind
 	}
 	var version string
 	if input.Version != nil {
@@ -376,7 +364,6 @@ func flattenArmGuestConfigurationAssignmentNavigation(input *guestconfiguration.
 			"name":                    name,
 			"configuration_parameter": flattenArmGuestConfigurationAssignmentConfigurationParameterArray(input.ConfigurationParameter),
 			"configuration_setting":   flattenArmGuestConfigurationAssignmentConfigurationSetting(input.ConfigurationSetting),
-			"kind":                    kind,
 			"version":                 version,
 			"content_hash":            contentHash,
 			"content_uri":             contentUri,
@@ -412,26 +399,19 @@ func flattenArmGuestConfigurationAssignmentConfigurationSetting(input *guestconf
 		return make([]interface{}, 0)
 	}
 
-	var actionAfterReboot guestconfiguration.ActionAfterReboot
-	if input.ActionAfterReboot != "" {
-		actionAfterReboot = input.ActionAfterReboot
-	}
-	var allowModuleOverwrite guestconfiguration.AllowModuleOverwrite
-	if input.AllowModuleOverwrite != "" {
-		allowModuleOverwrite = input.AllowModuleOverwrite
-	}
-	var configurationMode guestconfiguration.ConfigurationMode
-	if input.ConfigurationMode != "" {
-		configurationMode = input.ConfigurationMode
-	}
+	actionAfterReboot := input.ActionAfterReboot
+
+	allowModuleOverwrite := input.AllowModuleOverwrite
+
+	configurationMode := input.ConfigurationMode
+
 	var configurationModeFrequencyMins float64
 	if input.ConfigurationModeFrequencyMins != nil {
 		configurationModeFrequencyMins = *input.ConfigurationModeFrequencyMins
 	}
-	var rebootIfNeeded guestconfiguration.RebootIfNeeded
-	if input.RebootIfNeeded != "" {
-		rebootIfNeeded = input.RebootIfNeeded
-	}
+
+	rebootIfNeeded := input.RebootIfNeeded
+
 	var refreshFrequencyMins float64
 	if input.RefreshFrequencyMins != nil {
 		refreshFrequencyMins = *input.RefreshFrequencyMins
@@ -442,7 +422,7 @@ func flattenArmGuestConfigurationAssignmentConfigurationSetting(input *guestconf
 			"allow_module_overwrite":            allowModuleOverwrite,
 			"configuration_mode":                configurationMode,
 			"configuration_mode_frequency_mins": configurationModeFrequencyMins,
-			"reboot_if_needed":                  rebootIfNeeded,
+			"reboot_if_needed":                  rebootIfNeeded == guestconfiguration.RebootIfNeededTrue,
 			"refresh_frequency_mins":            refreshFrequencyMins,
 		},
 	}
