@@ -1,3 +1,7 @@
+## 2.44.0 (Unreleased)
+
+dependencies: updating to `v0.11.16` of github.com/Azure/go-autorest [GH-10164]
+
 ## 2.43.0 (January 14, 2021)
 
 FEATURES:
