@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubEnrichment_basic(t *testing.T) {
+func TestAccIotHubEnrichment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubEnrichmentDestroy,
+		CheckDestroy: testCheckIotHubEnrichmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEnrichment_basic(data),
+				Config: testAccIotHubEnrichment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubEnrichmentExists(data.ResourceName),
+					testCheckIotHubEnrichmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,47 +32,47 @@ func TestAccAzureRMIotHubEnrichment_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIotHubEnrichment_requiresImport(t *testing.T) {
+func TestAccIotHubEnrichment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubEnrichmentDestroy,
+		CheckDestroy: testCheckIotHubEnrichmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEnrichment_basic(data),
+				Config: testAccIotHubEnrichment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubEnrichmentExists(data.ResourceName),
+					testCheckIotHubEnrichmentExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubEnrichment_requiresImport(data),
+				Config:      testAccIotHubEnrichment_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_iothub_enrichment"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMIotHubEnrichment_update(t *testing.T) {
+func TestAccIotHubEnrichment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubEnrichmentDestroy,
+		CheckDestroy: testCheckIotHubEnrichmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEnrichment_basic(data),
+				Config: testAccIotHubEnrichment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubEnrichmentExists(data.ResourceName),
+					testCheckIotHubEnrichmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIotHubEnrichment_update(data),
+				Config: testAccIotHubEnrichment_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubEnrichmentExists(data.ResourceName),
+					testCheckIotHubEnrichmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -80,7 +80,7 @@ func TestAccAzureRMIotHubEnrichment_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMIotHubEnrichmentDestroy(s *terraform.State) error {
+func testCheckIotHubEnrichmentDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -119,7 +119,7 @@ func testCheckAzureRMIotHubEnrichmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMIotHubEnrichmentExists(resourceName string) resource.TestCheckFunc {
+func testCheckIotHubEnrichmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -164,8 +164,8 @@ func testCheckAzureRMIotHubEnrichmentExists(resourceName string) resource.TestCh
 	}
 }
 
-func testAccAzureRMIotHubEnrichment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubEnrichment_basic(data)
+func testAccIotHubEnrichment_requiresImport(data acceptance.TestData) string {
+	template := testAccIotHubEnrichment_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -180,7 +180,7 @@ resource "azurerm_iothub_enrichment" "import" {
 `, template)
 }
 
-func testAccAzureRMIotHubEnrichment_basic(data acceptance.TestData) string {
+func testAccIotHubEnrichment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -244,7 +244,7 @@ resource "azurerm_iothub_enrichment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMIotHubEnrichment_update(data acceptance.TestData) string {
+func testAccIotHubEnrichment_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

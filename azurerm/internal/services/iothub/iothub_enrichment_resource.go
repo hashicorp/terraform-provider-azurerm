@@ -18,7 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEnrichment() *schema.Resource {
+func resourceIotHubEnrichment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmIotHubEnrichmentCreateUpdate,
 		Read:   resourceArmIotHubEnrichmentRead,
