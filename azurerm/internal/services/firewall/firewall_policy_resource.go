@@ -209,8 +209,8 @@ func resourceFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("sku"); ok {
-		props.FirewallPolicyPropertiesFormat.Sku = network.FirewallPolicySku{
-			Tier: &network.FirewallPolicySkuTier(utils.String(v.(string))),
+		props.FirewallPolicyPropertiesFormat.Sku = &network.FirewallPolicySku{
+			Tier: network.FirewallPolicySkuTier(v.(string)),
 		}
 	}
 
@@ -275,7 +275,7 @@ func resourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
 		}
 
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(prop.DNSSettings)); err != nil {
 			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 

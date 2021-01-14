@@ -157,7 +157,7 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku				  = "Premium"
+  sku                 = "Premium"
 }
 `, template, data.RandomInteger)
 }
