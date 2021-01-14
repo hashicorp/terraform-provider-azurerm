@@ -37,7 +37,9 @@ func NewRecommendedElasticPoolsClient(subscriptionID string) RecommendedElasticP
 	return NewRecommendedElasticPoolsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRecommendedElasticPoolsClientWithBaseURI creates an instance of the RecommendedElasticPoolsClient client.
+// NewRecommendedElasticPoolsClientWithBaseURI creates an instance of the RecommendedElasticPoolsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewRecommendedElasticPoolsClientWithBaseURI(baseURI string, subscriptionID string) RecommendedElasticPoolsClient {
 	return RecommendedElasticPoolsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -75,6 +77,7 @@ func (client RecommendedElasticPoolsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -105,8 +108,7 @@ func (client RecommendedElasticPoolsClient) GetPreparer(ctx context.Context, res
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecommendedElasticPoolsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -114,7 +116,6 @@ func (client RecommendedElasticPoolsClient) GetSender(req *http.Request) (*http.
 func (client RecommendedElasticPoolsClient) GetResponder(resp *http.Response) (result RecommendedElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -154,6 +155,7 @@ func (client RecommendedElasticPoolsClient) ListByServer(ctx context.Context, re
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -183,8 +185,7 @@ func (client RecommendedElasticPoolsClient) ListByServerPreparer(ctx context.Con
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecommendedElasticPoolsClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always
@@ -192,7 +193,6 @@ func (client RecommendedElasticPoolsClient) ListByServerSender(req *http.Request
 func (client RecommendedElasticPoolsClient) ListByServerResponder(resp *http.Response) (result RecommendedElasticPoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -233,6 +233,7 @@ func (client RecommendedElasticPoolsClient) ListMetrics(ctx context.Context, res
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -263,8 +264,7 @@ func (client RecommendedElasticPoolsClient) ListMetricsPreparer(ctx context.Cont
 // ListMetricsSender sends the ListMetrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecommendedElasticPoolsClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMetricsResponder handles the response to the ListMetrics request. The method always
@@ -272,7 +272,6 @@ func (client RecommendedElasticPoolsClient) ListMetricsSender(req *http.Request)
 func (client RecommendedElasticPoolsClient) ListMetricsResponder(resp *http.Response) (result RecommendedElasticPoolListMetricsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

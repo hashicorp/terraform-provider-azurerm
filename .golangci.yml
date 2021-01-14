@@ -1,6 +1,8 @@
 run:
-  deadline: 10m10s
+  deadline: 12m10s
   modules-download-mode: vendor
+  skip-dirs:
+    - vendor
 
 issues:
   max-per-linter: 0
@@ -9,8 +11,10 @@ issues:
 linters:
   disable-all: true
   enable:
+    - asciicheck
     - deadcode
     - errcheck
+    - gocritic
     - gofmt
     - goimports
     - gosimple
@@ -24,6 +28,7 @@ linters:
     - typecheck
     - unused
     - unconvert
+    - unparam
     - varcheck
     - vet
     - vetshadow
@@ -35,3 +40,4 @@ linters-settings:
   misspell:
     ignore-words:
       - hdinsight
+      - exportfs

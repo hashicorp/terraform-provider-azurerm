@@ -10,28 +10,46 @@ description: |-
 
 Manages a Key Vault.
 
-~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+## Disclaimers
+
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+
+~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
+
+!> **Note:** As of 2020-12-15 Azure now requires that Soft Delete is enabled on Key Vaults and this can no longer be disabled. Version v2.42 of the Azure Provider and later ignore the value of the `soft_delete_enabled` field and force this value to be `true` - as such this field can be safely removed from your Terraform Configuration. This field will be removed in version 3.0 of the Azure Provider. 
 
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                        = "testvault"
+  name                        = "examplekeyvault"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
-  tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
-    object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "get",
@@ -44,15 +62,6 @@ resource "azurerm_key_vault" "example" {
     storage_permissions = [
       "get",
     ]
-  }
-
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-  }
-
-  tags = {
-    environment = "Production"
   }
 }
 ```
@@ -71,9 +80,11 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
+---
+
 * `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 16 objects describing access policies, as described below.
 
-~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+-> **NOTE** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault. Defaults to `false`.
 
@@ -81,15 +92,27 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault. Defaults to `false`.
 
+* `enable_rbac_authorization` - (Optional) Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions. Defaults to `false`.
+
 * `network_acls` - (Optional) A `network_acls` block as defined below.
+
+* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault? Defaults to `false`.
+
+!> **Note:** Once Purge Protection has been Enabled it's not possible to Disable it. Support for [disabling purge protection is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075). Deleting the Key Vault with Purge Protection Enabled will schedule the Key Vault to be deleted (which will happen by Azure in the configured number of days, currently 90 days - which will be configurable in Terraform in the future).
+
+* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` (the default) days.
+
+~> **Note:** This field can only be configured one time and cannot be updated.
+
+* `contact` - (Optional) One or more `contact` block as defined below.
+
+~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 A `access_policy` block supports the following:
-
-Elements of `access_policy` support:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Must match the `tenant_id` used above.
 
@@ -116,6 +139,16 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
 * `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
+
+---
+
+A `contact` block supports the following:
+
+* `email` - (Required) E-mail address of the contact.
+
+* `name` - (Optional) Name of the contact.
+
+* `phone` - (Optional) Phone number of the contact.
 
 ## Attributes Reference
 

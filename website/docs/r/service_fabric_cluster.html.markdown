@@ -24,7 +24,7 @@ resource "azurerm_service_fabric_cluster" "example" {
   location             = azurerm_resource_group.example.location
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
-  cluster_code_version = "6.5.639.9590"
+  cluster_code_version = "7.1.456.959"
   vm_image             = "Windows"
   management_endpoint  = "https://example:80"
 
@@ -36,6 +36,7 @@ resource "azurerm_service_fabric_cluster" "example" {
     http_endpoint_port   = 80
   }
 }
+
 ```
 ## Argument Reference
 
@@ -73,7 +74,9 @@ The following arguments are supported:
 
 * `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
+* `client_certificate_thumbprint` - (Optional) One or more `client_certificate_thumbprint` blocks as defined below. 
+
+* `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below. 
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
@@ -136,6 +139,18 @@ A `reverse_proxy_certificate` block supports the following:
 A `client_certificate_thumbprint` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint associated with the Client Certificate.
+
+* `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
+
+---
+
+A `client_certificate_common_name` block supports the following:
+
+* `common_name` - (Required) The common or subject name of the certificate.
+
+* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 * `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 

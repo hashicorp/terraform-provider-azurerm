@@ -35,7 +35,8 @@ func NewJobDetailsClient(subscriptionID string) JobDetailsClient {
 	return NewJobDetailsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobDetailsClientWithBaseURI creates an instance of the JobDetailsClient client.
+// NewJobDetailsClientWithBaseURI creates an instance of the JobDetailsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobDetailsClientWithBaseURI(baseURI string, subscriptionID string) JobDetailsClient {
 	return JobDetailsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,6 +73,7 @@ func (client JobDetailsClient) Get(ctx context.Context, vaultName string, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobDetailsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -102,8 +104,7 @@ func (client JobDetailsClient) GetPreparer(ctx context.Context, vaultName string
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobDetailsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -111,7 +112,6 @@ func (client JobDetailsClient) GetSender(req *http.Request) (*http.Response, err
 func (client JobDetailsClient) GetResponder(resp *http.Response) (result JobResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

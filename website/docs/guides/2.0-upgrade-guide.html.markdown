@@ -41,6 +41,7 @@ Once version 2.0 of the AzureRM Provider is released - you can then upgrade to i
 ```hcl
 provider "azurerm" {
   version = "=2.0.0"
+  features {}
 }
 ```
 
@@ -173,6 +174,8 @@ The deprecated `vault_uri` field has been replaced by the `key_vault_id` field a
 
 The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
 
+The deprecated `default_node_pool.dns_prefix` field has been removed
+
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
@@ -180,6 +183,10 @@ The deprecated field `internal_fqdn` will be removed.
 ### Data Source: `azurerm_private_link_service`
 
 The deprecated field `network_interface_ids` will be removed.
+
+### Data Source: `azurerm_recovery_services_protection_policy_vm`
+
+This Data Source is renamed to `azurerm_backup_policy_vm` in line with the name that replaces the Deprecated resource.  
 
 ### Data Source: `azurerm_role_definition`
 
@@ -191,7 +198,7 @@ Azure Scheduler is being retired in favour of Logic Apps ([more information can 
 
 ### Data Source: `azurerm_virtual_network`
 
-The deprecated field `address_space` will be removed.
+The deprecated field `address_spaces` will be removed.
 
 ### Resource: `azurerm_api_management`
 
@@ -213,6 +220,16 @@ The deprecated field  `disable_triple_des_chipers` will be removed in favour of 
 
 The deprecated field  `disable_triple_des_ciphers` will be removed in favour of the `enable_triple_des_ciphers` property.
 
+### Resource: `azurerm_app_service`
+
+The `identity.type` field no longer supports the combined value `"SystemAssigned, UserAssigned"` as this has been removed from the API
+
+The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
+
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is no longer used.
+
+The `site_config.virtual_network_name` field has been removed as it is no longer used
+
 ### Resource: `azurerm_app_service_plan`
 
 The fields in the `properties` block (`app_service_environment_id`, `reserved` and `per_site_scaling`) have been moved to the top level - as such the `properties` block will be removed.
@@ -224,6 +241,12 @@ The deprecated `fqdn_list` field in the `backend_address_pool` block will be rem
 The deprecated `ip_address_list` field in the `backend_address_pool` block will be removed in favour of the `ip_addresses` field, which is available from v1.22 of the AzureRM Provider.
 
 The default value for the `body` field within the `match` block will change from `*` to an empty string.
+
+The deprecated `disabled_ssl_protocols` field will be removed in favour of `ssl_policy`.`disabled_protocols`
+
+### Resource: `azurerm_application_insights`
+
+The `application_type` field now has strict case sensitivity in line with the API. 
 
 ### Resource: `azurerm_automation_account`
 
@@ -285,6 +308,10 @@ Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes 
 
 The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
 
+### Resource: `azurerm_cosmosdb_mongodb_collection`
+
+The deprecated `indexes` will be removed.
+
 ### Resource: `azurerm_devspace_controller`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
@@ -323,23 +350,37 @@ The deprecated `kafka_enabled` field will be removed, since this is no longer us
 
 The deprecated `location` field will be removed, since this is no longer used.
 
+The `virtual_network_rule` and `ip_rule` fields in the `network_rulesets` block will have a hard limit of 128 items.
+
 ### Resource: `azurerm_firewall`
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
 
 ### Resource: `azurerm_frontdoor`
 
-The `forwarding_protocol` property now defaults to `HttpsOnly`
+The field `cache_enabled` within the `forwarding_configuration` block now defaults to `false` rather than `true`.
+
+The field `cache_query_parameter_strip_directive` within the `forwarding_configuration` block now defaults to `StripAll` rather than `StripNone`.
+
+The field `forwarding_protocol` within the `forwarding_configuration` block now defaults to `HttpsOnly` rather than `MatchRequest`.
+
+### Resource: `azurerm_function_app`
+
+The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
+
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is no longer used.
+
+The `site_config.virtual_network_name` field has been removed as it is no longer used
 
 ### Resource: `azurerm_iothub`
 
-The deprecated `sku.tier` property will be remove.
+The deprecated `sku.tier` property will be removed.
 
 The `sku.name` property is now case sensitive. 
 
 ### Resource: `azurerm_iothub_dps`
 
-The deprecated `sku.tier` property will be remove.
+The deprecated `sku.tier` property will be removed.
 
 The `sku.name` property is now case sensitive. 
 
@@ -360,6 +401,10 @@ The deprecated `fqdn` field in the `agent_pool_profile` block will be removed. T
 The `service_principal` will be changing from a Set to a List,  which will allow Terraform to better detect when the values have changed locally and as such can detect when this needs to be recreated.
 
 ### Resource: `azurerm_lb_backend_address_pool`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_nat_pool`
 
 The deprecated `location` field will be removed, since this is no longer used.
 
@@ -399,10 +444,13 @@ The deprecated `vault_uri` field has been replaced by the `key_vault_id` field a
 
 The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
 
-
 ### Resource: `azurerm_key_vault_secret`
 
 The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
+### Resource: `azurerm_kubernetes_cluster`
+
+The deprecated `default_node_pool.dns_prefix` field has been removed
 
 ### Resource: `azurerm_log_analytics_linked_service`
 
@@ -416,6 +464,14 @@ This resource has been renamed to `azurerm_log_analytics_linked_service` which i
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
+### Resource: `azurerm_managed_disk`
+
+The `storage_account_type` property is now case sensitive.
+
+The `create_option` property is now case sensitive.
+
+The `disk_size_gb` property minimum is now `1` instead of `0`.
+
 ### Resource: `azurerm_maps_account`
 
 The `sku_name` field is now case sensitive.
@@ -423,6 +479,14 @@ The `sku_name` field is now case sensitive.
 ### Resource: `azurerm_mariadb_server`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+### Resource: `azurerm_metric_alertrule`
+
+The `azurerm_metric_alertrule` resource will be removed since this is no longer supported by Azure.
+
+### Resource: `azurerm_monitor_metric_alertrule`
+
+The `azurerm_monitor_metric_alertrule` resource will be removed since this is no longer supported by Azure.
 
 ### Resource: `azurerm_mysql_server`
 
@@ -434,13 +498,19 @@ The deprecated `elastic_pool_properties` block will be removed. The fields insid
 
 ### Resource: `azurerm_network_interface`
 
-The `application_gateway_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.
+The deprecated field `network_security_group_id` will be removed. This has been replaced by the `azurerm_network_interface_security_group_association` resource.
 
-The `application_security_group_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_security_group_association` resource.
+The `application_gateway_backend_address_pools_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.
 
-The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_backend_address_pool_association` resource.
+The `application_security_group_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_application_security_group_association` resource.
 
-The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
+The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_backend_address_pool_association` resource.
+
+The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
+
+### Resource: `azurerm_network_interface_application_security_group_association`
+
+The field `ip_configuration_name` has been removed since the same Application Security Group must now be assigned to all (IPv4) IP Configurations.
 
 ### Resource: `azurerm_notification_hub_namespace`
 
@@ -469,6 +539,38 @@ The `sku_name` field will become Required.
 ### Resource: `azurerm_public_ip`
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
+
+### Resource `azurerm_recovery_replicated_vm`
+
+This resource was deprecated in favour of `azurerm_site_recovery_replicated_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_fabric`
+
+The resource was deprecated in favour of `azurerm_site_recovery_fabric` and has been removed.
+
+### Resource `azurerm_recovery_services_network_mapping`
+
+This resource was deprecated in favour of `azurerm_site_recovery_network_mapping` and has been removed.
+
+### Resource `azurerm_recovery_services_protected_vm`
+
+This resource was deprecated in favour of `azurerm_backup_protected_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_container`
+
+This resource was deprecated in favour of `azurerm_site_recovery_protection_container` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_container_mapping`
+
+This resource was deprecated in favour of `azurerm_site_recovery_protection_container_mapping` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_policy_vm`
+
+This resource was deprecated in favour of `azurerm_backup_policy_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_replication_policy`
+
+This resource was deprecated in favour of `azurerm_site_recovery_replication_policy` and has been removed.
 
 ### Resource: `azurerm_relay_namespace`
 
@@ -512,6 +614,8 @@ The deprecated `enable_advanced_threat_protection` field will be removed. This f
 
 The default value for the field `enable_https_traffic_only` has changed from `false` to `true`. 
 
+The default value for the field `account_kind` has changed from `Storage` to `StorageV2`. 
+
 ### Resource: `azurerm_storage_blob`
 
 The deprecated `attempts` field will be removed, since Terraform now handles retries automatically.
@@ -548,7 +652,11 @@ The `azurerm_virtual_machine` resource will be deprecated in favour of two new r
 
 Splitting the Virtual Machine resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
-The existing `azurerm_virtual_machine` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+The existing `azurerm_virtual_machine` Resource will continue to be available in its current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_virtual_machine_extension`
+
+The deprecated `virtual_machine_name`, `location`, and `resource_group_name` field will be removed in favour of `virtual_machine_id`.
 
 ### Resource: `azurerm_virtual_machine_scale_set`
 
@@ -556,7 +664,11 @@ The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of
 
 Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
-The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in its current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_virtual_network_peering`
+
+The `allow_virtual_network_access` field now defaults to true.
 
 ### Resource: `azurerm_virtual_wan`
 

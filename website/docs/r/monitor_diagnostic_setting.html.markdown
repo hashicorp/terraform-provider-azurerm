@@ -13,7 +13,7 @@ Manages a Diagnostic Setting for an existing Resource.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -21,18 +21,18 @@ resource "azurerm_resource_group" "example" {
 
 data "azurerm_storage_account" "example" {
   name                = "examplestoracc"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 data "azurerm_key_vault" "example" {
   name                = "example-vault"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name               = "example"
-  target_resource_id = "${data.azurerm_key_vault.example.id}"
-  storage_account_id = "${data.azurerm_storage_account.example.id}"
+  target_resource_id = data.azurerm_key_vault.example.id
+  storage_account_id = data.azurerm_storage_account.example.id
 
   log {
     category = "AuditEvent"
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 -> **NOTE:** At least one `log` or `metric` block must be specified.
 
-* `storage_account_id` - (Optional) With this parameter you can specify a storage account which should be used to send the logs to. Parameter must be a valid Azure Resource ID. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. Changing this forces a new resource to be created.
 
 -> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
@@ -97,9 +97,9 @@ A `log` block supports the following:
 
 * `category` - (Required) The name of a Diagnostic Log Category for this Resource.
 
--> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
+-> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) or [list of service specific schemas](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/resource-logs-schema#service-specific-schemas) to identify which categories are available for a given Resource.
 
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
 
@@ -111,7 +111,7 @@ A `metric` block supports the following:
 
 -> **NOTE:** The Metric Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
 
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `true`.
 
@@ -146,7 +146,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Diagnostic Settings can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_monitor_diagnostics.example /subscriptions/XXX/resourcegroups/resource_group/providers/microsoft.keyvault/vaults/vault|logMonitoring
+terraform import azurerm_monitor_diagnostic_setting.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vault1|logMonitoring1"
 ```
 
 -> **NOTE:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`

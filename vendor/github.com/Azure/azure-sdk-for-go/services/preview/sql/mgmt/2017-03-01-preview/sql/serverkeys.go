@@ -37,7 +37,8 @@ func NewServerKeysClient(subscriptionID string) ServerKeysClient {
 	return NewServerKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerKeysClientWithBaseURI creates an instance of the ServerKeysClient client.
+// NewServerKeysClientWithBaseURI creates an instance of the ServerKeysClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServerKeysClientWithBaseURI(baseURI string, subscriptionID string) ServerKeysClient {
 	return ServerKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -106,9 +107,8 @@ func (client ServerKeysClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerKeysClient) CreateOrUpdateSender(req *http.Request) (future ServerKeysCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -121,7 +121,6 @@ func (client ServerKeysClient) CreateOrUpdateSender(req *http.Request) (future S
 func (client ServerKeysClient) CreateOrUpdateResponder(resp *http.Response) (result ServerKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,9 +185,8 @@ func (client ServerKeysClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerKeysClient) DeleteSender(req *http.Request) (future ServerKeysDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -201,7 +199,6 @@ func (client ServerKeysClient) DeleteSender(req *http.Request) (future ServerKey
 func (client ServerKeysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +238,7 @@ func (client ServerKeysClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,8 +269,7 @@ func (client ServerKeysClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerKeysClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -280,7 +277,6 @@ func (client ServerKeysClient) GetSender(req *http.Request) (*http.Response, err
 func (client ServerKeysClient) GetResponder(resp *http.Response) (result ServerKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -321,6 +317,10 @@ func (client ServerKeysClient) ListByServer(ctx context.Context, resourceGroupNa
 	result.sklr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.sklr.hasNextLink() && result.sklr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -350,8 +350,7 @@ func (client ServerKeysClient) ListByServerPreparer(ctx context.Context, resourc
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerKeysClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always
@@ -359,7 +358,6 @@ func (client ServerKeysClient) ListByServerSender(req *http.Request) (*http.Resp
 func (client ServerKeysClient) ListByServerResponder(resp *http.Response) (result ServerKeyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -384,6 +382,7 @@ func (client ServerKeysClient) listByServerNextResults(ctx context.Context, last
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

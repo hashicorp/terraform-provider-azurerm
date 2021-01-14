@@ -36,7 +36,8 @@ func NewWorkspacesClient(subscriptionID string) WorkspacesClient {
 	return NewWorkspacesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkspacesClientWithBaseURI creates an instance of the WorkspacesClient client.
+// NewWorkspacesClientWithBaseURI creates an instance of the WorkspacesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkspacesClientWithBaseURI(baseURI string, subscriptionID string) WorkspacesClient {
 	return WorkspacesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,20 +73,10 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, parameters Wo
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomPrivateSubnetName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.EnableNoPublicIP", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.EnableNoPublicIP.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.LoadBalancerBackendPoolName", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.LoadBalancerBackendPoolName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.LoadBalancerID", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.LoadBalancerID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.RelayNamespaceName", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.RelayNamespaceName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.StorageAccountName", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.StorageAccountName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.StorageAccountSkuName", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.StorageAccountSkuName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.ResourceTags", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.ResourceTags.Value", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "parameters.WorkspaceProperties.Parameters.VnetAddressPrefix", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.VnetAddressPrefix.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.PrepareEncryption", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.PrepareEncryption.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.RequireInfrastructureEncryption", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.RequireInfrastructureEncryption.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 				}},
 				{Target: "parameters.Sku", Name: validation.Null, Rule: false,
@@ -141,9 +132,8 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, param
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future WorkspacesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -156,7 +146,6 @@ func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future W
 func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -229,9 +218,8 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) DeleteSender(req *http.Request) (future WorkspacesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -244,7 +232,6 @@ func (client WorkspacesClient) DeleteSender(req *http.Request) (future Workspace
 func (client WorkspacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -293,6 +280,7 @@ func (client WorkspacesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,8 +310,7 @@ func (client WorkspacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -331,8 +318,7 @@ func (client WorkspacesClient) GetSender(req *http.Request) (*http.Response, err
 func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -378,6 +364,10 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.wlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -406,8 +396,7 @@ func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, 
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -415,7 +404,6 @@ func (client WorkspacesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client WorkspacesClient) ListByResourceGroupResponder(resp *http.Response) (result WorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -440,6 +428,7 @@ func (client WorkspacesClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -489,6 +478,10 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context) (result W
 	result.wlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -516,8 +509,7 @@ func (client WorkspacesClient) ListBySubscriptionPreparer(ctx context.Context) (
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -525,7 +517,6 @@ func (client WorkspacesClient) ListBySubscriptionSender(req *http.Request) (*htt
 func (client WorkspacesClient) ListBySubscriptionResponder(resp *http.Response) (result WorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -550,6 +541,7 @@ func (client WorkspacesClient) listBySubscriptionNextResults(ctx context.Context
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -638,9 +630,8 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, parameters Wo
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) UpdateSender(req *http.Request) (future WorkspacesUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -653,7 +644,6 @@ func (client WorkspacesClient) UpdateSender(req *http.Request) (future Workspace
 func (client WorkspacesClient) UpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

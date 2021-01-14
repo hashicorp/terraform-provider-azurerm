@@ -32,1700 +32,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 
-// AuthenticationType enumerates the values for authentication type.
-type AuthenticationType string
-
-const (
-	// ADPassword ...
-	ADPassword AuthenticationType = "ADPassword"
-	// SQL ...
-	SQL AuthenticationType = "SQL"
-)
-
-// PossibleAuthenticationTypeValues returns an array of possible values for the AuthenticationType const type.
-func PossibleAuthenticationTypeValues() []AuthenticationType {
-	return []AuthenticationType{ADPassword, SQL}
-}
-
-// AutomaticTuningDisabledReason enumerates the values for automatic tuning disabled reason.
-type AutomaticTuningDisabledReason string
-
-const (
-	// AutoConfigured ...
-	AutoConfigured AutomaticTuningDisabledReason = "AutoConfigured"
-	// Default ...
-	Default AutomaticTuningDisabledReason = "Default"
-	// Disabled ...
-	Disabled AutomaticTuningDisabledReason = "Disabled"
-	// InheritedFromServer ...
-	InheritedFromServer AutomaticTuningDisabledReason = "InheritedFromServer"
-	// NotSupported ...
-	NotSupported AutomaticTuningDisabledReason = "NotSupported"
-	// QueryStoreOff ...
-	QueryStoreOff AutomaticTuningDisabledReason = "QueryStoreOff"
-	// QueryStoreReadOnly ...
-	QueryStoreReadOnly AutomaticTuningDisabledReason = "QueryStoreReadOnly"
-)
-
-// PossibleAutomaticTuningDisabledReasonValues returns an array of possible values for the AutomaticTuningDisabledReason const type.
-func PossibleAutomaticTuningDisabledReasonValues() []AutomaticTuningDisabledReason {
-	return []AutomaticTuningDisabledReason{AutoConfigured, Default, Disabled, InheritedFromServer, NotSupported, QueryStoreOff, QueryStoreReadOnly}
-}
-
-// AutomaticTuningMode enumerates the values for automatic tuning mode.
-type AutomaticTuningMode string
-
-const (
-	// Auto ...
-	Auto AutomaticTuningMode = "Auto"
-	// Custom ...
-	Custom AutomaticTuningMode = "Custom"
-	// Inherit ...
-	Inherit AutomaticTuningMode = "Inherit"
-	// Unspecified ...
-	Unspecified AutomaticTuningMode = "Unspecified"
-)
-
-// PossibleAutomaticTuningModeValues returns an array of possible values for the AutomaticTuningMode const type.
-func PossibleAutomaticTuningModeValues() []AutomaticTuningMode {
-	return []AutomaticTuningMode{Auto, Custom, Inherit, Unspecified}
-}
-
-// AutomaticTuningOptionModeActual enumerates the values for automatic tuning option mode actual.
-type AutomaticTuningOptionModeActual string
-
-const (
-	// Off ...
-	Off AutomaticTuningOptionModeActual = "Off"
-	// On ...
-	On AutomaticTuningOptionModeActual = "On"
-)
-
-// PossibleAutomaticTuningOptionModeActualValues returns an array of possible values for the AutomaticTuningOptionModeActual const type.
-func PossibleAutomaticTuningOptionModeActualValues() []AutomaticTuningOptionModeActual {
-	return []AutomaticTuningOptionModeActual{Off, On}
-}
-
-// AutomaticTuningOptionModeDesired enumerates the values for automatic tuning option mode desired.
-type AutomaticTuningOptionModeDesired string
-
-const (
-	// AutomaticTuningOptionModeDesiredDefault ...
-	AutomaticTuningOptionModeDesiredDefault AutomaticTuningOptionModeDesired = "Default"
-	// AutomaticTuningOptionModeDesiredOff ...
-	AutomaticTuningOptionModeDesiredOff AutomaticTuningOptionModeDesired = "Off"
-	// AutomaticTuningOptionModeDesiredOn ...
-	AutomaticTuningOptionModeDesiredOn AutomaticTuningOptionModeDesired = "On"
-)
-
-// PossibleAutomaticTuningOptionModeDesiredValues returns an array of possible values for the AutomaticTuningOptionModeDesired const type.
-func PossibleAutomaticTuningOptionModeDesiredValues() []AutomaticTuningOptionModeDesired {
-	return []AutomaticTuningOptionModeDesired{AutomaticTuningOptionModeDesiredDefault, AutomaticTuningOptionModeDesiredOff, AutomaticTuningOptionModeDesiredOn}
-}
-
-// AutomaticTuningServerMode enumerates the values for automatic tuning server mode.
-type AutomaticTuningServerMode string
-
-const (
-	// AutomaticTuningServerModeAuto ...
-	AutomaticTuningServerModeAuto AutomaticTuningServerMode = "Auto"
-	// AutomaticTuningServerModeCustom ...
-	AutomaticTuningServerModeCustom AutomaticTuningServerMode = "Custom"
-	// AutomaticTuningServerModeUnspecified ...
-	AutomaticTuningServerModeUnspecified AutomaticTuningServerMode = "Unspecified"
-)
-
-// PossibleAutomaticTuningServerModeValues returns an array of possible values for the AutomaticTuningServerMode const type.
-func PossibleAutomaticTuningServerModeValues() []AutomaticTuningServerMode {
-	return []AutomaticTuningServerMode{AutomaticTuningServerModeAuto, AutomaticTuningServerModeCustom, AutomaticTuningServerModeUnspecified}
-}
-
-// AutomaticTuningServerReason enumerates the values for automatic tuning server reason.
-type AutomaticTuningServerReason string
-
-const (
-	// AutomaticTuningServerReasonAutoConfigured ...
-	AutomaticTuningServerReasonAutoConfigured AutomaticTuningServerReason = "AutoConfigured"
-	// AutomaticTuningServerReasonDefault ...
-	AutomaticTuningServerReasonDefault AutomaticTuningServerReason = "Default"
-	// AutomaticTuningServerReasonDisabled ...
-	AutomaticTuningServerReasonDisabled AutomaticTuningServerReason = "Disabled"
-)
-
-// PossibleAutomaticTuningServerReasonValues returns an array of possible values for the AutomaticTuningServerReason const type.
-func PossibleAutomaticTuningServerReasonValues() []AutomaticTuningServerReason {
-	return []AutomaticTuningServerReason{AutomaticTuningServerReasonAutoConfigured, AutomaticTuningServerReasonDefault, AutomaticTuningServerReasonDisabled}
-}
-
-// BlobAuditingPolicyState enumerates the values for blob auditing policy state.
-type BlobAuditingPolicyState string
-
-const (
-	// BlobAuditingPolicyStateDisabled ...
-	BlobAuditingPolicyStateDisabled BlobAuditingPolicyState = "Disabled"
-	// BlobAuditingPolicyStateEnabled ...
-	BlobAuditingPolicyStateEnabled BlobAuditingPolicyState = "Enabled"
-)
-
-// PossibleBlobAuditingPolicyStateValues returns an array of possible values for the BlobAuditingPolicyState const type.
-func PossibleBlobAuditingPolicyStateValues() []BlobAuditingPolicyState {
-	return []BlobAuditingPolicyState{BlobAuditingPolicyStateDisabled, BlobAuditingPolicyStateEnabled}
-}
-
-// CapabilityGroup enumerates the values for capability group.
-type CapabilityGroup string
-
-const (
-	// SupportedEditions ...
-	SupportedEditions CapabilityGroup = "supportedEditions"
-	// SupportedElasticPoolEditions ...
-	SupportedElasticPoolEditions CapabilityGroup = "supportedElasticPoolEditions"
-	// SupportedInstancePoolEditions ...
-	SupportedInstancePoolEditions CapabilityGroup = "supportedInstancePoolEditions"
-	// SupportedManagedInstanceEditions ...
-	SupportedManagedInstanceEditions CapabilityGroup = "supportedManagedInstanceEditions"
-	// SupportedManagedInstanceVersions ...
-	SupportedManagedInstanceVersions CapabilityGroup = "supportedManagedInstanceVersions"
-)
-
-// PossibleCapabilityGroupValues returns an array of possible values for the CapabilityGroup const type.
-func PossibleCapabilityGroupValues() []CapabilityGroup {
-	return []CapabilityGroup{SupportedEditions, SupportedElasticPoolEditions, SupportedInstancePoolEditions, SupportedManagedInstanceEditions, SupportedManagedInstanceVersions}
-}
-
-// CapabilityStatus enumerates the values for capability status.
-type CapabilityStatus string
-
-const (
-	// CapabilityStatusAvailable ...
-	CapabilityStatusAvailable CapabilityStatus = "Available"
-	// CapabilityStatusDefault ...
-	CapabilityStatusDefault CapabilityStatus = "Default"
-	// CapabilityStatusDisabled ...
-	CapabilityStatusDisabled CapabilityStatus = "Disabled"
-	// CapabilityStatusVisible ...
-	CapabilityStatusVisible CapabilityStatus = "Visible"
-)
-
-// PossibleCapabilityStatusValues returns an array of possible values for the CapabilityStatus const type.
-func PossibleCapabilityStatusValues() []CapabilityStatus {
-	return []CapabilityStatus{CapabilityStatusAvailable, CapabilityStatusDefault, CapabilityStatusDisabled, CapabilityStatusVisible}
-}
-
-// CatalogCollationType enumerates the values for catalog collation type.
-type CatalogCollationType string
-
-const (
-	// DATABASEDEFAULT ...
-	DATABASEDEFAULT CatalogCollationType = "DATABASE_DEFAULT"
-	// SQLLatin1GeneralCP1CIAS ...
-	SQLLatin1GeneralCP1CIAS CatalogCollationType = "SQL_Latin1_General_CP1_CI_AS"
-)
-
-// PossibleCatalogCollationTypeValues returns an array of possible values for the CatalogCollationType const type.
-func PossibleCatalogCollationTypeValues() []CatalogCollationType {
-	return []CatalogCollationType{DATABASEDEFAULT, SQLLatin1GeneralCP1CIAS}
-}
-
-// CheckNameAvailabilityReason enumerates the values for check name availability reason.
-type CheckNameAvailabilityReason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists CheckNameAvailabilityReason = "AlreadyExists"
-	// Invalid ...
-	Invalid CheckNameAvailabilityReason = "Invalid"
-)
-
-// PossibleCheckNameAvailabilityReasonValues returns an array of possible values for the CheckNameAvailabilityReason const type.
-func PossibleCheckNameAvailabilityReasonValues() []CheckNameAvailabilityReason {
-	return []CheckNameAvailabilityReason{AlreadyExists, Invalid}
-}
-
-// CreateMode enumerates the values for create mode.
-type CreateMode string
-
-const (
-	// CreateModeCopy ...
-	CreateModeCopy CreateMode = "Copy"
-	// CreateModeDefault ...
-	CreateModeDefault CreateMode = "Default"
-	// CreateModeOnlineSecondary ...
-	CreateModeOnlineSecondary CreateMode = "OnlineSecondary"
-	// CreateModePointInTimeRestore ...
-	CreateModePointInTimeRestore CreateMode = "PointInTimeRestore"
-	// CreateModeRecovery ...
-	CreateModeRecovery CreateMode = "Recovery"
-	// CreateModeRestore ...
-	CreateModeRestore CreateMode = "Restore"
-	// CreateModeRestoreExternalBackup ...
-	CreateModeRestoreExternalBackup CreateMode = "RestoreExternalBackup"
-	// CreateModeRestoreExternalBackupSecondary ...
-	CreateModeRestoreExternalBackupSecondary CreateMode = "RestoreExternalBackupSecondary"
-	// CreateModeRestoreLongTermRetentionBackup ...
-	CreateModeRestoreLongTermRetentionBackup CreateMode = "RestoreLongTermRetentionBackup"
-	// CreateModeSecondary ...
-	CreateModeSecondary CreateMode = "Secondary"
-)
-
-// PossibleCreateModeValues returns an array of possible values for the CreateMode const type.
-func PossibleCreateModeValues() []CreateMode {
-	return []CreateMode{CreateModeCopy, CreateModeDefault, CreateModeOnlineSecondary, CreateModePointInTimeRestore, CreateModeRecovery, CreateModeRestore, CreateModeRestoreExternalBackup, CreateModeRestoreExternalBackupSecondary, CreateModeRestoreLongTermRetentionBackup, CreateModeSecondary}
-}
-
-// DatabaseEdition enumerates the values for database edition.
-type DatabaseEdition string
-
-const (
-	// Basic ...
-	Basic DatabaseEdition = "Basic"
-	// Business ...
-	Business DatabaseEdition = "Business"
-	// BusinessCritical ...
-	BusinessCritical DatabaseEdition = "BusinessCritical"
-	// DataWarehouse ...
-	DataWarehouse DatabaseEdition = "DataWarehouse"
-	// Free ...
-	Free DatabaseEdition = "Free"
-	// GeneralPurpose ...
-	GeneralPurpose DatabaseEdition = "GeneralPurpose"
-	// Hyperscale ...
-	Hyperscale DatabaseEdition = "Hyperscale"
-	// Premium ...
-	Premium DatabaseEdition = "Premium"
-	// PremiumRS ...
-	PremiumRS DatabaseEdition = "PremiumRS"
-	// Standard ...
-	Standard DatabaseEdition = "Standard"
-	// Stretch ...
-	Stretch DatabaseEdition = "Stretch"
-	// System ...
-	System DatabaseEdition = "System"
-	// System2 ...
-	System2 DatabaseEdition = "System2"
-	// Web ...
-	Web DatabaseEdition = "Web"
-)
-
-// PossibleDatabaseEditionValues returns an array of possible values for the DatabaseEdition const type.
-func PossibleDatabaseEditionValues() []DatabaseEdition {
-	return []DatabaseEdition{Basic, Business, BusinessCritical, DataWarehouse, Free, GeneralPurpose, Hyperscale, Premium, PremiumRS, Standard, Stretch, System, System2, Web}
-}
-
-// DatabaseLicenseType enumerates the values for database license type.
-type DatabaseLicenseType string
-
-const (
-	// BasePrice ...
-	BasePrice DatabaseLicenseType = "BasePrice"
-	// LicenseIncluded ...
-	LicenseIncluded DatabaseLicenseType = "LicenseIncluded"
-)
-
-// PossibleDatabaseLicenseTypeValues returns an array of possible values for the DatabaseLicenseType const type.
-func PossibleDatabaseLicenseTypeValues() []DatabaseLicenseType {
-	return []DatabaseLicenseType{BasePrice, LicenseIncluded}
-}
-
-// DatabaseReadScale enumerates the values for database read scale.
-type DatabaseReadScale string
-
-const (
-	// DatabaseReadScaleDisabled ...
-	DatabaseReadScaleDisabled DatabaseReadScale = "Disabled"
-	// DatabaseReadScaleEnabled ...
-	DatabaseReadScaleEnabled DatabaseReadScale = "Enabled"
-)
-
-// PossibleDatabaseReadScaleValues returns an array of possible values for the DatabaseReadScale const type.
-func PossibleDatabaseReadScaleValues() []DatabaseReadScale {
-	return []DatabaseReadScale{DatabaseReadScaleDisabled, DatabaseReadScaleEnabled}
-}
-
-// DatabaseStatus enumerates the values for database status.
-type DatabaseStatus string
-
-const (
-	// DatabaseStatusAutoClosed ...
-	DatabaseStatusAutoClosed DatabaseStatus = "AutoClosed"
-	// DatabaseStatusCopying ...
-	DatabaseStatusCopying DatabaseStatus = "Copying"
-	// DatabaseStatusCreating ...
-	DatabaseStatusCreating DatabaseStatus = "Creating"
-	// DatabaseStatusDisabled ...
-	DatabaseStatusDisabled DatabaseStatus = "Disabled"
-	// DatabaseStatusEmergencyMode ...
-	DatabaseStatusEmergencyMode DatabaseStatus = "EmergencyMode"
-	// DatabaseStatusInaccessible ...
-	DatabaseStatusInaccessible DatabaseStatus = "Inaccessible"
-	// DatabaseStatusOffline ...
-	DatabaseStatusOffline DatabaseStatus = "Offline"
-	// DatabaseStatusOfflineChangingDwPerformanceTiers ...
-	DatabaseStatusOfflineChangingDwPerformanceTiers DatabaseStatus = "OfflineChangingDwPerformanceTiers"
-	// DatabaseStatusOfflineSecondary ...
-	DatabaseStatusOfflineSecondary DatabaseStatus = "OfflineSecondary"
-	// DatabaseStatusOnline ...
-	DatabaseStatusOnline DatabaseStatus = "Online"
-	// DatabaseStatusOnlineChangingDwPerformanceTiers ...
-	DatabaseStatusOnlineChangingDwPerformanceTiers DatabaseStatus = "OnlineChangingDwPerformanceTiers"
-	// DatabaseStatusPaused ...
-	DatabaseStatusPaused DatabaseStatus = "Paused"
-	// DatabaseStatusPausing ...
-	DatabaseStatusPausing DatabaseStatus = "Pausing"
-	// DatabaseStatusRecovering ...
-	DatabaseStatusRecovering DatabaseStatus = "Recovering"
-	// DatabaseStatusRecoveryPending ...
-	DatabaseStatusRecoveryPending DatabaseStatus = "RecoveryPending"
-	// DatabaseStatusRestoring ...
-	DatabaseStatusRestoring DatabaseStatus = "Restoring"
-	// DatabaseStatusResuming ...
-	DatabaseStatusResuming DatabaseStatus = "Resuming"
-	// DatabaseStatusScaling ...
-	DatabaseStatusScaling DatabaseStatus = "Scaling"
-	// DatabaseStatusShutdown ...
-	DatabaseStatusShutdown DatabaseStatus = "Shutdown"
-	// DatabaseStatusStandby ...
-	DatabaseStatusStandby DatabaseStatus = "Standby"
-	// DatabaseStatusSuspect ...
-	DatabaseStatusSuspect DatabaseStatus = "Suspect"
-)
-
-// PossibleDatabaseStatusValues returns an array of possible values for the DatabaseStatus const type.
-func PossibleDatabaseStatusValues() []DatabaseStatus {
-	return []DatabaseStatus{DatabaseStatusAutoClosed, DatabaseStatusCopying, DatabaseStatusCreating, DatabaseStatusDisabled, DatabaseStatusEmergencyMode, DatabaseStatusInaccessible, DatabaseStatusOffline, DatabaseStatusOfflineChangingDwPerformanceTiers, DatabaseStatusOfflineSecondary, DatabaseStatusOnline, DatabaseStatusOnlineChangingDwPerformanceTiers, DatabaseStatusPaused, DatabaseStatusPausing, DatabaseStatusRecovering, DatabaseStatusRecoveryPending, DatabaseStatusRestoring, DatabaseStatusResuming, DatabaseStatusScaling, DatabaseStatusShutdown, DatabaseStatusStandby, DatabaseStatusSuspect}
-}
-
-// DataMaskingFunction enumerates the values for data masking function.
-type DataMaskingFunction string
-
-const (
-	// DataMaskingFunctionCCN ...
-	DataMaskingFunctionCCN DataMaskingFunction = "CCN"
-	// DataMaskingFunctionDefault ...
-	DataMaskingFunctionDefault DataMaskingFunction = "Default"
-	// DataMaskingFunctionEmail ...
-	DataMaskingFunctionEmail DataMaskingFunction = "Email"
-	// DataMaskingFunctionNumber ...
-	DataMaskingFunctionNumber DataMaskingFunction = "Number"
-	// DataMaskingFunctionSSN ...
-	DataMaskingFunctionSSN DataMaskingFunction = "SSN"
-	// DataMaskingFunctionText ...
-	DataMaskingFunctionText DataMaskingFunction = "Text"
-)
-
-// PossibleDataMaskingFunctionValues returns an array of possible values for the DataMaskingFunction const type.
-func PossibleDataMaskingFunctionValues() []DataMaskingFunction {
-	return []DataMaskingFunction{DataMaskingFunctionCCN, DataMaskingFunctionDefault, DataMaskingFunctionEmail, DataMaskingFunctionNumber, DataMaskingFunctionSSN, DataMaskingFunctionText}
-}
-
-// DataMaskingRuleState enumerates the values for data masking rule state.
-type DataMaskingRuleState string
-
-const (
-	// DataMaskingRuleStateDisabled ...
-	DataMaskingRuleStateDisabled DataMaskingRuleState = "Disabled"
-	// DataMaskingRuleStateEnabled ...
-	DataMaskingRuleStateEnabled DataMaskingRuleState = "Enabled"
-)
-
-// PossibleDataMaskingRuleStateValues returns an array of possible values for the DataMaskingRuleState const type.
-func PossibleDataMaskingRuleStateValues() []DataMaskingRuleState {
-	return []DataMaskingRuleState{DataMaskingRuleStateDisabled, DataMaskingRuleStateEnabled}
-}
-
-// DataMaskingState enumerates the values for data masking state.
-type DataMaskingState string
-
-const (
-	// DataMaskingStateDisabled ...
-	DataMaskingStateDisabled DataMaskingState = "Disabled"
-	// DataMaskingStateEnabled ...
-	DataMaskingStateEnabled DataMaskingState = "Enabled"
-)
-
-// PossibleDataMaskingStateValues returns an array of possible values for the DataMaskingState const type.
-func PossibleDataMaskingStateValues() []DataMaskingState {
-	return []DataMaskingState{DataMaskingStateDisabled, DataMaskingStateEnabled}
-}
-
-// ElasticPoolEdition enumerates the values for elastic pool edition.
-type ElasticPoolEdition string
-
-const (
-	// ElasticPoolEditionBasic ...
-	ElasticPoolEditionBasic ElasticPoolEdition = "Basic"
-	// ElasticPoolEditionBusinessCritical ...
-	ElasticPoolEditionBusinessCritical ElasticPoolEdition = "BusinessCritical"
-	// ElasticPoolEditionGeneralPurpose ...
-	ElasticPoolEditionGeneralPurpose ElasticPoolEdition = "GeneralPurpose"
-	// ElasticPoolEditionPremium ...
-	ElasticPoolEditionPremium ElasticPoolEdition = "Premium"
-	// ElasticPoolEditionStandard ...
-	ElasticPoolEditionStandard ElasticPoolEdition = "Standard"
-)
-
-// PossibleElasticPoolEditionValues returns an array of possible values for the ElasticPoolEdition const type.
-func PossibleElasticPoolEditionValues() []ElasticPoolEdition {
-	return []ElasticPoolEdition{ElasticPoolEditionBasic, ElasticPoolEditionBusinessCritical, ElasticPoolEditionGeneralPurpose, ElasticPoolEditionPremium, ElasticPoolEditionStandard}
-}
-
-// ElasticPoolLicenseType enumerates the values for elastic pool license type.
-type ElasticPoolLicenseType string
-
-const (
-	// ElasticPoolLicenseTypeBasePrice ...
-	ElasticPoolLicenseTypeBasePrice ElasticPoolLicenseType = "BasePrice"
-	// ElasticPoolLicenseTypeLicenseIncluded ...
-	ElasticPoolLicenseTypeLicenseIncluded ElasticPoolLicenseType = "LicenseIncluded"
-)
-
-// PossibleElasticPoolLicenseTypeValues returns an array of possible values for the ElasticPoolLicenseType const type.
-func PossibleElasticPoolLicenseTypeValues() []ElasticPoolLicenseType {
-	return []ElasticPoolLicenseType{ElasticPoolLicenseTypeBasePrice, ElasticPoolLicenseTypeLicenseIncluded}
-}
-
-// ElasticPoolState enumerates the values for elastic pool state.
-type ElasticPoolState string
-
-const (
-	// ElasticPoolStateCreating ...
-	ElasticPoolStateCreating ElasticPoolState = "Creating"
-	// ElasticPoolStateDisabled ...
-	ElasticPoolStateDisabled ElasticPoolState = "Disabled"
-	// ElasticPoolStateReady ...
-	ElasticPoolStateReady ElasticPoolState = "Ready"
-)
-
-// PossibleElasticPoolStateValues returns an array of possible values for the ElasticPoolState const type.
-func PossibleElasticPoolStateValues() []ElasticPoolState {
-	return []ElasticPoolState{ElasticPoolStateCreating, ElasticPoolStateDisabled, ElasticPoolStateReady}
-}
-
-// FailoverGroupReplicationRole enumerates the values for failover group replication role.
-type FailoverGroupReplicationRole string
-
-const (
-	// Primary ...
-	Primary FailoverGroupReplicationRole = "Primary"
-	// Secondary ...
-	Secondary FailoverGroupReplicationRole = "Secondary"
-)
-
-// PossibleFailoverGroupReplicationRoleValues returns an array of possible values for the FailoverGroupReplicationRole const type.
-func PossibleFailoverGroupReplicationRoleValues() []FailoverGroupReplicationRole {
-	return []FailoverGroupReplicationRole{Primary, Secondary}
-}
-
-// GeoBackupPolicyState enumerates the values for geo backup policy state.
-type GeoBackupPolicyState string
-
-const (
-	// GeoBackupPolicyStateDisabled ...
-	GeoBackupPolicyStateDisabled GeoBackupPolicyState = "Disabled"
-	// GeoBackupPolicyStateEnabled ...
-	GeoBackupPolicyStateEnabled GeoBackupPolicyState = "Enabled"
-)
-
-// PossibleGeoBackupPolicyStateValues returns an array of possible values for the GeoBackupPolicyState const type.
-func PossibleGeoBackupPolicyStateValues() []GeoBackupPolicyState {
-	return []GeoBackupPolicyState{GeoBackupPolicyStateDisabled, GeoBackupPolicyStateEnabled}
-}
-
-// IdentityType enumerates the values for identity type.
-type IdentityType string
-
-const (
-	// SystemAssigned ...
-	SystemAssigned IdentityType = "SystemAssigned"
-)
-
-// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
-func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{SystemAssigned}
-}
-
-// InstanceFailoverGroupReplicationRole enumerates the values for instance failover group replication role.
-type InstanceFailoverGroupReplicationRole string
-
-const (
-	// InstanceFailoverGroupReplicationRolePrimary ...
-	InstanceFailoverGroupReplicationRolePrimary InstanceFailoverGroupReplicationRole = "Primary"
-	// InstanceFailoverGroupReplicationRoleSecondary ...
-	InstanceFailoverGroupReplicationRoleSecondary InstanceFailoverGroupReplicationRole = "Secondary"
-)
-
-// PossibleInstanceFailoverGroupReplicationRoleValues returns an array of possible values for the InstanceFailoverGroupReplicationRole const type.
-func PossibleInstanceFailoverGroupReplicationRoleValues() []InstanceFailoverGroupReplicationRole {
-	return []InstanceFailoverGroupReplicationRole{InstanceFailoverGroupReplicationRolePrimary, InstanceFailoverGroupReplicationRoleSecondary}
-}
-
-// InstancePoolLicenseType enumerates the values for instance pool license type.
-type InstancePoolLicenseType string
-
-const (
-	// InstancePoolLicenseTypeBasePrice ...
-	InstancePoolLicenseTypeBasePrice InstancePoolLicenseType = "BasePrice"
-	// InstancePoolLicenseTypeLicenseIncluded ...
-	InstancePoolLicenseTypeLicenseIncluded InstancePoolLicenseType = "LicenseIncluded"
-)
-
-// PossibleInstancePoolLicenseTypeValues returns an array of possible values for the InstancePoolLicenseType const type.
-func PossibleInstancePoolLicenseTypeValues() []InstancePoolLicenseType {
-	return []InstancePoolLicenseType{InstancePoolLicenseTypeBasePrice, InstancePoolLicenseTypeLicenseIncluded}
-}
-
-// JobAgentState enumerates the values for job agent state.
-type JobAgentState string
-
-const (
-	// JobAgentStateCreating ...
-	JobAgentStateCreating JobAgentState = "Creating"
-	// JobAgentStateDeleting ...
-	JobAgentStateDeleting JobAgentState = "Deleting"
-	// JobAgentStateDisabled ...
-	JobAgentStateDisabled JobAgentState = "Disabled"
-	// JobAgentStateReady ...
-	JobAgentStateReady JobAgentState = "Ready"
-	// JobAgentStateUpdating ...
-	JobAgentStateUpdating JobAgentState = "Updating"
-)
-
-// PossibleJobAgentStateValues returns an array of possible values for the JobAgentState const type.
-func PossibleJobAgentStateValues() []JobAgentState {
-	return []JobAgentState{JobAgentStateCreating, JobAgentStateDeleting, JobAgentStateDisabled, JobAgentStateReady, JobAgentStateUpdating}
-}
-
-// JobExecutionLifecycle enumerates the values for job execution lifecycle.
-type JobExecutionLifecycle string
-
-const (
-	// Canceled ...
-	Canceled JobExecutionLifecycle = "Canceled"
-	// Created ...
-	Created JobExecutionLifecycle = "Created"
-	// Failed ...
-	Failed JobExecutionLifecycle = "Failed"
-	// InProgress ...
-	InProgress JobExecutionLifecycle = "InProgress"
-	// Skipped ...
-	Skipped JobExecutionLifecycle = "Skipped"
-	// Succeeded ...
-	Succeeded JobExecutionLifecycle = "Succeeded"
-	// SucceededWithSkipped ...
-	SucceededWithSkipped JobExecutionLifecycle = "SucceededWithSkipped"
-	// TimedOut ...
-	TimedOut JobExecutionLifecycle = "TimedOut"
-	// WaitingForChildJobExecutions ...
-	WaitingForChildJobExecutions JobExecutionLifecycle = "WaitingForChildJobExecutions"
-	// WaitingForRetry ...
-	WaitingForRetry JobExecutionLifecycle = "WaitingForRetry"
-)
-
-// PossibleJobExecutionLifecycleValues returns an array of possible values for the JobExecutionLifecycle const type.
-func PossibleJobExecutionLifecycleValues() []JobExecutionLifecycle {
-	return []JobExecutionLifecycle{Canceled, Created, Failed, InProgress, Skipped, Succeeded, SucceededWithSkipped, TimedOut, WaitingForChildJobExecutions, WaitingForRetry}
-}
-
-// JobScheduleType enumerates the values for job schedule type.
-type JobScheduleType string
-
-const (
-	// Once ...
-	Once JobScheduleType = "Once"
-	// Recurring ...
-	Recurring JobScheduleType = "Recurring"
-)
-
-// PossibleJobScheduleTypeValues returns an array of possible values for the JobScheduleType const type.
-func PossibleJobScheduleTypeValues() []JobScheduleType {
-	return []JobScheduleType{Once, Recurring}
-}
-
-// JobStepActionSource enumerates the values for job step action source.
-type JobStepActionSource string
-
-const (
-	// Inline ...
-	Inline JobStepActionSource = "Inline"
-)
-
-// PossibleJobStepActionSourceValues returns an array of possible values for the JobStepActionSource const type.
-func PossibleJobStepActionSourceValues() []JobStepActionSource {
-	return []JobStepActionSource{Inline}
-}
-
-// JobStepActionType enumerates the values for job step action type.
-type JobStepActionType string
-
-const (
-	// TSQL ...
-	TSQL JobStepActionType = "TSql"
-)
-
-// PossibleJobStepActionTypeValues returns an array of possible values for the JobStepActionType const type.
-func PossibleJobStepActionTypeValues() []JobStepActionType {
-	return []JobStepActionType{TSQL}
-}
-
-// JobStepOutputType enumerates the values for job step output type.
-type JobStepOutputType string
-
-const (
-	// SQLDatabase ...
-	SQLDatabase JobStepOutputType = "SqlDatabase"
-)
-
-// PossibleJobStepOutputTypeValues returns an array of possible values for the JobStepOutputType const type.
-func PossibleJobStepOutputTypeValues() []JobStepOutputType {
-	return []JobStepOutputType{SQLDatabase}
-}
-
-// JobTargetGroupMembershipType enumerates the values for job target group membership type.
-type JobTargetGroupMembershipType string
-
-const (
-	// Exclude ...
-	Exclude JobTargetGroupMembershipType = "Exclude"
-	// Include ...
-	Include JobTargetGroupMembershipType = "Include"
-)
-
-// PossibleJobTargetGroupMembershipTypeValues returns an array of possible values for the JobTargetGroupMembershipType const type.
-func PossibleJobTargetGroupMembershipTypeValues() []JobTargetGroupMembershipType {
-	return []JobTargetGroupMembershipType{Exclude, Include}
-}
-
-// JobTargetType enumerates the values for job target type.
-type JobTargetType string
-
-const (
-	// JobTargetTypeSQLDatabase ...
-	JobTargetTypeSQLDatabase JobTargetType = "SqlDatabase"
-	// JobTargetTypeSQLElasticPool ...
-	JobTargetTypeSQLElasticPool JobTargetType = "SqlElasticPool"
-	// JobTargetTypeSQLServer ...
-	JobTargetTypeSQLServer JobTargetType = "SqlServer"
-	// JobTargetTypeSQLShardMap ...
-	JobTargetTypeSQLShardMap JobTargetType = "SqlShardMap"
-	// JobTargetTypeTargetGroup ...
-	JobTargetTypeTargetGroup JobTargetType = "TargetGroup"
-)
-
-// PossibleJobTargetTypeValues returns an array of possible values for the JobTargetType const type.
-func PossibleJobTargetTypeValues() []JobTargetType {
-	return []JobTargetType{JobTargetTypeSQLDatabase, JobTargetTypeSQLElasticPool, JobTargetTypeSQLServer, JobTargetTypeSQLShardMap, JobTargetTypeTargetGroup}
-}
-
-// LogSizeUnit enumerates the values for log size unit.
-type LogSizeUnit string
-
-const (
-	// Gigabytes ...
-	Gigabytes LogSizeUnit = "Gigabytes"
-	// Megabytes ...
-	Megabytes LogSizeUnit = "Megabytes"
-	// Percent ...
-	Percent LogSizeUnit = "Percent"
-	// Petabytes ...
-	Petabytes LogSizeUnit = "Petabytes"
-	// Terabytes ...
-	Terabytes LogSizeUnit = "Terabytes"
-)
-
-// PossibleLogSizeUnitValues returns an array of possible values for the LogSizeUnit const type.
-func PossibleLogSizeUnitValues() []LogSizeUnit {
-	return []LogSizeUnit{Gigabytes, Megabytes, Percent, Petabytes, Terabytes}
-}
-
-// LongTermRetentionDatabaseState enumerates the values for long term retention database state.
-type LongTermRetentionDatabaseState string
-
-const (
-	// All ...
-	All LongTermRetentionDatabaseState = "All"
-	// Deleted ...
-	Deleted LongTermRetentionDatabaseState = "Deleted"
-	// Live ...
-	Live LongTermRetentionDatabaseState = "Live"
-)
-
-// PossibleLongTermRetentionDatabaseStateValues returns an array of possible values for the LongTermRetentionDatabaseState const type.
-func PossibleLongTermRetentionDatabaseStateValues() []LongTermRetentionDatabaseState {
-	return []LongTermRetentionDatabaseState{All, Deleted, Live}
-}
-
-// ManagedDatabaseCreateMode enumerates the values for managed database create mode.
-type ManagedDatabaseCreateMode string
-
-const (
-	// ManagedDatabaseCreateModeDefault ...
-	ManagedDatabaseCreateModeDefault ManagedDatabaseCreateMode = "Default"
-	// ManagedDatabaseCreateModePointInTimeRestore ...
-	ManagedDatabaseCreateModePointInTimeRestore ManagedDatabaseCreateMode = "PointInTimeRestore"
-	// ManagedDatabaseCreateModeRecovery ...
-	ManagedDatabaseCreateModeRecovery ManagedDatabaseCreateMode = "Recovery"
-	// ManagedDatabaseCreateModeRestoreExternalBackup ...
-	ManagedDatabaseCreateModeRestoreExternalBackup ManagedDatabaseCreateMode = "RestoreExternalBackup"
-)
-
-// PossibleManagedDatabaseCreateModeValues returns an array of possible values for the ManagedDatabaseCreateMode const type.
-func PossibleManagedDatabaseCreateModeValues() []ManagedDatabaseCreateMode {
-	return []ManagedDatabaseCreateMode{ManagedDatabaseCreateModeDefault, ManagedDatabaseCreateModePointInTimeRestore, ManagedDatabaseCreateModeRecovery, ManagedDatabaseCreateModeRestoreExternalBackup}
-}
-
-// ManagedDatabaseStatus enumerates the values for managed database status.
-type ManagedDatabaseStatus string
-
-const (
-	// Creating ...
-	Creating ManagedDatabaseStatus = "Creating"
-	// Inaccessible ...
-	Inaccessible ManagedDatabaseStatus = "Inaccessible"
-	// Offline ...
-	Offline ManagedDatabaseStatus = "Offline"
-	// Online ...
-	Online ManagedDatabaseStatus = "Online"
-	// Restoring ...
-	Restoring ManagedDatabaseStatus = "Restoring"
-	// Shutdown ...
-	Shutdown ManagedDatabaseStatus = "Shutdown"
-	// Updating ...
-	Updating ManagedDatabaseStatus = "Updating"
-)
-
-// PossibleManagedDatabaseStatusValues returns an array of possible values for the ManagedDatabaseStatus const type.
-func PossibleManagedDatabaseStatusValues() []ManagedDatabaseStatus {
-	return []ManagedDatabaseStatus{Creating, Inaccessible, Offline, Online, Restoring, Shutdown, Updating}
-}
-
-// ManagedInstanceLicenseType enumerates the values for managed instance license type.
-type ManagedInstanceLicenseType string
-
-const (
-	// ManagedInstanceLicenseTypeBasePrice ...
-	ManagedInstanceLicenseTypeBasePrice ManagedInstanceLicenseType = "BasePrice"
-	// ManagedInstanceLicenseTypeLicenseIncluded ...
-	ManagedInstanceLicenseTypeLicenseIncluded ManagedInstanceLicenseType = "LicenseIncluded"
-)
-
-// PossibleManagedInstanceLicenseTypeValues returns an array of possible values for the ManagedInstanceLicenseType const type.
-func PossibleManagedInstanceLicenseTypeValues() []ManagedInstanceLicenseType {
-	return []ManagedInstanceLicenseType{ManagedInstanceLicenseTypeBasePrice, ManagedInstanceLicenseTypeLicenseIncluded}
-}
-
-// ManagedInstanceProxyOverride enumerates the values for managed instance proxy override.
-type ManagedInstanceProxyOverride string
-
-const (
-	// ManagedInstanceProxyOverrideDefault ...
-	ManagedInstanceProxyOverrideDefault ManagedInstanceProxyOverride = "Default"
-	// ManagedInstanceProxyOverrideProxy ...
-	ManagedInstanceProxyOverrideProxy ManagedInstanceProxyOverride = "Proxy"
-	// ManagedInstanceProxyOverrideRedirect ...
-	ManagedInstanceProxyOverrideRedirect ManagedInstanceProxyOverride = "Redirect"
-)
-
-// PossibleManagedInstanceProxyOverrideValues returns an array of possible values for the ManagedInstanceProxyOverride const type.
-func PossibleManagedInstanceProxyOverrideValues() []ManagedInstanceProxyOverride {
-	return []ManagedInstanceProxyOverride{ManagedInstanceProxyOverrideDefault, ManagedInstanceProxyOverrideProxy, ManagedInstanceProxyOverrideRedirect}
-}
-
-// ManagedServerCreateMode enumerates the values for managed server create mode.
-type ManagedServerCreateMode string
-
-const (
-	// ManagedServerCreateModeDefault ...
-	ManagedServerCreateModeDefault ManagedServerCreateMode = "Default"
-	// ManagedServerCreateModePointInTimeRestore ...
-	ManagedServerCreateModePointInTimeRestore ManagedServerCreateMode = "PointInTimeRestore"
-)
-
-// PossibleManagedServerCreateModeValues returns an array of possible values for the ManagedServerCreateMode const type.
-func PossibleManagedServerCreateModeValues() []ManagedServerCreateMode {
-	return []ManagedServerCreateMode{ManagedServerCreateModeDefault, ManagedServerCreateModePointInTimeRestore}
-}
-
-// ManagementOperationState enumerates the values for management operation state.
-type ManagementOperationState string
-
-const (
-	// ManagementOperationStateCancelInProgress ...
-	ManagementOperationStateCancelInProgress ManagementOperationState = "CancelInProgress"
-	// ManagementOperationStateCancelled ...
-	ManagementOperationStateCancelled ManagementOperationState = "Cancelled"
-	// ManagementOperationStateFailed ...
-	ManagementOperationStateFailed ManagementOperationState = "Failed"
-	// ManagementOperationStateInProgress ...
-	ManagementOperationStateInProgress ManagementOperationState = "InProgress"
-	// ManagementOperationStatePending ...
-	ManagementOperationStatePending ManagementOperationState = "Pending"
-	// ManagementOperationStateSucceeded ...
-	ManagementOperationStateSucceeded ManagementOperationState = "Succeeded"
-)
-
-// PossibleManagementOperationStateValues returns an array of possible values for the ManagementOperationState const type.
-func PossibleManagementOperationStateValues() []ManagementOperationState {
-	return []ManagementOperationState{ManagementOperationStateCancelInProgress, ManagementOperationStateCancelled, ManagementOperationStateFailed, ManagementOperationStateInProgress, ManagementOperationStatePending, ManagementOperationStateSucceeded}
-}
-
-// MaxSizeUnit enumerates the values for max size unit.
-type MaxSizeUnit string
-
-const (
-	// MaxSizeUnitGigabytes ...
-	MaxSizeUnitGigabytes MaxSizeUnit = "Gigabytes"
-	// MaxSizeUnitMegabytes ...
-	MaxSizeUnitMegabytes MaxSizeUnit = "Megabytes"
-	// MaxSizeUnitPetabytes ...
-	MaxSizeUnitPetabytes MaxSizeUnit = "Petabytes"
-	// MaxSizeUnitTerabytes ...
-	MaxSizeUnitTerabytes MaxSizeUnit = "Terabytes"
-)
-
-// PossibleMaxSizeUnitValues returns an array of possible values for the MaxSizeUnit const type.
-func PossibleMaxSizeUnitValues() []MaxSizeUnit {
-	return []MaxSizeUnit{MaxSizeUnitGigabytes, MaxSizeUnitMegabytes, MaxSizeUnitPetabytes, MaxSizeUnitTerabytes}
-}
-
-// OperationOrigin enumerates the values for operation origin.
-type OperationOrigin string
-
-const (
-	// OperationOriginSystem ...
-	OperationOriginSystem OperationOrigin = "system"
-	// OperationOriginUser ...
-	OperationOriginUser OperationOrigin = "user"
-)
-
-// PossibleOperationOriginValues returns an array of possible values for the OperationOrigin const type.
-func PossibleOperationOriginValues() []OperationOrigin {
-	return []OperationOrigin{OperationOriginSystem, OperationOriginUser}
-}
-
-// PauseDelayTimeUnit enumerates the values for pause delay time unit.
-type PauseDelayTimeUnit string
-
-const (
-	// Minutes ...
-	Minutes PauseDelayTimeUnit = "Minutes"
-)
-
-// PossiblePauseDelayTimeUnitValues returns an array of possible values for the PauseDelayTimeUnit const type.
-func PossiblePauseDelayTimeUnitValues() []PauseDelayTimeUnit {
-	return []PauseDelayTimeUnit{Minutes}
-}
-
-// PerformanceLevelUnit enumerates the values for performance level unit.
-type PerformanceLevelUnit string
-
-const (
-	// DTU ...
-	DTU PerformanceLevelUnit = "DTU"
-	// VCores ...
-	VCores PerformanceLevelUnit = "VCores"
-)
-
-// PossiblePerformanceLevelUnitValues returns an array of possible values for the PerformanceLevelUnit const type.
-func PossiblePerformanceLevelUnitValues() []PerformanceLevelUnit {
-	return []PerformanceLevelUnit{DTU, VCores}
-}
-
-// PrimaryAggregationType enumerates the values for primary aggregation type.
-type PrimaryAggregationType string
-
-const (
-	// Average ...
-	Average PrimaryAggregationType = "Average"
-	// Count ...
-	Count PrimaryAggregationType = "Count"
-	// Maximum ...
-	Maximum PrimaryAggregationType = "Maximum"
-	// Minimum ...
-	Minimum PrimaryAggregationType = "Minimum"
-	// None ...
-	None PrimaryAggregationType = "None"
-	// Total ...
-	Total PrimaryAggregationType = "Total"
-)
-
-// PossiblePrimaryAggregationTypeValues returns an array of possible values for the PrimaryAggregationType const type.
-func PossiblePrimaryAggregationTypeValues() []PrimaryAggregationType {
-	return []PrimaryAggregationType{Average, Count, Maximum, Minimum, None, Total}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// ProvisioningStateCanceled ...
-	ProvisioningStateCanceled ProvisioningState = "Canceled"
-	// ProvisioningStateCreated ...
-	ProvisioningStateCreated ProvisioningState = "Created"
-	// ProvisioningStateFailed ...
-	ProvisioningStateFailed ProvisioningState = "Failed"
-	// ProvisioningStateInProgress ...
-	ProvisioningStateInProgress ProvisioningState = "InProgress"
-	// ProvisioningStateSucceeded ...
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{ProvisioningStateCanceled, ProvisioningStateCreated, ProvisioningStateFailed, ProvisioningStateInProgress, ProvisioningStateSucceeded}
-}
-
-// ReadOnlyEndpointFailoverPolicy enumerates the values for read only endpoint failover policy.
-type ReadOnlyEndpointFailoverPolicy string
-
-const (
-	// ReadOnlyEndpointFailoverPolicyDisabled ...
-	ReadOnlyEndpointFailoverPolicyDisabled ReadOnlyEndpointFailoverPolicy = "Disabled"
-	// ReadOnlyEndpointFailoverPolicyEnabled ...
-	ReadOnlyEndpointFailoverPolicyEnabled ReadOnlyEndpointFailoverPolicy = "Enabled"
-)
-
-// PossibleReadOnlyEndpointFailoverPolicyValues returns an array of possible values for the ReadOnlyEndpointFailoverPolicy const type.
-func PossibleReadOnlyEndpointFailoverPolicyValues() []ReadOnlyEndpointFailoverPolicy {
-	return []ReadOnlyEndpointFailoverPolicy{ReadOnlyEndpointFailoverPolicyDisabled, ReadOnlyEndpointFailoverPolicyEnabled}
-}
-
-// ReadWriteEndpointFailoverPolicy enumerates the values for read write endpoint failover policy.
-type ReadWriteEndpointFailoverPolicy string
-
-const (
-	// Automatic ...
-	Automatic ReadWriteEndpointFailoverPolicy = "Automatic"
-	// Manual ...
-	Manual ReadWriteEndpointFailoverPolicy = "Manual"
-)
-
-// PossibleReadWriteEndpointFailoverPolicyValues returns an array of possible values for the ReadWriteEndpointFailoverPolicy const type.
-func PossibleReadWriteEndpointFailoverPolicyValues() []ReadWriteEndpointFailoverPolicy {
-	return []ReadWriteEndpointFailoverPolicy{Automatic, Manual}
-}
-
-// RecommendedIndexAction enumerates the values for recommended index action.
-type RecommendedIndexAction string
-
-const (
-	// Create ...
-	Create RecommendedIndexAction = "Create"
-	// Drop ...
-	Drop RecommendedIndexAction = "Drop"
-	// Rebuild ...
-	Rebuild RecommendedIndexAction = "Rebuild"
-)
-
-// PossibleRecommendedIndexActionValues returns an array of possible values for the RecommendedIndexAction const type.
-func PossibleRecommendedIndexActionValues() []RecommendedIndexAction {
-	return []RecommendedIndexAction{Create, Drop, Rebuild}
-}
-
-// RecommendedIndexState enumerates the values for recommended index state.
-type RecommendedIndexState string
-
-const (
-	// Active ...
-	Active RecommendedIndexState = "Active"
-	// Blocked ...
-	Blocked RecommendedIndexState = "Blocked"
-	// Executing ...
-	Executing RecommendedIndexState = "Executing"
-	// Expired ...
-	Expired RecommendedIndexState = "Expired"
-	// Ignored ...
-	Ignored RecommendedIndexState = "Ignored"
-	// Pending ...
-	Pending RecommendedIndexState = "Pending"
-	// PendingRevert ...
-	PendingRevert RecommendedIndexState = "Pending Revert"
-	// Reverted ...
-	Reverted RecommendedIndexState = "Reverted"
-	// Reverting ...
-	Reverting RecommendedIndexState = "Reverting"
-	// Success ...
-	Success RecommendedIndexState = "Success"
-	// Verifying ...
-	Verifying RecommendedIndexState = "Verifying"
-)
-
-// PossibleRecommendedIndexStateValues returns an array of possible values for the RecommendedIndexState const type.
-func PossibleRecommendedIndexStateValues() []RecommendedIndexState {
-	return []RecommendedIndexState{Active, Blocked, Executing, Expired, Ignored, Pending, PendingRevert, Reverted, Reverting, Success, Verifying}
-}
-
-// RecommendedIndexType enumerates the values for recommended index type.
-type RecommendedIndexType string
-
-const (
-	// CLUSTERED ...
-	CLUSTERED RecommendedIndexType = "CLUSTERED"
-	// CLUSTEREDCOLUMNSTORE ...
-	CLUSTEREDCOLUMNSTORE RecommendedIndexType = "CLUSTERED COLUMNSTORE"
-	// COLUMNSTORE ...
-	COLUMNSTORE RecommendedIndexType = "COLUMNSTORE"
-	// NONCLUSTERED ...
-	NONCLUSTERED RecommendedIndexType = "NONCLUSTERED"
-)
-
-// PossibleRecommendedIndexTypeValues returns an array of possible values for the RecommendedIndexType const type.
-func PossibleRecommendedIndexTypeValues() []RecommendedIndexType {
-	return []RecommendedIndexType{CLUSTERED, CLUSTEREDCOLUMNSTORE, COLUMNSTORE, NONCLUSTERED}
-}
-
-// ReplicationRole enumerates the values for replication role.
-type ReplicationRole string
-
-const (
-	// ReplicationRoleCopy ...
-	ReplicationRoleCopy ReplicationRole = "Copy"
-	// ReplicationRoleNonReadableSecondary ...
-	ReplicationRoleNonReadableSecondary ReplicationRole = "NonReadableSecondary"
-	// ReplicationRolePrimary ...
-	ReplicationRolePrimary ReplicationRole = "Primary"
-	// ReplicationRoleSecondary ...
-	ReplicationRoleSecondary ReplicationRole = "Secondary"
-	// ReplicationRoleSource ...
-	ReplicationRoleSource ReplicationRole = "Source"
-)
-
-// PossibleReplicationRoleValues returns an array of possible values for the ReplicationRole const type.
-func PossibleReplicationRoleValues() []ReplicationRole {
-	return []ReplicationRole{ReplicationRoleCopy, ReplicationRoleNonReadableSecondary, ReplicationRolePrimary, ReplicationRoleSecondary, ReplicationRoleSource}
-}
-
-// ReplicationState enumerates the values for replication state.
-type ReplicationState string
-
-const (
-	// CATCHUP ...
-	CATCHUP ReplicationState = "CATCH_UP"
-	// PENDING ...
-	PENDING ReplicationState = "PENDING"
-	// SEEDING ...
-	SEEDING ReplicationState = "SEEDING"
-	// SUSPENDED ...
-	SUSPENDED ReplicationState = "SUSPENDED"
-)
-
-// PossibleReplicationStateValues returns an array of possible values for the ReplicationState const type.
-func PossibleReplicationStateValues() []ReplicationState {
-	return []ReplicationState{CATCHUP, PENDING, SEEDING, SUSPENDED}
-}
-
-// ReplicaType enumerates the values for replica type.
-type ReplicaType string
-
-const (
-	// ReplicaTypePrimary ...
-	ReplicaTypePrimary ReplicaType = "Primary"
-	// ReplicaTypeReadableSecondary ...
-	ReplicaTypeReadableSecondary ReplicaType = "ReadableSecondary"
-)
-
-// PossibleReplicaTypeValues returns an array of possible values for the ReplicaType const type.
-func PossibleReplicaTypeValues() []ReplicaType {
-	return []ReplicaType{ReplicaTypePrimary, ReplicaTypeReadableSecondary}
-}
-
-// RestorePointType enumerates the values for restore point type.
-type RestorePointType string
-
-const (
-	// CONTINUOUS ...
-	CONTINUOUS RestorePointType = "CONTINUOUS"
-	// DISCRETE ...
-	DISCRETE RestorePointType = "DISCRETE"
-)
-
-// PossibleRestorePointTypeValues returns an array of possible values for the RestorePointType const type.
-func PossibleRestorePointTypeValues() []RestorePointType {
-	return []RestorePointType{CONTINUOUS, DISCRETE}
-}
-
-// SampleName enumerates the values for sample name.
-type SampleName string
-
-const (
-	// AdventureWorksLT ...
-	AdventureWorksLT SampleName = "AdventureWorksLT"
-	// WideWorldImportersFull ...
-	WideWorldImportersFull SampleName = "WideWorldImportersFull"
-	// WideWorldImportersStd ...
-	WideWorldImportersStd SampleName = "WideWorldImportersStd"
-)
-
-// PossibleSampleNameValues returns an array of possible values for the SampleName const type.
-func PossibleSampleNameValues() []SampleName {
-	return []SampleName{AdventureWorksLT, WideWorldImportersFull, WideWorldImportersStd}
-}
-
-// SecurityAlertPolicyEmailAccountAdmins enumerates the values for security alert policy email account admins.
-type SecurityAlertPolicyEmailAccountAdmins string
-
-const (
-	// SecurityAlertPolicyEmailAccountAdminsDisabled ...
-	SecurityAlertPolicyEmailAccountAdminsDisabled SecurityAlertPolicyEmailAccountAdmins = "Disabled"
-	// SecurityAlertPolicyEmailAccountAdminsEnabled ...
-	SecurityAlertPolicyEmailAccountAdminsEnabled SecurityAlertPolicyEmailAccountAdmins = "Enabled"
-)
-
-// PossibleSecurityAlertPolicyEmailAccountAdminsValues returns an array of possible values for the SecurityAlertPolicyEmailAccountAdmins const type.
-func PossibleSecurityAlertPolicyEmailAccountAdminsValues() []SecurityAlertPolicyEmailAccountAdmins {
-	return []SecurityAlertPolicyEmailAccountAdmins{SecurityAlertPolicyEmailAccountAdminsDisabled, SecurityAlertPolicyEmailAccountAdminsEnabled}
-}
-
-// SecurityAlertPolicyState enumerates the values for security alert policy state.
-type SecurityAlertPolicyState string
-
-const (
-	// SecurityAlertPolicyStateDisabled ...
-	SecurityAlertPolicyStateDisabled SecurityAlertPolicyState = "Disabled"
-	// SecurityAlertPolicyStateEnabled ...
-	SecurityAlertPolicyStateEnabled SecurityAlertPolicyState = "Enabled"
-	// SecurityAlertPolicyStateNew ...
-	SecurityAlertPolicyStateNew SecurityAlertPolicyState = "New"
-)
-
-// PossibleSecurityAlertPolicyStateValues returns an array of possible values for the SecurityAlertPolicyState const type.
-func PossibleSecurityAlertPolicyStateValues() []SecurityAlertPolicyState {
-	return []SecurityAlertPolicyState{SecurityAlertPolicyStateDisabled, SecurityAlertPolicyStateEnabled, SecurityAlertPolicyStateNew}
-}
-
-// SecurityAlertPolicyUseServerDefault enumerates the values for security alert policy use server default.
-type SecurityAlertPolicyUseServerDefault string
-
-const (
-	// SecurityAlertPolicyUseServerDefaultDisabled ...
-	SecurityAlertPolicyUseServerDefaultDisabled SecurityAlertPolicyUseServerDefault = "Disabled"
-	// SecurityAlertPolicyUseServerDefaultEnabled ...
-	SecurityAlertPolicyUseServerDefaultEnabled SecurityAlertPolicyUseServerDefault = "Enabled"
-)
-
-// PossibleSecurityAlertPolicyUseServerDefaultValues returns an array of possible values for the SecurityAlertPolicyUseServerDefault const type.
-func PossibleSecurityAlertPolicyUseServerDefaultValues() []SecurityAlertPolicyUseServerDefault {
-	return []SecurityAlertPolicyUseServerDefault{SecurityAlertPolicyUseServerDefaultDisabled, SecurityAlertPolicyUseServerDefaultEnabled}
-}
-
-// SensitivityLabelSource enumerates the values for sensitivity label source.
-type SensitivityLabelSource string
-
-const (
-	// Current ...
-	Current SensitivityLabelSource = "current"
-	// Recommended ...
-	Recommended SensitivityLabelSource = "recommended"
-)
-
-// PossibleSensitivityLabelSourceValues returns an array of possible values for the SensitivityLabelSource const type.
-func PossibleSensitivityLabelSourceValues() []SensitivityLabelSource {
-	return []SensitivityLabelSource{Current, Recommended}
-}
-
-// ServerConnectionType enumerates the values for server connection type.
-type ServerConnectionType string
-
-const (
-	// ServerConnectionTypeDefault ...
-	ServerConnectionTypeDefault ServerConnectionType = "Default"
-	// ServerConnectionTypeProxy ...
-	ServerConnectionTypeProxy ServerConnectionType = "Proxy"
-	// ServerConnectionTypeRedirect ...
-	ServerConnectionTypeRedirect ServerConnectionType = "Redirect"
-)
-
-// PossibleServerConnectionTypeValues returns an array of possible values for the ServerConnectionType const type.
-func PossibleServerConnectionTypeValues() []ServerConnectionType {
-	return []ServerConnectionType{ServerConnectionTypeDefault, ServerConnectionTypeProxy, ServerConnectionTypeRedirect}
-}
-
-// ServerKeyType enumerates the values for server key type.
-type ServerKeyType string
-
-const (
-	// AzureKeyVault ...
-	AzureKeyVault ServerKeyType = "AzureKeyVault"
-	// ServiceManaged ...
-	ServiceManaged ServerKeyType = "ServiceManaged"
-)
-
-// PossibleServerKeyTypeValues returns an array of possible values for the ServerKeyType const type.
-func PossibleServerKeyTypeValues() []ServerKeyType {
-	return []ServerKeyType{AzureKeyVault, ServiceManaged}
-}
-
-// ServiceObjectiveName enumerates the values for service objective name.
-type ServiceObjectiveName string
-
-const (
-	// ServiceObjectiveNameBasic ...
-	ServiceObjectiveNameBasic ServiceObjectiveName = "Basic"
-	// ServiceObjectiveNameDS100 ...
-	ServiceObjectiveNameDS100 ServiceObjectiveName = "DS100"
-	// ServiceObjectiveNameDS1000 ...
-	ServiceObjectiveNameDS1000 ServiceObjectiveName = "DS1000"
-	// ServiceObjectiveNameDS1200 ...
-	ServiceObjectiveNameDS1200 ServiceObjectiveName = "DS1200"
-	// ServiceObjectiveNameDS1500 ...
-	ServiceObjectiveNameDS1500 ServiceObjectiveName = "DS1500"
-	// ServiceObjectiveNameDS200 ...
-	ServiceObjectiveNameDS200 ServiceObjectiveName = "DS200"
-	// ServiceObjectiveNameDS2000 ...
-	ServiceObjectiveNameDS2000 ServiceObjectiveName = "DS2000"
-	// ServiceObjectiveNameDS300 ...
-	ServiceObjectiveNameDS300 ServiceObjectiveName = "DS300"
-	// ServiceObjectiveNameDS400 ...
-	ServiceObjectiveNameDS400 ServiceObjectiveName = "DS400"
-	// ServiceObjectiveNameDS500 ...
-	ServiceObjectiveNameDS500 ServiceObjectiveName = "DS500"
-	// ServiceObjectiveNameDS600 ...
-	ServiceObjectiveNameDS600 ServiceObjectiveName = "DS600"
-	// ServiceObjectiveNameDW100 ...
-	ServiceObjectiveNameDW100 ServiceObjectiveName = "DW100"
-	// ServiceObjectiveNameDW1000 ...
-	ServiceObjectiveNameDW1000 ServiceObjectiveName = "DW1000"
-	// ServiceObjectiveNameDW10000c ...
-	ServiceObjectiveNameDW10000c ServiceObjectiveName = "DW10000c"
-	// ServiceObjectiveNameDW1000c ...
-	ServiceObjectiveNameDW1000c ServiceObjectiveName = "DW1000c"
-	// ServiceObjectiveNameDW1200 ...
-	ServiceObjectiveNameDW1200 ServiceObjectiveName = "DW1200"
-	// ServiceObjectiveNameDW1500 ...
-	ServiceObjectiveNameDW1500 ServiceObjectiveName = "DW1500"
-	// ServiceObjectiveNameDW15000c ...
-	ServiceObjectiveNameDW15000c ServiceObjectiveName = "DW15000c"
-	// ServiceObjectiveNameDW1500c ...
-	ServiceObjectiveNameDW1500c ServiceObjectiveName = "DW1500c"
-	// ServiceObjectiveNameDW200 ...
-	ServiceObjectiveNameDW200 ServiceObjectiveName = "DW200"
-	// ServiceObjectiveNameDW2000 ...
-	ServiceObjectiveNameDW2000 ServiceObjectiveName = "DW2000"
-	// ServiceObjectiveNameDW2000c ...
-	ServiceObjectiveNameDW2000c ServiceObjectiveName = "DW2000c"
-	// ServiceObjectiveNameDW2500c ...
-	ServiceObjectiveNameDW2500c ServiceObjectiveName = "DW2500c"
-	// ServiceObjectiveNameDW300 ...
-	ServiceObjectiveNameDW300 ServiceObjectiveName = "DW300"
-	// ServiceObjectiveNameDW3000 ...
-	ServiceObjectiveNameDW3000 ServiceObjectiveName = "DW3000"
-	// ServiceObjectiveNameDW30000c ...
-	ServiceObjectiveNameDW30000c ServiceObjectiveName = "DW30000c"
-	// ServiceObjectiveNameDW3000c ...
-	ServiceObjectiveNameDW3000c ServiceObjectiveName = "DW3000c"
-	// ServiceObjectiveNameDW400 ...
-	ServiceObjectiveNameDW400 ServiceObjectiveName = "DW400"
-	// ServiceObjectiveNameDW500 ...
-	ServiceObjectiveNameDW500 ServiceObjectiveName = "DW500"
-	// ServiceObjectiveNameDW5000c ...
-	ServiceObjectiveNameDW5000c ServiceObjectiveName = "DW5000c"
-	// ServiceObjectiveNameDW600 ...
-	ServiceObjectiveNameDW600 ServiceObjectiveName = "DW600"
-	// ServiceObjectiveNameDW6000 ...
-	ServiceObjectiveNameDW6000 ServiceObjectiveName = "DW6000"
-	// ServiceObjectiveNameDW6000c ...
-	ServiceObjectiveNameDW6000c ServiceObjectiveName = "DW6000c"
-	// ServiceObjectiveNameDW7500c ...
-	ServiceObjectiveNameDW7500c ServiceObjectiveName = "DW7500c"
-	// ServiceObjectiveNameElasticPool ...
-	ServiceObjectiveNameElasticPool ServiceObjectiveName = "ElasticPool"
-	// ServiceObjectiveNameFree ...
-	ServiceObjectiveNameFree ServiceObjectiveName = "Free"
-	// ServiceObjectiveNameP1 ...
-	ServiceObjectiveNameP1 ServiceObjectiveName = "P1"
-	// ServiceObjectiveNameP11 ...
-	ServiceObjectiveNameP11 ServiceObjectiveName = "P11"
-	// ServiceObjectiveNameP15 ...
-	ServiceObjectiveNameP15 ServiceObjectiveName = "P15"
-	// ServiceObjectiveNameP2 ...
-	ServiceObjectiveNameP2 ServiceObjectiveName = "P2"
-	// ServiceObjectiveNameP3 ...
-	ServiceObjectiveNameP3 ServiceObjectiveName = "P3"
-	// ServiceObjectiveNameP4 ...
-	ServiceObjectiveNameP4 ServiceObjectiveName = "P4"
-	// ServiceObjectiveNameP6 ...
-	ServiceObjectiveNameP6 ServiceObjectiveName = "P6"
-	// ServiceObjectiveNamePRS1 ...
-	ServiceObjectiveNamePRS1 ServiceObjectiveName = "PRS1"
-	// ServiceObjectiveNamePRS2 ...
-	ServiceObjectiveNamePRS2 ServiceObjectiveName = "PRS2"
-	// ServiceObjectiveNamePRS4 ...
-	ServiceObjectiveNamePRS4 ServiceObjectiveName = "PRS4"
-	// ServiceObjectiveNamePRS6 ...
-	ServiceObjectiveNamePRS6 ServiceObjectiveName = "PRS6"
-	// ServiceObjectiveNameS0 ...
-	ServiceObjectiveNameS0 ServiceObjectiveName = "S0"
-	// ServiceObjectiveNameS1 ...
-	ServiceObjectiveNameS1 ServiceObjectiveName = "S1"
-	// ServiceObjectiveNameS12 ...
-	ServiceObjectiveNameS12 ServiceObjectiveName = "S12"
-	// ServiceObjectiveNameS2 ...
-	ServiceObjectiveNameS2 ServiceObjectiveName = "S2"
-	// ServiceObjectiveNameS3 ...
-	ServiceObjectiveNameS3 ServiceObjectiveName = "S3"
-	// ServiceObjectiveNameS4 ...
-	ServiceObjectiveNameS4 ServiceObjectiveName = "S4"
-	// ServiceObjectiveNameS6 ...
-	ServiceObjectiveNameS6 ServiceObjectiveName = "S6"
-	// ServiceObjectiveNameS7 ...
-	ServiceObjectiveNameS7 ServiceObjectiveName = "S7"
-	// ServiceObjectiveNameS9 ...
-	ServiceObjectiveNameS9 ServiceObjectiveName = "S9"
-	// ServiceObjectiveNameSystem ...
-	ServiceObjectiveNameSystem ServiceObjectiveName = "System"
-	// ServiceObjectiveNameSystem0 ...
-	ServiceObjectiveNameSystem0 ServiceObjectiveName = "System0"
-	// ServiceObjectiveNameSystem1 ...
-	ServiceObjectiveNameSystem1 ServiceObjectiveName = "System1"
-	// ServiceObjectiveNameSystem2 ...
-	ServiceObjectiveNameSystem2 ServiceObjectiveName = "System2"
-	// ServiceObjectiveNameSystem2L ...
-	ServiceObjectiveNameSystem2L ServiceObjectiveName = "System2L"
-	// ServiceObjectiveNameSystem3 ...
-	ServiceObjectiveNameSystem3 ServiceObjectiveName = "System3"
-	// ServiceObjectiveNameSystem3L ...
-	ServiceObjectiveNameSystem3L ServiceObjectiveName = "System3L"
-	// ServiceObjectiveNameSystem4 ...
-	ServiceObjectiveNameSystem4 ServiceObjectiveName = "System4"
-	// ServiceObjectiveNameSystem4L ...
-	ServiceObjectiveNameSystem4L ServiceObjectiveName = "System4L"
-)
-
-// PossibleServiceObjectiveNameValues returns an array of possible values for the ServiceObjectiveName const type.
-func PossibleServiceObjectiveNameValues() []ServiceObjectiveName {
-	return []ServiceObjectiveName{ServiceObjectiveNameBasic, ServiceObjectiveNameDS100, ServiceObjectiveNameDS1000, ServiceObjectiveNameDS1200, ServiceObjectiveNameDS1500, ServiceObjectiveNameDS200, ServiceObjectiveNameDS2000, ServiceObjectiveNameDS300, ServiceObjectiveNameDS400, ServiceObjectiveNameDS500, ServiceObjectiveNameDS600, ServiceObjectiveNameDW100, ServiceObjectiveNameDW1000, ServiceObjectiveNameDW10000c, ServiceObjectiveNameDW1000c, ServiceObjectiveNameDW1200, ServiceObjectiveNameDW1500, ServiceObjectiveNameDW15000c, ServiceObjectiveNameDW1500c, ServiceObjectiveNameDW200, ServiceObjectiveNameDW2000, ServiceObjectiveNameDW2000c, ServiceObjectiveNameDW2500c, ServiceObjectiveNameDW300, ServiceObjectiveNameDW3000, ServiceObjectiveNameDW30000c, ServiceObjectiveNameDW3000c, ServiceObjectiveNameDW400, ServiceObjectiveNameDW500, ServiceObjectiveNameDW5000c, ServiceObjectiveNameDW600, ServiceObjectiveNameDW6000, ServiceObjectiveNameDW6000c, ServiceObjectiveNameDW7500c, ServiceObjectiveNameElasticPool, ServiceObjectiveNameFree, ServiceObjectiveNameP1, ServiceObjectiveNameP11, ServiceObjectiveNameP15, ServiceObjectiveNameP2, ServiceObjectiveNameP3, ServiceObjectiveNameP4, ServiceObjectiveNameP6, ServiceObjectiveNamePRS1, ServiceObjectiveNamePRS2, ServiceObjectiveNamePRS4, ServiceObjectiveNamePRS6, ServiceObjectiveNameS0, ServiceObjectiveNameS1, ServiceObjectiveNameS12, ServiceObjectiveNameS2, ServiceObjectiveNameS3, ServiceObjectiveNameS4, ServiceObjectiveNameS6, ServiceObjectiveNameS7, ServiceObjectiveNameS9, ServiceObjectiveNameSystem, ServiceObjectiveNameSystem0, ServiceObjectiveNameSystem1, ServiceObjectiveNameSystem2, ServiceObjectiveNameSystem2L, ServiceObjectiveNameSystem3, ServiceObjectiveNameSystem3L, ServiceObjectiveNameSystem4, ServiceObjectiveNameSystem4L}
-}
-
-// StorageAccountType enumerates the values for storage account type.
-type StorageAccountType string
-
-const (
-	// GRS ...
-	GRS StorageAccountType = "GRS"
-	// LRS ...
-	LRS StorageAccountType = "LRS"
-	// ZRS ...
-	ZRS StorageAccountType = "ZRS"
-)
-
-// PossibleStorageAccountTypeValues returns an array of possible values for the StorageAccountType const type.
-func PossibleStorageAccountTypeValues() []StorageAccountType {
-	return []StorageAccountType{GRS, LRS, ZRS}
-}
-
-// StorageKeyType enumerates the values for storage key type.
-type StorageKeyType string
-
-const (
-	// SharedAccessKey ...
-	SharedAccessKey StorageKeyType = "SharedAccessKey"
-	// StorageAccessKey ...
-	StorageAccessKey StorageKeyType = "StorageAccessKey"
-)
-
-// PossibleStorageKeyTypeValues returns an array of possible values for the StorageKeyType const type.
-func PossibleStorageKeyTypeValues() []StorageKeyType {
-	return []StorageKeyType{SharedAccessKey, StorageAccessKey}
-}
-
-// SyncAgentState enumerates the values for sync agent state.
-type SyncAgentState string
-
-const (
-	// SyncAgentStateNeverConnected ...
-	SyncAgentStateNeverConnected SyncAgentState = "NeverConnected"
-	// SyncAgentStateOffline ...
-	SyncAgentStateOffline SyncAgentState = "Offline"
-	// SyncAgentStateOnline ...
-	SyncAgentStateOnline SyncAgentState = "Online"
-)
-
-// PossibleSyncAgentStateValues returns an array of possible values for the SyncAgentState const type.
-func PossibleSyncAgentStateValues() []SyncAgentState {
-	return []SyncAgentState{SyncAgentStateNeverConnected, SyncAgentStateOffline, SyncAgentStateOnline}
-}
-
-// SyncConflictResolutionPolicy enumerates the values for sync conflict resolution policy.
-type SyncConflictResolutionPolicy string
-
-const (
-	// HubWin ...
-	HubWin SyncConflictResolutionPolicy = "HubWin"
-	// MemberWin ...
-	MemberWin SyncConflictResolutionPolicy = "MemberWin"
-)
-
-// PossibleSyncConflictResolutionPolicyValues returns an array of possible values for the SyncConflictResolutionPolicy const type.
-func PossibleSyncConflictResolutionPolicyValues() []SyncConflictResolutionPolicy {
-	return []SyncConflictResolutionPolicy{HubWin, MemberWin}
-}
-
-// SyncDirection enumerates the values for sync direction.
-type SyncDirection string
-
-const (
-	// Bidirectional ...
-	Bidirectional SyncDirection = "Bidirectional"
-	// OneWayHubToMember ...
-	OneWayHubToMember SyncDirection = "OneWayHubToMember"
-	// OneWayMemberToHub ...
-	OneWayMemberToHub SyncDirection = "OneWayMemberToHub"
-)
-
-// PossibleSyncDirectionValues returns an array of possible values for the SyncDirection const type.
-func PossibleSyncDirectionValues() []SyncDirection {
-	return []SyncDirection{Bidirectional, OneWayHubToMember, OneWayMemberToHub}
-}
-
-// SyncGroupLogType enumerates the values for sync group log type.
-type SyncGroupLogType string
-
-const (
-	// SyncGroupLogTypeAll ...
-	SyncGroupLogTypeAll SyncGroupLogType = "All"
-	// SyncGroupLogTypeError ...
-	SyncGroupLogTypeError SyncGroupLogType = "Error"
-	// SyncGroupLogTypeSuccess ...
-	SyncGroupLogTypeSuccess SyncGroupLogType = "Success"
-	// SyncGroupLogTypeWarning ...
-	SyncGroupLogTypeWarning SyncGroupLogType = "Warning"
-)
-
-// PossibleSyncGroupLogTypeValues returns an array of possible values for the SyncGroupLogType const type.
-func PossibleSyncGroupLogTypeValues() []SyncGroupLogType {
-	return []SyncGroupLogType{SyncGroupLogTypeAll, SyncGroupLogTypeError, SyncGroupLogTypeSuccess, SyncGroupLogTypeWarning}
-}
-
-// SyncGroupState enumerates the values for sync group state.
-type SyncGroupState string
-
-const (
-	// Error ...
-	Error SyncGroupState = "Error"
-	// Good ...
-	Good SyncGroupState = "Good"
-	// NotReady ...
-	NotReady SyncGroupState = "NotReady"
-	// Progressing ...
-	Progressing SyncGroupState = "Progressing"
-	// Warning ...
-	Warning SyncGroupState = "Warning"
-)
-
-// PossibleSyncGroupStateValues returns an array of possible values for the SyncGroupState const type.
-func PossibleSyncGroupStateValues() []SyncGroupState {
-	return []SyncGroupState{Error, Good, NotReady, Progressing, Warning}
-}
-
-// SyncMemberDbType enumerates the values for sync member db type.
-type SyncMemberDbType string
-
-const (
-	// AzureSQLDatabase ...
-	AzureSQLDatabase SyncMemberDbType = "AzureSqlDatabase"
-	// SQLServerDatabase ...
-	SQLServerDatabase SyncMemberDbType = "SqlServerDatabase"
-)
-
-// PossibleSyncMemberDbTypeValues returns an array of possible values for the SyncMemberDbType const type.
-func PossibleSyncMemberDbTypeValues() []SyncMemberDbType {
-	return []SyncMemberDbType{AzureSQLDatabase, SQLServerDatabase}
-}
-
-// SyncMemberState enumerates the values for sync member state.
-type SyncMemberState string
-
-const (
-	// DeProvisioned ...
-	DeProvisioned SyncMemberState = "DeProvisioned"
-	// DeProvisionFailed ...
-	DeProvisionFailed SyncMemberState = "DeProvisionFailed"
-	// DeProvisioning ...
-	DeProvisioning SyncMemberState = "DeProvisioning"
-	// DisabledBackupRestore ...
-	DisabledBackupRestore SyncMemberState = "DisabledBackupRestore"
-	// DisabledTombstoneCleanup ...
-	DisabledTombstoneCleanup SyncMemberState = "DisabledTombstoneCleanup"
-	// Provisioned ...
-	Provisioned SyncMemberState = "Provisioned"
-	// ProvisionFailed ...
-	ProvisionFailed SyncMemberState = "ProvisionFailed"
-	// Provisioning ...
-	Provisioning SyncMemberState = "Provisioning"
-	// ReprovisionFailed ...
-	ReprovisionFailed SyncMemberState = "ReprovisionFailed"
-	// Reprovisioning ...
-	Reprovisioning SyncMemberState = "Reprovisioning"
-	// SyncCancelled ...
-	SyncCancelled SyncMemberState = "SyncCancelled"
-	// SyncCancelling ...
-	SyncCancelling SyncMemberState = "SyncCancelling"
-	// SyncFailed ...
-	SyncFailed SyncMemberState = "SyncFailed"
-	// SyncInProgress ...
-	SyncInProgress SyncMemberState = "SyncInProgress"
-	// SyncSucceeded ...
-	SyncSucceeded SyncMemberState = "SyncSucceeded"
-	// SyncSucceededWithWarnings ...
-	SyncSucceededWithWarnings SyncMemberState = "SyncSucceededWithWarnings"
-	// UnProvisioned ...
-	UnProvisioned SyncMemberState = "UnProvisioned"
-	// UnReprovisioned ...
-	UnReprovisioned SyncMemberState = "UnReprovisioned"
-)
-
-// PossibleSyncMemberStateValues returns an array of possible values for the SyncMemberState const type.
-func PossibleSyncMemberStateValues() []SyncMemberState {
-	return []SyncMemberState{DeProvisioned, DeProvisionFailed, DeProvisioning, DisabledBackupRestore, DisabledTombstoneCleanup, Provisioned, ProvisionFailed, Provisioning, ReprovisionFailed, Reprovisioning, SyncCancelled, SyncCancelling, SyncFailed, SyncInProgress, SyncSucceeded, SyncSucceededWithWarnings, UnProvisioned, UnReprovisioned}
-}
-
-// TransparentDataEncryptionActivityStatus enumerates the values for transparent data encryption activity
-// status.
-type TransparentDataEncryptionActivityStatus string
-
-const (
-	// Decrypting ...
-	Decrypting TransparentDataEncryptionActivityStatus = "Decrypting"
-	// Encrypting ...
-	Encrypting TransparentDataEncryptionActivityStatus = "Encrypting"
-)
-
-// PossibleTransparentDataEncryptionActivityStatusValues returns an array of possible values for the TransparentDataEncryptionActivityStatus const type.
-func PossibleTransparentDataEncryptionActivityStatusValues() []TransparentDataEncryptionActivityStatus {
-	return []TransparentDataEncryptionActivityStatus{Decrypting, Encrypting}
-}
-
-// TransparentDataEncryptionStatus enumerates the values for transparent data encryption status.
-type TransparentDataEncryptionStatus string
-
-const (
-	// TransparentDataEncryptionStatusDisabled ...
-	TransparentDataEncryptionStatusDisabled TransparentDataEncryptionStatus = "Disabled"
-	// TransparentDataEncryptionStatusEnabled ...
-	TransparentDataEncryptionStatusEnabled TransparentDataEncryptionStatus = "Enabled"
-)
-
-// PossibleTransparentDataEncryptionStatusValues returns an array of possible values for the TransparentDataEncryptionStatus const type.
-func PossibleTransparentDataEncryptionStatusValues() []TransparentDataEncryptionStatus {
-	return []TransparentDataEncryptionStatus{TransparentDataEncryptionStatusDisabled, TransparentDataEncryptionStatusEnabled}
-}
-
-// UnitDefinitionType enumerates the values for unit definition type.
-type UnitDefinitionType string
-
-const (
-	// UnitDefinitionTypeBytes ...
-	UnitDefinitionTypeBytes UnitDefinitionType = "Bytes"
-	// UnitDefinitionTypeBytesPerSecond ...
-	UnitDefinitionTypeBytesPerSecond UnitDefinitionType = "BytesPerSecond"
-	// UnitDefinitionTypeCount ...
-	UnitDefinitionTypeCount UnitDefinitionType = "Count"
-	// UnitDefinitionTypeCountPerSecond ...
-	UnitDefinitionTypeCountPerSecond UnitDefinitionType = "CountPerSecond"
-	// UnitDefinitionTypePercent ...
-	UnitDefinitionTypePercent UnitDefinitionType = "Percent"
-	// UnitDefinitionTypeSeconds ...
-	UnitDefinitionTypeSeconds UnitDefinitionType = "Seconds"
-)
-
-// PossibleUnitDefinitionTypeValues returns an array of possible values for the UnitDefinitionType const type.
-func PossibleUnitDefinitionTypeValues() []UnitDefinitionType {
-	return []UnitDefinitionType{UnitDefinitionTypeBytes, UnitDefinitionTypeBytesPerSecond, UnitDefinitionTypeCount, UnitDefinitionTypeCountPerSecond, UnitDefinitionTypePercent, UnitDefinitionTypeSeconds}
-}
-
-// UnitType enumerates the values for unit type.
-type UnitType string
-
-const (
-	// UnitTypeBytes ...
-	UnitTypeBytes UnitType = "bytes"
-	// UnitTypeBytesPerSecond ...
-	UnitTypeBytesPerSecond UnitType = "bytesPerSecond"
-	// UnitTypeCount ...
-	UnitTypeCount UnitType = "count"
-	// UnitTypeCountPerSecond ...
-	UnitTypeCountPerSecond UnitType = "countPerSecond"
-	// UnitTypePercent ...
-	UnitTypePercent UnitType = "percent"
-	// UnitTypeSeconds ...
-	UnitTypeSeconds UnitType = "seconds"
-)
-
-// PossibleUnitTypeValues returns an array of possible values for the UnitType const type.
-func PossibleUnitTypeValues() []UnitType {
-	return []UnitType{UnitTypeBytes, UnitTypeBytesPerSecond, UnitTypeCount, UnitTypeCountPerSecond, UnitTypePercent, UnitTypeSeconds}
-}
-
-// VirtualNetworkRuleState enumerates the values for virtual network rule state.
-type VirtualNetworkRuleState string
-
-const (
-	// VirtualNetworkRuleStateDeleting ...
-	VirtualNetworkRuleStateDeleting VirtualNetworkRuleState = "Deleting"
-	// VirtualNetworkRuleStateInitializing ...
-	VirtualNetworkRuleStateInitializing VirtualNetworkRuleState = "Initializing"
-	// VirtualNetworkRuleStateInProgress ...
-	VirtualNetworkRuleStateInProgress VirtualNetworkRuleState = "InProgress"
-	// VirtualNetworkRuleStateReady ...
-	VirtualNetworkRuleStateReady VirtualNetworkRuleState = "Ready"
-	// VirtualNetworkRuleStateUnknown ...
-	VirtualNetworkRuleStateUnknown VirtualNetworkRuleState = "Unknown"
-)
-
-// PossibleVirtualNetworkRuleStateValues returns an array of possible values for the VirtualNetworkRuleState const type.
-func PossibleVirtualNetworkRuleStateValues() []VirtualNetworkRuleState {
-	return []VirtualNetworkRuleState{VirtualNetworkRuleStateDeleting, VirtualNetworkRuleStateInitializing, VirtualNetworkRuleStateInProgress, VirtualNetworkRuleStateReady, VirtualNetworkRuleStateUnknown}
-}
-
-// VulnerabilityAssessmentPolicyBaselineName enumerates the values for vulnerability assessment policy baseline
-// name.
-type VulnerabilityAssessmentPolicyBaselineName string
-
-const (
-	// VulnerabilityAssessmentPolicyBaselineNameDefault ...
-	VulnerabilityAssessmentPolicyBaselineNameDefault VulnerabilityAssessmentPolicyBaselineName = "default"
-	// VulnerabilityAssessmentPolicyBaselineNameMaster ...
-	VulnerabilityAssessmentPolicyBaselineNameMaster VulnerabilityAssessmentPolicyBaselineName = "master"
-)
-
-// PossibleVulnerabilityAssessmentPolicyBaselineNameValues returns an array of possible values for the VulnerabilityAssessmentPolicyBaselineName const type.
-func PossibleVulnerabilityAssessmentPolicyBaselineNameValues() []VulnerabilityAssessmentPolicyBaselineName {
-	return []VulnerabilityAssessmentPolicyBaselineName{VulnerabilityAssessmentPolicyBaselineNameDefault, VulnerabilityAssessmentPolicyBaselineNameMaster}
-}
-
-// VulnerabilityAssessmentScanState enumerates the values for vulnerability assessment scan state.
-type VulnerabilityAssessmentScanState string
-
-const (
-	// VulnerabilityAssessmentScanStateFailed ...
-	VulnerabilityAssessmentScanStateFailed VulnerabilityAssessmentScanState = "Failed"
-	// VulnerabilityAssessmentScanStateFailedToRun ...
-	VulnerabilityAssessmentScanStateFailedToRun VulnerabilityAssessmentScanState = "FailedToRun"
-	// VulnerabilityAssessmentScanStateInProgress ...
-	VulnerabilityAssessmentScanStateInProgress VulnerabilityAssessmentScanState = "InProgress"
-	// VulnerabilityAssessmentScanStatePassed ...
-	VulnerabilityAssessmentScanStatePassed VulnerabilityAssessmentScanState = "Passed"
-)
-
-// PossibleVulnerabilityAssessmentScanStateValues returns an array of possible values for the VulnerabilityAssessmentScanState const type.
-func PossibleVulnerabilityAssessmentScanStateValues() []VulnerabilityAssessmentScanState {
-	return []VulnerabilityAssessmentScanState{VulnerabilityAssessmentScanStateFailed, VulnerabilityAssessmentScanStateFailedToRun, VulnerabilityAssessmentScanStateInProgress, VulnerabilityAssessmentScanStatePassed}
-}
-
-// VulnerabilityAssessmentScanTriggerType enumerates the values for vulnerability assessment scan trigger type.
-type VulnerabilityAssessmentScanTriggerType string
-
-const (
-	// VulnerabilityAssessmentScanTriggerTypeOnDemand ...
-	VulnerabilityAssessmentScanTriggerTypeOnDemand VulnerabilityAssessmentScanTriggerType = "OnDemand"
-	// VulnerabilityAssessmentScanTriggerTypeRecurring ...
-	VulnerabilityAssessmentScanTriggerTypeRecurring VulnerabilityAssessmentScanTriggerType = "Recurring"
-)
-
-// PossibleVulnerabilityAssessmentScanTriggerTypeValues returns an array of possible values for the VulnerabilityAssessmentScanTriggerType const type.
-func PossibleVulnerabilityAssessmentScanTriggerTypeValues() []VulnerabilityAssessmentScanTriggerType {
-	return []VulnerabilityAssessmentScanTriggerType{VulnerabilityAssessmentScanTriggerTypeOnDemand, VulnerabilityAssessmentScanTriggerTypeRecurring}
-}
-
 // AdministratorListResult a list of active directory administrators.
 type AdministratorListResult struct {
 	autorest.Response `json:"-"`
@@ -1804,10 +110,15 @@ func (alr AdministratorListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr AdministratorListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // administratorListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr AdministratorListResult) administratorListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1835,11 +146,16 @@ func (page *AdministratorListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -1869,8 +185,11 @@ func (page AdministratorListResultPage) Values() []ServerAzureADAdministrator {
 }
 
 // Creates a new instance of the AdministratorListResultPage type.
-func NewAdministratorListResultPage(getNextPage func(context.Context, AdministratorListResult) (AdministratorListResult, error)) AdministratorListResultPage {
-	return AdministratorListResultPage{fn: getNextPage}
+func NewAdministratorListResultPage(cur AdministratorListResult, getNextPage func(context.Context, AdministratorListResult) (AdministratorListResult, error)) AdministratorListResultPage {
+	return AdministratorListResultPage{
+		fn:  getNextPage,
+		alr: cur,
+	}
 }
 
 // AdministratorProperties properties of a active directory administrator.
@@ -1883,6 +202,26 @@ type AdministratorProperties struct {
 	Sid *uuid.UUID `json:"sid,omitempty"`
 	// TenantID - Tenant ID of the administrator.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+	// AzureADOnlyAuthentication - READ-ONLY; Azure Active Directory only Authentication enabled.
+	AzureADOnlyAuthentication *bool `json:"azureADOnlyAuthentication,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AdministratorProperties.
+func (ap AdministratorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.AdministratorType != nil {
+		objectMap["administratorType"] = ap.AdministratorType
+	}
+	if ap.Login != nil {
+		objectMap["login"] = ap.Login
+	}
+	if ap.Sid != nil {
+		objectMap["sid"] = ap.Sid
+	}
+	if ap.TenantID != nil {
+		objectMap["tenantId"] = ap.TenantID
+	}
+	return json.Marshal(objectMap)
 }
 
 // AutomaticTuningOptions automatic tuning properties for individual advisors.
@@ -1897,6 +236,15 @@ type AutomaticTuningOptions struct {
 	ReasonDesc AutomaticTuningDisabledReason `json:"reasonDesc,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AutomaticTuningOptions.
+func (ato AutomaticTuningOptions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ato.DesiredState != "" {
+		objectMap["desiredState"] = ato.DesiredState
+	}
+	return json.Marshal(objectMap)
+}
+
 // AutomaticTuningServerOptions automatic tuning properties for individual advisors.
 type AutomaticTuningServerOptions struct {
 	// DesiredState - Automatic tuning option desired state. Possible values include: 'AutomaticTuningOptionModeDesiredOff', 'AutomaticTuningOptionModeDesiredOn', 'AutomaticTuningOptionModeDesiredDefault'
@@ -1907,6 +255,15 @@ type AutomaticTuningServerOptions struct {
 	ReasonCode *int32 `json:"reasonCode,omitempty"`
 	// ReasonDesc - READ-ONLY; Reason description if desired and actual state are different. Possible values include: 'AutomaticTuningServerReasonDefault', 'AutomaticTuningServerReasonDisabled', 'AutomaticTuningServerReasonAutoConfigured'
 	ReasonDesc AutomaticTuningServerReason `json:"reasonDesc,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AutomaticTuningServerOptions.
+func (atso AutomaticTuningServerOptions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if atso.DesiredState != "" {
+		objectMap["desiredState"] = atso.DesiredState
+	}
+	return json.Marshal(objectMap)
 }
 
 // AutomaticTuningServerProperties server-level Automatic Tuning properties.
@@ -1945,6 +302,172 @@ type AutoPauseDelayTimeRange struct {
 	Unit PauseDelayTimeUnit `json:"unit,omitempty"`
 	// DoNotPauseValue - READ-ONLY; Value that is used to not pause (infinite delay before pause)
 	DoNotPauseValue *int32 `json:"doNotPauseValue,omitempty"`
+}
+
+// AzureADOnlyAuthListResult a list of active directory only authentications.
+type AzureADOnlyAuthListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ServerAzureADOnlyAuthentication `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AzureADOnlyAuthListResultIterator provides access to a complete listing of
+// ServerAzureADOnlyAuthentication values.
+type AzureADOnlyAuthListResultIterator struct {
+	i    int
+	page AzureADOnlyAuthListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AzureADOnlyAuthListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AzureADOnlyAuthListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AzureADOnlyAuthListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AzureADOnlyAuthListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AzureADOnlyAuthListResultIterator) Response() AzureADOnlyAuthListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AzureADOnlyAuthListResultIterator) Value() ServerAzureADOnlyAuthentication {
+	if !iter.page.NotDone() {
+		return ServerAzureADOnlyAuthentication{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AzureADOnlyAuthListResultIterator type.
+func NewAzureADOnlyAuthListResultIterator(page AzureADOnlyAuthListResultPage) AzureADOnlyAuthListResultIterator {
+	return AzureADOnlyAuthListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (aaoalr AzureADOnlyAuthListResult) IsEmpty() bool {
+	return aaoalr.Value == nil || len(*aaoalr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (aaoalr AzureADOnlyAuthListResult) hasNextLink() bool {
+	return aaoalr.NextLink != nil && len(*aaoalr.NextLink) != 0
+}
+
+// azureADOnlyAuthListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (aaoalr AzureADOnlyAuthListResult) azureADOnlyAuthListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !aaoalr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(aaoalr.NextLink)))
+}
+
+// AzureADOnlyAuthListResultPage contains a page of ServerAzureADOnlyAuthentication values.
+type AzureADOnlyAuthListResultPage struct {
+	fn     func(context.Context, AzureADOnlyAuthListResult) (AzureADOnlyAuthListResult, error)
+	aaoalr AzureADOnlyAuthListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AzureADOnlyAuthListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AzureADOnlyAuthListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.aaoalr)
+		if err != nil {
+			return err
+		}
+		page.aaoalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AzureADOnlyAuthListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AzureADOnlyAuthListResultPage) NotDone() bool {
+	return !page.aaoalr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AzureADOnlyAuthListResultPage) Response() AzureADOnlyAuthListResult {
+	return page.aaoalr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AzureADOnlyAuthListResultPage) Values() []ServerAzureADOnlyAuthentication {
+	if page.aaoalr.IsEmpty() {
+		return nil
+	}
+	return *page.aaoalr.Value
+}
+
+// Creates a new instance of the AzureADOnlyAuthListResultPage type.
+func NewAzureADOnlyAuthListResultPage(cur AzureADOnlyAuthListResult, getNextPage func(context.Context, AzureADOnlyAuthListResult) (AzureADOnlyAuthListResult, error)) AzureADOnlyAuthListResultPage {
+	return AzureADOnlyAuthListResultPage{
+		fn:     getNextPage,
+		aaoalr: cur,
+	}
+}
+
+// AzureADOnlyAuthProperties properties of a active directory only authentication.
+type AzureADOnlyAuthProperties struct {
+	// AzureADOnlyAuthentication - Azure Active Directory only Authentication enabled.
+	AzureADOnlyAuthentication *bool `json:"azureADOnlyAuthentication,omitempty"`
 }
 
 // BackupLongTermRetentionPoliciesCreateOrUpdateFuture an abstraction for monitoring and retrieving the
@@ -2258,10 +781,15 @@ func (bstrplr BackupShortTermRetentionPolicyListResult) IsEmpty() bool {
 	return bstrplr.Value == nil || len(*bstrplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (bstrplr BackupShortTermRetentionPolicyListResult) hasNextLink() bool {
+	return bstrplr.NextLink != nil && len(*bstrplr.NextLink) != 0
+}
+
 // backupShortTermRetentionPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (bstrplr BackupShortTermRetentionPolicyListResult) backupShortTermRetentionPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if bstrplr.NextLink == nil || len(to.String(bstrplr.NextLink)) < 1 {
+	if !bstrplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2289,11 +817,16 @@ func (page *BackupShortTermRetentionPolicyListResultPage) NextWithContext(ctx co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.bstrplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.bstrplr)
+		if err != nil {
+			return err
+		}
+		page.bstrplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.bstrplr = next
 	return nil
 }
 
@@ -2323,8 +856,11 @@ func (page BackupShortTermRetentionPolicyListResultPage) Values() []BackupShortT
 }
 
 // Creates a new instance of the BackupShortTermRetentionPolicyListResultPage type.
-func NewBackupShortTermRetentionPolicyListResultPage(getNextPage func(context.Context, BackupShortTermRetentionPolicyListResult) (BackupShortTermRetentionPolicyListResult, error)) BackupShortTermRetentionPolicyListResultPage {
-	return BackupShortTermRetentionPolicyListResultPage{fn: getNextPage}
+func NewBackupShortTermRetentionPolicyListResultPage(cur BackupShortTermRetentionPolicyListResult, getNextPage func(context.Context, BackupShortTermRetentionPolicyListResult) (BackupShortTermRetentionPolicyListResult, error)) BackupShortTermRetentionPolicyListResultPage {
+	return BackupShortTermRetentionPolicyListResultPage{
+		fn:      getNextPage,
+		bstrplr: cur,
+	}
 }
 
 // BackupShortTermRetentionPolicyProperties properties of a short term retention policy
@@ -2333,26 +869,35 @@ type BackupShortTermRetentionPolicyProperties struct {
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
 }
 
+// BaseLongTermRetentionPolicyProperties properties of a long term retention policy
+type BaseLongTermRetentionPolicyProperties struct {
+	// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+	WeeklyRetention *string `json:"weeklyRetention,omitempty"`
+	// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+	MonthlyRetention *string `json:"monthlyRetention,omitempty"`
+	// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+	YearlyRetention *string `json:"yearlyRetention,omitempty"`
+	// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
+	WeekOfYear *int32 `json:"weekOfYear,omitempty"`
+}
+
 // CheckNameAvailabilityRequest a request to check whether the specified name for a resource is available.
 type CheckNameAvailabilityRequest struct {
-	// Name - The name whose availability is to be checked.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of resource that is used as the scope of the availability check.
 	Type *string `json:"type,omitempty"`
 }
 
-// CheckNameAvailabilityResponse a response indicating whether the specified name for a resource is
-// available.
+// CheckNameAvailabilityResponse the result of a name availability check.
 type CheckNameAvailabilityResponse struct {
 	autorest.Response `json:"-"`
-	// Available - READ-ONLY; True if the name is available, otherwise false.
-	Available *bool `json:"available,omitempty"`
-	// Message - READ-ONLY; A message explaining why the name is unavailable. Will be null if the name is available.
-	Message *string `json:"message,omitempty"`
 	// Name - READ-ONLY; The name whose availability was checked.
 	Name *string `json:"name,omitempty"`
-	// Reason - READ-ONLY; The reason code explaining why the name is unavailable. Will be null if the name is available. Possible values include: 'Invalid', 'AlreadyExists'
+	// Available - READ-ONLY; True if the name is available, otherwise false.
+	Available *bool `json:"available,omitempty"`
+	// Reason - READ-ONLY; The reason code explaining why the name is unavailable. Will be undefined if the name is available. Possible values include: 'Invalid', 'AlreadyExists'
 	Reason CheckNameAvailabilityReason `json:"reason,omitempty"`
+	// Message - READ-ONLY; A message explaining why the name is unavailable. Will be undefined if the name is available.
+	Message *string `json:"message,omitempty"`
 }
 
 // CompleteDatabaseRestoreDefinition contains the information necessary to perform a complete database
@@ -2773,10 +1318,15 @@ func (dbaplr DatabaseBlobAuditingPolicyListResult) IsEmpty() bool {
 	return dbaplr.Value == nil || len(*dbaplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dbaplr DatabaseBlobAuditingPolicyListResult) hasNextLink() bool {
+	return dbaplr.NextLink != nil && len(*dbaplr.NextLink) != 0
+}
+
 // databaseBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dbaplr DatabaseBlobAuditingPolicyListResult) databaseBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dbaplr.NextLink == nil || len(to.String(dbaplr.NextLink)) < 1 {
+	if !dbaplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2804,11 +1354,16 @@ func (page *DatabaseBlobAuditingPolicyListResultPage) NextWithContext(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dbaplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dbaplr)
+		if err != nil {
+			return err
+		}
+		page.dbaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dbaplr = next
 	return nil
 }
 
@@ -2838,8 +1393,11 @@ func (page DatabaseBlobAuditingPolicyListResultPage) Values() []DatabaseBlobAudi
 }
 
 // Creates a new instance of the DatabaseBlobAuditingPolicyListResultPage type.
-func NewDatabaseBlobAuditingPolicyListResultPage(getNextPage func(context.Context, DatabaseBlobAuditingPolicyListResult) (DatabaseBlobAuditingPolicyListResult, error)) DatabaseBlobAuditingPolicyListResultPage {
-	return DatabaseBlobAuditingPolicyListResultPage{fn: getNextPage}
+func NewDatabaseBlobAuditingPolicyListResultPage(cur DatabaseBlobAuditingPolicyListResult, getNextPage func(context.Context, DatabaseBlobAuditingPolicyListResult) (DatabaseBlobAuditingPolicyListResult, error)) DatabaseBlobAuditingPolicyListResultPage {
+	return DatabaseBlobAuditingPolicyListResultPage{
+		fn:     getNextPage,
+		dbaplr: cur,
+	}
 }
 
 // DatabaseBlobAuditingPolicyProperties properties of a database blob auditing policy.
@@ -2848,7 +1406,12 @@ type DatabaseBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -3008,10 +1571,15 @@ func (dlr DatabaseListResult) IsEmpty() bool {
 	return dlr.Value == nil || len(*dlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dlr DatabaseListResult) hasNextLink() bool {
+	return dlr.NextLink != nil && len(*dlr.NextLink) != 0
+}
+
 // databaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dlr DatabaseListResult) databaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dlr.NextLink == nil || len(to.String(dlr.NextLink)) < 1 {
+	if !dlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3039,11 +1607,16 @@ func (page *DatabaseListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dlr)
+		if err != nil {
+			return err
+		}
+		page.dlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dlr = next
 	return nil
 }
 
@@ -3073,8 +1646,11 @@ func (page DatabaseListResultPage) Values() []Database {
 }
 
 // Creates a new instance of the DatabaseListResultPage type.
-func NewDatabaseListResultPage(getNextPage func(context.Context, DatabaseListResult) (DatabaseListResult, error)) DatabaseListResultPage {
-	return DatabaseListResultPage{fn: getNextPage}
+func NewDatabaseListResultPage(cur DatabaseListResult, getNextPage func(context.Context, DatabaseListResult) (DatabaseListResult, error)) DatabaseListResultPage {
+	return DatabaseListResultPage{
+		fn:  getNextPage,
+		dlr: cur,
+	}
 }
 
 // DatabaseOperation a database operation.
@@ -3226,10 +1802,15 @@ func (dolr DatabaseOperationListResult) IsEmpty() bool {
 	return dolr.Value == nil || len(*dolr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dolr DatabaseOperationListResult) hasNextLink() bool {
+	return dolr.NextLink != nil && len(*dolr.NextLink) != 0
+}
+
 // databaseOperationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dolr DatabaseOperationListResult) databaseOperationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dolr.NextLink == nil || len(to.String(dolr.NextLink)) < 1 {
+	if !dolr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3257,11 +1838,16 @@ func (page *DatabaseOperationListResultPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dolr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dolr)
+		if err != nil {
+			return err
+		}
+		page.dolr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dolr = next
 	return nil
 }
 
@@ -3291,8 +1877,11 @@ func (page DatabaseOperationListResultPage) Values() []DatabaseOperation {
 }
 
 // Creates a new instance of the DatabaseOperationListResultPage type.
-func NewDatabaseOperationListResultPage(getNextPage func(context.Context, DatabaseOperationListResult) (DatabaseOperationListResult, error)) DatabaseOperationListResultPage {
-	return DatabaseOperationListResultPage{fn: getNextPage}
+func NewDatabaseOperationListResultPage(cur DatabaseOperationListResult, getNextPage func(context.Context, DatabaseOperationListResult) (DatabaseOperationListResult, error)) DatabaseOperationListResultPage {
+	return DatabaseOperationListResultPage{
+		fn:   getNextPage,
+		dolr: cur,
+	}
 }
 
 // DatabaseOperationProperties the properties of a database operation.
@@ -3387,55 +1976,94 @@ type DatabaseProperties struct {
 	CatalogCollation CatalogCollationType `json:"catalogCollation,omitempty"`
 	// ZoneRedundant - Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
-	// LicenseType - The license type to apply for this database. Possible values include: 'LicenseIncluded', 'BasePrice'
+	// LicenseType - The license type to apply for this database. `LicenseIncluded` if you need a license, or `BasePrice` if you have a license and are eligible for the Azure Hybrid Benefit. Possible values include: 'LicenseIncluded', 'BasePrice'
 	LicenseType DatabaseLicenseType `json:"licenseType,omitempty"`
 	// MaxLogSizeBytes - READ-ONLY; The max log size for this database.
 	MaxLogSizeBytes *int64 `json:"maxLogSizeBytes,omitempty"`
 	// EarliestRestoreDate - READ-ONLY; This records the earliest start date and time that restore is available for this database (ISO8601 format).
 	EarliestRestoreDate *date.Time `json:"earliestRestoreDate,omitempty"`
-	// ReadScale - If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. This property is only settable for Premium and Business Critical databases. Possible values include: 'DatabaseReadScaleEnabled', 'DatabaseReadScaleDisabled'
+	// ReadScale - The state of read-only routing. If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica in the same region. Possible values include: 'DatabaseReadScaleEnabled', 'DatabaseReadScaleDisabled'
 	ReadScale DatabaseReadScale `json:"readScale,omitempty"`
-	// ReadReplicaCount - The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
+	// ReadReplicaCount - The number of readonly secondary replicas associated with the database.
 	ReadReplicaCount *int32 `json:"readReplicaCount,omitempty"`
 	// CurrentSku - READ-ONLY; The name and tier of the SKU.
 	CurrentSku *Sku `json:"currentSku,omitempty"`
 	// AutoPauseDelay - Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled
 	AutoPauseDelay *int32 `json:"autoPauseDelay,omitempty"`
+	// StorageAccountType - The storage account type used to store backups for this database. Possible values include: 'GRS', 'LRS', 'ZRS'
+	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 	// MinCapacity - Minimal capacity that database will always have allocated, if not paused
 	MinCapacity *float64 `json:"minCapacity,omitempty"`
-	// PausedDate - READ-ONLY; The date when database was paused by user configuration or action (ISO8601 format). Null if the database is ready.
+	// PausedDate - READ-ONLY; The date when database was paused by user configuration or action(ISO8601 format). Null if the database is ready.
 	PausedDate *date.Time `json:"pausedDate,omitempty"`
 	// ResumedDate - READ-ONLY; The date when database was resumed by user action or database login (ISO8601 format). Null if the database is paused.
 	ResumedDate *date.Time `json:"resumedDate,omitempty"`
 }
 
-// DatabasesCreateImportOperationFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type DatabasesCreateImportOperationFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasesCreateImportOperationFuture) Result(client DatabasesClient) (ier ImportExportResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.DatabasesCreateImportOperationFuture", "Result", future.Response(), "Polling failure")
-		return
+// MarshalJSON is the custom marshaler for DatabaseProperties.
+func (dp DatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dp.CreateMode != "" {
+		objectMap["createMode"] = dp.CreateMode
 	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sql.DatabasesCreateImportOperationFuture")
-		return
+	if dp.Collation != nil {
+		objectMap["collation"] = dp.Collation
 	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ier.Response.Response, err = future.GetResult(sender); err == nil && ier.Response.Response.StatusCode != http.StatusNoContent {
-		ier, err = client.CreateImportOperationResponder(ier.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sql.DatabasesCreateImportOperationFuture", "Result", ier.Response.Response, "Failure responding to request")
-		}
+	if dp.MaxSizeBytes != nil {
+		objectMap["maxSizeBytes"] = dp.MaxSizeBytes
 	}
-	return
+	if dp.SampleName != "" {
+		objectMap["sampleName"] = dp.SampleName
+	}
+	if dp.ElasticPoolID != nil {
+		objectMap["elasticPoolId"] = dp.ElasticPoolID
+	}
+	if dp.SourceDatabaseID != nil {
+		objectMap["sourceDatabaseId"] = dp.SourceDatabaseID
+	}
+	if dp.RestorePointInTime != nil {
+		objectMap["restorePointInTime"] = dp.RestorePointInTime
+	}
+	if dp.SourceDatabaseDeletionDate != nil {
+		objectMap["sourceDatabaseDeletionDate"] = dp.SourceDatabaseDeletionDate
+	}
+	if dp.RecoveryServicesRecoveryPointID != nil {
+		objectMap["recoveryServicesRecoveryPointId"] = dp.RecoveryServicesRecoveryPointID
+	}
+	if dp.LongTermRetentionBackupResourceID != nil {
+		objectMap["longTermRetentionBackupResourceId"] = dp.LongTermRetentionBackupResourceID
+	}
+	if dp.RecoverableDatabaseID != nil {
+		objectMap["recoverableDatabaseId"] = dp.RecoverableDatabaseID
+	}
+	if dp.RestorableDroppedDatabaseID != nil {
+		objectMap["restorableDroppedDatabaseId"] = dp.RestorableDroppedDatabaseID
+	}
+	if dp.CatalogCollation != "" {
+		objectMap["catalogCollation"] = dp.CatalogCollation
+	}
+	if dp.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = dp.ZoneRedundant
+	}
+	if dp.LicenseType != "" {
+		objectMap["licenseType"] = dp.LicenseType
+	}
+	if dp.ReadScale != "" {
+		objectMap["readScale"] = dp.ReadScale
+	}
+	if dp.ReadReplicaCount != nil {
+		objectMap["readReplicaCount"] = dp.ReadReplicaCount
+	}
+	if dp.AutoPauseDelay != nil {
+		objectMap["autoPauseDelay"] = dp.AutoPauseDelay
+	}
+	if dp.StorageAccountType != "" {
+		objectMap["storageAccountType"] = dp.StorageAccountType
+	}
+	if dp.MinCapacity != nil {
+		objectMap["minCapacity"] = dp.MinCapacity
+	}
+	return json.Marshal(objectMap)
 }
 
 // DatabasesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -3616,7 +2244,7 @@ type DatabasesExportFuture struct {
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *DatabasesExportFuture) Result(client DatabasesClient) (ier ImportExportResponse, err error) {
+func (future *DatabasesExportFuture) Result(client DatabasesClient) (ieor ImportExportOperationResult, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
@@ -3628,10 +2256,10 @@ func (future *DatabasesExportFuture) Result(client DatabasesClient) (ier ImportE
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ier.Response.Response, err = future.GetResult(sender); err == nil && ier.Response.Response.StatusCode != http.StatusNoContent {
-		ier, err = client.ExportResponder(ier.Response.Response)
+	if ieor.Response.Response, err = future.GetResult(sender); err == nil && ieor.Response.Response.StatusCode != http.StatusNoContent {
+		ieor, err = client.ExportResponder(ieor.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "sql.DatabasesExportFuture", "Result", ier.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "sql.DatabasesExportFuture", "Result", ieor.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -3657,35 +2285,6 @@ func (future *DatabasesFailoverFuture) Result(client DatabasesClient) (ar autore
 		return
 	}
 	ar.Response = future.Response()
-	return
-}
-
-// DatabasesImportFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type DatabasesImportFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasesImportFuture) Result(client DatabasesClient) (ier ImportExportResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.DatabasesImportFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sql.DatabasesImportFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ier.Response.Response, err = future.GetResult(sender); err == nil && ier.Response.Response.StatusCode != http.StatusNoContent {
-		ier, err = client.ImportResponder(ier.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sql.DatabasesImportFuture", "Result", ier.Response.Response, "Failure responding to request")
-		}
-	}
 	return
 }
 
@@ -4042,10 +2641,15 @@ func (dvalr DatabaseVulnerabilityAssessmentListResult) IsEmpty() bool {
 	return dvalr.Value == nil || len(*dvalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dvalr DatabaseVulnerabilityAssessmentListResult) hasNextLink() bool {
+	return dvalr.NextLink != nil && len(*dvalr.NextLink) != 0
+}
+
 // databaseVulnerabilityAssessmentListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dvalr DatabaseVulnerabilityAssessmentListResult) databaseVulnerabilityAssessmentListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dvalr.NextLink == nil || len(to.String(dvalr.NextLink)) < 1 {
+	if !dvalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4073,11 +2677,16 @@ func (page *DatabaseVulnerabilityAssessmentListResultPage) NextWithContext(ctx c
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dvalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dvalr)
+		if err != nil {
+			return err
+		}
+		page.dvalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dvalr = next
 	return nil
 }
 
@@ -4107,8 +2716,11 @@ func (page DatabaseVulnerabilityAssessmentListResultPage) Values() []DatabaseVul
 }
 
 // Creates a new instance of the DatabaseVulnerabilityAssessmentListResultPage type.
-func NewDatabaseVulnerabilityAssessmentListResultPage(getNextPage func(context.Context, DatabaseVulnerabilityAssessmentListResult) (DatabaseVulnerabilityAssessmentListResult, error)) DatabaseVulnerabilityAssessmentListResultPage {
-	return DatabaseVulnerabilityAssessmentListResultPage{fn: getNextPage}
+func NewDatabaseVulnerabilityAssessmentListResultPage(cur DatabaseVulnerabilityAssessmentListResult, getNextPage func(context.Context, DatabaseVulnerabilityAssessmentListResult) (DatabaseVulnerabilityAssessmentListResult, error)) DatabaseVulnerabilityAssessmentListResultPage {
+	return DatabaseVulnerabilityAssessmentListResultPage{
+		fn:    getNextPage,
+		dvalr: cur,
+	}
 }
 
 // DatabaseVulnerabilityAssessmentProperties properties of a database Vulnerability Assessment.
@@ -4419,6 +3031,18 @@ type DataMaskingPolicyProperties struct {
 	MaskingLevel *string `json:"maskingLevel,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DataMaskingPolicyProperties.
+func (dmpp DataMaskingPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dmpp.DataMaskingState != "" {
+		objectMap["dataMaskingState"] = dmpp.DataMaskingState
+	}
+	if dmpp.ExemptPrincipals != nil {
+		objectMap["exemptPrincipals"] = dmpp.ExemptPrincipals
+	}
+	return json.Marshal(objectMap)
+}
+
 // DataMaskingRule represents a database data masking rule.
 type DataMaskingRule struct {
 	autorest.Response `json:"-"`
@@ -4549,6 +3173,45 @@ type DataMaskingRuleProperties struct {
 	ReplacementString *string `json:"replacementString,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DataMaskingRuleProperties.
+func (dmrp DataMaskingRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dmrp.AliasName != nil {
+		objectMap["aliasName"] = dmrp.AliasName
+	}
+	if dmrp.RuleState != "" {
+		objectMap["ruleState"] = dmrp.RuleState
+	}
+	if dmrp.SchemaName != nil {
+		objectMap["schemaName"] = dmrp.SchemaName
+	}
+	if dmrp.TableName != nil {
+		objectMap["tableName"] = dmrp.TableName
+	}
+	if dmrp.ColumnName != nil {
+		objectMap["columnName"] = dmrp.ColumnName
+	}
+	if dmrp.MaskingFunction != "" {
+		objectMap["maskingFunction"] = dmrp.MaskingFunction
+	}
+	if dmrp.NumberFrom != nil {
+		objectMap["numberFrom"] = dmrp.NumberFrom
+	}
+	if dmrp.NumberTo != nil {
+		objectMap["numberTo"] = dmrp.NumberTo
+	}
+	if dmrp.PrefixSize != nil {
+		objectMap["prefixSize"] = dmrp.PrefixSize
+	}
+	if dmrp.SuffixSize != nil {
+		objectMap["suffixSize"] = dmrp.SuffixSize
+	}
+	if dmrp.ReplacementString != nil {
+		objectMap["replacementString"] = dmrp.ReplacementString
+	}
+	return json.Marshal(objectMap)
+}
+
 // EditionCapability the edition capability.
 type EditionCapability struct {
 	// Name - READ-ONLY; The database edition name.
@@ -4565,6 +3228,15 @@ type EditionCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EditionCapability.
+func (ec EditionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ec.Reason != nil {
+		objectMap["reason"] = ec.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ElasticPool an elastic pool.
@@ -4978,6 +3650,15 @@ type ElasticPoolEditionCapability struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolEditionCapability.
+func (epec ElasticPoolEditionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if epec.Reason != nil {
+		objectMap["reason"] = epec.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolListResult the result of an elastic pool list request.
 type ElasticPoolListResult struct {
 	autorest.Response `json:"-"`
@@ -5055,10 +3736,15 @@ func (eplr ElasticPoolListResult) IsEmpty() bool {
 	return eplr.Value == nil || len(*eplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (eplr ElasticPoolListResult) hasNextLink() bool {
+	return eplr.NextLink != nil && len(*eplr.NextLink) != 0
+}
+
 // elasticPoolListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (eplr ElasticPoolListResult) elasticPoolListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if eplr.NextLink == nil || len(to.String(eplr.NextLink)) < 1 {
+	if !eplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5086,11 +3772,16 @@ func (page *ElasticPoolListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.eplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.eplr)
+		if err != nil {
+			return err
+		}
+		page.eplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.eplr = next
 	return nil
 }
 
@@ -5120,8 +3811,11 @@ func (page ElasticPoolListResultPage) Values() []ElasticPool {
 }
 
 // Creates a new instance of the ElasticPoolListResultPage type.
-func NewElasticPoolListResultPage(getNextPage func(context.Context, ElasticPoolListResult) (ElasticPoolListResult, error)) ElasticPoolListResultPage {
-	return ElasticPoolListResultPage{fn: getNextPage}
+func NewElasticPoolListResultPage(cur ElasticPoolListResult, getNextPage func(context.Context, ElasticPoolListResult) (ElasticPoolListResult, error)) ElasticPoolListResultPage {
+	return ElasticPoolListResultPage{
+		fn:   getNextPage,
+		eplr: cur,
+	}
 }
 
 // ElasticPoolOperation a elastic pool operation.
@@ -5274,10 +3968,15 @@ func (epolr ElasticPoolOperationListResult) IsEmpty() bool {
 	return epolr.Value == nil || len(*epolr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (epolr ElasticPoolOperationListResult) hasNextLink() bool {
+	return epolr.NextLink != nil && len(*epolr.NextLink) != 0
+}
+
 // elasticPoolOperationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (epolr ElasticPoolOperationListResult) elasticPoolOperationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if epolr.NextLink == nil || len(to.String(epolr.NextLink)) < 1 {
+	if !epolr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5305,11 +4004,16 @@ func (page *ElasticPoolOperationListResultPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.epolr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.epolr)
+		if err != nil {
+			return err
+		}
+		page.epolr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.epolr = next
 	return nil
 }
 
@@ -5339,8 +4043,11 @@ func (page ElasticPoolOperationListResultPage) Values() []ElasticPoolOperation {
 }
 
 // Creates a new instance of the ElasticPoolOperationListResultPage type.
-func NewElasticPoolOperationListResultPage(getNextPage func(context.Context, ElasticPoolOperationListResult) (ElasticPoolOperationListResult, error)) ElasticPoolOperationListResultPage {
-	return ElasticPoolOperationListResultPage{fn: getNextPage}
+func NewElasticPoolOperationListResultPage(cur ElasticPoolOperationListResult, getNextPage func(context.Context, ElasticPoolOperationListResult) (ElasticPoolOperationListResult, error)) ElasticPoolOperationListResultPage {
+	return ElasticPoolOperationListResultPage{
+		fn:    getNextPage,
+		epolr: cur,
+	}
 }
 
 // ElasticPoolOperationProperties the properties of a elastic pool operation.
@@ -5389,6 +4096,15 @@ type ElasticPoolPerDatabaseMaxPerformanceLevelCapability struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolPerDatabaseMaxPerformanceLevelCapability.
+func (eppdmplc ElasticPoolPerDatabaseMaxPerformanceLevelCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if eppdmplc.Reason != nil {
+		objectMap["reason"] = eppdmplc.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolPerDatabaseMinPerformanceLevelCapability the minimum per-database performance level
 // capability.
 type ElasticPoolPerDatabaseMinPerformanceLevelCapability struct {
@@ -5400,6 +4116,15 @@ type ElasticPoolPerDatabaseMinPerformanceLevelCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ElasticPoolPerDatabaseMinPerformanceLevelCapability.
+func (eppdmplc ElasticPoolPerDatabaseMinPerformanceLevelCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if eppdmplc.Reason != nil {
+		objectMap["reason"] = eppdmplc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ElasticPoolPerDatabaseSettings per database settings of an elastic pool.
@@ -5436,6 +4161,15 @@ type ElasticPoolPerformanceLevelCapability struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ElasticPoolPerformanceLevelCapability.
+func (epplc ElasticPoolPerformanceLevelCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if epplc.Reason != nil {
+		objectMap["reason"] = epplc.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // ElasticPoolProperties properties of an elastic pool
 type ElasticPoolProperties struct {
 	// State - READ-ONLY; The state of the elastic pool. Possible values include: 'ElasticPoolStateCreating', 'ElasticPoolStateReady', 'ElasticPoolStateDisabled'
@@ -5450,6 +4184,24 @@ type ElasticPoolProperties struct {
 	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 	// LicenseType - The license type to apply for this elastic pool. Possible values include: 'ElasticPoolLicenseTypeLicenseIncluded', 'ElasticPoolLicenseTypeBasePrice'
 	LicenseType ElasticPoolLicenseType `json:"licenseType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ElasticPoolProperties.
+func (epp ElasticPoolProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if epp.MaxSizeBytes != nil {
+		objectMap["maxSizeBytes"] = epp.MaxSizeBytes
+	}
+	if epp.PerDatabaseSettings != nil {
+		objectMap["perDatabaseSettings"] = epp.PerDatabaseSettings
+	}
+	if epp.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = epp.ZoneRedundant
+	}
+	if epp.LicenseType != "" {
+		objectMap["licenseType"] = epp.LicenseType
+	}
+	return json.Marshal(objectMap)
 }
 
 // ElasticPoolsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -5807,10 +4559,15 @@ func (eplr EncryptionProtectorListResult) IsEmpty() bool {
 	return eplr.Value == nil || len(*eplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (eplr EncryptionProtectorListResult) hasNextLink() bool {
+	return eplr.NextLink != nil && len(*eplr.NextLink) != 0
+}
+
 // encryptionProtectorListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (eplr EncryptionProtectorListResult) encryptionProtectorListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if eplr.NextLink == nil || len(to.String(eplr.NextLink)) < 1 {
+	if !eplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5838,11 +4595,16 @@ func (page *EncryptionProtectorListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.eplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.eplr)
+		if err != nil {
+			return err
+		}
+		page.eplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.eplr = next
 	return nil
 }
 
@@ -5872,8 +4634,11 @@ func (page EncryptionProtectorListResultPage) Values() []EncryptionProtector {
 }
 
 // Creates a new instance of the EncryptionProtectorListResultPage type.
-func NewEncryptionProtectorListResultPage(getNextPage func(context.Context, EncryptionProtectorListResult) (EncryptionProtectorListResult, error)) EncryptionProtectorListResultPage {
-	return EncryptionProtectorListResultPage{fn: getNextPage}
+func NewEncryptionProtectorListResultPage(cur EncryptionProtectorListResult, getNextPage func(context.Context, EncryptionProtectorListResult) (EncryptionProtectorListResult, error)) EncryptionProtectorListResultPage {
+	return EncryptionProtectorListResultPage{
+		fn:   getNextPage,
+		eplr: cur,
+	}
 }
 
 // EncryptionProtectorProperties properties for an encryption protector execution.
@@ -5888,6 +4653,18 @@ type EncryptionProtectorProperties struct {
 	URI *string `json:"uri,omitempty"`
 	// Thumbprint - READ-ONLY; Thumbprint of the server key.
 	Thumbprint *string `json:"thumbprint,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EncryptionProtectorProperties.
+func (epp EncryptionProtectorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if epp.ServerKeyName != nil {
+		objectMap["serverKeyName"] = epp.ServerKeyName
+	}
+	if epp.ServerKeyType != "" {
+		objectMap["serverKeyType"] = epp.ServerKeyType
+	}
+	return json.Marshal(objectMap)
 }
 
 // EncryptionProtectorsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -5942,20 +4719,22 @@ func (future *EncryptionProtectorsRevalidateFuture) Result(client EncryptionProt
 	return
 }
 
-// ExportRequest export database parameters.
-type ExportRequest struct {
-	// StorageKeyType - The type of the storage key to use. Possible values include: 'StorageAccessKey', 'SharedAccessKey'
+// ExportDatabaseDefinition contains the information necessary to perform export database operation.
+type ExportDatabaseDefinition struct {
+	// StorageKeyType - Storage key type. Possible values include: 'SharedAccessKey', 'StorageAccessKey'
 	StorageKeyType StorageKeyType `json:"storageKeyType,omitempty"`
-	// StorageKey - The storage key to use.  If storage key type is SharedAccessKey, it must be preceded with a "?."
+	// StorageKey - Storage key.
 	StorageKey *string `json:"storageKey,omitempty"`
-	// StorageURI - The storage uri to use.
+	// StorageURI - Storage Uri.
 	StorageURI *string `json:"storageUri,omitempty"`
-	// AdministratorLogin - The name of the SQL administrator.
+	// AdministratorLogin - Administrator login name.
 	AdministratorLogin *string `json:"administratorLogin,omitempty"`
-	// AdministratorLoginPassword - The password of the SQL administrator.
+	// AdministratorLoginPassword - Administrator login password.
 	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
-	// AuthenticationType - The authentication type. Possible values include: 'SQL', 'ADPassword'
-	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// AuthenticationType - Authentication type.
+	AuthenticationType *string `json:"authenticationType,omitempty"`
+	// NetworkIsolation - Optional resource information to enable network isolation for request.
+	NetworkIsolation *NetworkIsolationSettings `json:"networkIsolation,omitempty"`
 }
 
 // ExtendedDatabaseBlobAuditingPolicy an extended database blob auditing policy.
@@ -6031,6 +4810,167 @@ func (edbap *ExtendedDatabaseBlobAuditingPolicy) UnmarshalJSON(body []byte) erro
 	return nil
 }
 
+// ExtendedDatabaseBlobAuditingPolicyListResult a list of database extended auditing settings.
+type ExtendedDatabaseBlobAuditingPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ExtendedDatabaseBlobAuditingPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ExtendedDatabaseBlobAuditingPolicyListResultIterator provides access to a complete listing of
+// ExtendedDatabaseBlobAuditingPolicy values.
+type ExtendedDatabaseBlobAuditingPolicyListResultIterator struct {
+	i    int
+	page ExtendedDatabaseBlobAuditingPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ExtendedDatabaseBlobAuditingPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedDatabaseBlobAuditingPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ExtendedDatabaseBlobAuditingPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ExtendedDatabaseBlobAuditingPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ExtendedDatabaseBlobAuditingPolicyListResultIterator) Response() ExtendedDatabaseBlobAuditingPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ExtendedDatabaseBlobAuditingPolicyListResultIterator) Value() ExtendedDatabaseBlobAuditingPolicy {
+	if !iter.page.NotDone() {
+		return ExtendedDatabaseBlobAuditingPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ExtendedDatabaseBlobAuditingPolicyListResultIterator type.
+func NewExtendedDatabaseBlobAuditingPolicyListResultIterator(page ExtendedDatabaseBlobAuditingPolicyListResultPage) ExtendedDatabaseBlobAuditingPolicyListResultIterator {
+	return ExtendedDatabaseBlobAuditingPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (edbaplr ExtendedDatabaseBlobAuditingPolicyListResult) IsEmpty() bool {
+	return edbaplr.Value == nil || len(*edbaplr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (edbaplr ExtendedDatabaseBlobAuditingPolicyListResult) hasNextLink() bool {
+	return edbaplr.NextLink != nil && len(*edbaplr.NextLink) != 0
+}
+
+// extendedDatabaseBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (edbaplr ExtendedDatabaseBlobAuditingPolicyListResult) extendedDatabaseBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !edbaplr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(edbaplr.NextLink)))
+}
+
+// ExtendedDatabaseBlobAuditingPolicyListResultPage contains a page of ExtendedDatabaseBlobAuditingPolicy
+// values.
+type ExtendedDatabaseBlobAuditingPolicyListResultPage struct {
+	fn      func(context.Context, ExtendedDatabaseBlobAuditingPolicyListResult) (ExtendedDatabaseBlobAuditingPolicyListResult, error)
+	edbaplr ExtendedDatabaseBlobAuditingPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ExtendedDatabaseBlobAuditingPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedDatabaseBlobAuditingPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.edbaplr)
+		if err != nil {
+			return err
+		}
+		page.edbaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ExtendedDatabaseBlobAuditingPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ExtendedDatabaseBlobAuditingPolicyListResultPage) NotDone() bool {
+	return !page.edbaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ExtendedDatabaseBlobAuditingPolicyListResultPage) Response() ExtendedDatabaseBlobAuditingPolicyListResult {
+	return page.edbaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ExtendedDatabaseBlobAuditingPolicyListResultPage) Values() []ExtendedDatabaseBlobAuditingPolicy {
+	if page.edbaplr.IsEmpty() {
+		return nil
+	}
+	return *page.edbaplr.Value
+}
+
+// Creates a new instance of the ExtendedDatabaseBlobAuditingPolicyListResultPage type.
+func NewExtendedDatabaseBlobAuditingPolicyListResultPage(cur ExtendedDatabaseBlobAuditingPolicyListResult, getNextPage func(context.Context, ExtendedDatabaseBlobAuditingPolicyListResult) (ExtendedDatabaseBlobAuditingPolicyListResult, error)) ExtendedDatabaseBlobAuditingPolicyListResultPage {
+	return ExtendedDatabaseBlobAuditingPolicyListResultPage{
+		fn:      getNextPage,
+		edbaplr: cur,
+	}
+}
+
 // ExtendedDatabaseBlobAuditingPolicyProperties properties of an extended database blob auditing policy.
 type ExtendedDatabaseBlobAuditingPolicyProperties struct {
 	// PredicateExpression - Specifies condition of where clause when creating an audit.
@@ -6039,7 +4979,12 @@ type ExtendedDatabaseBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -6224,6 +5169,167 @@ func (esbap *ExtendedServerBlobAuditingPolicy) UnmarshalJSON(body []byte) error 
 	return nil
 }
 
+// ExtendedServerBlobAuditingPolicyListResult a list of server extended auditing settings.
+type ExtendedServerBlobAuditingPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ExtendedServerBlobAuditingPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ExtendedServerBlobAuditingPolicyListResultIterator provides access to a complete listing of
+// ExtendedServerBlobAuditingPolicy values.
+type ExtendedServerBlobAuditingPolicyListResultIterator struct {
+	i    int
+	page ExtendedServerBlobAuditingPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ExtendedServerBlobAuditingPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedServerBlobAuditingPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ExtendedServerBlobAuditingPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ExtendedServerBlobAuditingPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ExtendedServerBlobAuditingPolicyListResultIterator) Response() ExtendedServerBlobAuditingPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ExtendedServerBlobAuditingPolicyListResultIterator) Value() ExtendedServerBlobAuditingPolicy {
+	if !iter.page.NotDone() {
+		return ExtendedServerBlobAuditingPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ExtendedServerBlobAuditingPolicyListResultIterator type.
+func NewExtendedServerBlobAuditingPolicyListResultIterator(page ExtendedServerBlobAuditingPolicyListResultPage) ExtendedServerBlobAuditingPolicyListResultIterator {
+	return ExtendedServerBlobAuditingPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (esbaplr ExtendedServerBlobAuditingPolicyListResult) IsEmpty() bool {
+	return esbaplr.Value == nil || len(*esbaplr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (esbaplr ExtendedServerBlobAuditingPolicyListResult) hasNextLink() bool {
+	return esbaplr.NextLink != nil && len(*esbaplr.NextLink) != 0
+}
+
+// extendedServerBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (esbaplr ExtendedServerBlobAuditingPolicyListResult) extendedServerBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !esbaplr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(esbaplr.NextLink)))
+}
+
+// ExtendedServerBlobAuditingPolicyListResultPage contains a page of ExtendedServerBlobAuditingPolicy
+// values.
+type ExtendedServerBlobAuditingPolicyListResultPage struct {
+	fn      func(context.Context, ExtendedServerBlobAuditingPolicyListResult) (ExtendedServerBlobAuditingPolicyListResult, error)
+	esbaplr ExtendedServerBlobAuditingPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ExtendedServerBlobAuditingPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedServerBlobAuditingPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.esbaplr)
+		if err != nil {
+			return err
+		}
+		page.esbaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ExtendedServerBlobAuditingPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ExtendedServerBlobAuditingPolicyListResultPage) NotDone() bool {
+	return !page.esbaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ExtendedServerBlobAuditingPolicyListResultPage) Response() ExtendedServerBlobAuditingPolicyListResult {
+	return page.esbaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ExtendedServerBlobAuditingPolicyListResultPage) Values() []ExtendedServerBlobAuditingPolicy {
+	if page.esbaplr.IsEmpty() {
+		return nil
+	}
+	return *page.esbaplr.Value
+}
+
+// Creates a new instance of the ExtendedServerBlobAuditingPolicyListResultPage type.
+func NewExtendedServerBlobAuditingPolicyListResultPage(cur ExtendedServerBlobAuditingPolicyListResult, getNextPage func(context.Context, ExtendedServerBlobAuditingPolicyListResult) (ExtendedServerBlobAuditingPolicyListResult, error)) ExtendedServerBlobAuditingPolicyListResultPage {
+	return ExtendedServerBlobAuditingPolicyListResultPage{
+		fn:      getNextPage,
+		esbaplr: cur,
+	}
+}
+
 // ExtendedServerBlobAuditingPolicyProperties properties of an extended server blob auditing policy.
 type ExtendedServerBlobAuditingPolicyProperties struct {
 	// PredicateExpression - Specifies condition of where clause when creating an audit.
@@ -6232,7 +5338,12 @@ type ExtendedServerBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -6490,10 +5601,15 @@ func (fglr FailoverGroupListResult) IsEmpty() bool {
 	return fglr.Value == nil || len(*fglr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (fglr FailoverGroupListResult) hasNextLink() bool {
+	return fglr.NextLink != nil && len(*fglr.NextLink) != 0
+}
+
 // failoverGroupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (fglr FailoverGroupListResult) failoverGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if fglr.NextLink == nil || len(to.String(fglr.NextLink)) < 1 {
+	if !fglr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6521,11 +5637,16 @@ func (page *FailoverGroupListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.fglr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.fglr)
+		if err != nil {
+			return err
+		}
+		page.fglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.fglr = next
 	return nil
 }
 
@@ -6555,8 +5676,11 @@ func (page FailoverGroupListResultPage) Values() []FailoverGroup {
 }
 
 // Creates a new instance of the FailoverGroupListResultPage type.
-func NewFailoverGroupListResultPage(getNextPage func(context.Context, FailoverGroupListResult) (FailoverGroupListResult, error)) FailoverGroupListResultPage {
-	return FailoverGroupListResultPage{fn: getNextPage}
+func NewFailoverGroupListResultPage(cur FailoverGroupListResult, getNextPage func(context.Context, FailoverGroupListResult) (FailoverGroupListResult, error)) FailoverGroupListResultPage {
+	return FailoverGroupListResultPage{
+		fn:   getNextPage,
+		fglr: cur,
+	}
 }
 
 // FailoverGroupProperties properties of a failover group.
@@ -6573,6 +5697,24 @@ type FailoverGroupProperties struct {
 	PartnerServers *[]PartnerInfo `json:"partnerServers,omitempty"`
 	// Databases - List of databases in the failover group.
 	Databases *[]string `json:"databases,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FailoverGroupProperties.
+func (fgp FailoverGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fgp.ReadWriteEndpoint != nil {
+		objectMap["readWriteEndpoint"] = fgp.ReadWriteEndpoint
+	}
+	if fgp.ReadOnlyEndpoint != nil {
+		objectMap["readOnlyEndpoint"] = fgp.ReadOnlyEndpoint
+	}
+	if fgp.PartnerServers != nil {
+		objectMap["partnerServers"] = fgp.PartnerServers
+	}
+	if fgp.Databases != nil {
+		objectMap["databases"] = fgp.Databases
+	}
+	return json.Marshal(objectMap)
 }
 
 // FailoverGroupReadOnlyEndpoint read-only endpoint of the failover group instance.
@@ -7011,11 +6153,68 @@ type GeoBackupPolicyProperties struct {
 	StorageType *string `json:"storageType,omitempty"`
 }
 
-// ImportExportResponse response for Import/Export Get operation.
-type ImportExportResponse struct {
+// MarshalJSON is the custom marshaler for GeoBackupPolicyProperties.
+func (gbpp GeoBackupPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gbpp.State != "" {
+		objectMap["state"] = gbpp.State
+	}
+	return json.Marshal(objectMap)
+}
+
+// ImportExistingDatabaseDefinition contains the information necessary to perform import operation for
+// existing database.
+type ImportExistingDatabaseDefinition struct {
+	// StorageKeyType - Storage key type. Possible values include: 'SharedAccessKey', 'StorageAccessKey'
+	StorageKeyType StorageKeyType `json:"storageKeyType,omitempty"`
+	// StorageKey - Storage key.
+	StorageKey *string `json:"storageKey,omitempty"`
+	// StorageURI - Storage Uri.
+	StorageURI *string `json:"storageUri,omitempty"`
+	// AdministratorLogin - Administrator login name.
+	AdministratorLogin *string `json:"administratorLogin,omitempty"`
+	// AdministratorLoginPassword - Administrator login password.
+	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
+	// AuthenticationType - Authentication type.
+	AuthenticationType *string `json:"authenticationType,omitempty"`
+	// NetworkIsolation - Optional resource information to enable network isolation for request.
+	NetworkIsolation *NetworkIsolationSettings `json:"networkIsolation,omitempty"`
+}
+
+// ImportExportImportFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ImportExportImportFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ImportExportImportFuture) Result(client ImportExportClient) (ieor ImportExportOperationResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ImportExportImportFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ImportExportImportFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ieor.Response.Response, err = future.GetResult(sender); err == nil && ieor.Response.Response.StatusCode != http.StatusNoContent {
+		ieor, err = client.ImportResponder(ieor.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ImportExportImportFuture", "Result", ieor.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ImportExportOperationResult an ImportExport operation result resource.
+type ImportExportOperationResult struct {
 	autorest.Response `json:"-"`
-	// ImportExportResponseProperties - The import/export operation properties.
-	*ImportExportResponseProperties `json:"properties,omitempty"`
+	// ImportExportOperationResultProperties - Resource properties.
+	*ImportExportOperationResultProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
@@ -7024,17 +6223,17 @@ type ImportExportResponse struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ImportExportResponse.
-func (ier ImportExportResponse) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for ImportExportOperationResult.
+func (ieor ImportExportOperationResult) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ier.ImportExportResponseProperties != nil {
-		objectMap["properties"] = ier.ImportExportResponseProperties
+	if ieor.ImportExportOperationResultProperties != nil {
+		objectMap["properties"] = ieor.ImportExportOperationResultProperties
 	}
 	return json.Marshal(objectMap)
 }
 
-// UnmarshalJSON is the custom unmarshaler for ImportExportResponse struct.
-func (ier *ImportExportResponse) UnmarshalJSON(body []byte) error {
+// UnmarshalJSON is the custom unmarshaler for ImportExportOperationResult struct.
+func (ieor *ImportExportOperationResult) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
 	err := json.Unmarshal(body, &m)
 	if err != nil {
@@ -7044,12 +6243,12 @@ func (ier *ImportExportResponse) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "properties":
 			if v != nil {
-				var importExportResponseProperties ImportExportResponseProperties
-				err = json.Unmarshal(*v, &importExportResponseProperties)
+				var importExportOperationResultProperties ImportExportOperationResultProperties
+				err = json.Unmarshal(*v, &importExportOperationResultProperties)
 				if err != nil {
 					return err
 				}
-				ier.ImportExportResponseProperties = &importExportResponseProperties
+				ieor.ImportExportOperationResultProperties = &importExportOperationResultProperties
 			}
 		case "id":
 			if v != nil {
@@ -7058,7 +6257,7 @@ func (ier *ImportExportResponse) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				ier.ID = &ID
+				ieor.ID = &ID
 			}
 		case "name":
 			if v != nil {
@@ -7067,7 +6266,7 @@ func (ier *ImportExportResponse) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				ier.Name = &name
+				ieor.Name = &name
 			}
 		case "type":
 			if v != nil {
@@ -7076,7 +6275,7 @@ func (ier *ImportExportResponse) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				ier.Type = &typeVar
+				ieor.Type = &typeVar
 			}
 		}
 	}
@@ -7084,146 +6283,56 @@ func (ier *ImportExportResponse) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ImportExportResponseProperties response for Import/Export Status operation.
-type ImportExportResponseProperties struct {
-	// RequestType - READ-ONLY; The request type of the operation.
-	RequestType *string `json:"requestType,omitempty"`
-	// RequestID - READ-ONLY; The request type of the operation.
+// ImportExportOperationResultProperties contains the operation result properties for import/export
+// operation.
+type ImportExportOperationResultProperties struct {
+	// RequestID - READ-ONLY; Request Id.
 	RequestID *uuid.UUID `json:"requestId,omitempty"`
-	// ServerName - READ-ONLY; The name of the server.
-	ServerName *string `json:"serverName,omitempty"`
-	// DatabaseName - READ-ONLY; The name of the database.
-	DatabaseName *string `json:"databaseName,omitempty"`
-	// Status - READ-ONLY; The status message returned from the server.
-	Status *string `json:"status,omitempty"`
-	// LastModifiedTime - READ-ONLY; The operation status last modified time.
-	LastModifiedTime *string `json:"lastModifiedTime,omitempty"`
-	// QueuedTime - READ-ONLY; The operation queued time.
+	// RequestType - READ-ONLY; Request type.
+	RequestType *string `json:"requestType,omitempty"`
+	// QueuedTime - READ-ONLY; Queued time.
 	QueuedTime *string `json:"queuedTime,omitempty"`
-	// BlobURI - READ-ONLY; The blob uri.
+	// LastModifiedTime - READ-ONLY; Last modified time.
+	LastModifiedTime *string `json:"lastModifiedTime,omitempty"`
+	// BlobURI - READ-ONLY; Blob Uri.
 	BlobURI *string `json:"blobUri,omitempty"`
-	// ErrorMessage - READ-ONLY; The error message returned from the server.
-	ErrorMessage *string `json:"errorMessage,omitempty"`
-}
-
-// ImportExtensionProperties represents the properties for an import operation
-type ImportExtensionProperties struct {
-	// OperationMode - The type of import operation being performed. This is always Import.
-	OperationMode *string `json:"operationMode,omitempty"`
-	// StorageKeyType - The type of the storage key to use. Possible values include: 'StorageAccessKey', 'SharedAccessKey'
-	StorageKeyType StorageKeyType `json:"storageKeyType,omitempty"`
-	// StorageKey - The storage key to use.  If storage key type is SharedAccessKey, it must be preceded with a "?."
-	StorageKey *string `json:"storageKey,omitempty"`
-	// StorageURI - The storage uri to use.
-	StorageURI *string `json:"storageUri,omitempty"`
-	// AdministratorLogin - The name of the SQL administrator.
-	AdministratorLogin *string `json:"administratorLogin,omitempty"`
-	// AdministratorLoginPassword - The password of the SQL administrator.
-	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
-	// AuthenticationType - The authentication type. Possible values include: 'SQL', 'ADPassword'
-	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
-}
-
-// ImportExtensionRequest import database parameters.
-type ImportExtensionRequest struct {
-	// Name - The name of the extension.
-	Name *string `json:"name,omitempty"`
-	// Type - The type of the extension.
-	Type *string `json:"type,omitempty"`
-	// ImportExtensionProperties - Represents the properties of the resource.
-	*ImportExtensionProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ImportExtensionRequest.
-func (ier ImportExtensionRequest) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ier.Name != nil {
-		objectMap["name"] = ier.Name
-	}
-	if ier.Type != nil {
-		objectMap["type"] = ier.Type
-	}
-	if ier.ImportExtensionProperties != nil {
-		objectMap["properties"] = ier.ImportExtensionProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ImportExtensionRequest struct.
-func (ier *ImportExtensionRequest) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ier.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ier.Type = &typeVar
-			}
-		case "properties":
-			if v != nil {
-				var importExtensionProperties ImportExtensionProperties
-				err = json.Unmarshal(*v, &importExtensionProperties)
-				if err != nil {
-					return err
-				}
-				ier.ImportExtensionProperties = &importExtensionProperties
-			}
-		}
-	}
-
-	return nil
-}
-
-// ImportRequest import database parameters.
-type ImportRequest struct {
-	// DatabaseName - The name of the database to import.
+	// ServerName - READ-ONLY; Server name.
+	ServerName *string `json:"serverName,omitempty"`
+	// DatabaseName - READ-ONLY; Database name.
 	DatabaseName *string `json:"databaseName,omitempty"`
-	// Edition - The edition for the database being created.
-	//
-	// The list of SKUs may vary by region and support offer. To determine the SKUs (including the SKU name, tier/edition, family, and capacity) that are available to your subscription in an Azure region, use the `Capabilities_ListByLocation` REST API or one of the following commands:
-	//
-	// ```azurecli
-	// az sql db list-editions -l <location> -o table
-	// ````
-	//
-	// ```powershell
-	// Get-AzSqlServerServiceObjective -Location <location>
-	// ````
-	// . Possible values include: 'Web', 'Business', 'Basic', 'Standard', 'Premium', 'PremiumRS', 'Free', 'Stretch', 'DataWarehouse', 'System', 'System2', 'GeneralPurpose', 'BusinessCritical', 'Hyperscale'
-	Edition DatabaseEdition `json:"edition,omitempty"`
-	// ServiceObjectiveName - The name of the service objective to assign to the database. Possible values include: 'ServiceObjectiveNameSystem', 'ServiceObjectiveNameSystem0', 'ServiceObjectiveNameSystem1', 'ServiceObjectiveNameSystem2', 'ServiceObjectiveNameSystem3', 'ServiceObjectiveNameSystem4', 'ServiceObjectiveNameSystem2L', 'ServiceObjectiveNameSystem3L', 'ServiceObjectiveNameSystem4L', 'ServiceObjectiveNameFree', 'ServiceObjectiveNameBasic', 'ServiceObjectiveNameS0', 'ServiceObjectiveNameS1', 'ServiceObjectiveNameS2', 'ServiceObjectiveNameS3', 'ServiceObjectiveNameS4', 'ServiceObjectiveNameS6', 'ServiceObjectiveNameS7', 'ServiceObjectiveNameS9', 'ServiceObjectiveNameS12', 'ServiceObjectiveNameP1', 'ServiceObjectiveNameP2', 'ServiceObjectiveNameP3', 'ServiceObjectiveNameP4', 'ServiceObjectiveNameP6', 'ServiceObjectiveNameP11', 'ServiceObjectiveNameP15', 'ServiceObjectiveNamePRS1', 'ServiceObjectiveNamePRS2', 'ServiceObjectiveNamePRS4', 'ServiceObjectiveNamePRS6', 'ServiceObjectiveNameDW100', 'ServiceObjectiveNameDW200', 'ServiceObjectiveNameDW300', 'ServiceObjectiveNameDW400', 'ServiceObjectiveNameDW500', 'ServiceObjectiveNameDW600', 'ServiceObjectiveNameDW1000', 'ServiceObjectiveNameDW1200', 'ServiceObjectiveNameDW1000c', 'ServiceObjectiveNameDW1500', 'ServiceObjectiveNameDW1500c', 'ServiceObjectiveNameDW2000', 'ServiceObjectiveNameDW2000c', 'ServiceObjectiveNameDW3000', 'ServiceObjectiveNameDW2500c', 'ServiceObjectiveNameDW3000c', 'ServiceObjectiveNameDW6000', 'ServiceObjectiveNameDW5000c', 'ServiceObjectiveNameDW6000c', 'ServiceObjectiveNameDW7500c', 'ServiceObjectiveNameDW10000c', 'ServiceObjectiveNameDW15000c', 'ServiceObjectiveNameDW30000c', 'ServiceObjectiveNameDS100', 'ServiceObjectiveNameDS200', 'ServiceObjectiveNameDS300', 'ServiceObjectiveNameDS400', 'ServiceObjectiveNameDS500', 'ServiceObjectiveNameDS600', 'ServiceObjectiveNameDS1000', 'ServiceObjectiveNameDS1200', 'ServiceObjectiveNameDS1500', 'ServiceObjectiveNameDS2000', 'ServiceObjectiveNameElasticPool'
-	ServiceObjectiveName ServiceObjectiveName `json:"serviceObjectiveName,omitempty"`
-	// MaxSizeBytes - The maximum size for the newly imported database.
+	// Status - READ-ONLY; Operation status.
+	Status *string `json:"status,omitempty"`
+	// ErrorMessage - READ-ONLY; Error message.
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; Gets the status of private endpoints associated with this request.
+	PrivateEndpointConnections *[]PrivateEndpointConnectionRequestStatus `json:"privateEndpointConnections,omitempty"`
+}
+
+// ImportNewDatabaseDefinition contains the information necessary to perform import operation for new
+// database.
+type ImportNewDatabaseDefinition struct {
+	// DatabaseName - Name of the import database.
+	DatabaseName *string `json:"databaseName,omitempty"`
+	// Edition - Edition of the import database.
+	Edition *string `json:"edition,omitempty"`
+	// ServiceObjectiveName - Service level objective name of the import database.
+	ServiceObjectiveName *string `json:"serviceObjectiveName,omitempty"`
+	// MaxSizeBytes - Max size in bytes for the import database.
 	MaxSizeBytes *string `json:"maxSizeBytes,omitempty"`
-	// StorageKeyType - The type of the storage key to use. Possible values include: 'StorageAccessKey', 'SharedAccessKey'
+	// StorageKeyType - Storage key type. Possible values include: 'SharedAccessKey', 'StorageAccessKey'
 	StorageKeyType StorageKeyType `json:"storageKeyType,omitempty"`
-	// StorageKey - The storage key to use.  If storage key type is SharedAccessKey, it must be preceded with a "?."
+	// StorageKey - Storage key.
 	StorageKey *string `json:"storageKey,omitempty"`
-	// StorageURI - The storage uri to use.
+	// StorageURI - Storage Uri.
 	StorageURI *string `json:"storageUri,omitempty"`
-	// AdministratorLogin - The name of the SQL administrator.
+	// AdministratorLogin - Administrator login name.
 	AdministratorLogin *string `json:"administratorLogin,omitempty"`
-	// AdministratorLoginPassword - The password of the SQL administrator.
+	// AdministratorLoginPassword - Administrator login password.
 	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
-	// AuthenticationType - The authentication type. Possible values include: 'SQL', 'ADPassword'
-	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// AuthenticationType - Authentication type.
+	AuthenticationType *string `json:"authenticationType,omitempty"`
+	// NetworkIsolation - Optional resource information to enable network isolation for request.
+	NetworkIsolation *NetworkIsolationSettings `json:"networkIsolation,omitempty"`
 }
 
 // InstanceFailoverGroup an instance failover group.
@@ -7377,10 +6486,15 @@ func (ifglr InstanceFailoverGroupListResult) IsEmpty() bool {
 	return ifglr.Value == nil || len(*ifglr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ifglr InstanceFailoverGroupListResult) hasNextLink() bool {
+	return ifglr.NextLink != nil && len(*ifglr.NextLink) != 0
+}
+
 // instanceFailoverGroupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ifglr InstanceFailoverGroupListResult) instanceFailoverGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ifglr.NextLink == nil || len(to.String(ifglr.NextLink)) < 1 {
+	if !ifglr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7408,11 +6522,16 @@ func (page *InstanceFailoverGroupListResultPage) NextWithContext(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ifglr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ifglr)
+		if err != nil {
+			return err
+		}
+		page.ifglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ifglr = next
 	return nil
 }
 
@@ -7442,8 +6561,11 @@ func (page InstanceFailoverGroupListResultPage) Values() []InstanceFailoverGroup
 }
 
 // Creates a new instance of the InstanceFailoverGroupListResultPage type.
-func NewInstanceFailoverGroupListResultPage(getNextPage func(context.Context, InstanceFailoverGroupListResult) (InstanceFailoverGroupListResult, error)) InstanceFailoverGroupListResultPage {
-	return InstanceFailoverGroupListResultPage{fn: getNextPage}
+func NewInstanceFailoverGroupListResultPage(cur InstanceFailoverGroupListResult, getNextPage func(context.Context, InstanceFailoverGroupListResult) (InstanceFailoverGroupListResult, error)) InstanceFailoverGroupListResultPage {
+	return InstanceFailoverGroupListResultPage{
+		fn:    getNextPage,
+		ifglr: cur,
+	}
 }
 
 // InstanceFailoverGroupProperties properties of a instance failover group.
@@ -7460,6 +6582,24 @@ type InstanceFailoverGroupProperties struct {
 	PartnerRegions *[]PartnerRegionInfo `json:"partnerRegions,omitempty"`
 	// ManagedInstancePairs - List of managed instance pairs in the failover group.
 	ManagedInstancePairs *[]ManagedInstancePairInfo `json:"managedInstancePairs,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InstanceFailoverGroupProperties.
+func (ifgp InstanceFailoverGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ifgp.ReadWriteEndpoint != nil {
+		objectMap["readWriteEndpoint"] = ifgp.ReadWriteEndpoint
+	}
+	if ifgp.ReadOnlyEndpoint != nil {
+		objectMap["readOnlyEndpoint"] = ifgp.ReadOnlyEndpoint
+	}
+	if ifgp.PartnerRegions != nil {
+		objectMap["partnerRegions"] = ifgp.PartnerRegions
+	}
+	if ifgp.ManagedInstancePairs != nil {
+		objectMap["managedInstancePairs"] = ifgp.ManagedInstancePairs
+	}
+	return json.Marshal(objectMap)
 }
 
 // InstanceFailoverGroupReadOnlyEndpoint read-only endpoint of the failover group instance.
@@ -7713,6 +6853,15 @@ type InstancePoolEditionCapability struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for InstancePoolEditionCapability.
+func (ipec InstancePoolEditionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ipec.Reason != nil {
+		objectMap["reason"] = ipec.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // InstancePoolFamilyCapability the instance pool family capability.
 type InstancePoolFamilyCapability struct {
 	// Name - READ-ONLY; Family name.
@@ -7725,6 +6874,15 @@ type InstancePoolFamilyCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InstancePoolFamilyCapability.
+func (ipfc InstancePoolFamilyCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ipfc.Reason != nil {
+		objectMap["reason"] = ipfc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // InstancePoolListResult a list of Azure SQL instance pools.
@@ -7804,10 +6962,15 @@ func (iplr InstancePoolListResult) IsEmpty() bool {
 	return iplr.Value == nil || len(*iplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (iplr InstancePoolListResult) hasNextLink() bool {
+	return iplr.NextLink != nil && len(*iplr.NextLink) != 0
+}
+
 // instancePoolListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (iplr InstancePoolListResult) instancePoolListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if iplr.NextLink == nil || len(to.String(iplr.NextLink)) < 1 {
+	if !iplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7835,11 +6998,16 @@ func (page *InstancePoolListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.iplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.iplr)
+		if err != nil {
+			return err
+		}
+		page.iplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.iplr = next
 	return nil
 }
 
@@ -7869,8 +7037,11 @@ func (page InstancePoolListResultPage) Values() []InstancePool {
 }
 
 // Creates a new instance of the InstancePoolListResultPage type.
-func NewInstancePoolListResultPage(getNextPage func(context.Context, InstancePoolListResult) (InstancePoolListResult, error)) InstancePoolListResultPage {
-	return InstancePoolListResultPage{fn: getNextPage}
+func NewInstancePoolListResultPage(cur InstancePoolListResult, getNextPage func(context.Context, InstancePoolListResult) (InstancePoolListResult, error)) InstancePoolListResultPage {
+	return InstancePoolListResultPage{
+		fn:   getNextPage,
+		iplr: cur,
+	}
 }
 
 // InstancePoolProperties properties of an instance pool.
@@ -7991,6 +7162,15 @@ type InstancePoolVcoresCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InstancePoolVcoresCapability.
+func (ipvc InstancePoolVcoresCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ipvc.Reason != nil {
+		objectMap["reason"] = ipvc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // Job a job.
@@ -8258,10 +7438,15 @@ func (jalr JobAgentListResult) IsEmpty() bool {
 	return jalr.Value == nil || len(*jalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jalr JobAgentListResult) hasNextLink() bool {
+	return jalr.NextLink != nil && len(*jalr.NextLink) != 0
+}
+
 // jobAgentListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jalr JobAgentListResult) jobAgentListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jalr.NextLink == nil || len(to.String(jalr.NextLink)) < 1 {
+	if !jalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8289,11 +7474,16 @@ func (page *JobAgentListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jalr)
+		if err != nil {
+			return err
+		}
+		page.jalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jalr = next
 	return nil
 }
 
@@ -8323,8 +7513,11 @@ func (page JobAgentListResultPage) Values() []JobAgent {
 }
 
 // Creates a new instance of the JobAgentListResultPage type.
-func NewJobAgentListResultPage(getNextPage func(context.Context, JobAgentListResult) (JobAgentListResult, error)) JobAgentListResultPage {
-	return JobAgentListResultPage{fn: getNextPage}
+func NewJobAgentListResultPage(cur JobAgentListResult, getNextPage func(context.Context, JobAgentListResult) (JobAgentListResult, error)) JobAgentListResultPage {
+	return JobAgentListResultPage{
+		fn:   getNextPage,
+		jalr: cur,
+	}
 }
 
 // JobAgentProperties properties of a job agent.
@@ -8333,6 +7526,15 @@ type JobAgentProperties struct {
 	DatabaseID *string `json:"databaseId,omitempty"`
 	// State - READ-ONLY; The state of the job agent. Possible values include: 'JobAgentStateCreating', 'JobAgentStateReady', 'JobAgentStateUpdating', 'JobAgentStateDeleting', 'JobAgentStateDisabled'
 	State JobAgentState `json:"state,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobAgentProperties.
+func (jap JobAgentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if jap.DatabaseID != nil {
+		objectMap["databaseId"] = jap.DatabaseID
+	}
+	return json.Marshal(objectMap)
 }
 
 // JobAgentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -8581,10 +7783,15 @@ func (jclr JobCredentialListResult) IsEmpty() bool {
 	return jclr.Value == nil || len(*jclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jclr JobCredentialListResult) hasNextLink() bool {
+	return jclr.NextLink != nil && len(*jclr.NextLink) != 0
+}
+
 // jobCredentialListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jclr JobCredentialListResult) jobCredentialListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jclr.NextLink == nil || len(to.String(jclr.NextLink)) < 1 {
+	if !jclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8612,11 +7819,16 @@ func (page *JobCredentialListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jclr)
+		if err != nil {
+			return err
+		}
+		page.jclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jclr = next
 	return nil
 }
 
@@ -8646,8 +7858,11 @@ func (page JobCredentialListResultPage) Values() []JobCredential {
 }
 
 // Creates a new instance of the JobCredentialListResultPage type.
-func NewJobCredentialListResultPage(getNextPage func(context.Context, JobCredentialListResult) (JobCredentialListResult, error)) JobCredentialListResultPage {
-	return JobCredentialListResultPage{fn: getNextPage}
+func NewJobCredentialListResultPage(cur JobCredentialListResult, getNextPage func(context.Context, JobCredentialListResult) (JobCredentialListResult, error)) JobCredentialListResultPage {
+	return JobCredentialListResultPage{
+		fn:   getNextPage,
+		jclr: cur,
+	}
 }
 
 // JobCredentialProperties properties of a job credential.
@@ -8808,10 +8023,15 @@ func (jelr JobExecutionListResult) IsEmpty() bool {
 	return jelr.Value == nil || len(*jelr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jelr JobExecutionListResult) hasNextLink() bool {
+	return jelr.NextLink != nil && len(*jelr.NextLink) != 0
+}
+
 // jobExecutionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jelr JobExecutionListResult) jobExecutionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jelr.NextLink == nil || len(to.String(jelr.NextLink)) < 1 {
+	if !jelr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8839,11 +8059,16 @@ func (page *JobExecutionListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jelr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jelr)
+		if err != nil {
+			return err
+		}
+		page.jelr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jelr = next
 	return nil
 }
 
@@ -8873,8 +8098,11 @@ func (page JobExecutionListResultPage) Values() []JobExecution {
 }
 
 // Creates a new instance of the JobExecutionListResultPage type.
-func NewJobExecutionListResultPage(getNextPage func(context.Context, JobExecutionListResult) (JobExecutionListResult, error)) JobExecutionListResultPage {
-	return JobExecutionListResultPage{fn: getNextPage}
+func NewJobExecutionListResultPage(cur JobExecutionListResult, getNextPage func(context.Context, JobExecutionListResult) (JobExecutionListResult, error)) JobExecutionListResultPage {
+	return JobExecutionListResultPage{
+		fn:   getNextPage,
+		jelr: cur,
+	}
 }
 
 // JobExecutionProperties properties for an Azure SQL Database Elastic job execution.
@@ -8905,6 +8133,15 @@ type JobExecutionProperties struct {
 	LastMessage *string `json:"lastMessage,omitempty"`
 	// Target - READ-ONLY; The target that this execution is executed on.
 	Target *JobExecutionTarget `json:"target,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobExecutionProperties.
+func (jep JobExecutionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if jep.CurrentAttempts != nil {
+		objectMap["currentAttempts"] = jep.CurrentAttempts
+	}
+	return json.Marshal(objectMap)
 }
 
 // JobExecutionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -9052,10 +8289,15 @@ func (jlr JobListResult) IsEmpty() bool {
 	return jlr.Value == nil || len(*jlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jlr JobListResult) hasNextLink() bool {
+	return jlr.NextLink != nil && len(*jlr.NextLink) != 0
+}
+
 // jobListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jlr JobListResult) jobListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jlr.NextLink == nil || len(to.String(jlr.NextLink)) < 1 {
+	if !jlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9083,11 +8325,16 @@ func (page *JobListResultPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jlr)
+		if err != nil {
+			return err
+		}
+		page.jlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jlr = next
 	return nil
 }
 
@@ -9117,8 +8364,11 @@ func (page JobListResultPage) Values() []Job {
 }
 
 // Creates a new instance of the JobListResultPage type.
-func NewJobListResultPage(getNextPage func(context.Context, JobListResult) (JobListResult, error)) JobListResultPage {
-	return JobListResultPage{fn: getNextPage}
+func NewJobListResultPage(cur JobListResult, getNextPage func(context.Context, JobListResult) (JobListResult, error)) JobListResultPage {
+	return JobListResultPage{
+		fn:  getNextPage,
+		jlr: cur,
+	}
 }
 
 // JobProperties properties of a job.
@@ -9129,6 +8379,18 @@ type JobProperties struct {
 	Version *int32 `json:"version,omitempty"`
 	// Schedule - Schedule properties of the job.
 	Schedule *JobSchedule `json:"schedule,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for JobProperties.
+func (jp JobProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if jp.Description != nil {
+		objectMap["description"] = jp.Description
+	}
+	if jp.Schedule != nil {
+		objectMap["schedule"] = jp.Schedule
+	}
+	return json.Marshal(objectMap)
 }
 
 // JobSchedule scheduling properties of a job.
@@ -9319,10 +8581,15 @@ func (jslr JobStepListResult) IsEmpty() bool {
 	return jslr.Value == nil || len(*jslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jslr JobStepListResult) hasNextLink() bool {
+	return jslr.NextLink != nil && len(*jslr.NextLink) != 0
+}
+
 // jobStepListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jslr JobStepListResult) jobStepListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jslr.NextLink == nil || len(to.String(jslr.NextLink)) < 1 {
+	if !jslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9350,11 +8617,16 @@ func (page *JobStepListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jslr)
+		if err != nil {
+			return err
+		}
+		page.jslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jslr = next
 	return nil
 }
 
@@ -9384,8 +8656,11 @@ func (page JobStepListResultPage) Values() []JobStep {
 }
 
 // Creates a new instance of the JobStepListResultPage type.
-func NewJobStepListResultPage(getNextPage func(context.Context, JobStepListResult) (JobStepListResult, error)) JobStepListResultPage {
-	return JobStepListResultPage{fn: getNextPage}
+func NewJobStepListResultPage(cur JobStepListResult, getNextPage func(context.Context, JobStepListResult) (JobStepListResult, error)) JobStepListResultPage {
+	return JobStepListResultPage{
+		fn:   getNextPage,
+		jslr: cur,
+	}
 }
 
 // JobStepOutput the output configuration of a job step.
@@ -9593,10 +8868,15 @@ func (jtglr JobTargetGroupListResult) IsEmpty() bool {
 	return jtglr.Value == nil || len(*jtglr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jtglr JobTargetGroupListResult) hasNextLink() bool {
+	return jtglr.NextLink != nil && len(*jtglr.NextLink) != 0
+}
+
 // jobTargetGroupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jtglr JobTargetGroupListResult) jobTargetGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jtglr.NextLink == nil || len(to.String(jtglr.NextLink)) < 1 {
+	if !jtglr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9624,11 +8904,16 @@ func (page *JobTargetGroupListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jtglr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jtglr)
+		if err != nil {
+			return err
+		}
+		page.jtglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jtglr = next
 	return nil
 }
 
@@ -9658,8 +8943,11 @@ func (page JobTargetGroupListResultPage) Values() []JobTargetGroup {
 }
 
 // Creates a new instance of the JobTargetGroupListResultPage type.
-func NewJobTargetGroupListResultPage(getNextPage func(context.Context, JobTargetGroupListResult) (JobTargetGroupListResult, error)) JobTargetGroupListResultPage {
-	return JobTargetGroupListResultPage{fn: getNextPage}
+func NewJobTargetGroupListResultPage(cur JobTargetGroupListResult, getNextPage func(context.Context, JobTargetGroupListResult) (JobTargetGroupListResult, error)) JobTargetGroupListResultPage {
+	return JobTargetGroupListResultPage{
+		fn:    getNextPage,
+		jtglr: cur,
+	}
 }
 
 // JobTargetGroupProperties properties of job target group.
@@ -9756,10 +9044,15 @@ func (jvlr JobVersionListResult) IsEmpty() bool {
 	return jvlr.Value == nil || len(*jvlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jvlr JobVersionListResult) hasNextLink() bool {
+	return jvlr.NextLink != nil && len(*jvlr.NextLink) != 0
+}
+
 // jobVersionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jvlr JobVersionListResult) jobVersionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jvlr.NextLink == nil || len(to.String(jvlr.NextLink)) < 1 {
+	if !jvlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9787,11 +9080,16 @@ func (page *JobVersionListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jvlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jvlr)
+		if err != nil {
+			return err
+		}
+		page.jvlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jvlr = next
 	return nil
 }
 
@@ -9821,8 +9119,11 @@ func (page JobVersionListResultPage) Values() []JobVersion {
 }
 
 // Creates a new instance of the JobVersionListResultPage type.
-func NewJobVersionListResultPage(getNextPage func(context.Context, JobVersionListResult) (JobVersionListResult, error)) JobVersionListResultPage {
-	return JobVersionListResultPage{fn: getNextPage}
+func NewJobVersionListResultPage(cur JobVersionListResult, getNextPage func(context.Context, JobVersionListResult) (JobVersionListResult, error)) JobVersionListResultPage {
+	return JobVersionListResultPage{
+		fn:   getNextPage,
+		jvlr: cur,
+	}
 }
 
 // LicenseTypeCapability the license type capability
@@ -9833,6 +9134,15 @@ type LicenseTypeCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LicenseTypeCapability.
+func (ltc LicenseTypeCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ltc.Reason != nil {
+		objectMap["reason"] = ltc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // LocationCapabilities the location capability.
@@ -9848,6 +9158,15 @@ type LocationCapabilities struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LocationCapabilities.
+func (lc LocationCapabilities) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lc.Reason != nil {
+		objectMap["reason"] = lc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // LogicalServerSecurityAlertPolicyListResult a list of the server's security alert policies.
@@ -9928,10 +9247,15 @@ func (lssaplr LogicalServerSecurityAlertPolicyListResult) IsEmpty() bool {
 	return lssaplr.Value == nil || len(*lssaplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lssaplr LogicalServerSecurityAlertPolicyListResult) hasNextLink() bool {
+	return lssaplr.NextLink != nil && len(*lssaplr.NextLink) != 0
+}
+
 // logicalServerSecurityAlertPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lssaplr LogicalServerSecurityAlertPolicyListResult) logicalServerSecurityAlertPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lssaplr.NextLink == nil || len(to.String(lssaplr.NextLink)) < 1 {
+	if !lssaplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9959,11 +9283,16 @@ func (page *LogicalServerSecurityAlertPolicyListResultPage) NextWithContext(ctx 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lssaplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lssaplr)
+		if err != nil {
+			return err
+		}
+		page.lssaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lssaplr = next
 	return nil
 }
 
@@ -9993,8 +9322,11 @@ func (page LogicalServerSecurityAlertPolicyListResultPage) Values() []ServerSecu
 }
 
 // Creates a new instance of the LogicalServerSecurityAlertPolicyListResultPage type.
-func NewLogicalServerSecurityAlertPolicyListResultPage(getNextPage func(context.Context, LogicalServerSecurityAlertPolicyListResult) (LogicalServerSecurityAlertPolicyListResult, error)) LogicalServerSecurityAlertPolicyListResultPage {
-	return LogicalServerSecurityAlertPolicyListResultPage{fn: getNextPage}
+func NewLogicalServerSecurityAlertPolicyListResultPage(cur LogicalServerSecurityAlertPolicyListResult, getNextPage func(context.Context, LogicalServerSecurityAlertPolicyListResult) (LogicalServerSecurityAlertPolicyListResult, error)) LogicalServerSecurityAlertPolicyListResultPage {
+	return LogicalServerSecurityAlertPolicyListResultPage{
+		fn:      getNextPage,
+		lssaplr: cur,
+	}
 }
 
 // LogSizeCapability the log size capability.
@@ -10156,10 +9488,15 @@ func (ltrblr LongTermRetentionBackupListResult) IsEmpty() bool {
 	return ltrblr.Value == nil || len(*ltrblr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ltrblr LongTermRetentionBackupListResult) hasNextLink() bool {
+	return ltrblr.NextLink != nil && len(*ltrblr.NextLink) != 0
+}
+
 // longTermRetentionBackupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ltrblr LongTermRetentionBackupListResult) longTermRetentionBackupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ltrblr.NextLink == nil || len(to.String(ltrblr.NextLink)) < 1 {
+	if !ltrblr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10187,11 +9524,16 @@ func (page *LongTermRetentionBackupListResultPage) NextWithContext(ctx context.C
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ltrblr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ltrblr)
+		if err != nil {
+			return err
+		}
+		page.ltrblr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ltrblr = next
 	return nil
 }
 
@@ -10221,8 +9563,11 @@ func (page LongTermRetentionBackupListResultPage) Values() []LongTermRetentionBa
 }
 
 // Creates a new instance of the LongTermRetentionBackupListResultPage type.
-func NewLongTermRetentionBackupListResultPage(getNextPage func(context.Context, LongTermRetentionBackupListResult) (LongTermRetentionBackupListResult, error)) LongTermRetentionBackupListResultPage {
-	return LongTermRetentionBackupListResultPage{fn: getNextPage}
+func NewLongTermRetentionBackupListResultPage(cur LongTermRetentionBackupListResult, getNextPage func(context.Context, LongTermRetentionBackupListResult) (LongTermRetentionBackupListResult, error)) LongTermRetentionBackupListResultPage {
+	return LongTermRetentionBackupListResultPage{
+		fn:     getNextPage,
+		ltrblr: cur,
+	}
 }
 
 // LongTermRetentionBackupProperties properties of a long term retention backup
@@ -10281,6 +9626,52 @@ func (future *LongTermRetentionBackupsDeleteFuture) Result(client LongTermRetent
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture) Result(client LongTermRetentionManagedInstanceBackupsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionManagedInstanceBackupsDeleteByResourceGroupFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// LongTermRetentionManagedInstanceBackupsDeleteFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type LongTermRetentionManagedInstanceBackupsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *LongTermRetentionManagedInstanceBackupsDeleteFuture) Result(client LongTermRetentionManagedInstanceBackupsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionManagedInstanceBackupsDeleteFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -10508,10 +9899,15 @@ func (mbstrplr ManagedBackupShortTermRetentionPolicyListResult) IsEmpty() bool {
 	return mbstrplr.Value == nil || len(*mbstrplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mbstrplr ManagedBackupShortTermRetentionPolicyListResult) hasNextLink() bool {
+	return mbstrplr.NextLink != nil && len(*mbstrplr.NextLink) != 0
+}
+
 // managedBackupShortTermRetentionPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mbstrplr ManagedBackupShortTermRetentionPolicyListResult) managedBackupShortTermRetentionPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mbstrplr.NextLink == nil || len(to.String(mbstrplr.NextLink)) < 1 {
+	if !mbstrplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10540,11 +9936,16 @@ func (page *ManagedBackupShortTermRetentionPolicyListResultPage) NextWithContext
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mbstrplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mbstrplr)
+		if err != nil {
+			return err
+		}
+		page.mbstrplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mbstrplr = next
 	return nil
 }
 
@@ -10574,8 +9975,11 @@ func (page ManagedBackupShortTermRetentionPolicyListResultPage) Values() []Manag
 }
 
 // Creates a new instance of the ManagedBackupShortTermRetentionPolicyListResultPage type.
-func NewManagedBackupShortTermRetentionPolicyListResultPage(getNextPage func(context.Context, ManagedBackupShortTermRetentionPolicyListResult) (ManagedBackupShortTermRetentionPolicyListResult, error)) ManagedBackupShortTermRetentionPolicyListResultPage {
-	return ManagedBackupShortTermRetentionPolicyListResultPage{fn: getNextPage}
+func NewManagedBackupShortTermRetentionPolicyListResultPage(cur ManagedBackupShortTermRetentionPolicyListResult, getNextPage func(context.Context, ManagedBackupShortTermRetentionPolicyListResult) (ManagedBackupShortTermRetentionPolicyListResult, error)) ManagedBackupShortTermRetentionPolicyListResultPage {
+	return ManagedBackupShortTermRetentionPolicyListResultPage{
+		fn:       getNextPage,
+		mbstrplr: cur,
+	}
 }
 
 // ManagedBackupShortTermRetentionPolicyProperties properties of a short term retention policy
@@ -10762,10 +10166,15 @@ func (mdlr ManagedDatabaseListResult) IsEmpty() bool {
 	return mdlr.Value == nil || len(*mdlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mdlr ManagedDatabaseListResult) hasNextLink() bool {
+	return mdlr.NextLink != nil && len(*mdlr.NextLink) != 0
+}
+
 // managedDatabaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mdlr ManagedDatabaseListResult) managedDatabaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mdlr.NextLink == nil || len(to.String(mdlr.NextLink)) < 1 {
+	if !mdlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10793,11 +10202,16 @@ func (page *ManagedDatabaseListResultPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mdlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mdlr)
+		if err != nil {
+			return err
+		}
+		page.mdlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mdlr = next
 	return nil
 }
 
@@ -10827,8 +10241,11 @@ func (page ManagedDatabaseListResultPage) Values() []ManagedDatabase {
 }
 
 // Creates a new instance of the ManagedDatabaseListResultPage type.
-func NewManagedDatabaseListResultPage(getNextPage func(context.Context, ManagedDatabaseListResult) (ManagedDatabaseListResult, error)) ManagedDatabaseListResultPage {
-	return ManagedDatabaseListResultPage{fn: getNextPage}
+func NewManagedDatabaseListResultPage(cur ManagedDatabaseListResult, getNextPage func(context.Context, ManagedDatabaseListResult) (ManagedDatabaseListResult, error)) ManagedDatabaseListResultPage {
+	return ManagedDatabaseListResultPage{
+		fn:   getNextPage,
+		mdlr: cur,
+	}
 }
 
 // ManagedDatabaseProperties the managed database's properties.
@@ -10847,7 +10264,7 @@ type ManagedDatabaseProperties struct {
 	DefaultSecondaryLocation *string `json:"defaultSecondaryLocation,omitempty"`
 	// CatalogCollation - Collation of the metadata catalog. Possible values include: 'DATABASEDEFAULT', 'SQLLatin1GeneralCP1CIAS'
 	CatalogCollation CatalogCollationType `json:"catalogCollation,omitempty"`
-	// CreateMode - Managed database create mode. PointInTimeRestore: Create a database by restoring a point in time backup of an existing database. SourceDatabaseName, SourceManagedInstanceName and PointInTime must be specified. RestoreExternalBackup: Create a database by restoring from external backup files. Collation, StorageContainerUri and StorageContainerSasToken must be specified. Recovery: Creates a database by restoring a geo-replicated backup. RecoverableDatabaseId must be specified as the recoverable database resource ID to restore. Possible values include: 'ManagedDatabaseCreateModeDefault', 'ManagedDatabaseCreateModeRestoreExternalBackup', 'ManagedDatabaseCreateModePointInTimeRestore', 'ManagedDatabaseCreateModeRecovery'
+	// CreateMode - Managed database create mode. PointInTimeRestore: Create a database by restoring a point in time backup of an existing database. SourceDatabaseName, SourceManagedInstanceName and PointInTime must be specified. RestoreExternalBackup: Create a database by restoring from external backup files. Collation, StorageContainerUri and StorageContainerSasToken must be specified. Recovery: Creates a database by restoring a geo-replicated backup. RecoverableDatabaseId must be specified as the recoverable database resource ID to restore. RestoreLongTermRetentionBackup: Create a database by restoring from a long term retention backup (longTermRetentionBackupResourceId required). Possible values include: 'ManagedDatabaseCreateModeDefault', 'ManagedDatabaseCreateModeRestoreExternalBackup', 'ManagedDatabaseCreateModePointInTimeRestore', 'ManagedDatabaseCreateModeRecovery', 'ManagedDatabaseCreateModeRestoreLongTermRetentionBackup'
 	CreateMode ManagedDatabaseCreateMode `json:"createMode,omitempty"`
 	// StorageContainerURI - Conditional. If createMode is RestoreExternalBackup, this value is required. Specifies the uri of the storage container where backups for this restore are stored.
 	StorageContainerURI *string `json:"storageContainerUri,omitempty"`
@@ -10861,6 +10278,54 @@ type ManagedDatabaseProperties struct {
 	FailoverGroupID *string `json:"failoverGroupId,omitempty"`
 	// RecoverableDatabaseID - The resource identifier of the recoverable database associated with create operation of this database.
 	RecoverableDatabaseID *string `json:"recoverableDatabaseId,omitempty"`
+	// LongTermRetentionBackupResourceID - The name of the Long Term Retention backup to be used for restore of this managed database.
+	LongTermRetentionBackupResourceID *string `json:"longTermRetentionBackupResourceId,omitempty"`
+	// AutoCompleteRestore - Whether to auto complete restore of this managed database.
+	AutoCompleteRestore *bool `json:"autoCompleteRestore,omitempty"`
+	// LastBackupName - Last backup file name for restore of this managed database.
+	LastBackupName *string `json:"lastBackupName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedDatabaseProperties.
+func (mdp ManagedDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mdp.Collation != nil {
+		objectMap["collation"] = mdp.Collation
+	}
+	if mdp.RestorePointInTime != nil {
+		objectMap["restorePointInTime"] = mdp.RestorePointInTime
+	}
+	if mdp.CatalogCollation != "" {
+		objectMap["catalogCollation"] = mdp.CatalogCollation
+	}
+	if mdp.CreateMode != "" {
+		objectMap["createMode"] = mdp.CreateMode
+	}
+	if mdp.StorageContainerURI != nil {
+		objectMap["storageContainerUri"] = mdp.StorageContainerURI
+	}
+	if mdp.SourceDatabaseID != nil {
+		objectMap["sourceDatabaseId"] = mdp.SourceDatabaseID
+	}
+	if mdp.RestorableDroppedDatabaseID != nil {
+		objectMap["restorableDroppedDatabaseId"] = mdp.RestorableDroppedDatabaseID
+	}
+	if mdp.StorageContainerSasToken != nil {
+		objectMap["storageContainerSasToken"] = mdp.StorageContainerSasToken
+	}
+	if mdp.RecoverableDatabaseID != nil {
+		objectMap["recoverableDatabaseId"] = mdp.RecoverableDatabaseID
+	}
+	if mdp.LongTermRetentionBackupResourceID != nil {
+		objectMap["longTermRetentionBackupResourceId"] = mdp.LongTermRetentionBackupResourceID
+	}
+	if mdp.AutoCompleteRestore != nil {
+		objectMap["autoCompleteRestore"] = mdp.AutoCompleteRestore
+	}
+	if mdp.LastBackupName != nil {
+		objectMap["lastBackupName"] = mdp.LastBackupName
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedDatabaseRestoreDetailsProperties the managed database's restore details properties.
@@ -11186,10 +10651,15 @@ func (mdsaplr ManagedDatabaseSecurityAlertPolicyListResult) IsEmpty() bool {
 	return mdsaplr.Value == nil || len(*mdsaplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mdsaplr ManagedDatabaseSecurityAlertPolicyListResult) hasNextLink() bool {
+	return mdsaplr.NextLink != nil && len(*mdsaplr.NextLink) != 0
+}
+
 // managedDatabaseSecurityAlertPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mdsaplr ManagedDatabaseSecurityAlertPolicyListResult) managedDatabaseSecurityAlertPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mdsaplr.NextLink == nil || len(to.String(mdsaplr.NextLink)) < 1 {
+	if !mdsaplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11218,11 +10688,16 @@ func (page *ManagedDatabaseSecurityAlertPolicyListResultPage) NextWithContext(ct
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mdsaplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mdsaplr)
+		if err != nil {
+			return err
+		}
+		page.mdsaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mdsaplr = next
 	return nil
 }
 
@@ -11252,8 +10727,11 @@ func (page ManagedDatabaseSecurityAlertPolicyListResultPage) Values() []ManagedD
 }
 
 // Creates a new instance of the ManagedDatabaseSecurityAlertPolicyListResultPage type.
-func NewManagedDatabaseSecurityAlertPolicyListResultPage(getNextPage func(context.Context, ManagedDatabaseSecurityAlertPolicyListResult) (ManagedDatabaseSecurityAlertPolicyListResult, error)) ManagedDatabaseSecurityAlertPolicyListResultPage {
-	return ManagedDatabaseSecurityAlertPolicyListResultPage{fn: getNextPage}
+func NewManagedDatabaseSecurityAlertPolicyListResultPage(cur ManagedDatabaseSecurityAlertPolicyListResult, getNextPage func(context.Context, ManagedDatabaseSecurityAlertPolicyListResult) (ManagedDatabaseSecurityAlertPolicyListResult, error)) ManagedDatabaseSecurityAlertPolicyListResultPage {
+	return ManagedDatabaseSecurityAlertPolicyListResultPage{
+		fn:      getNextPage,
+		mdsaplr: cur,
+	}
 }
 
 // ManagedDatabasesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -11641,10 +11119,15 @@ func (mialr ManagedInstanceAdministratorListResult) IsEmpty() bool {
 	return mialr.Value == nil || len(*mialr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mialr ManagedInstanceAdministratorListResult) hasNextLink() bool {
+	return mialr.NextLink != nil && len(*mialr.NextLink) != 0
+}
+
 // managedInstanceAdministratorListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mialr ManagedInstanceAdministratorListResult) managedInstanceAdministratorListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mialr.NextLink == nil || len(to.String(mialr.NextLink)) < 1 {
+	if !mialr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11672,11 +11155,16 @@ func (page *ManagedInstanceAdministratorListResultPage) NextWithContext(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mialr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mialr)
+		if err != nil {
+			return err
+		}
+		page.mialr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mialr = next
 	return nil
 }
 
@@ -11706,8 +11194,11 @@ func (page ManagedInstanceAdministratorListResultPage) Values() []ManagedInstanc
 }
 
 // Creates a new instance of the ManagedInstanceAdministratorListResultPage type.
-func NewManagedInstanceAdministratorListResultPage(getNextPage func(context.Context, ManagedInstanceAdministratorListResult) (ManagedInstanceAdministratorListResult, error)) ManagedInstanceAdministratorListResultPage {
-	return ManagedInstanceAdministratorListResultPage{fn: getNextPage}
+func NewManagedInstanceAdministratorListResultPage(cur ManagedInstanceAdministratorListResult, getNextPage func(context.Context, ManagedInstanceAdministratorListResult) (ManagedInstanceAdministratorListResult, error)) ManagedInstanceAdministratorListResultPage {
+	return ManagedInstanceAdministratorListResultPage{
+		fn:    getNextPage,
+		mialr: cur,
+	}
 }
 
 // ManagedInstanceAdministratorProperties the properties of a managed instance administrator.
@@ -11774,6 +11265,299 @@ func (future *ManagedInstanceAdministratorsDeleteFuture) Result(client ManagedIn
 	return
 }
 
+// ManagedInstanceAzureADOnlyAuthentication azure Active Directory only authentication.
+type ManagedInstanceAzureADOnlyAuthentication struct {
+	autorest.Response `json:"-"`
+	// ManagedInstanceAzureADOnlyAuthProperties - Resource properties.
+	*ManagedInstanceAzureADOnlyAuthProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceAzureADOnlyAuthentication.
+func (miaaoa ManagedInstanceAzureADOnlyAuthentication) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if miaaoa.ManagedInstanceAzureADOnlyAuthProperties != nil {
+		objectMap["properties"] = miaaoa.ManagedInstanceAzureADOnlyAuthProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedInstanceAzureADOnlyAuthentication struct.
+func (miaaoa *ManagedInstanceAzureADOnlyAuthentication) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managedInstanceAzureADOnlyAuthProperties ManagedInstanceAzureADOnlyAuthProperties
+				err = json.Unmarshal(*v, &managedInstanceAzureADOnlyAuthProperties)
+				if err != nil {
+					return err
+				}
+				miaaoa.ManagedInstanceAzureADOnlyAuthProperties = &managedInstanceAzureADOnlyAuthProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				miaaoa.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				miaaoa.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				miaaoa.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture) Result(client ManagedInstanceAzureADOnlyAuthenticationsClient) (miaaoa ManagedInstanceAzureADOnlyAuthentication, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if miaaoa.Response.Response, err = future.GetResult(sender); err == nil && miaaoa.Response.Response.StatusCode != http.StatusNoContent {
+		miaaoa, err = client.CreateOrUpdateResponder(miaaoa.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", miaaoa.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture) Result(client ManagedInstanceAzureADOnlyAuthenticationsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ManagedInstanceAzureADOnlyAuthListResult a list of active directory only authentications.
+type ManagedInstanceAzureADOnlyAuthListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ManagedInstanceAzureADOnlyAuthentication `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedInstanceAzureADOnlyAuthListResultIterator provides access to a complete listing of
+// ManagedInstanceAzureADOnlyAuthentication values.
+type ManagedInstanceAzureADOnlyAuthListResultIterator struct {
+	i    int
+	page ManagedInstanceAzureADOnlyAuthListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedInstanceAzureADOnlyAuthListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceAzureADOnlyAuthListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedInstanceAzureADOnlyAuthListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedInstanceAzureADOnlyAuthListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedInstanceAzureADOnlyAuthListResultIterator) Response() ManagedInstanceAzureADOnlyAuthListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedInstanceAzureADOnlyAuthListResultIterator) Value() ManagedInstanceAzureADOnlyAuthentication {
+	if !iter.page.NotDone() {
+		return ManagedInstanceAzureADOnlyAuthentication{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedInstanceAzureADOnlyAuthListResultIterator type.
+func NewManagedInstanceAzureADOnlyAuthListResultIterator(page ManagedInstanceAzureADOnlyAuthListResultPage) ManagedInstanceAzureADOnlyAuthListResultIterator {
+	return ManagedInstanceAzureADOnlyAuthListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (miaaoalr ManagedInstanceAzureADOnlyAuthListResult) IsEmpty() bool {
+	return miaaoalr.Value == nil || len(*miaaoalr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (miaaoalr ManagedInstanceAzureADOnlyAuthListResult) hasNextLink() bool {
+	return miaaoalr.NextLink != nil && len(*miaaoalr.NextLink) != 0
+}
+
+// managedInstanceAzureADOnlyAuthListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (miaaoalr ManagedInstanceAzureADOnlyAuthListResult) managedInstanceAzureADOnlyAuthListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !miaaoalr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(miaaoalr.NextLink)))
+}
+
+// ManagedInstanceAzureADOnlyAuthListResultPage contains a page of ManagedInstanceAzureADOnlyAuthentication
+// values.
+type ManagedInstanceAzureADOnlyAuthListResultPage struct {
+	fn       func(context.Context, ManagedInstanceAzureADOnlyAuthListResult) (ManagedInstanceAzureADOnlyAuthListResult, error)
+	miaaoalr ManagedInstanceAzureADOnlyAuthListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedInstanceAzureADOnlyAuthListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceAzureADOnlyAuthListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.miaaoalr)
+		if err != nil {
+			return err
+		}
+		page.miaaoalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedInstanceAzureADOnlyAuthListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedInstanceAzureADOnlyAuthListResultPage) NotDone() bool {
+	return !page.miaaoalr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedInstanceAzureADOnlyAuthListResultPage) Response() ManagedInstanceAzureADOnlyAuthListResult {
+	return page.miaaoalr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedInstanceAzureADOnlyAuthListResultPage) Values() []ManagedInstanceAzureADOnlyAuthentication {
+	if page.miaaoalr.IsEmpty() {
+		return nil
+	}
+	return *page.miaaoalr.Value
+}
+
+// Creates a new instance of the ManagedInstanceAzureADOnlyAuthListResultPage type.
+func NewManagedInstanceAzureADOnlyAuthListResultPage(cur ManagedInstanceAzureADOnlyAuthListResult, getNextPage func(context.Context, ManagedInstanceAzureADOnlyAuthListResult) (ManagedInstanceAzureADOnlyAuthListResult, error)) ManagedInstanceAzureADOnlyAuthListResultPage {
+	return ManagedInstanceAzureADOnlyAuthListResultPage{
+		fn:       getNextPage,
+		miaaoalr: cur,
+	}
+}
+
+// ManagedInstanceAzureADOnlyAuthProperties properties of a active directory only authentication for
+// Managed Instance.
+type ManagedInstanceAzureADOnlyAuthProperties struct {
+	// AzureADOnlyAuthentication - Azure Active Directory only Authentication enabled.
+	AzureADOnlyAuthentication *bool `json:"azureADOnlyAuthentication,omitempty"`
+}
+
 // ManagedInstanceEditionCapability the managed server capability
 type ManagedInstanceEditionCapability struct {
 	// Name - READ-ONLY; The managed server version name.
@@ -11784,6 +11568,15 @@ type ManagedInstanceEditionCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceEditionCapability.
+func (miec ManagedInstanceEditionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if miec.Reason != nil {
+		objectMap["reason"] = miec.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceEncryptionProtector the managed instance encryption protector.
@@ -11948,10 +11741,15 @@ func (mieplr ManagedInstanceEncryptionProtectorListResult) IsEmpty() bool {
 	return mieplr.Value == nil || len(*mieplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mieplr ManagedInstanceEncryptionProtectorListResult) hasNextLink() bool {
+	return mieplr.NextLink != nil && len(*mieplr.NextLink) != 0
+}
+
 // managedInstanceEncryptionProtectorListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mieplr ManagedInstanceEncryptionProtectorListResult) managedInstanceEncryptionProtectorListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mieplr.NextLink == nil || len(to.String(mieplr.NextLink)) < 1 {
+	if !mieplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11980,11 +11778,16 @@ func (page *ManagedInstanceEncryptionProtectorListResultPage) NextWithContext(ct
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mieplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mieplr)
+		if err != nil {
+			return err
+		}
+		page.mieplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mieplr = next
 	return nil
 }
 
@@ -12014,8 +11817,11 @@ func (page ManagedInstanceEncryptionProtectorListResultPage) Values() []ManagedI
 }
 
 // Creates a new instance of the ManagedInstanceEncryptionProtectorListResultPage type.
-func NewManagedInstanceEncryptionProtectorListResultPage(getNextPage func(context.Context, ManagedInstanceEncryptionProtectorListResult) (ManagedInstanceEncryptionProtectorListResult, error)) ManagedInstanceEncryptionProtectorListResultPage {
-	return ManagedInstanceEncryptionProtectorListResultPage{fn: getNextPage}
+func NewManagedInstanceEncryptionProtectorListResultPage(cur ManagedInstanceEncryptionProtectorListResult, getNextPage func(context.Context, ManagedInstanceEncryptionProtectorListResult) (ManagedInstanceEncryptionProtectorListResult, error)) ManagedInstanceEncryptionProtectorListResultPage {
+	return ManagedInstanceEncryptionProtectorListResultPage{
+		fn:     getNextPage,
+		mieplr: cur,
+	}
 }
 
 // ManagedInstanceEncryptionProtectorProperties properties for an encryption protector execution.
@@ -12028,6 +11834,18 @@ type ManagedInstanceEncryptionProtectorProperties struct {
 	URI *string `json:"uri,omitempty"`
 	// Thumbprint - READ-ONLY; Thumbprint of the server key.
 	Thumbprint *string `json:"thumbprint,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceEncryptionProtectorProperties.
+func (miepp ManagedInstanceEncryptionProtectorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if miepp.ServerKeyName != nil {
+		objectMap["serverKeyName"] = miepp.ServerKeyName
+	}
+	if miepp.ServerKeyType != "" {
+		objectMap["serverKeyType"] = miepp.ServerKeyType
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
@@ -12096,6 +11914,15 @@ type ManagedInstanceFamilyCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceFamilyCapability.
+func (mifc ManagedInstanceFamilyCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mifc.Reason != nil {
+		objectMap["reason"] = mifc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceKey a managed instance key.
@@ -12259,10 +12086,15 @@ func (miklr ManagedInstanceKeyListResult) IsEmpty() bool {
 	return miklr.Value == nil || len(*miklr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (miklr ManagedInstanceKeyListResult) hasNextLink() bool {
+	return miklr.NextLink != nil && len(*miklr.NextLink) != 0
+}
+
 // managedInstanceKeyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (miklr ManagedInstanceKeyListResult) managedInstanceKeyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if miklr.NextLink == nil || len(to.String(miklr.NextLink)) < 1 {
+	if !miklr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12290,11 +12122,16 @@ func (page *ManagedInstanceKeyListResultPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.miklr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.miklr)
+		if err != nil {
+			return err
+		}
+		page.miklr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.miklr = next
 	return nil
 }
 
@@ -12324,8 +12161,11 @@ func (page ManagedInstanceKeyListResultPage) Values() []ManagedInstanceKey {
 }
 
 // Creates a new instance of the ManagedInstanceKeyListResultPage type.
-func NewManagedInstanceKeyListResultPage(getNextPage func(context.Context, ManagedInstanceKeyListResult) (ManagedInstanceKeyListResult, error)) ManagedInstanceKeyListResultPage {
-	return ManagedInstanceKeyListResultPage{fn: getNextPage}
+func NewManagedInstanceKeyListResultPage(cur ManagedInstanceKeyListResult, getNextPage func(context.Context, ManagedInstanceKeyListResult) (ManagedInstanceKeyListResult, error)) ManagedInstanceKeyListResultPage {
+	return ManagedInstanceKeyListResultPage{
+		fn:    getNextPage,
+		miklr: cur,
+	}
 }
 
 // ManagedInstanceKeyProperties properties for a key execution.
@@ -12338,6 +12178,18 @@ type ManagedInstanceKeyProperties struct {
 	Thumbprint *string `json:"thumbprint,omitempty"`
 	// CreationDate - READ-ONLY; The key creation date.
 	CreationDate *date.Time `json:"creationDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceKeyProperties.
+func (mikp ManagedInstanceKeyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mikp.ServerKeyType != "" {
+		objectMap["serverKeyType"] = mikp.ServerKeyType
+	}
+	if mikp.URI != nil {
+		objectMap["uri"] = mikp.URI
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceKeysCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -12469,10 +12321,15 @@ func (milr ManagedInstanceListResult) IsEmpty() bool {
 	return milr.Value == nil || len(*milr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (milr ManagedInstanceListResult) hasNextLink() bool {
+	return milr.NextLink != nil && len(*milr.NextLink) != 0
+}
+
 // managedInstanceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (milr ManagedInstanceListResult) managedInstanceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if milr.NextLink == nil || len(to.String(milr.NextLink)) < 1 {
+	if !milr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12500,11 +12357,16 @@ func (page *ManagedInstanceListResultPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.milr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.milr)
+		if err != nil {
+			return err
+		}
+		page.milr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.milr = next
 	return nil
 }
 
@@ -12534,8 +12396,810 @@ func (page ManagedInstanceListResultPage) Values() []ManagedInstance {
 }
 
 // Creates a new instance of the ManagedInstanceListResultPage type.
-func NewManagedInstanceListResultPage(getNextPage func(context.Context, ManagedInstanceListResult) (ManagedInstanceListResult, error)) ManagedInstanceListResultPage {
-	return ManagedInstanceListResultPage{fn: getNextPage}
+func NewManagedInstanceListResultPage(cur ManagedInstanceListResult, getNextPage func(context.Context, ManagedInstanceListResult) (ManagedInstanceListResult, error)) ManagedInstanceListResultPage {
+	return ManagedInstanceListResultPage{
+		fn:   getNextPage,
+		milr: cur,
+	}
+}
+
+// ManagedInstanceLongTermRetentionBackup a long term retention backup for a managed database.
+type ManagedInstanceLongTermRetentionBackup struct {
+	autorest.Response `json:"-"`
+	// ManagedInstanceLongTermRetentionBackupProperties - Resource properties.
+	*ManagedInstanceLongTermRetentionBackupProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceLongTermRetentionBackup.
+func (miltrb ManagedInstanceLongTermRetentionBackup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if miltrb.ManagedInstanceLongTermRetentionBackupProperties != nil {
+		objectMap["properties"] = miltrb.ManagedInstanceLongTermRetentionBackupProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedInstanceLongTermRetentionBackup struct.
+func (miltrb *ManagedInstanceLongTermRetentionBackup) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managedInstanceLongTermRetentionBackupProperties ManagedInstanceLongTermRetentionBackupProperties
+				err = json.Unmarshal(*v, &managedInstanceLongTermRetentionBackupProperties)
+				if err != nil {
+					return err
+				}
+				miltrb.ManagedInstanceLongTermRetentionBackupProperties = &managedInstanceLongTermRetentionBackupProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				miltrb.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				miltrb.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				miltrb.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagedInstanceLongTermRetentionBackupListResult a list of long term retention backups for managed
+// database(s).
+type ManagedInstanceLongTermRetentionBackupListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ManagedInstanceLongTermRetentionBackup `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedInstanceLongTermRetentionBackupListResultIterator provides access to a complete listing of
+// ManagedInstanceLongTermRetentionBackup values.
+type ManagedInstanceLongTermRetentionBackupListResultIterator struct {
+	i    int
+	page ManagedInstanceLongTermRetentionBackupListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedInstanceLongTermRetentionBackupListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceLongTermRetentionBackupListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedInstanceLongTermRetentionBackupListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedInstanceLongTermRetentionBackupListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedInstanceLongTermRetentionBackupListResultIterator) Response() ManagedInstanceLongTermRetentionBackupListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedInstanceLongTermRetentionBackupListResultIterator) Value() ManagedInstanceLongTermRetentionBackup {
+	if !iter.page.NotDone() {
+		return ManagedInstanceLongTermRetentionBackup{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedInstanceLongTermRetentionBackupListResultIterator type.
+func NewManagedInstanceLongTermRetentionBackupListResultIterator(page ManagedInstanceLongTermRetentionBackupListResultPage) ManagedInstanceLongTermRetentionBackupListResultIterator {
+	return ManagedInstanceLongTermRetentionBackupListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (miltrblr ManagedInstanceLongTermRetentionBackupListResult) IsEmpty() bool {
+	return miltrblr.Value == nil || len(*miltrblr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (miltrblr ManagedInstanceLongTermRetentionBackupListResult) hasNextLink() bool {
+	return miltrblr.NextLink != nil && len(*miltrblr.NextLink) != 0
+}
+
+// managedInstanceLongTermRetentionBackupListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (miltrblr ManagedInstanceLongTermRetentionBackupListResult) managedInstanceLongTermRetentionBackupListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !miltrblr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(miltrblr.NextLink)))
+}
+
+// ManagedInstanceLongTermRetentionBackupListResultPage contains a page of
+// ManagedInstanceLongTermRetentionBackup values.
+type ManagedInstanceLongTermRetentionBackupListResultPage struct {
+	fn       func(context.Context, ManagedInstanceLongTermRetentionBackupListResult) (ManagedInstanceLongTermRetentionBackupListResult, error)
+	miltrblr ManagedInstanceLongTermRetentionBackupListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedInstanceLongTermRetentionBackupListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceLongTermRetentionBackupListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.miltrblr)
+		if err != nil {
+			return err
+		}
+		page.miltrblr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedInstanceLongTermRetentionBackupListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedInstanceLongTermRetentionBackupListResultPage) NotDone() bool {
+	return !page.miltrblr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedInstanceLongTermRetentionBackupListResultPage) Response() ManagedInstanceLongTermRetentionBackupListResult {
+	return page.miltrblr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedInstanceLongTermRetentionBackupListResultPage) Values() []ManagedInstanceLongTermRetentionBackup {
+	if page.miltrblr.IsEmpty() {
+		return nil
+	}
+	return *page.miltrblr.Value
+}
+
+// Creates a new instance of the ManagedInstanceLongTermRetentionBackupListResultPage type.
+func NewManagedInstanceLongTermRetentionBackupListResultPage(cur ManagedInstanceLongTermRetentionBackupListResult, getNextPage func(context.Context, ManagedInstanceLongTermRetentionBackupListResult) (ManagedInstanceLongTermRetentionBackupListResult, error)) ManagedInstanceLongTermRetentionBackupListResultPage {
+	return ManagedInstanceLongTermRetentionBackupListResultPage{
+		fn:       getNextPage,
+		miltrblr: cur,
+	}
+}
+
+// ManagedInstanceLongTermRetentionBackupProperties properties of a long term retention backup
+type ManagedInstanceLongTermRetentionBackupProperties struct {
+	// ManagedInstanceName - READ-ONLY; The managed instance that the backup database belongs to.
+	ManagedInstanceName *string `json:"managedInstanceName,omitempty"`
+	// ManagedInstanceCreateTime - READ-ONLY; The create time of the instance.
+	ManagedInstanceCreateTime *date.Time `json:"managedInstanceCreateTime,omitempty"`
+	// DatabaseName - READ-ONLY; The name of the database the backup belong to
+	DatabaseName *string `json:"databaseName,omitempty"`
+	// DatabaseDeletionTime - READ-ONLY; The delete time of the database
+	DatabaseDeletionTime *date.Time `json:"databaseDeletionTime,omitempty"`
+	// BackupTime - READ-ONLY; The time the backup was taken
+	BackupTime *date.Time `json:"backupTime,omitempty"`
+	// BackupExpirationTime - READ-ONLY; The time the long term retention backup will expire.
+	BackupExpirationTime *date.Time `json:"backupExpirationTime,omitempty"`
+}
+
+// ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture) Result(client ManagedInstanceLongTermRetentionPoliciesClient) (miltrp ManagedInstanceLongTermRetentionPolicy, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if miltrp.Response.Response, err = future.GetResult(sender); err == nil && miltrp.Response.Response.StatusCode != http.StatusNoContent {
+		miltrp, err = client.CreateOrUpdateResponder(miltrp.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", miltrp.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ManagedInstanceLongTermRetentionPolicy a long term retention policy.
+type ManagedInstanceLongTermRetentionPolicy struct {
+	autorest.Response `json:"-"`
+	// BaseLongTermRetentionPolicyProperties - Resource properties.
+	*BaseLongTermRetentionPolicyProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceLongTermRetentionPolicy.
+func (miltrp ManagedInstanceLongTermRetentionPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if miltrp.BaseLongTermRetentionPolicyProperties != nil {
+		objectMap["properties"] = miltrp.BaseLongTermRetentionPolicyProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedInstanceLongTermRetentionPolicy struct.
+func (miltrp *ManagedInstanceLongTermRetentionPolicy) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var baseLongTermRetentionPolicyProperties BaseLongTermRetentionPolicyProperties
+				err = json.Unmarshal(*v, &baseLongTermRetentionPolicyProperties)
+				if err != nil {
+					return err
+				}
+				miltrp.BaseLongTermRetentionPolicyProperties = &baseLongTermRetentionPolicyProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				miltrp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				miltrp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				miltrp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagedInstanceLongTermRetentionPolicyListResult a list of long term retention policies.
+type ManagedInstanceLongTermRetentionPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ManagedInstanceLongTermRetentionPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedInstanceLongTermRetentionPolicyListResultIterator provides access to a complete listing of
+// ManagedInstanceLongTermRetentionPolicy values.
+type ManagedInstanceLongTermRetentionPolicyListResultIterator struct {
+	i    int
+	page ManagedInstanceLongTermRetentionPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedInstanceLongTermRetentionPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceLongTermRetentionPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedInstanceLongTermRetentionPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedInstanceLongTermRetentionPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedInstanceLongTermRetentionPolicyListResultIterator) Response() ManagedInstanceLongTermRetentionPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedInstanceLongTermRetentionPolicyListResultIterator) Value() ManagedInstanceLongTermRetentionPolicy {
+	if !iter.page.NotDone() {
+		return ManagedInstanceLongTermRetentionPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedInstanceLongTermRetentionPolicyListResultIterator type.
+func NewManagedInstanceLongTermRetentionPolicyListResultIterator(page ManagedInstanceLongTermRetentionPolicyListResultPage) ManagedInstanceLongTermRetentionPolicyListResultIterator {
+	return ManagedInstanceLongTermRetentionPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (miltrplr ManagedInstanceLongTermRetentionPolicyListResult) IsEmpty() bool {
+	return miltrplr.Value == nil || len(*miltrplr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (miltrplr ManagedInstanceLongTermRetentionPolicyListResult) hasNextLink() bool {
+	return miltrplr.NextLink != nil && len(*miltrplr.NextLink) != 0
+}
+
+// managedInstanceLongTermRetentionPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (miltrplr ManagedInstanceLongTermRetentionPolicyListResult) managedInstanceLongTermRetentionPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !miltrplr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(miltrplr.NextLink)))
+}
+
+// ManagedInstanceLongTermRetentionPolicyListResultPage contains a page of
+// ManagedInstanceLongTermRetentionPolicy values.
+type ManagedInstanceLongTermRetentionPolicyListResultPage struct {
+	fn       func(context.Context, ManagedInstanceLongTermRetentionPolicyListResult) (ManagedInstanceLongTermRetentionPolicyListResult, error)
+	miltrplr ManagedInstanceLongTermRetentionPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedInstanceLongTermRetentionPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceLongTermRetentionPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.miltrplr)
+		if err != nil {
+			return err
+		}
+		page.miltrplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedInstanceLongTermRetentionPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedInstanceLongTermRetentionPolicyListResultPage) NotDone() bool {
+	return !page.miltrplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedInstanceLongTermRetentionPolicyListResultPage) Response() ManagedInstanceLongTermRetentionPolicyListResult {
+	return page.miltrplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedInstanceLongTermRetentionPolicyListResultPage) Values() []ManagedInstanceLongTermRetentionPolicy {
+	if page.miltrplr.IsEmpty() {
+		return nil
+	}
+	return *page.miltrplr.Value
+}
+
+// Creates a new instance of the ManagedInstanceLongTermRetentionPolicyListResultPage type.
+func NewManagedInstanceLongTermRetentionPolicyListResultPage(cur ManagedInstanceLongTermRetentionPolicyListResult, getNextPage func(context.Context, ManagedInstanceLongTermRetentionPolicyListResult) (ManagedInstanceLongTermRetentionPolicyListResult, error)) ManagedInstanceLongTermRetentionPolicyListResultPage {
+	return ManagedInstanceLongTermRetentionPolicyListResultPage{
+		fn:       getNextPage,
+		miltrplr: cur,
+	}
+}
+
+// ManagedInstanceOperation a managed instance operation.
+type ManagedInstanceOperation struct {
+	autorest.Response `json:"-"`
+	// ManagedInstanceOperationProperties - Resource properties.
+	*ManagedInstanceOperationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceOperation.
+func (mio ManagedInstanceOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mio.ManagedInstanceOperationProperties != nil {
+		objectMap["properties"] = mio.ManagedInstanceOperationProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedInstanceOperation struct.
+func (mio *ManagedInstanceOperation) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managedInstanceOperationProperties ManagedInstanceOperationProperties
+				err = json.Unmarshal(*v, &managedInstanceOperationProperties)
+				if err != nil {
+					return err
+				}
+				mio.ManagedInstanceOperationProperties = &managedInstanceOperationProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mio.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mio.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mio.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagedInstanceOperationListResult the response to a list managed instance operations request
+type ManagedInstanceOperationListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ManagedInstanceOperation `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedInstanceOperationListResultIterator provides access to a complete listing of
+// ManagedInstanceOperation values.
+type ManagedInstanceOperationListResultIterator struct {
+	i    int
+	page ManagedInstanceOperationListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedInstanceOperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceOperationListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedInstanceOperationListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedInstanceOperationListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedInstanceOperationListResultIterator) Response() ManagedInstanceOperationListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedInstanceOperationListResultIterator) Value() ManagedInstanceOperation {
+	if !iter.page.NotDone() {
+		return ManagedInstanceOperation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedInstanceOperationListResultIterator type.
+func NewManagedInstanceOperationListResultIterator(page ManagedInstanceOperationListResultPage) ManagedInstanceOperationListResultIterator {
+	return ManagedInstanceOperationListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (miolr ManagedInstanceOperationListResult) IsEmpty() bool {
+	return miolr.Value == nil || len(*miolr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (miolr ManagedInstanceOperationListResult) hasNextLink() bool {
+	return miolr.NextLink != nil && len(*miolr.NextLink) != 0
+}
+
+// managedInstanceOperationListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (miolr ManagedInstanceOperationListResult) managedInstanceOperationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !miolr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(miolr.NextLink)))
+}
+
+// ManagedInstanceOperationListResultPage contains a page of ManagedInstanceOperation values.
+type ManagedInstanceOperationListResultPage struct {
+	fn    func(context.Context, ManagedInstanceOperationListResult) (ManagedInstanceOperationListResult, error)
+	miolr ManagedInstanceOperationListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedInstanceOperationListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceOperationListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.miolr)
+		if err != nil {
+			return err
+		}
+		page.miolr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedInstanceOperationListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedInstanceOperationListResultPage) NotDone() bool {
+	return !page.miolr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedInstanceOperationListResultPage) Response() ManagedInstanceOperationListResult {
+	return page.miolr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedInstanceOperationListResultPage) Values() []ManagedInstanceOperation {
+	if page.miolr.IsEmpty() {
+		return nil
+	}
+	return *page.miolr.Value
+}
+
+// Creates a new instance of the ManagedInstanceOperationListResultPage type.
+func NewManagedInstanceOperationListResultPage(cur ManagedInstanceOperationListResult, getNextPage func(context.Context, ManagedInstanceOperationListResult) (ManagedInstanceOperationListResult, error)) ManagedInstanceOperationListResultPage {
+	return ManagedInstanceOperationListResultPage{
+		fn:    getNextPage,
+		miolr: cur,
+	}
+}
+
+// ManagedInstanceOperationParametersPair the parameters of a managed instance operation.
+type ManagedInstanceOperationParametersPair struct {
+	// CurrentParameters - READ-ONLY; The current parameters.
+	CurrentParameters *UpsertManagedServerOperationParameters `json:"currentParameters,omitempty"`
+	// RequestedParameters - READ-ONLY; The requested parameters.
+	RequestedParameters *UpsertManagedServerOperationParameters `json:"requestedParameters,omitempty"`
+}
+
+// ManagedInstanceOperationProperties the properties of a managed instance operation.
+type ManagedInstanceOperationProperties struct {
+	// ManagedInstanceName - READ-ONLY; The name of the managed instance the operation is being performed on.
+	ManagedInstanceName *string `json:"managedInstanceName,omitempty"`
+	// Operation - READ-ONLY; The name of operation.
+	Operation *string `json:"operation,omitempty"`
+	// OperationFriendlyName - READ-ONLY; The friendly name of operation.
+	OperationFriendlyName *string `json:"operationFriendlyName,omitempty"`
+	// PercentComplete - READ-ONLY; The percentage of the operation completed.
+	PercentComplete *int32 `json:"percentComplete,omitempty"`
+	// StartTime - READ-ONLY; The operation start time.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// State - READ-ONLY; The operation state. Possible values include: 'ManagementOperationStatePending', 'ManagementOperationStateInProgress', 'ManagementOperationStateSucceeded', 'ManagementOperationStateFailed', 'ManagementOperationStateCancelInProgress', 'ManagementOperationStateCancelled'
+	State ManagementOperationState `json:"state,omitempty"`
+	// ErrorCode - READ-ONLY; The operation error code.
+	ErrorCode *int32 `json:"errorCode,omitempty"`
+	// ErrorDescription - READ-ONLY; The operation error description.
+	ErrorDescription *string `json:"errorDescription,omitempty"`
+	// ErrorSeverity - READ-ONLY; The operation error severity.
+	ErrorSeverity *int32 `json:"errorSeverity,omitempty"`
+	// IsUserError - READ-ONLY; Whether or not the error is a user error.
+	IsUserError *bool `json:"isUserError,omitempty"`
+	// EstimatedCompletionTime - READ-ONLY; The estimated completion time of the operation.
+	EstimatedCompletionTime *date.Time `json:"estimatedCompletionTime,omitempty"`
+	// Description - READ-ONLY; The operation description.
+	Description *string `json:"description,omitempty"`
+	// IsCancellable - READ-ONLY; Whether the operation can be cancelled.
+	IsCancellable *bool `json:"isCancellable,omitempty"`
+	// OperationParameters - READ-ONLY; The operation parameters.
+	OperationParameters *ManagedInstanceOperationParametersPair `json:"operationParameters,omitempty"`
+	// OperationSteps - READ-ONLY; The operation steps.
+	OperationSteps *ManagedInstanceOperationSteps `json:"operationSteps,omitempty"`
+}
+
+// ManagedInstanceOperationSteps the steps of a managed instance operation.
+type ManagedInstanceOperationSteps struct {
+	// TotalSteps - READ-ONLY; The total number of operation steps.
+	TotalSteps *string `json:"totalSteps,omitempty"`
+	// CurrentStep - READ-ONLY; The number of current operation steps.
+	CurrentStep *int32 `json:"currentStep,omitempty"`
+	// StepsList - READ-ONLY; The operation steps list.
+	StepsList *[]UpsertManagedServerOperationStep `json:"stepsList,omitempty"`
 }
 
 // ManagedInstancePairInfo pairs of Managed Instances in the failover group.
@@ -12546,8 +13210,32 @@ type ManagedInstancePairInfo struct {
 	PartnerManagedInstanceID *string `json:"partnerManagedInstanceId,omitempty"`
 }
 
+// ManagedInstancePrivateLinkServiceConnectionStateProperty ...
+type ManagedInstancePrivateLinkServiceConnectionStateProperty struct {
+	// Status - The private link service connection status.
+	Status *string `json:"status,omitempty"`
+	// Description - The private link service connection description.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - READ-ONLY; The private link service connection description.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstancePrivateLinkServiceConnectionStateProperty.
+func (miplscsp ManagedInstancePrivateLinkServiceConnectionStateProperty) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if miplscsp.Status != nil {
+		objectMap["status"] = miplscsp.Status
+	}
+	if miplscsp.Description != nil {
+		objectMap["description"] = miplscsp.Description
+	}
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceProperties the properties of a managed instance.
 type ManagedInstanceProperties struct {
+	// ProvisioningState - READ-ONLY; Possible values include: 'ProvisioningState1Creating', 'ProvisioningState1Deleting', 'ProvisioningState1Updating', 'ProvisioningState1Unknown', 'ProvisioningState1Succeeded', 'ProvisioningState1Failed'
+	ProvisioningState ProvisioningState1 `json:"provisioningState,omitempty"`
 	// ManagedInstanceCreateMode - Specifies the mode of database creation.
 	//
 	// Default: Regular instance creation.
@@ -12593,6 +13281,72 @@ type ManagedInstanceProperties struct {
 	TimezoneID *string `json:"timezoneId,omitempty"`
 	// InstancePoolID - The Id of the instance pool this managed server belongs to.
 	InstancePoolID *string `json:"instancePoolId,omitempty"`
+	// MaintenanceConfigurationID - Specifies maintenance configuration id to apply to this managed instance.
+	MaintenanceConfigurationID *string `json:"maintenanceConfigurationId,omitempty"`
+	// MinimalTLSVersion - Minimal TLS version. Allowed values: 'None', '1.0', '1.1', '1.2'
+	MinimalTLSVersion *string `json:"minimalTlsVersion,omitempty"`
+	// StorageAccountType - The storage account type used to store backups for this instance. The options are LRS (LocallyRedundantStorage), ZRS (ZoneRedundantStorage) and GRS (GeoRedundantStorage). Possible values include: 'GRS', 'LRS', 'ZRS'
+	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceProperties.
+func (mip ManagedInstanceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mip.ManagedInstanceCreateMode != "" {
+		objectMap["managedInstanceCreateMode"] = mip.ManagedInstanceCreateMode
+	}
+	if mip.AdministratorLogin != nil {
+		objectMap["administratorLogin"] = mip.AdministratorLogin
+	}
+	if mip.AdministratorLoginPassword != nil {
+		objectMap["administratorLoginPassword"] = mip.AdministratorLoginPassword
+	}
+	if mip.SubnetID != nil {
+		objectMap["subnetId"] = mip.SubnetID
+	}
+	if mip.LicenseType != "" {
+		objectMap["licenseType"] = mip.LicenseType
+	}
+	if mip.VCores != nil {
+		objectMap["vCores"] = mip.VCores
+	}
+	if mip.StorageSizeInGB != nil {
+		objectMap["storageSizeInGB"] = mip.StorageSizeInGB
+	}
+	if mip.Collation != nil {
+		objectMap["collation"] = mip.Collation
+	}
+	if mip.DNSZonePartner != nil {
+		objectMap["dnsZonePartner"] = mip.DNSZonePartner
+	}
+	if mip.PublicDataEndpointEnabled != nil {
+		objectMap["publicDataEndpointEnabled"] = mip.PublicDataEndpointEnabled
+	}
+	if mip.SourceManagedInstanceID != nil {
+		objectMap["sourceManagedInstanceId"] = mip.SourceManagedInstanceID
+	}
+	if mip.RestorePointInTime != nil {
+		objectMap["restorePointInTime"] = mip.RestorePointInTime
+	}
+	if mip.ProxyOverride != "" {
+		objectMap["proxyOverride"] = mip.ProxyOverride
+	}
+	if mip.TimezoneID != nil {
+		objectMap["timezoneId"] = mip.TimezoneID
+	}
+	if mip.InstancePoolID != nil {
+		objectMap["instancePoolId"] = mip.InstancePoolID
+	}
+	if mip.MaintenanceConfigurationID != nil {
+		objectMap["maintenanceConfigurationId"] = mip.MaintenanceConfigurationID
+	}
+	if mip.MinimalTLSVersion != nil {
+		objectMap["minimalTlsVersion"] = mip.MinimalTLSVersion
+	}
+	if mip.StorageAccountType != "" {
+		objectMap["storageAccountType"] = mip.StorageAccountType
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstancesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -12641,6 +13395,29 @@ func (future *ManagedInstancesDeleteFuture) Result(client ManagedInstancesClient
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ManagedInstancesFailoverFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ManagedInstancesFailoverFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedInstancesFailoverFuture) Result(client ManagedInstancesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesFailoverFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesFailoverFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -12786,6 +13563,15 @@ type ManagedInstanceVcoresCapability struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagedInstanceVcoresCapability.
+func (mivc ManagedInstanceVcoresCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mivc.Reason != nil {
+		objectMap["reason"] = mivc.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // ManagedInstanceVersionCapability the managed instance capability
 type ManagedInstanceVersionCapability struct {
 	// Name - READ-ONLY; The server version name.
@@ -12798,6 +13584,15 @@ type ManagedInstanceVersionCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceVersionCapability.
+func (mivc ManagedInstanceVersionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mivc.Reason != nil {
+		objectMap["reason"] = mivc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedInstanceVulnerabilityAssessment a managed instance vulnerability assessment.
@@ -12952,10 +13747,15 @@ func (mivalr ManagedInstanceVulnerabilityAssessmentListResult) IsEmpty() bool {
 	return mivalr.Value == nil || len(*mivalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mivalr ManagedInstanceVulnerabilityAssessmentListResult) hasNextLink() bool {
+	return mivalr.NextLink != nil && len(*mivalr.NextLink) != 0
+}
+
 // managedInstanceVulnerabilityAssessmentListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mivalr ManagedInstanceVulnerabilityAssessmentListResult) managedInstanceVulnerabilityAssessmentListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mivalr.NextLink == nil || len(to.String(mivalr.NextLink)) < 1 {
+	if !mivalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12984,11 +13784,16 @@ func (page *ManagedInstanceVulnerabilityAssessmentListResultPage) NextWithContex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mivalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mivalr)
+		if err != nil {
+			return err
+		}
+		page.mivalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mivalr = next
 	return nil
 }
 
@@ -13018,8 +13823,11 @@ func (page ManagedInstanceVulnerabilityAssessmentListResultPage) Values() []Mana
 }
 
 // Creates a new instance of the ManagedInstanceVulnerabilityAssessmentListResultPage type.
-func NewManagedInstanceVulnerabilityAssessmentListResultPage(getNextPage func(context.Context, ManagedInstanceVulnerabilityAssessmentListResult) (ManagedInstanceVulnerabilityAssessmentListResult, error)) ManagedInstanceVulnerabilityAssessmentListResultPage {
-	return ManagedInstanceVulnerabilityAssessmentListResultPage{fn: getNextPage}
+func NewManagedInstanceVulnerabilityAssessmentListResultPage(cur ManagedInstanceVulnerabilityAssessmentListResult, getNextPage func(context.Context, ManagedInstanceVulnerabilityAssessmentListResult) (ManagedInstanceVulnerabilityAssessmentListResult, error)) ManagedInstanceVulnerabilityAssessmentListResultPage {
+	return ManagedInstanceVulnerabilityAssessmentListResultPage{
+		fn:     getNextPage,
+		mivalr: cur,
+	}
 }
 
 // ManagedInstanceVulnerabilityAssessmentProperties properties of a managed instance vulnerability
@@ -13273,10 +14081,15 @@ func (mssaplr ManagedServerSecurityAlertPolicyListResult) IsEmpty() bool {
 	return mssaplr.Value == nil || len(*mssaplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mssaplr ManagedServerSecurityAlertPolicyListResult) hasNextLink() bool {
+	return mssaplr.NextLink != nil && len(*mssaplr.NextLink) != 0
+}
+
 // managedServerSecurityAlertPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mssaplr ManagedServerSecurityAlertPolicyListResult) managedServerSecurityAlertPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mssaplr.NextLink == nil || len(to.String(mssaplr.NextLink)) < 1 {
+	if !mssaplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -13305,11 +14118,16 @@ func (page *ManagedServerSecurityAlertPolicyListResultPage) NextWithContext(ctx 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mssaplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mssaplr)
+		if err != nil {
+			return err
+		}
+		page.mssaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mssaplr = next
 	return nil
 }
 
@@ -13339,8 +14157,11 @@ func (page ManagedServerSecurityAlertPolicyListResultPage) Values() []ManagedSer
 }
 
 // Creates a new instance of the ManagedServerSecurityAlertPolicyListResultPage type.
-func NewManagedServerSecurityAlertPolicyListResultPage(getNextPage func(context.Context, ManagedServerSecurityAlertPolicyListResult) (ManagedServerSecurityAlertPolicyListResult, error)) ManagedServerSecurityAlertPolicyListResultPage {
-	return ManagedServerSecurityAlertPolicyListResultPage{fn: getNextPage}
+func NewManagedServerSecurityAlertPolicyListResultPage(cur ManagedServerSecurityAlertPolicyListResult, getNextPage func(context.Context, ManagedServerSecurityAlertPolicyListResult) (ManagedServerSecurityAlertPolicyListResult, error)) ManagedServerSecurityAlertPolicyListResultPage {
+	return ManagedServerSecurityAlertPolicyListResultPage{
+		fn:      getNextPage,
+		mssaplr: cur,
+	}
 }
 
 // MaxSizeCapability the maximum size capability.
@@ -13365,6 +14186,15 @@ type MaxSizeRangeCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MaxSizeRangeCapability.
+func (msrc MaxSizeRangeCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if msrc.Reason != nil {
+		objectMap["reason"] = msrc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // Metric database metrics.
@@ -13453,6 +14283,15 @@ type MinCapacityCapability struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MinCapacityCapability.
+func (mcc MinCapacityCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcc.Reason != nil {
+		objectMap["reason"] = mcc.Reason
+	}
+	return json.Marshal(objectMap)
+}
+
 // Name ARM Usage Name
 type Name struct {
 	// Value - Usage name value
@@ -13461,13 +14300,21 @@ type Name struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
+// NetworkIsolationSettings contains the ARM resources for which to create private endpoint connection.
+type NetworkIsolationSettings struct {
+	// StorageAccountResourceID - The resource id for the storage account used to store BACPAC file. If set, private endpoint connection will be created for the storage account. Must match storage account used for StorageUri parameter.
+	StorageAccountResourceID *string `json:"storageAccountResourceId,omitempty"`
+	// SQLServerResourceID - The resource id for the SQL server which is the target of this request. If set, private endpoint connection will be created for the SQL server. Must match server which is target of the operation.
+	SQLServerResourceID *string `json:"sqlServerResourceId,omitempty"`
+}
+
 // Operation SQL REST API operation definition.
 type Operation struct {
 	// Name - READ-ONLY; The name of the operation being performed on this particular object.
 	Name *string `json:"name,omitempty"`
 	// Display - READ-ONLY; The localized display information for this particular operation / action.
 	Display *OperationDisplay `json:"display,omitempty"`
-	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'OperationOriginUser', 'OperationOriginSystem'
+	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'User', 'System'
 	Origin OperationOrigin `json:"origin,omitempty"`
 	// Properties - READ-ONLY; Additional descriptions for the operation.
 	Properties map[string]interface{} `json:"properties"`
@@ -13580,10 +14427,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -13611,11 +14463,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -13645,8 +14502,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PartnerInfo partner server information for the failover group.
@@ -13659,12 +14519,30 @@ type PartnerInfo struct {
 	ReplicationRole FailoverGroupReplicationRole `json:"replicationRole,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PartnerInfo.
+func (pi PartnerInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pi.ID != nil {
+		objectMap["id"] = pi.ID
+	}
+	return json.Marshal(objectMap)
+}
+
 // PartnerRegionInfo partner region information for the failover group.
 type PartnerRegionInfo struct {
 	// Location - Geo location of the partner managed instances.
 	Location *string `json:"location,omitempty"`
 	// ReplicationRole - READ-ONLY; Replication role of the partner managed instances. Possible values include: 'InstanceFailoverGroupReplicationRolePrimary', 'InstanceFailoverGroupReplicationRoleSecondary'
 	ReplicationRole InstanceFailoverGroupReplicationRole `json:"replicationRole,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PartnerRegionInfo.
+func (pri PartnerRegionInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pri.Location != nil {
+		objectMap["location"] = pri.Location
+	}
+	return json.Marshal(objectMap)
 }
 
 // PerformanceLevelCapability the performance level capability.
@@ -13826,10 +14704,15 @@ func (peclr PrivateEndpointConnectionListResult) IsEmpty() bool {
 	return peclr.Value == nil || len(*peclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (peclr PrivateEndpointConnectionListResult) hasNextLink() bool {
+	return peclr.NextLink != nil && len(*peclr.NextLink) != 0
+}
+
 // privateEndpointConnectionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (peclr PrivateEndpointConnectionListResult) privateEndpointConnectionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if peclr.NextLink == nil || len(to.String(peclr.NextLink)) < 1 {
+	if !peclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -13857,11 +14740,16 @@ func (page *PrivateEndpointConnectionListResultPage) NextWithContext(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.peclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.peclr)
+		if err != nil {
+			return err
+		}
+		page.peclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.peclr = next
 	return nil
 }
 
@@ -13891,8 +14779,11 @@ func (page PrivateEndpointConnectionListResultPage) Values() []PrivateEndpointCo
 }
 
 // Creates a new instance of the PrivateEndpointConnectionListResultPage type.
-func NewPrivateEndpointConnectionListResultPage(getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
-	return PrivateEndpointConnectionListResultPage{fn: getNextPage}
+func NewPrivateEndpointConnectionListResultPage(cur PrivateEndpointConnectionListResult, getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
+	return PrivateEndpointConnectionListResultPage{
+		fn:    getNextPage,
+		peclr: cur,
+	}
 }
 
 // PrivateEndpointConnectionProperties properties of a private endpoint connection.
@@ -13901,8 +14792,30 @@ type PrivateEndpointConnectionProperties struct {
 	PrivateEndpoint *PrivateEndpointProperty `json:"privateEndpoint,omitempty"`
 	// PrivateLinkServiceConnectionState - Connection state of the private endpoint connection.
 	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState,omitempty"`
-	// ProvisioningState - READ-ONLY; State of the private endpoint connection.
-	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// ProvisioningState - READ-ONLY; State of the private endpoint connection. Possible values include: 'PrivateEndpointProvisioningStateApproving', 'PrivateEndpointProvisioningStateReady', 'PrivateEndpointProvisioningStateDropping', 'PrivateEndpointProvisioningStateFailed', 'PrivateEndpointProvisioningStateRejecting'
+	ProvisioningState PrivateEndpointProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionProperties.
+func (pecp PrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecp.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = pecp.PrivateEndpoint
+	}
+	if pecp.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = pecp.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionRequestStatus contains the private endpoint connection requests status.
+type PrivateEndpointConnectionRequestStatus struct {
+	// PrivateLinkServiceID - READ-ONLY; Resource id for which the private endpoint is created.
+	PrivateLinkServiceID *string `json:"privateLinkServiceId,omitempty"`
+	// PrivateEndpointConnectionName - READ-ONLY; The connection name for the private endpoint.
+	PrivateEndpointConnectionName *string `json:"privateEndpointConnectionName,omitempty"`
+	// Status - READ-ONLY; Status of this private endpoint connection.
+	Status *string `json:"status,omitempty"`
 }
 
 // PrivateEndpointConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
@@ -14054,10 +14967,15 @@ func (plrlr PrivateLinkResourceListResult) IsEmpty() bool {
 	return plrlr.Value == nil || len(*plrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (plrlr PrivateLinkResourceListResult) hasNextLink() bool {
+	return plrlr.NextLink != nil && len(*plrlr.NextLink) != 0
+}
+
 // privateLinkResourceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (plrlr PrivateLinkResourceListResult) privateLinkResourceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if plrlr.NextLink == nil || len(to.String(plrlr.NextLink)) < 1 {
+	if !plrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -14085,11 +15003,16 @@ func (page *PrivateLinkResourceListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.plrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.plrlr)
+		if err != nil {
+			return err
+		}
+		page.plrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.plrlr = next
 	return nil
 }
 
@@ -14119,8 +15042,11 @@ func (page PrivateLinkResourceListResultPage) Values() []PrivateLinkResource {
 }
 
 // Creates a new instance of the PrivateLinkResourceListResultPage type.
-func NewPrivateLinkResourceListResultPage(getNextPage func(context.Context, PrivateLinkResourceListResult) (PrivateLinkResourceListResult, error)) PrivateLinkResourceListResultPage {
-	return PrivateLinkResourceListResultPage{fn: getNextPage}
+func NewPrivateLinkResourceListResultPage(cur PrivateLinkResourceListResult, getNextPage func(context.Context, PrivateLinkResourceListResult) (PrivateLinkResourceListResult, error)) PrivateLinkResourceListResultPage {
+	return PrivateLinkResourceListResultPage{
+		fn:    getNextPage,
+		plrlr: cur,
+	}
 }
 
 // PrivateLinkResourceProperties properties of a private link resource.
@@ -14133,12 +15059,24 @@ type PrivateLinkResourceProperties struct {
 
 // PrivateLinkServiceConnectionStateProperty ...
 type PrivateLinkServiceConnectionStateProperty struct {
-	// Status - The private link service connection status.
-	Status *string `json:"status,omitempty"`
+	// Status - The private link service connection status. Possible values include: 'Approved', 'Pending', 'Rejected', 'Disconnected'
+	Status PrivateLinkServiceConnectionStateStatus `json:"status,omitempty"`
 	// Description - The private link service connection description.
 	Description *string `json:"description,omitempty"`
-	// ActionsRequired - READ-ONLY; The actions required for private link service connection.
-	ActionsRequired *string `json:"actionsRequired,omitempty"`
+	// ActionsRequired - READ-ONLY; The actions required for private link service connection. Possible values include: 'PrivateLinkServiceConnectionStateActionsRequireNone'
+	ActionsRequired PrivateLinkServiceConnectionStateActionsRequire `json:"actionsRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkServiceConnectionStateProperty.
+func (plscsp PrivateLinkServiceConnectionStateProperty) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plscsp.Status != "" {
+		objectMap["status"] = plscsp.Status
+	}
+	if plscsp.Description != nil {
+		objectMap["description"] = plscsp.Description
+	}
+	return json.Marshal(objectMap)
 }
 
 // ProxyResource ARM proxy resource.
@@ -14159,6 +15097,15 @@ type ReadScaleCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReadScaleCapability.
+func (rsc ReadScaleCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rsc.Reason != nil {
+		objectMap["reason"] = rsc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // RecommendedElasticPool represents a recommended elastic pool.
@@ -14261,7 +15208,7 @@ type RecommendedElasticPoolMetric struct {
 
 // RecommendedElasticPoolProperties represents the properties of a recommended elastic pool.
 type RecommendedElasticPoolProperties struct {
-	// DatabaseEdition - READ-ONLY; The edition of the recommended elastic pool. The ElasticPoolEdition enumeration contains all the valid editions. Possible values include: 'ElasticPoolEditionBasic', 'ElasticPoolEditionStandard', 'ElasticPoolEditionPremium', 'ElasticPoolEditionGeneralPurpose', 'ElasticPoolEditionBusinessCritical'
+	// DatabaseEdition - READ-ONLY; The edition of the recommended elastic pool. The ElasticPoolEdition enumeration contains all the valid editions. Possible values include: 'Basic', 'Standard', 'Premium', 'GeneralPurpose', 'BusinessCritical'
 	DatabaseEdition ElasticPoolEdition `json:"databaseEdition,omitempty"`
 	// Dtu - The DTU for the recommended elastic pool.
 	Dtu *float64 `json:"dtu,omitempty"`
@@ -14283,6 +15230,24 @@ type RecommendedElasticPoolProperties struct {
 	Databases *[]TrackedResource `json:"databases,omitempty"`
 	// Metrics - READ-ONLY; The list of databases housed in the server. Expanded property
 	Metrics *[]RecommendedElasticPoolMetric `json:"metrics,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RecommendedElasticPoolProperties.
+func (repp RecommendedElasticPoolProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if repp.Dtu != nil {
+		objectMap["dtu"] = repp.Dtu
+	}
+	if repp.DatabaseDtuMin != nil {
+		objectMap["databaseDtuMin"] = repp.DatabaseDtuMin
+	}
+	if repp.DatabaseDtuMax != nil {
+		objectMap["databaseDtuMax"] = repp.DatabaseDtuMax
+	}
+	if repp.StorageMB != nil {
+		objectMap["storageMB"] = repp.StorageMB
+	}
+	return json.Marshal(objectMap)
 }
 
 // RecommendedIndex represents a database recommended index.
@@ -14358,7 +15323,7 @@ func (ri *RecommendedIndex) UnmarshalJSON(body []byte) error {
 type RecommendedIndexProperties struct {
 	// Action - READ-ONLY; The proposed index action. You can create a missing index, drop an unused index, or rebuild an existing index to improve its performance. Possible values include: 'Create', 'Drop', 'Rebuild'
 	Action RecommendedIndexAction `json:"action,omitempty"`
-	// State - READ-ONLY; The current recommendation state. Possible values include: 'Active', 'Pending', 'Executing', 'Verifying', 'PendingRevert', 'Reverting', 'Reverted', 'Ignored', 'Expired', 'Blocked', 'Success'
+	// State - READ-ONLY; The current recommendation state. Possible values include: 'RecommendedIndexStateActive', 'RecommendedIndexStatePending', 'RecommendedIndexStateExecuting', 'RecommendedIndexStateVerifying', 'RecommendedIndexStatePendingRevert', 'RecommendedIndexStateReverting', 'RecommendedIndexStateReverted', 'RecommendedIndexStateIgnored', 'RecommendedIndexStateExpired', 'RecommendedIndexStateBlocked', 'RecommendedIndexStateSuccess'
 	State RecommendedIndexState `json:"state,omitempty"`
 	// Created - READ-ONLY; The UTC datetime showing when this resource was created (ISO8601 format).
 	Created *date.Time `json:"created,omitempty"`
@@ -14625,10 +15590,15 @@ func (rmdlr RecoverableManagedDatabaseListResult) IsEmpty() bool {
 	return rmdlr.Value == nil || len(*rmdlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rmdlr RecoverableManagedDatabaseListResult) hasNextLink() bool {
+	return rmdlr.NextLink != nil && len(*rmdlr.NextLink) != 0
+}
+
 // recoverableManagedDatabaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rmdlr RecoverableManagedDatabaseListResult) recoverableManagedDatabaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rmdlr.NextLink == nil || len(to.String(rmdlr.NextLink)) < 1 {
+	if !rmdlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -14656,11 +15626,16 @@ func (page *RecoverableManagedDatabaseListResultPage) NextWithContext(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rmdlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rmdlr)
+		if err != nil {
+			return err
+		}
+		page.rmdlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rmdlr = next
 	return nil
 }
 
@@ -14690,8 +15665,11 @@ func (page RecoverableManagedDatabaseListResultPage) Values() []RecoverableManag
 }
 
 // Creates a new instance of the RecoverableManagedDatabaseListResultPage type.
-func NewRecoverableManagedDatabaseListResultPage(getNextPage func(context.Context, RecoverableManagedDatabaseListResult) (RecoverableManagedDatabaseListResult, error)) RecoverableManagedDatabaseListResultPage {
-	return RecoverableManagedDatabaseListResultPage{fn: getNextPage}
+func NewRecoverableManagedDatabaseListResultPage(cur RecoverableManagedDatabaseListResult, getNextPage func(context.Context, RecoverableManagedDatabaseListResult) (RecoverableManagedDatabaseListResult, error)) RecoverableManagedDatabaseListResultPage {
+	return RecoverableManagedDatabaseListResultPage{
+		fn:    getNextPage,
+		rmdlr: cur,
+	}
 }
 
 // RecoverableManagedDatabaseProperties the recoverable managed database's properties.
@@ -14861,6 +15839,29 @@ func (future *ReplicationLinksFailoverFuture) Result(client ReplicationLinksClie
 	return
 }
 
+// ReplicationLinksUnlinkFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ReplicationLinksUnlinkFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ReplicationLinksUnlinkFuture) Result(client ReplicationLinksClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksUnlinkFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksUnlinkFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // Resource ARM resource.
 type Resource struct {
 	// ID - READ-ONLY; Resource ID.
@@ -14879,6 +15880,15 @@ type ResourceIdentity struct {
 	Type IdentityType `json:"type,omitempty"`
 	// TenantID - READ-ONLY; The Azure Active Directory tenant id.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceIdentity.
+func (ri ResourceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ri.Type != "" {
+		objectMap["type"] = ri.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // ResourceMoveDefinition contains the information necessary to perform a resource move (rename).
@@ -15177,10 +16187,15 @@ func (rdmdlr RestorableDroppedManagedDatabaseListResult) IsEmpty() bool {
 	return rdmdlr.Value == nil || len(*rdmdlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rdmdlr RestorableDroppedManagedDatabaseListResult) hasNextLink() bool {
+	return rdmdlr.NextLink != nil && len(*rdmdlr.NextLink) != 0
+}
+
 // restorableDroppedManagedDatabaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rdmdlr RestorableDroppedManagedDatabaseListResult) restorableDroppedManagedDatabaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rdmdlr.NextLink == nil || len(to.String(rdmdlr.NextLink)) < 1 {
+	if !rdmdlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -15209,11 +16224,16 @@ func (page *RestorableDroppedManagedDatabaseListResultPage) NextWithContext(ctx 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rdmdlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rdmdlr)
+		if err != nil {
+			return err
+		}
+		page.rdmdlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rdmdlr = next
 	return nil
 }
 
@@ -15243,8 +16263,11 @@ func (page RestorableDroppedManagedDatabaseListResultPage) Values() []Restorable
 }
 
 // Creates a new instance of the RestorableDroppedManagedDatabaseListResultPage type.
-func NewRestorableDroppedManagedDatabaseListResultPage(getNextPage func(context.Context, RestorableDroppedManagedDatabaseListResult) (RestorableDroppedManagedDatabaseListResult, error)) RestorableDroppedManagedDatabaseListResultPage {
-	return RestorableDroppedManagedDatabaseListResultPage{fn: getNextPage}
+func NewRestorableDroppedManagedDatabaseListResultPage(cur RestorableDroppedManagedDatabaseListResult, getNextPage func(context.Context, RestorableDroppedManagedDatabaseListResult) (RestorableDroppedManagedDatabaseListResult, error)) RestorableDroppedManagedDatabaseListResultPage {
+	return RestorableDroppedManagedDatabaseListResultPage{
+		fn:     getNextPage,
+		rdmdlr: cur,
+	}
 }
 
 // RestorableDroppedManagedDatabaseProperties the restorable dropped managed database's properties.
@@ -15413,6 +16436,33 @@ type SecurityAlertPolicyProperties struct {
 	CreationTime *date.Time `json:"creationTime,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SecurityAlertPolicyProperties.
+func (sapp SecurityAlertPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sapp.State != "" {
+		objectMap["state"] = sapp.State
+	}
+	if sapp.DisabledAlerts != nil {
+		objectMap["disabledAlerts"] = sapp.DisabledAlerts
+	}
+	if sapp.EmailAddresses != nil {
+		objectMap["emailAddresses"] = sapp.EmailAddresses
+	}
+	if sapp.EmailAccountAdmins != nil {
+		objectMap["emailAccountAdmins"] = sapp.EmailAccountAdmins
+	}
+	if sapp.StorageEndpoint != nil {
+		objectMap["storageEndpoint"] = sapp.StorageEndpoint
+	}
+	if sapp.StorageAccountAccessKey != nil {
+		objectMap["storageAccountAccessKey"] = sapp.StorageAccountAccessKey
+	}
+	if sapp.RetentionDays != nil {
+		objectMap["retentionDays"] = sapp.RetentionDays
+	}
+	return json.Marshal(objectMap)
+}
+
 // SensitivityLabel a sensitivity label.
 type SensitivityLabel struct {
 	autorest.Response `json:"-"`
@@ -15563,10 +16613,15 @@ func (sllr SensitivityLabelListResult) IsEmpty() bool {
 	return sllr.Value == nil || len(*sllr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sllr SensitivityLabelListResult) hasNextLink() bool {
+	return sllr.NextLink != nil && len(*sllr.NextLink) != 0
+}
+
 // sensitivityLabelListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sllr SensitivityLabelListResult) sensitivityLabelListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sllr.NextLink == nil || len(to.String(sllr.NextLink)) < 1 {
+	if !sllr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -15594,11 +16649,16 @@ func (page *SensitivityLabelListResultPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sllr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sllr)
+		if err != nil {
+			return err
+		}
+		page.sllr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sllr = next
 	return nil
 }
 
@@ -15628,8 +16688,11 @@ func (page SensitivityLabelListResultPage) Values() []SensitivityLabel {
 }
 
 // Creates a new instance of the SensitivityLabelListResultPage type.
-func NewSensitivityLabelListResultPage(getNextPage func(context.Context, SensitivityLabelListResult) (SensitivityLabelListResult, error)) SensitivityLabelListResultPage {
-	return SensitivityLabelListResultPage{fn: getNextPage}
+func NewSensitivityLabelListResultPage(cur SensitivityLabelListResult, getNextPage func(context.Context, SensitivityLabelListResult) (SensitivityLabelListResult, error)) SensitivityLabelListResultPage {
+	return SensitivityLabelListResultPage{
+		fn:   getNextPage,
+		sllr: cur,
+	}
 }
 
 // SensitivityLabelProperties properties of a sensitivity label.
@@ -15644,6 +16707,29 @@ type SensitivityLabelProperties struct {
 	InformationTypeID *string `json:"informationTypeId,omitempty"`
 	// IsDisabled - READ-ONLY; Is sensitivity recommendation disabled. Applicable for recommended sensitivity label only. Specifies whether the sensitivity recommendation on this column is disabled (dismissed) or not.
 	IsDisabled *bool `json:"isDisabled,omitempty"`
+	// Rank - Possible values include: 'SensitivityLabelRankNone', 'SensitivityLabelRankLow', 'SensitivityLabelRankMedium', 'SensitivityLabelRankHigh', 'SensitivityLabelRankCritical'
+	Rank SensitivityLabelRank `json:"rank,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SensitivityLabelProperties.
+func (slp SensitivityLabelProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if slp.LabelName != nil {
+		objectMap["labelName"] = slp.LabelName
+	}
+	if slp.LabelID != nil {
+		objectMap["labelId"] = slp.LabelID
+	}
+	if slp.InformationType != nil {
+		objectMap["informationType"] = slp.InformationType
+	}
+	if slp.InformationTypeID != nil {
+		objectMap["informationTypeId"] = slp.InformationTypeID
+	}
+	if slp.Rank != "" {
+		objectMap["rank"] = slp.Rank
+	}
+	return json.Marshal(objectMap)
 }
 
 // Server an Azure SQL Database server.
@@ -15970,6 +17056,131 @@ func (future *ServerAzureADAdministratorsDeleteFuture) Result(client ServerAzure
 	return
 }
 
+// ServerAzureADOnlyAuthentication azure Active Directory only authentication.
+type ServerAzureADOnlyAuthentication struct {
+	autorest.Response `json:"-"`
+	// AzureADOnlyAuthProperties - Resource properties.
+	*AzureADOnlyAuthProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerAzureADOnlyAuthentication.
+func (saaoa ServerAzureADOnlyAuthentication) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if saaoa.AzureADOnlyAuthProperties != nil {
+		objectMap["properties"] = saaoa.AzureADOnlyAuthProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServerAzureADOnlyAuthentication struct.
+func (saaoa *ServerAzureADOnlyAuthentication) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var azureADOnlyAuthProperties AzureADOnlyAuthProperties
+				err = json.Unmarshal(*v, &azureADOnlyAuthProperties)
+				if err != nil {
+					return err
+				}
+				saaoa.AzureADOnlyAuthProperties = &azureADOnlyAuthProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				saaoa.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				saaoa.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				saaoa.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture) Result(client ServerAzureADOnlyAuthenticationsClient) (saaoa ServerAzureADOnlyAuthentication, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if saaoa.Response.Response, err = future.GetResult(sender); err == nil && saaoa.Response.Response.StatusCode != http.StatusNoContent {
+		saaoa, err = client.CreateOrUpdateResponder(saaoa.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", saaoa.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ServerAzureADOnlyAuthenticationsDeleteFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type ServerAzureADOnlyAuthenticationsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServerAzureADOnlyAuthenticationsDeleteFuture) Result(client ServerAzureADOnlyAuthenticationsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADOnlyAuthenticationsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADOnlyAuthenticationsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ServerBlobAuditingPoliciesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ServerBlobAuditingPoliciesCreateOrUpdateFuture struct {
@@ -16150,10 +17361,15 @@ func (sbaplr ServerBlobAuditingPolicyListResult) IsEmpty() bool {
 	return sbaplr.Value == nil || len(*sbaplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sbaplr ServerBlobAuditingPolicyListResult) hasNextLink() bool {
+	return sbaplr.NextLink != nil && len(*sbaplr.NextLink) != 0
+}
+
 // serverBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sbaplr ServerBlobAuditingPolicyListResult) serverBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sbaplr.NextLink == nil || len(to.String(sbaplr.NextLink)) < 1 {
+	if !sbaplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -16181,11 +17397,16 @@ func (page *ServerBlobAuditingPolicyListResultPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sbaplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sbaplr)
+		if err != nil {
+			return err
+		}
+		page.sbaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sbaplr = next
 	return nil
 }
 
@@ -16215,8 +17436,11 @@ func (page ServerBlobAuditingPolicyListResultPage) Values() []ServerBlobAuditing
 }
 
 // Creates a new instance of the ServerBlobAuditingPolicyListResultPage type.
-func NewServerBlobAuditingPolicyListResultPage(getNextPage func(context.Context, ServerBlobAuditingPolicyListResult) (ServerBlobAuditingPolicyListResult, error)) ServerBlobAuditingPolicyListResultPage {
-	return ServerBlobAuditingPolicyListResultPage{fn: getNextPage}
+func NewServerBlobAuditingPolicyListResultPage(cur ServerBlobAuditingPolicyListResult, getNextPage func(context.Context, ServerBlobAuditingPolicyListResult) (ServerBlobAuditingPolicyListResult, error)) ServerBlobAuditingPolicyListResultPage {
+	return ServerBlobAuditingPolicyListResultPage{
+		fn:     getNextPage,
+		sbaplr: cur,
+	}
 }
 
 // ServerBlobAuditingPolicyProperties properties of a server blob auditing policy.
@@ -16225,7 +17449,12 @@ type ServerBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -16416,6 +17645,15 @@ type ServerCommunicationLinkProperties struct {
 	State *string `json:"state,omitempty"`
 	// PartnerServer - The name of the partner server.
 	PartnerServer *string `json:"partnerServer,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerCommunicationLinkProperties.
+func (sclp ServerCommunicationLinkProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sclp.PartnerServer != nil {
+		objectMap["partnerServer"] = sclp.PartnerServer
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServerCommunicationLinksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
@@ -16779,10 +18017,15 @@ func (sdalr ServerDNSAliasListResult) IsEmpty() bool {
 	return sdalr.Value == nil || len(*sdalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sdalr ServerDNSAliasListResult) hasNextLink() bool {
+	return sdalr.NextLink != nil && len(*sdalr.NextLink) != 0
+}
+
 // serverDNSAliasListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sdalr ServerDNSAliasListResult) serverDNSAliasListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sdalr.NextLink == nil || len(to.String(sdalr.NextLink)) < 1 {
+	if !sdalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -16810,11 +18053,16 @@ func (page *ServerDNSAliasListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sdalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sdalr)
+		if err != nil {
+			return err
+		}
+		page.sdalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sdalr = next
 	return nil
 }
 
@@ -16844,14 +18092,23 @@ func (page ServerDNSAliasListResultPage) Values() []ServerDNSAlias {
 }
 
 // Creates a new instance of the ServerDNSAliasListResultPage type.
-func NewServerDNSAliasListResultPage(getNextPage func(context.Context, ServerDNSAliasListResult) (ServerDNSAliasListResult, error)) ServerDNSAliasListResultPage {
-	return ServerDNSAliasListResultPage{fn: getNextPage}
+func NewServerDNSAliasListResultPage(cur ServerDNSAliasListResult, getNextPage func(context.Context, ServerDNSAliasListResult) (ServerDNSAliasListResult, error)) ServerDNSAliasListResultPage {
+	return ServerDNSAliasListResultPage{
+		fn:    getNextPage,
+		sdalr: cur,
+	}
 }
 
 // ServerDNSAliasProperties properties of a server DNS alias.
 type ServerDNSAliasProperties struct {
 	// AzureDNSRecord - READ-ONLY; The fully qualified DNS record for alias
 	AzureDNSRecord *string `json:"azureDnsRecord,omitempty"`
+}
+
+// ServerInfo server info for the server trust group.
+type ServerInfo struct {
+	// ServerID - Server Id.
+	ServerID *string `json:"serverId,omitempty"`
 }
 
 // ServerKey a server key.
@@ -17029,10 +18286,15 @@ func (sklr ServerKeyListResult) IsEmpty() bool {
 	return sklr.Value == nil || len(*sklr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sklr ServerKeyListResult) hasNextLink() bool {
+	return sklr.NextLink != nil && len(*sklr.NextLink) != 0
+}
+
 // serverKeyListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sklr ServerKeyListResult) serverKeyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sklr.NextLink == nil || len(to.String(sklr.NextLink)) < 1 {
+	if !sklr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -17060,11 +18322,16 @@ func (page *ServerKeyListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sklr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sklr)
+		if err != nil {
+			return err
+		}
+		page.sklr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sklr = next
 	return nil
 }
 
@@ -17094,8 +18361,11 @@ func (page ServerKeyListResultPage) Values() []ServerKey {
 }
 
 // Creates a new instance of the ServerKeyListResultPage type.
-func NewServerKeyListResultPage(getNextPage func(context.Context, ServerKeyListResult) (ServerKeyListResult, error)) ServerKeyListResultPage {
-	return ServerKeyListResultPage{fn: getNextPage}
+func NewServerKeyListResultPage(cur ServerKeyListResult, getNextPage func(context.Context, ServerKeyListResult) (ServerKeyListResult, error)) ServerKeyListResultPage {
+	return ServerKeyListResultPage{
+		fn:   getNextPage,
+		sklr: cur,
+	}
 }
 
 // ServerKeyProperties properties for a server key execution.
@@ -17110,6 +18380,24 @@ type ServerKeyProperties struct {
 	Thumbprint *string `json:"thumbprint,omitempty"`
 	// CreationDate - The server key creation date.
 	CreationDate *date.Time `json:"creationDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerKeyProperties.
+func (skp ServerKeyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if skp.ServerKeyType != "" {
+		objectMap["serverKeyType"] = skp.ServerKeyType
+	}
+	if skp.URI != nil {
+		objectMap["uri"] = skp.URI
+	}
+	if skp.Thumbprint != nil {
+		objectMap["thumbprint"] = skp.Thumbprint
+	}
+	if skp.CreationDate != nil {
+		objectMap["creationDate"] = skp.CreationDate
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServerKeysCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -17241,10 +18529,15 @@ func (slr ServerListResult) IsEmpty() bool {
 	return slr.Value == nil || len(*slr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (slr ServerListResult) hasNextLink() bool {
+	return slr.NextLink != nil && len(*slr.NextLink) != 0
+}
+
 // serverListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (slr ServerListResult) serverListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if slr.NextLink == nil || len(to.String(slr.NextLink)) < 1 {
+	if !slr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -17272,11 +18565,16 @@ func (page *ServerListResultPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.slr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.slr)
+		if err != nil {
+			return err
+		}
+		page.slr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.slr = next
 	return nil
 }
 
@@ -17306,8 +18604,19 @@ func (page ServerListResultPage) Values() []Server {
 }
 
 // Creates a new instance of the ServerListResultPage type.
-func NewServerListResultPage(getNextPage func(context.Context, ServerListResult) (ServerListResult, error)) ServerListResultPage {
-	return ServerListResultPage{fn: getNextPage}
+func NewServerListResultPage(cur ServerListResult, getNextPage func(context.Context, ServerListResult) (ServerListResult, error)) ServerListResultPage {
+	return ServerListResultPage{
+		fn:  getNextPage,
+		slr: cur,
+	}
+}
+
+// ServerPrivateEndpointConnection a private endpoint connection under a server
+type ServerPrivateEndpointConnection struct {
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Properties - READ-ONLY; Private endpoint connection properties
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
 }
 
 // ServerProperties the properties of a server.
@@ -17322,6 +18631,33 @@ type ServerProperties struct {
 	State *string `json:"state,omitempty"`
 	// FullyQualifiedDomainName - READ-ONLY; The fully qualified domain name of the server.
 	FullyQualifiedDomainName *string `json:"fullyQualifiedDomainName,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connections on a server
+	PrivateEndpointConnections *[]ServerPrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// MinimalTLSVersion - Minimal TLS version. Allowed values: '1.0', '1.1', '1.2'
+	MinimalTLSVersion *string `json:"minimalTlsVersion,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this server.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'ServerPublicNetworkAccessEnabled', 'ServerPublicNetworkAccessDisabled'
+	PublicNetworkAccess ServerPublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerProperties.
+func (sp ServerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.AdministratorLogin != nil {
+		objectMap["administratorLogin"] = sp.AdministratorLogin
+	}
+	if sp.AdministratorLoginPassword != nil {
+		objectMap["administratorLoginPassword"] = sp.AdministratorLoginPassword
+	}
+	if sp.Version != nil {
+		objectMap["version"] = sp.Version
+	}
+	if sp.MinimalTLSVersion != nil {
+		objectMap["minimalTlsVersion"] = sp.MinimalTLSVersion
+	}
+	if sp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = sp.PublicNetworkAccess
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -17478,6 +18814,35 @@ func (ssap *ServerSecurityAlertPolicy) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ServersImportDatabaseFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ServersImportDatabaseFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServersImportDatabaseFuture) Result(client ServersClient) (ieor ImportExportOperationResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServersImportDatabaseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServersImportDatabaseFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ieor.Response.Response, err = future.GetResult(sender); err == nil && ieor.Response.Response.StatusCode != http.StatusNoContent {
+		ieor, err = client.ImportDatabaseResponder(ieor.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersImportDatabaseFuture", "Result", ieor.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // ServersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ServersUpdateFuture struct {
@@ -17504,6 +18869,298 @@ func (future *ServersUpdateFuture) Result(client ServersClient) (s Server, err e
 			err = autorest.NewErrorWithError(err, "sql.ServersUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
 		}
 	}
+	return
+}
+
+// ServerTrustGroup a server trust group.
+type ServerTrustGroup struct {
+	autorest.Response `json:"-"`
+	// ServerTrustGroupProperties - Resource properties.
+	*ServerTrustGroupProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerTrustGroup.
+func (stg ServerTrustGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if stg.ServerTrustGroupProperties != nil {
+		objectMap["properties"] = stg.ServerTrustGroupProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServerTrustGroup struct.
+func (stg *ServerTrustGroup) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var serverTrustGroupProperties ServerTrustGroupProperties
+				err = json.Unmarshal(*v, &serverTrustGroupProperties)
+				if err != nil {
+					return err
+				}
+				stg.ServerTrustGroupProperties = &serverTrustGroupProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				stg.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				stg.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				stg.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServerTrustGroupListResult a list of server trust groups.
+type ServerTrustGroupListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ServerTrustGroup `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ServerTrustGroupListResultIterator provides access to a complete listing of ServerTrustGroup values.
+type ServerTrustGroupListResultIterator struct {
+	i    int
+	page ServerTrustGroupListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ServerTrustGroupListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerTrustGroupListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ServerTrustGroupListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ServerTrustGroupListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ServerTrustGroupListResultIterator) Response() ServerTrustGroupListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ServerTrustGroupListResultIterator) Value() ServerTrustGroup {
+	if !iter.page.NotDone() {
+		return ServerTrustGroup{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ServerTrustGroupListResultIterator type.
+func NewServerTrustGroupListResultIterator(page ServerTrustGroupListResultPage) ServerTrustGroupListResultIterator {
+	return ServerTrustGroupListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (stglr ServerTrustGroupListResult) IsEmpty() bool {
+	return stglr.Value == nil || len(*stglr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (stglr ServerTrustGroupListResult) hasNextLink() bool {
+	return stglr.NextLink != nil && len(*stglr.NextLink) != 0
+}
+
+// serverTrustGroupListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (stglr ServerTrustGroupListResult) serverTrustGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !stglr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(stglr.NextLink)))
+}
+
+// ServerTrustGroupListResultPage contains a page of ServerTrustGroup values.
+type ServerTrustGroupListResultPage struct {
+	fn    func(context.Context, ServerTrustGroupListResult) (ServerTrustGroupListResult, error)
+	stglr ServerTrustGroupListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ServerTrustGroupListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerTrustGroupListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.stglr)
+		if err != nil {
+			return err
+		}
+		page.stglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ServerTrustGroupListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ServerTrustGroupListResultPage) NotDone() bool {
+	return !page.stglr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ServerTrustGroupListResultPage) Response() ServerTrustGroupListResult {
+	return page.stglr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ServerTrustGroupListResultPage) Values() []ServerTrustGroup {
+	if page.stglr.IsEmpty() {
+		return nil
+	}
+	return *page.stglr.Value
+}
+
+// Creates a new instance of the ServerTrustGroupListResultPage type.
+func NewServerTrustGroupListResultPage(cur ServerTrustGroupListResult, getNextPage func(context.Context, ServerTrustGroupListResult) (ServerTrustGroupListResult, error)) ServerTrustGroupListResultPage {
+	return ServerTrustGroupListResultPage{
+		fn:    getNextPage,
+		stglr: cur,
+	}
+}
+
+// ServerTrustGroupProperties properties of a server trust group.
+type ServerTrustGroupProperties struct {
+	// GroupMembers - Group members information for the server trust group.
+	GroupMembers *[]ServerInfo `json:"groupMembers,omitempty"`
+	// TrustScopes - Trust scope of the server trust group.
+	TrustScopes *[]string `json:"trustScopes,omitempty"`
+}
+
+// ServerTrustGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ServerTrustGroupsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServerTrustGroupsCreateOrUpdateFuture) Result(client ServerTrustGroupsClient) (stg ServerTrustGroup, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServerTrustGroupsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if stg.Response.Response, err = future.GetResult(sender); err == nil && stg.Response.Response.StatusCode != http.StatusNoContent {
+		stg, err = client.CreateOrUpdateResponder(stg.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsCreateOrUpdateFuture", "Result", stg.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ServerTrustGroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ServerTrustGroupsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServerTrustGroupsDeleteFuture) Result(client ServerTrustGroupsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServerTrustGroupsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -17597,6 +19254,15 @@ type ServerVersionCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerVersionCapability.
+func (svc ServerVersionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if svc.Reason != nil {
+		objectMap["reason"] = svc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServerVulnerabilityAssessment a server vulnerability assessment.
@@ -17750,10 +19416,15 @@ func (svalr ServerVulnerabilityAssessmentListResult) IsEmpty() bool {
 	return svalr.Value == nil || len(*svalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (svalr ServerVulnerabilityAssessmentListResult) hasNextLink() bool {
+	return svalr.NextLink != nil && len(*svalr.NextLink) != 0
+}
+
 // serverVulnerabilityAssessmentListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (svalr ServerVulnerabilityAssessmentListResult) serverVulnerabilityAssessmentListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if svalr.NextLink == nil || len(to.String(svalr.NextLink)) < 1 {
+	if !svalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -17781,11 +19452,16 @@ func (page *ServerVulnerabilityAssessmentListResultPage) NextWithContext(ctx con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.svalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.svalr)
+		if err != nil {
+			return err
+		}
+		page.svalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.svalr = next
 	return nil
 }
 
@@ -17815,8 +19491,11 @@ func (page ServerVulnerabilityAssessmentListResultPage) Values() []ServerVulnera
 }
 
 // Creates a new instance of the ServerVulnerabilityAssessmentListResultPage type.
-func NewServerVulnerabilityAssessmentListResultPage(getNextPage func(context.Context, ServerVulnerabilityAssessmentListResult) (ServerVulnerabilityAssessmentListResult, error)) ServerVulnerabilityAssessmentListResultPage {
-	return ServerVulnerabilityAssessmentListResultPage{fn: getNextPage}
+func NewServerVulnerabilityAssessmentListResultPage(cur ServerVulnerabilityAssessmentListResult, getNextPage func(context.Context, ServerVulnerabilityAssessmentListResult) (ServerVulnerabilityAssessmentListResult, error)) ServerVulnerabilityAssessmentListResultPage {
+	return ServerVulnerabilityAssessmentListResultPage{
+		fn:    getNextPage,
+		svalr: cur,
+	}
 }
 
 // ServerVulnerabilityAssessmentProperties properties of a server Vulnerability Assessment.
@@ -17932,6 +19611,15 @@ type ServiceObjectiveCapability struct {
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceObjectiveCapability.
+func (soc ServiceObjectiveCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if soc.Reason != nil {
+		objectMap["reason"] = soc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServiceObjectiveListResult represents the response to a get database service objectives request.
@@ -18100,12 +19788,21 @@ type SloUsageMetric struct {
 
 // StorageCapability the storage account type capability.
 type StorageCapability struct {
-	// StorageAccountType - READ-ONLY; The storage account type for the database's backups. Possible values include: 'GRS', 'LRS', 'ZRS'
-	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
+	// StorageAccountType - READ-ONLY; The storage account type for the database's backups. Possible values include: 'StorageAccountType1GRS', 'StorageAccountType1LRS', 'StorageAccountType1ZRS'
+	StorageAccountType StorageAccountType1 `json:"storageAccountType,omitempty"`
 	// Status - READ-ONLY; The status of the capability. Possible values include: 'CapabilityStatusVisible', 'CapabilityStatusAvailable', 'CapabilityStatusDefault', 'CapabilityStatusDisabled'
 	Status CapabilityStatus `json:"status,omitempty"`
 	// Reason - The reason for the capability not being available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StorageCapability.
+func (sc StorageCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sc.Reason != nil {
+		objectMap["reason"] = sc.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // SubscriptionUsage usage Metric of a Subscription in a Location.
@@ -18258,10 +19955,15 @@ func (sulr SubscriptionUsageListResult) IsEmpty() bool {
 	return sulr.Value == nil || len(*sulr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sulr SubscriptionUsageListResult) hasNextLink() bool {
+	return sulr.NextLink != nil && len(*sulr.NextLink) != 0
+}
+
 // subscriptionUsageListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sulr SubscriptionUsageListResult) subscriptionUsageListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sulr.NextLink == nil || len(to.String(sulr.NextLink)) < 1 {
+	if !sulr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -18289,11 +19991,16 @@ func (page *SubscriptionUsageListResultPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sulr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sulr)
+		if err != nil {
+			return err
+		}
+		page.sulr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sulr = next
 	return nil
 }
 
@@ -18323,8 +20030,11 @@ func (page SubscriptionUsageListResultPage) Values() []SubscriptionUsage {
 }
 
 // Creates a new instance of the SubscriptionUsageListResultPage type.
-func NewSubscriptionUsageListResultPage(getNextPage func(context.Context, SubscriptionUsageListResult) (SubscriptionUsageListResult, error)) SubscriptionUsageListResultPage {
-	return SubscriptionUsageListResultPage{fn: getNextPage}
+func NewSubscriptionUsageListResultPage(cur SubscriptionUsageListResult, getNextPage func(context.Context, SubscriptionUsageListResult) (SubscriptionUsageListResult, error)) SubscriptionUsageListResultPage {
+	return SubscriptionUsageListResultPage{
+		fn:   getNextPage,
+		sulr: cur,
+	}
 }
 
 // SubscriptionUsageProperties properties of a subscription usage.
@@ -18569,10 +20279,15 @@ func (saldlr SyncAgentLinkedDatabaseListResult) IsEmpty() bool {
 	return saldlr.Value == nil || len(*saldlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (saldlr SyncAgentLinkedDatabaseListResult) hasNextLink() bool {
+	return saldlr.NextLink != nil && len(*saldlr.NextLink) != 0
+}
+
 // syncAgentLinkedDatabaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (saldlr SyncAgentLinkedDatabaseListResult) syncAgentLinkedDatabaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if saldlr.NextLink == nil || len(to.String(saldlr.NextLink)) < 1 {
+	if !saldlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -18600,11 +20315,16 @@ func (page *SyncAgentLinkedDatabaseListResultPage) NextWithContext(ctx context.C
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.saldlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.saldlr)
+		if err != nil {
+			return err
+		}
+		page.saldlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.saldlr = next
 	return nil
 }
 
@@ -18634,8 +20354,11 @@ func (page SyncAgentLinkedDatabaseListResultPage) Values() []SyncAgentLinkedData
 }
 
 // Creates a new instance of the SyncAgentLinkedDatabaseListResultPage type.
-func NewSyncAgentLinkedDatabaseListResultPage(getNextPage func(context.Context, SyncAgentLinkedDatabaseListResult) (SyncAgentLinkedDatabaseListResult, error)) SyncAgentLinkedDatabaseListResultPage {
-	return SyncAgentLinkedDatabaseListResultPage{fn: getNextPage}
+func NewSyncAgentLinkedDatabaseListResultPage(cur SyncAgentLinkedDatabaseListResult, getNextPage func(context.Context, SyncAgentLinkedDatabaseListResult) (SyncAgentLinkedDatabaseListResult, error)) SyncAgentLinkedDatabaseListResultPage {
+	return SyncAgentLinkedDatabaseListResultPage{
+		fn:     getNextPage,
+		saldlr: cur,
+	}
 }
 
 // SyncAgentLinkedDatabaseProperties properties of an Azure SQL Database sync agent linked database.
@@ -18731,10 +20454,15 @@ func (salr SyncAgentListResult) IsEmpty() bool {
 	return salr.Value == nil || len(*salr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (salr SyncAgentListResult) hasNextLink() bool {
+	return salr.NextLink != nil && len(*salr.NextLink) != 0
+}
+
 // syncAgentListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (salr SyncAgentListResult) syncAgentListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if salr.NextLink == nil || len(to.String(salr.NextLink)) < 1 {
+	if !salr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -18762,11 +20490,16 @@ func (page *SyncAgentListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.salr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.salr)
+		if err != nil {
+			return err
+		}
+		page.salr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.salr = next
 	return nil
 }
 
@@ -18796,8 +20529,11 @@ func (page SyncAgentListResultPage) Values() []SyncAgent {
 }
 
 // Creates a new instance of the SyncAgentListResultPage type.
-func NewSyncAgentListResultPage(getNextPage func(context.Context, SyncAgentListResult) (SyncAgentListResult, error)) SyncAgentListResultPage {
-	return SyncAgentListResultPage{fn: getNextPage}
+func NewSyncAgentListResultPage(cur SyncAgentListResult, getNextPage func(context.Context, SyncAgentListResult) (SyncAgentListResult, error)) SyncAgentListResultPage {
+	return SyncAgentListResultPage{
+		fn:   getNextPage,
+		salr: cur,
+	}
 }
 
 // SyncAgentProperties properties of an Azure SQL Database sync agent.
@@ -18816,6 +20552,15 @@ type SyncAgentProperties struct {
 	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
 	// Version - READ-ONLY; Version of the sync agent.
 	Version *string `json:"version,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncAgentProperties.
+func (sap SyncAgentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sap.SyncDatabaseID != nil {
+		objectMap["syncDatabaseId"] = sap.SyncDatabaseID
+	}
+	return json.Marshal(objectMap)
 }
 
 // SyncAgentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -18948,10 +20693,15 @@ func (sdilr SyncDatabaseIDListResult) IsEmpty() bool {
 	return sdilr.Value == nil || len(*sdilr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sdilr SyncDatabaseIDListResult) hasNextLink() bool {
+	return sdilr.NextLink != nil && len(*sdilr.NextLink) != 0
+}
+
 // syncDatabaseIDListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sdilr SyncDatabaseIDListResult) syncDatabaseIDListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sdilr.NextLink == nil || len(to.String(sdilr.NextLink)) < 1 {
+	if !sdilr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -18979,11 +20729,16 @@ func (page *SyncDatabaseIDListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sdilr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sdilr)
+		if err != nil {
+			return err
+		}
+		page.sdilr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sdilr = next
 	return nil
 }
 
@@ -19013,8 +20768,11 @@ func (page SyncDatabaseIDListResultPage) Values() []SyncDatabaseIDProperties {
 }
 
 // Creates a new instance of the SyncDatabaseIDListResultPage type.
-func NewSyncDatabaseIDListResultPage(getNextPage func(context.Context, SyncDatabaseIDListResult) (SyncDatabaseIDListResult, error)) SyncDatabaseIDListResultPage {
-	return SyncDatabaseIDListResultPage{fn: getNextPage}
+func NewSyncDatabaseIDListResultPage(cur SyncDatabaseIDListResult, getNextPage func(context.Context, SyncDatabaseIDListResult) (SyncDatabaseIDListResult, error)) SyncDatabaseIDListResultPage {
+	return SyncDatabaseIDListResultPage{
+		fn:    getNextPage,
+		sdilr: cur,
+	}
 }
 
 // SyncDatabaseIDProperties properties of the sync database id.
@@ -19109,10 +20867,15 @@ func (sfsplr SyncFullSchemaPropertiesListResult) IsEmpty() bool {
 	return sfsplr.Value == nil || len(*sfsplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sfsplr SyncFullSchemaPropertiesListResult) hasNextLink() bool {
+	return sfsplr.NextLink != nil && len(*sfsplr.NextLink) != 0
+}
+
 // syncFullSchemaPropertiesListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sfsplr SyncFullSchemaPropertiesListResult) syncFullSchemaPropertiesListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sfsplr.NextLink == nil || len(to.String(sfsplr.NextLink)) < 1 {
+	if !sfsplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -19140,11 +20903,16 @@ func (page *SyncFullSchemaPropertiesListResultPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sfsplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sfsplr)
+		if err != nil {
+			return err
+		}
+		page.sfsplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sfsplr = next
 	return nil
 }
 
@@ -19174,8 +20942,11 @@ func (page SyncFullSchemaPropertiesListResultPage) Values() []SyncFullSchemaProp
 }
 
 // Creates a new instance of the SyncFullSchemaPropertiesListResultPage type.
-func NewSyncFullSchemaPropertiesListResultPage(getNextPage func(context.Context, SyncFullSchemaPropertiesListResult) (SyncFullSchemaPropertiesListResult, error)) SyncFullSchemaPropertiesListResultPage {
-	return SyncFullSchemaPropertiesListResultPage{fn: getNextPage}
+func NewSyncFullSchemaPropertiesListResultPage(cur SyncFullSchemaPropertiesListResult, getNextPage func(context.Context, SyncFullSchemaPropertiesListResult) (SyncFullSchemaPropertiesListResult, error)) SyncFullSchemaPropertiesListResultPage {
+	return SyncFullSchemaPropertiesListResultPage{
+		fn:     getNextPage,
+		sfsplr: cur,
+	}
 }
 
 // SyncFullSchemaTable properties of the table in the database full schema.
@@ -19360,10 +21131,15 @@ func (sglr SyncGroupListResult) IsEmpty() bool {
 	return sglr.Value == nil || len(*sglr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sglr SyncGroupListResult) hasNextLink() bool {
+	return sglr.NextLink != nil && len(*sglr.NextLink) != 0
+}
+
 // syncGroupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sglr SyncGroupListResult) syncGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sglr.NextLink == nil || len(to.String(sglr.NextLink)) < 1 {
+	if !sglr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -19391,11 +21167,16 @@ func (page *SyncGroupListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sglr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sglr)
+		if err != nil {
+			return err
+		}
+		page.sglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sglr = next
 	return nil
 }
 
@@ -19425,8 +21206,11 @@ func (page SyncGroupListResultPage) Values() []SyncGroup {
 }
 
 // Creates a new instance of the SyncGroupListResultPage type.
-func NewSyncGroupListResultPage(getNextPage func(context.Context, SyncGroupListResult) (SyncGroupListResult, error)) SyncGroupListResultPage {
-	return SyncGroupListResultPage{fn: getNextPage}
+func NewSyncGroupListResultPage(cur SyncGroupListResult, getNextPage func(context.Context, SyncGroupListResult) (SyncGroupListResult, error)) SyncGroupListResultPage {
+	return SyncGroupListResultPage{
+		fn:   getNextPage,
+		sglr: cur,
+	}
 }
 
 // SyncGroupLogListResult a list of sync group log properties.
@@ -19506,10 +21290,15 @@ func (sgllr SyncGroupLogListResult) IsEmpty() bool {
 	return sgllr.Value == nil || len(*sgllr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sgllr SyncGroupLogListResult) hasNextLink() bool {
+	return sgllr.NextLink != nil && len(*sgllr.NextLink) != 0
+}
+
 // syncGroupLogListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sgllr SyncGroupLogListResult) syncGroupLogListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sgllr.NextLink == nil || len(to.String(sgllr.NextLink)) < 1 {
+	if !sgllr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -19537,11 +21326,16 @@ func (page *SyncGroupLogListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sgllr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sgllr)
+		if err != nil {
+			return err
+		}
+		page.sgllr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sgllr = next
 	return nil
 }
 
@@ -19571,8 +21365,11 @@ func (page SyncGroupLogListResultPage) Values() []SyncGroupLogProperties {
 }
 
 // Creates a new instance of the SyncGroupLogListResultPage type.
-func NewSyncGroupLogListResultPage(getNextPage func(context.Context, SyncGroupLogListResult) (SyncGroupLogListResult, error)) SyncGroupLogListResultPage {
-	return SyncGroupLogListResultPage{fn: getNextPage}
+func NewSyncGroupLogListResultPage(cur SyncGroupLogListResult, getNextPage func(context.Context, SyncGroupLogListResult) (SyncGroupLogListResult, error)) SyncGroupLogListResultPage {
+	return SyncGroupLogListResultPage{
+		fn:    getNextPage,
+		sgllr: cur,
+	}
 }
 
 // SyncGroupLogProperties properties of an Azure SQL Database sync group log.
@@ -19609,6 +21406,37 @@ type SyncGroupProperties struct {
 	SyncState SyncGroupState `json:"syncState,omitempty"`
 	// Schema - Sync schema of the sync group.
 	Schema *SyncGroupSchema `json:"schema,omitempty"`
+	// UsePrivateLinkConnection - If use private link connection is enabled.
+	UsePrivateLinkConnection *bool `json:"usePrivateLinkConnection,omitempty"`
+	// PrivateEndpointName - READ-ONLY; Private endpoint name of the sync group if use private link connection is enabled.
+	PrivateEndpointName *string `json:"privateEndpointName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncGroupProperties.
+func (sgp SyncGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sgp.Interval != nil {
+		objectMap["interval"] = sgp.Interval
+	}
+	if sgp.ConflictResolutionPolicy != "" {
+		objectMap["conflictResolutionPolicy"] = sgp.ConflictResolutionPolicy
+	}
+	if sgp.SyncDatabaseID != nil {
+		objectMap["syncDatabaseId"] = sgp.SyncDatabaseID
+	}
+	if sgp.HubDatabaseUserName != nil {
+		objectMap["hubDatabaseUserName"] = sgp.HubDatabaseUserName
+	}
+	if sgp.HubDatabasePassword != nil {
+		objectMap["hubDatabasePassword"] = sgp.HubDatabasePassword
+	}
+	if sgp.Schema != nil {
+		objectMap["schema"] = sgp.Schema
+	}
+	if sgp.UsePrivateLinkConnection != nil {
+		objectMap["usePrivateLinkConnection"] = sgp.UsePrivateLinkConnection
+	}
+	return json.Marshal(objectMap)
 }
 
 // SyncGroupSchema properties of sync group schema.
@@ -19891,10 +21719,15 @@ func (smlr SyncMemberListResult) IsEmpty() bool {
 	return smlr.Value == nil || len(*smlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (smlr SyncMemberListResult) hasNextLink() bool {
+	return smlr.NextLink != nil && len(*smlr.NextLink) != 0
+}
+
 // syncMemberListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (smlr SyncMemberListResult) syncMemberListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if smlr.NextLink == nil || len(to.String(smlr.NextLink)) < 1 {
+	if !smlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -19922,11 +21755,16 @@ func (page *SyncMemberListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.smlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.smlr)
+		if err != nil {
+			return err
+		}
+		page.smlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.smlr = next
 	return nil
 }
 
@@ -19956,8 +21794,11 @@ func (page SyncMemberListResultPage) Values() []SyncMember {
 }
 
 // Creates a new instance of the SyncMemberListResultPage type.
-func NewSyncMemberListResultPage(getNextPage func(context.Context, SyncMemberListResult) (SyncMemberListResult, error)) SyncMemberListResultPage {
-	return SyncMemberListResultPage{fn: getNextPage}
+func NewSyncMemberListResultPage(cur SyncMemberListResult, getNextPage func(context.Context, SyncMemberListResult) (SyncMemberListResult, error)) SyncMemberListResultPage {
+	return SyncMemberListResultPage{
+		fn:   getNextPage,
+		smlr: cur,
+	}
 }
 
 // SyncMemberProperties properties of a sync member.
@@ -19968,6 +21809,12 @@ type SyncMemberProperties struct {
 	SyncAgentID *string `json:"syncAgentId,omitempty"`
 	// SQLServerDatabaseID - SQL Server database id of the sync member.
 	SQLServerDatabaseID *uuid.UUID `json:"sqlServerDatabaseId,omitempty"`
+	// SyncMemberAzureDatabaseResourceID - ARM resource id of the sync member logical database, for sync members in Azure.
+	SyncMemberAzureDatabaseResourceID *string `json:"syncMemberAzureDatabaseResourceId,omitempty"`
+	// UsePrivateLinkConnection - Whether to use private link connection.
+	UsePrivateLinkConnection *bool `json:"usePrivateLinkConnection,omitempty"`
+	// PrivateEndpointName - READ-ONLY; Private endpoint name of the sync member if use private link connection is enabled, for sync members in Azure.
+	PrivateEndpointName *string `json:"privateEndpointName,omitempty"`
 	// ServerName - Server name of the member database in the sync member
 	ServerName *string `json:"serverName,omitempty"`
 	// DatabaseName - Database name of the member database in the sync member.
@@ -19980,6 +21827,42 @@ type SyncMemberProperties struct {
 	SyncDirection SyncDirection `json:"syncDirection,omitempty"`
 	// SyncState - READ-ONLY; Sync state of the sync member. Possible values include: 'SyncInProgress', 'SyncSucceeded', 'SyncFailed', 'DisabledTombstoneCleanup', 'DisabledBackupRestore', 'SyncSucceededWithWarnings', 'SyncCancelling', 'SyncCancelled', 'UnProvisioned', 'Provisioning', 'Provisioned', 'ProvisionFailed', 'DeProvisioning', 'DeProvisioned', 'DeProvisionFailed', 'Reprovisioning', 'ReprovisionFailed', 'UnReprovisioned'
 	SyncState SyncMemberState `json:"syncState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SyncMemberProperties.
+func (smp SyncMemberProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if smp.DatabaseType != "" {
+		objectMap["databaseType"] = smp.DatabaseType
+	}
+	if smp.SyncAgentID != nil {
+		objectMap["syncAgentId"] = smp.SyncAgentID
+	}
+	if smp.SQLServerDatabaseID != nil {
+		objectMap["sqlServerDatabaseId"] = smp.SQLServerDatabaseID
+	}
+	if smp.SyncMemberAzureDatabaseResourceID != nil {
+		objectMap["syncMemberAzureDatabaseResourceId"] = smp.SyncMemberAzureDatabaseResourceID
+	}
+	if smp.UsePrivateLinkConnection != nil {
+		objectMap["usePrivateLinkConnection"] = smp.UsePrivateLinkConnection
+	}
+	if smp.ServerName != nil {
+		objectMap["serverName"] = smp.ServerName
+	}
+	if smp.DatabaseName != nil {
+		objectMap["databaseName"] = smp.DatabaseName
+	}
+	if smp.UserName != nil {
+		objectMap["userName"] = smp.UserName
+	}
+	if smp.Password != nil {
+		objectMap["password"] = smp.Password
+	}
+	if smp.SyncDirection != "" {
+		objectMap["syncDirection"] = smp.SyncDirection
+	}
+	return json.Marshal(objectMap)
 }
 
 // SyncMembersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -20405,6 +22288,28 @@ type TransparentDataEncryptionProperties struct {
 	Status TransparentDataEncryptionStatus `json:"status,omitempty"`
 }
 
+// UnlinkParameters represents the parameters for Unlink Replication Link request.
+type UnlinkParameters struct {
+	// ForcedTermination - Determines whether link will be terminated in a forced or a friendly way.
+	ForcedTermination *bool `json:"forcedTermination,omitempty"`
+}
+
+// UpsertManagedServerOperationParameters ...
+type UpsertManagedServerOperationParameters struct {
+	Family          *string `json:"family,omitempty"`
+	Tier            *string `json:"tier,omitempty"`
+	VCores          *int32  `json:"vCores,omitempty"`
+	StorageSizeInGB *int32  `json:"storageSizeInGB,omitempty"`
+}
+
+// UpsertManagedServerOperationStep ...
+type UpsertManagedServerOperationStep struct {
+	Order *int32  `json:"order,omitempty"`
+	Name  *string `json:"name,omitempty"`
+	// Status - Possible values include: 'StatusNotStarted', 'StatusInProgress', 'StatusSlowedDown', 'StatusCompleted', 'StatusFailed', 'StatusCanceled'
+	Status Status `json:"status,omitempty"`
+}
+
 // Usage ARM usage.
 type Usage struct {
 	// ID - READ-ONLY; Resource ID.
@@ -20500,10 +22405,15 @@ func (ulr UsageListResult) IsEmpty() bool {
 	return ulr.Value == nil || len(*ulr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ulr UsageListResult) hasNextLink() bool {
+	return ulr.NextLink != nil && len(*ulr.NextLink) != 0
+}
+
 // usageListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ulr UsageListResult) usageListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ulr.NextLink == nil || len(to.String(ulr.NextLink)) < 1 {
+	if !ulr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -20531,11 +22441,16 @@ func (page *UsageListResultPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ulr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ulr)
+		if err != nil {
+			return err
+		}
+		page.ulr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ulr = next
 	return nil
 }
 
@@ -20565,8 +22480,11 @@ func (page UsageListResultPage) Values() []Usage {
 }
 
 // Creates a new instance of the UsageListResultPage type.
-func NewUsageListResultPage(getNextPage func(context.Context, UsageListResult) (UsageListResult, error)) UsageListResultPage {
-	return UsageListResultPage{fn: getNextPage}
+func NewUsageListResultPage(cur UsageListResult, getNextPage func(context.Context, UsageListResult) (UsageListResult, error)) UsageListResultPage {
+	return UsageListResultPage{
+		fn:  getNextPage,
+		ulr: cur,
+	}
 }
 
 // VirtualCluster an Azure SQL virtual cluster.
@@ -20747,10 +22665,15 @@ func (vclr VirtualClusterListResult) IsEmpty() bool {
 	return vclr.Value == nil || len(*vclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vclr VirtualClusterListResult) hasNextLink() bool {
+	return vclr.NextLink != nil && len(*vclr.NextLink) != 0
+}
+
 // virtualClusterListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vclr VirtualClusterListResult) virtualClusterListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vclr.NextLink == nil || len(to.String(vclr.NextLink)) < 1 {
+	if !vclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -20778,11 +22701,16 @@ func (page *VirtualClusterListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vclr)
+		if err != nil {
+			return err
+		}
+		page.vclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vclr = next
 	return nil
 }
 
@@ -20812,8 +22740,11 @@ func (page VirtualClusterListResultPage) Values() []VirtualCluster {
 }
 
 // Creates a new instance of the VirtualClusterListResultPage type.
-func NewVirtualClusterListResultPage(getNextPage func(context.Context, VirtualClusterListResult) (VirtualClusterListResult, error)) VirtualClusterListResultPage {
-	return VirtualClusterListResultPage{fn: getNextPage}
+func NewVirtualClusterListResultPage(cur VirtualClusterListResult, getNextPage func(context.Context, VirtualClusterListResult) (VirtualClusterListResult, error)) VirtualClusterListResultPage {
+	return VirtualClusterListResultPage{
+		fn:   getNextPage,
+		vclr: cur,
+	}
 }
 
 // VirtualClusterProperties the properties of a virtual cluster.
@@ -20824,6 +22755,15 @@ type VirtualClusterProperties struct {
 	Family *string `json:"family,omitempty"`
 	// ChildResources - READ-ONLY; List of resources in this virtual cluster.
 	ChildResources *[]string `json:"childResources,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualClusterProperties.
+func (vcp VirtualClusterProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vcp.Family != nil {
+		objectMap["family"] = vcp.Family
+	}
+	return json.Marshal(objectMap)
 }
 
 // VirtualClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -21081,10 +23021,15 @@ func (vnrlr VirtualNetworkRuleListResult) IsEmpty() bool {
 	return vnrlr.Value == nil || len(*vnrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vnrlr VirtualNetworkRuleListResult) hasNextLink() bool {
+	return vnrlr.NextLink != nil && len(*vnrlr.NextLink) != 0
+}
+
 // virtualNetworkRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vnrlr VirtualNetworkRuleListResult) virtualNetworkRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vnrlr.NextLink == nil || len(to.String(vnrlr.NextLink)) < 1 {
+	if !vnrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -21112,11 +23057,16 @@ func (page *VirtualNetworkRuleListResultPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vnrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vnrlr)
+		if err != nil {
+			return err
+		}
+		page.vnrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vnrlr = next
 	return nil
 }
 
@@ -21146,8 +23096,11 @@ func (page VirtualNetworkRuleListResultPage) Values() []VirtualNetworkRule {
 }
 
 // Creates a new instance of the VirtualNetworkRuleListResultPage type.
-func NewVirtualNetworkRuleListResultPage(getNextPage func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)) VirtualNetworkRuleListResultPage {
-	return VirtualNetworkRuleListResultPage{fn: getNextPage}
+func NewVirtualNetworkRuleListResultPage(cur VirtualNetworkRuleListResult, getNextPage func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)) VirtualNetworkRuleListResultPage {
+	return VirtualNetworkRuleListResultPage{
+		fn:    getNextPage,
+		vnrlr: cur,
+	}
 }
 
 // VirtualNetworkRuleProperties properties of a virtual network rule.
@@ -21158,6 +23111,18 @@ type VirtualNetworkRuleProperties struct {
 	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
 	// State - READ-ONLY; Virtual Network Rule State. Possible values include: 'VirtualNetworkRuleStateInitializing', 'VirtualNetworkRuleStateInProgress', 'VirtualNetworkRuleStateReady', 'VirtualNetworkRuleStateDeleting', 'VirtualNetworkRuleStateUnknown'
 	State VirtualNetworkRuleState `json:"state,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkRuleProperties.
+func (vnrp VirtualNetworkRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnrp.VirtualNetworkSubnetID != nil {
+		objectMap["virtualNetworkSubnetId"] = vnrp.VirtualNetworkSubnetID
+	}
+	if vnrp.IgnoreMissingVnetServiceEndpoint != nil {
+		objectMap["ignoreMissingVnetServiceEndpoint"] = vnrp.IgnoreMissingVnetServiceEndpoint
+	}
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkRulesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -21382,10 +23347,15 @@ func (vasrlr VulnerabilityAssessmentScanRecordListResult) IsEmpty() bool {
 	return vasrlr.Value == nil || len(*vasrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vasrlr VulnerabilityAssessmentScanRecordListResult) hasNextLink() bool {
+	return vasrlr.NextLink != nil && len(*vasrlr.NextLink) != 0
+}
+
 // vulnerabilityAssessmentScanRecordListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vasrlr VulnerabilityAssessmentScanRecordListResult) vulnerabilityAssessmentScanRecordListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vasrlr.NextLink == nil || len(to.String(vasrlr.NextLink)) < 1 {
+	if !vasrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -21414,11 +23384,16 @@ func (page *VulnerabilityAssessmentScanRecordListResultPage) NextWithContext(ctx
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vasrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vasrlr)
+		if err != nil {
+			return err
+		}
+		page.vasrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vasrlr = next
 	return nil
 }
 
@@ -21448,8 +23423,11 @@ func (page VulnerabilityAssessmentScanRecordListResultPage) Values() []Vulnerabi
 }
 
 // Creates a new instance of the VulnerabilityAssessmentScanRecordListResultPage type.
-func NewVulnerabilityAssessmentScanRecordListResultPage(getNextPage func(context.Context, VulnerabilityAssessmentScanRecordListResult) (VulnerabilityAssessmentScanRecordListResult, error)) VulnerabilityAssessmentScanRecordListResultPage {
-	return VulnerabilityAssessmentScanRecordListResultPage{fn: getNextPage}
+func NewVulnerabilityAssessmentScanRecordListResultPage(cur VulnerabilityAssessmentScanRecordListResult, getNextPage func(context.Context, VulnerabilityAssessmentScanRecordListResult) (VulnerabilityAssessmentScanRecordListResult, error)) VulnerabilityAssessmentScanRecordListResultPage {
+	return VulnerabilityAssessmentScanRecordListResultPage{
+		fn:     getNextPage,
+		vasrlr: cur,
+	}
 }
 
 // VulnerabilityAssessmentScanRecordProperties properties of a vulnerability assessment scan record.
@@ -21622,10 +23600,15 @@ func (wclr WorkloadClassifierListResult) IsEmpty() bool {
 	return wclr.Value == nil || len(*wclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wclr WorkloadClassifierListResult) hasNextLink() bool {
+	return wclr.NextLink != nil && len(*wclr.NextLink) != 0
+}
+
 // workloadClassifierListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wclr WorkloadClassifierListResult) workloadClassifierListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wclr.NextLink == nil || len(to.String(wclr.NextLink)) < 1 {
+	if !wclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -21653,11 +23636,16 @@ func (page *WorkloadClassifierListResultPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wclr)
+		if err != nil {
+			return err
+		}
+		page.wclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wclr = next
 	return nil
 }
 
@@ -21687,8 +23675,11 @@ func (page WorkloadClassifierListResultPage) Values() []WorkloadClassifier {
 }
 
 // Creates a new instance of the WorkloadClassifierListResultPage type.
-func NewWorkloadClassifierListResultPage(getNextPage func(context.Context, WorkloadClassifierListResult) (WorkloadClassifierListResult, error)) WorkloadClassifierListResultPage {
-	return WorkloadClassifierListResultPage{fn: getNextPage}
+func NewWorkloadClassifierListResultPage(cur WorkloadClassifierListResult, getNextPage func(context.Context, WorkloadClassifierListResult) (WorkloadClassifierListResult, error)) WorkloadClassifierListResultPage {
+	return WorkloadClassifierListResultPage{
+		fn:   getNextPage,
+		wclr: cur,
+	}
 }
 
 // WorkloadClassifierProperties workload classifier definition. For more information look at
@@ -21910,10 +23901,15 @@ func (wglr WorkloadGroupListResult) IsEmpty() bool {
 	return wglr.Value == nil || len(*wglr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wglr WorkloadGroupListResult) hasNextLink() bool {
+	return wglr.NextLink != nil && len(*wglr.NextLink) != 0
+}
+
 // workloadGroupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wglr WorkloadGroupListResult) workloadGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wglr.NextLink == nil || len(to.String(wglr.NextLink)) < 1 {
+	if !wglr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -21941,11 +23937,16 @@ func (page *WorkloadGroupListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wglr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wglr)
+		if err != nil {
+			return err
+		}
+		page.wglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wglr = next
 	return nil
 }
 
@@ -21975,8 +23976,11 @@ func (page WorkloadGroupListResultPage) Values() []WorkloadGroup {
 }
 
 // Creates a new instance of the WorkloadGroupListResultPage type.
-func NewWorkloadGroupListResultPage(getNextPage func(context.Context, WorkloadGroupListResult) (WorkloadGroupListResult, error)) WorkloadGroupListResultPage {
-	return WorkloadGroupListResultPage{fn: getNextPage}
+func NewWorkloadGroupListResultPage(cur WorkloadGroupListResult, getNextPage func(context.Context, WorkloadGroupListResult) (WorkloadGroupListResult, error)) WorkloadGroupListResultPage {
+	return WorkloadGroupListResultPage{
+		fn:   getNextPage,
+		wglr: cur,
+	}
 }
 
 // WorkloadGroupProperties workload group definition. For more information look at

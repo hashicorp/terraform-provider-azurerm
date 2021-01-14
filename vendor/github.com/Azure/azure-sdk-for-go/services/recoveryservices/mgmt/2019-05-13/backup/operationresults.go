@@ -35,7 +35,9 @@ func NewOperationResultsClient(subscriptionID string) OperationResultsClient {
 	return NewOperationResultsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewOperationResultsClientWithBaseURI creates an instance of the OperationResultsClient client.
+// NewOperationResultsClientWithBaseURI creates an instance of the OperationResultsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewOperationResultsClientWithBaseURI(baseURI string, subscriptionID string) OperationResultsClient {
 	return OperationResultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -76,6 +78,7 @@ func (client OperationResultsClient) Get(ctx context.Context, vaultName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.OperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -106,8 +109,7 @@ func (client OperationResultsClient) GetPreparer(ctx context.Context, vaultName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client OperationResultsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -115,7 +117,6 @@ func (client OperationResultsClient) GetSender(req *http.Request) (*http.Respons
 func (client OperationResultsClient) GetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

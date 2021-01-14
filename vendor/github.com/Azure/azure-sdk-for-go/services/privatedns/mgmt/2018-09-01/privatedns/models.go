@@ -30,71 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Updating}
-}
-
-// RecordType enumerates the values for record type.
-type RecordType string
-
-const (
-	// A ...
-	A RecordType = "A"
-	// AAAA ...
-	AAAA RecordType = "AAAA"
-	// CNAME ...
-	CNAME RecordType = "CNAME"
-	// MX ...
-	MX RecordType = "MX"
-	// PTR ...
-	PTR RecordType = "PTR"
-	// SOA ...
-	SOA RecordType = "SOA"
-	// SRV ...
-	SRV RecordType = "SRV"
-	// TXT ...
-	TXT RecordType = "TXT"
-)
-
-// PossibleRecordTypeValues returns an array of possible values for the RecordType const type.
-func PossibleRecordTypeValues() []RecordType {
-	return []RecordType{A, AAAA, CNAME, MX, PTR, SOA, SRV, TXT}
-}
-
-// VirtualNetworkLinkState enumerates the values for virtual network link state.
-type VirtualNetworkLinkState string
-
-const (
-	// Completed ...
-	Completed VirtualNetworkLinkState = "Completed"
-	// InProgress ...
-	InProgress VirtualNetworkLinkState = "InProgress"
-)
-
-// PossibleVirtualNetworkLinkStateValues returns an array of possible values for the VirtualNetworkLinkState const type.
-func PossibleVirtualNetworkLinkStateValues() []VirtualNetworkLinkState {
-	return []VirtualNetworkLinkState{Completed, InProgress}
-}
-
 // AaaaRecord an AAAA record.
 type AaaaRecord struct {
 	// Ipv6Address - The IPv6 address of this AAAA record.
@@ -107,21 +42,21 @@ type ARecord struct {
 	Ipv4Address *string `json:"ipv4Address,omitempty"`
 }
 
-// CloudError an error message
+// CloudError an error response from the service.
 type CloudError struct {
-	// Error - The error message body
+	// Error - Cloud error body.
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
-// CloudErrorBody the body of an error message
+// CloudErrorBody an error response from the service.
 type CloudErrorBody struct {
-	// Code - The error code
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
 	Code *string `json:"code,omitempty"`
-	// Message - A description of what caused the error
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
-	// Target - The target resource of the error message
+	// Target - The target of the particular error. For example, the name of the property in error.
 	Target *string `json:"target,omitempty"`
-	// Details - Extra error information
+	// Details - A list of additional details about the error.
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
@@ -263,6 +198,15 @@ type PrivateZoneListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateZoneListResult.
+func (pzlr PrivateZoneListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pzlr.Value != nil {
+		objectMap["value"] = pzlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // PrivateZoneListResultIterator provides access to a complete listing of PrivateZone values.
 type PrivateZoneListResultIterator struct {
 	i    int
@@ -331,10 +275,15 @@ func (pzlr PrivateZoneListResult) IsEmpty() bool {
 	return pzlr.Value == nil || len(*pzlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pzlr PrivateZoneListResult) hasNextLink() bool {
+	return pzlr.NextLink != nil && len(*pzlr.NextLink) != 0
+}
+
 // privateZoneListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pzlr PrivateZoneListResult) privateZoneListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if pzlr.NextLink == nil || len(to.String(pzlr.NextLink)) < 1 {
+	if !pzlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -362,11 +311,16 @@ func (page *PrivateZoneListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pzlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pzlr)
+		if err != nil {
+			return err
+		}
+		page.pzlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pzlr = next
 	return nil
 }
 
@@ -396,8 +350,11 @@ func (page PrivateZoneListResultPage) Values() []PrivateZone {
 }
 
 // Creates a new instance of the PrivateZoneListResultPage type.
-func NewPrivateZoneListResultPage(getNextPage func(context.Context, PrivateZoneListResult) (PrivateZoneListResult, error)) PrivateZoneListResultPage {
-	return PrivateZoneListResultPage{fn: getNextPage}
+func NewPrivateZoneListResultPage(cur PrivateZoneListResult, getNextPage func(context.Context, PrivateZoneListResult) (PrivateZoneListResult, error)) PrivateZoneListResultPage {
+	return PrivateZoneListResultPage{
+		fn:   getNextPage,
+		pzlr: cur,
+	}
 }
 
 // PrivateZoneProperties represents the properties of the Private DNS zone.
@@ -612,6 +569,15 @@ type RecordSetListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecordSetListResult.
+func (rslr RecordSetListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rslr.Value != nil {
+		objectMap["value"] = rslr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // RecordSetListResultIterator provides access to a complete listing of RecordSet values.
 type RecordSetListResultIterator struct {
 	i    int
@@ -680,10 +646,15 @@ func (rslr RecordSetListResult) IsEmpty() bool {
 	return rslr.Value == nil || len(*rslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rslr RecordSetListResult) hasNextLink() bool {
+	return rslr.NextLink != nil && len(*rslr.NextLink) != 0
+}
+
 // recordSetListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rslr RecordSetListResult) recordSetListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rslr.NextLink == nil || len(to.String(rslr.NextLink)) < 1 {
+	if !rslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -711,11 +682,16 @@ func (page *RecordSetListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rslr)
+		if err != nil {
+			return err
+		}
+		page.rslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rslr = next
 	return nil
 }
 
@@ -745,8 +721,11 @@ func (page RecordSetListResultPage) Values() []RecordSet {
 }
 
 // Creates a new instance of the RecordSetListResultPage type.
-func NewRecordSetListResultPage(getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
-	return RecordSetListResultPage{fn: getNextPage}
+func NewRecordSetListResultPage(cur RecordSetListResult, getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
+	return RecordSetListResultPage{
+		fn:   getNextPage,
+		rslr: cur,
+	}
 }
 
 // RecordSetProperties represents the properties of the records in the record set.
@@ -1015,6 +994,15 @@ type VirtualNetworkLinkListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VirtualNetworkLinkListResult.
+func (vnllr VirtualNetworkLinkListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnllr.Value != nil {
+		objectMap["value"] = vnllr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // VirtualNetworkLinkListResultIterator provides access to a complete listing of VirtualNetworkLink values.
 type VirtualNetworkLinkListResultIterator struct {
 	i    int
@@ -1083,10 +1071,15 @@ func (vnllr VirtualNetworkLinkListResult) IsEmpty() bool {
 	return vnllr.Value == nil || len(*vnllr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vnllr VirtualNetworkLinkListResult) hasNextLink() bool {
+	return vnllr.NextLink != nil && len(*vnllr.NextLink) != 0
+}
+
 // virtualNetworkLinkListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vnllr VirtualNetworkLinkListResult) virtualNetworkLinkListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vnllr.NextLink == nil || len(to.String(vnllr.NextLink)) < 1 {
+	if !vnllr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1114,11 +1107,16 @@ func (page *VirtualNetworkLinkListResultPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vnllr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vnllr)
+		if err != nil {
+			return err
+		}
+		page.vnllr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vnllr = next
 	return nil
 }
 
@@ -1148,8 +1146,11 @@ func (page VirtualNetworkLinkListResultPage) Values() []VirtualNetworkLink {
 }
 
 // Creates a new instance of the VirtualNetworkLinkListResultPage type.
-func NewVirtualNetworkLinkListResultPage(getNextPage func(context.Context, VirtualNetworkLinkListResult) (VirtualNetworkLinkListResult, error)) VirtualNetworkLinkListResultPage {
-	return VirtualNetworkLinkListResultPage{fn: getNextPage}
+func NewVirtualNetworkLinkListResultPage(cur VirtualNetworkLinkListResult, getNextPage func(context.Context, VirtualNetworkLinkListResult) (VirtualNetworkLinkListResult, error)) VirtualNetworkLinkListResultPage {
+	return VirtualNetworkLinkListResultPage{
+		fn:    getNextPage,
+		vnllr: cur,
+	}
 }
 
 // VirtualNetworkLinkProperties represents the properties of the Private DNS zone.
@@ -1162,6 +1163,18 @@ type VirtualNetworkLinkProperties struct {
 	VirtualNetworkLinkState VirtualNetworkLinkState `json:"virtualNetworkLinkState,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the resource. This is a read-only property and any attempt to set this value will be ignored. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkLinkProperties.
+func (vnlp VirtualNetworkLinkProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnlp.VirtualNetwork != nil {
+		objectMap["virtualNetwork"] = vnlp.VirtualNetwork
+	}
+	if vnlp.RegistrationEnabled != nil {
+		objectMap["registrationEnabled"] = vnlp.RegistrationEnabled
+	}
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkLinksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a

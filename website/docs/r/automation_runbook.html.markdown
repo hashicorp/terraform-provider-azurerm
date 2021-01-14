@@ -23,9 +23,7 @@ resource "azurerm_automation_account" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 resource "azurerm_automation_runbook" "example" {
@@ -57,9 +55,7 @@ resource "azurerm_automation_account" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 data "local_file" "example" {
@@ -75,10 +71,6 @@ resource "azurerm_automation_runbook" "example" {
   log_progress            = "true"
   description             = "This is an example runbook"
   runbook_type            = "PowerShell"
-
-  publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
 
   content = data.local_file.example.content
 }
@@ -102,15 +94,13 @@ The following arguments are supported:
 
 * `log_verbose` - (Required) Verbose log option.
 
-* `publish_content_link` - (Required) The published runbook content link.
+* `publish_content_link` - (Optional) The published runbook content link.
 
 * `description` - (Optional) A description for this credential.
 
 * `content` - (Optional) The desired content of the runbook.
 
 ~> **NOTE** The Azure API requires a `publish_content_link` to be supplied even when specifying your own `content`.
-
-~> **NOTE** Setting `content` to an empty string will revert the runbook to the `publish_content_link`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

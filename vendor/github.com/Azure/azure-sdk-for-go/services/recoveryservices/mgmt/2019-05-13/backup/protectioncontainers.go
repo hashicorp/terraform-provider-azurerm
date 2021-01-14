@@ -35,7 +35,9 @@ func NewProtectionContainersClient(subscriptionID string) ProtectionContainersCl
 	return NewProtectionContainersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectionContainersClientWithBaseURI creates an instance of the ProtectionContainersClient client.
+// NewProtectionContainersClientWithBaseURI creates an instance of the ProtectionContainersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewProtectionContainersClientWithBaseURI(baseURI string, subscriptionID string) ProtectionContainersClient {
 	return ProtectionContainersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +75,7 @@ func (client ProtectionContainersClient) Get(ctx context.Context, vaultName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -104,8 +107,7 @@ func (client ProtectionContainersClient) GetPreparer(ctx context.Context, vaultN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionContainersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -113,7 +115,6 @@ func (client ProtectionContainersClient) GetSender(req *http.Request) (*http.Res
 func (client ProtectionContainersClient) GetResponder(resp *http.Response) (result ProtectionContainerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -155,6 +156,7 @@ func (client ProtectionContainersClient) Inquire(ctx context.Context, vaultName 
 	result, err = client.InquireResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Inquire", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,8 +191,7 @@ func (client ProtectionContainersClient) InquirePreparer(ctx context.Context, va
 // InquireSender sends the Inquire request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionContainersClient) InquireSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // InquireResponder handles the response to the Inquire request. The method always
@@ -198,7 +199,6 @@ func (client ProtectionContainersClient) InquireSender(req *http.Request) (*http
 func (client ProtectionContainersClient) InquireResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -240,6 +240,7 @@ func (client ProtectionContainersClient) Refresh(ctx context.Context, vaultName 
 	result, err = client.RefreshResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Refresh", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -273,8 +274,7 @@ func (client ProtectionContainersClient) RefreshPreparer(ctx context.Context, va
 // RefreshSender sends the Refresh request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionContainersClient) RefreshSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RefreshResponder handles the response to the Refresh request. The method always
@@ -282,7 +282,6 @@ func (client ProtectionContainersClient) RefreshSender(req *http.Request) (*http
 func (client ProtectionContainersClient) RefreshResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -325,6 +324,7 @@ func (client ProtectionContainersClient) Register(ctx context.Context, vaultName
 	result, err = client.RegisterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Register", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -358,8 +358,7 @@ func (client ProtectionContainersClient) RegisterPreparer(ctx context.Context, v
 // RegisterSender sends the Register request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionContainersClient) RegisterSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegisterResponder handles the response to the Register request. The method always
@@ -367,7 +366,6 @@ func (client ProtectionContainersClient) RegisterSender(req *http.Request) (*htt
 func (client ProtectionContainersClient) RegisterResponder(resp *http.Response) (result ProtectionContainerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -410,6 +408,7 @@ func (client ProtectionContainersClient) Unregister(ctx context.Context, vaultNa
 	result, err = client.UnregisterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersClient", "Unregister", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -441,8 +440,7 @@ func (client ProtectionContainersClient) UnregisterPreparer(ctx context.Context,
 // UnregisterSender sends the Unregister request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionContainersClient) UnregisterSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UnregisterResponder handles the response to the Unregister request. The method always
@@ -450,7 +448,6 @@ func (client ProtectionContainersClient) UnregisterSender(req *http.Request) (*h
 func (client ProtectionContainersClient) UnregisterResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "example" {
   name         = "${var.prefix}-policy"
   policy_type  = "Custom"

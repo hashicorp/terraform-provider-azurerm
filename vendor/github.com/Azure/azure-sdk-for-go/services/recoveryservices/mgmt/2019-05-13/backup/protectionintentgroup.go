@@ -35,7 +35,9 @@ func NewProtectionIntentGroupClient(subscriptionID string) ProtectionIntentGroup
 	return NewProtectionIntentGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectionIntentGroupClientWithBaseURI creates an instance of the ProtectionIntentGroupClient client.
+// NewProtectionIntentGroupClientWithBaseURI creates an instance of the ProtectionIntentGroupClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewProtectionIntentGroupClientWithBaseURI(baseURI string, subscriptionID string) ProtectionIntentGroupClient {
 	return ProtectionIntentGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -74,6 +76,10 @@ func (client ProtectionIntentGroupClient) List(ctx context.Context, vaultName st
 	result.pirl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentGroupClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pirl.hasNextLink() && result.pirl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -109,8 +115,7 @@ func (client ProtectionIntentGroupClient) ListPreparer(ctx context.Context, vaul
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionIntentGroupClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -118,7 +123,6 @@ func (client ProtectionIntentGroupClient) ListSender(req *http.Request) (*http.R
 func (client ProtectionIntentGroupClient) ListResponder(resp *http.Response) (result ProtectionIntentResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -143,6 +147,7 @@ func (client ProtectionIntentGroupClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentGroupClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

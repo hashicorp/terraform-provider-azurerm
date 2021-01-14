@@ -29,14 +29,14 @@ resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.0.0/24"
+  address_prefixes     = ["10.254.0.0/24"]
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.2.0/24"
+  address_prefixes     = ["10.254.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -93,7 +93,7 @@ resource "azurerm_application_gateway" "network" {
     path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
-    request_timeout       = 1
+    request_timeout       = 60
   }
 
   http_listener {
@@ -151,9 +151,6 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
-~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
-
 * `ssl_policy` (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
@@ -169,6 +166,8 @@ The following arguments are supported:
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
@@ -206,11 +205,7 @@ A `backend_address_pool` block supports the following:
 
 * `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
-* `fqdn_list` - (Optional **Deprecated**) A list of FQDN's which should be part of the Backend Address Pool. This field has been deprecated in favour of `fqdns` and will be removed in v2.0 of the AzureRM Provider.
-
 * `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
-
-* `ip_address_list` - (Optional **Deprecated**) A list of IP Addresses which should be part of the Backend Address Pool. This field has been deprecated in favour of `ip_addresses` and will be removed in v2.0 of the AzureRM Provider.
 
 ---
 
@@ -226,7 +221,7 @@ A `backend_http_settings` block supports the following:
 
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Required) The name of an associated HTTP Probe.
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
@@ -257,7 +252,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
 
-* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
+* `subnet_id` - (Optional) The ID of the Subnet.
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
@@ -281,7 +276,7 @@ A `gateway_ip_configuration` block supports the following:
 
 * `name` - (Required) The Name of this Gateway IP Configuration.
 
-* `subnet_id` - (Required) The ID of a Subnet.
+* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
 
 ---
 
@@ -293,7 +288,11 @@ A `http_listener` block supports the following:
 
 * `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
 
-* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
+* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener. Setting this value changes Listener Type to 'Multi site'.
+
+* `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
+
+-> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
@@ -302,6 +301,8 @@ A `http_listener` block supports the following:
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
 
 ---
 
@@ -353,6 +354,8 @@ A `probe` block support the following:
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
 
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+
 * `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
@@ -377,6 +380,8 @@ A `request_routing_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
 
+-> **NOTE:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
+
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 ---
@@ -387,7 +392,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10, optional if `autoscale_configuration` is set
+* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -395,9 +400,15 @@ A `ssl_certificate` block supports the following:
 
 * `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
 
-* `data` - (Required) PFX certificate.
+* `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set.
 
-* `password` - (Required) Password for the pfx file specified in data.
+* `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
+
+* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
+
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs).
+
+-> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -448,13 +459,13 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall.
+* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
 

@@ -36,7 +36,9 @@ func NewReplicationProtectableItemsClient(subscriptionID string, resourceGroupNa
 	return NewReplicationProtectableItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationProtectableItemsClientWithBaseURI creates an instance of the ReplicationProtectableItemsClient client.
+// NewReplicationProtectableItemsClientWithBaseURI creates an instance of the ReplicationProtectableItemsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationProtectableItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationProtectableItemsClient {
 	return ReplicationProtectableItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -73,6 +75,7 @@ func (client ReplicationProtectableItemsClient) Get(ctx context.Context, fabricN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectableItemsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -105,8 +108,7 @@ func (client ReplicationProtectableItemsClient) GetPreparer(ctx context.Context,
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectableItemsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -114,7 +116,6 @@ func (client ReplicationProtectableItemsClient) GetSender(req *http.Request) (*h
 func (client ReplicationProtectableItemsClient) GetResponder(resp *http.Response) (result ProtectableItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -155,6 +156,10 @@ func (client ReplicationProtectableItemsClient) ListByReplicationProtectionConta
 	result.pic, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectableItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
+		return
+	}
+	if result.pic.hasNextLink() && result.pic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -189,8 +194,7 @@ func (client ReplicationProtectableItemsClient) ListByReplicationProtectionConta
 // ListByReplicationProtectionContainersSender sends the ListByReplicationProtectionContainers request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectableItemsClient) ListByReplicationProtectionContainersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationProtectionContainersResponder handles the response to the ListByReplicationProtectionContainers request. The method always
@@ -198,7 +202,6 @@ func (client ReplicationProtectableItemsClient) ListByReplicationProtectionConta
 func (client ReplicationProtectableItemsClient) ListByReplicationProtectionContainersResponder(resp *http.Response) (result ProtectableItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -223,6 +226,7 @@ func (client ReplicationProtectableItemsClient) listByReplicationProtectionConta
 	result, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectableItemsClient", "listByReplicationProtectionContainersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

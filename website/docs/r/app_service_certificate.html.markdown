@@ -13,7 +13,7 @@ Manages an App Service certificate.
 
 ## Example Usage
 
-This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the ./examples/app-service/certificate` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service/certificate).
+This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the `./examples/app-service-certificate` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service-certificate).
 
 
 ```hcl
@@ -46,6 +46,8 @@ The following arguments are supported:
 -> **NOTE:** Either `pfx_blob` or `key_vault_secret_id` must be set - but not both.
 
 * `password` - (Optional) The password to access the certificate's private key. Changing this forces a new resource to be created.
+
+* `hosting_environment_profile_id` - (Optional) Must be specified when the certificate is for an App Service Environment hosted App Service. Changing this forces a new resource to be created.
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
 

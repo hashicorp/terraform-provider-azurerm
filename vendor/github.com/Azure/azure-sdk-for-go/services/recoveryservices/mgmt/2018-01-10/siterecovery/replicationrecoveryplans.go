@@ -36,7 +36,9 @@ func NewReplicationRecoveryPlansClient(subscriptionID string, resourceGroupName 
 	return NewReplicationRecoveryPlansClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationRecoveryPlansClientWithBaseURI creates an instance of the ReplicationRecoveryPlansClient client.
+// NewReplicationRecoveryPlansClientWithBaseURI creates an instance of the ReplicationRecoveryPlansClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationRecoveryPlansClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationRecoveryPlansClient {
 	return ReplicationRecoveryPlansClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -108,9 +110,8 @@ func (client ReplicationRecoveryPlansClient) CreatePreparer(ctx context.Context,
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) CreateSender(req *http.Request) (future ReplicationRecoveryPlansCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -123,7 +124,6 @@ func (client ReplicationRecoveryPlansClient) CreateSender(req *http.Request) (fu
 func (client ReplicationRecoveryPlansClient) CreateResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -185,9 +185,8 @@ func (client ReplicationRecoveryPlansClient) DeletePreparer(ctx context.Context,
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) DeleteSender(req *http.Request) (future ReplicationRecoveryPlansDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -200,7 +199,6 @@ func (client ReplicationRecoveryPlansClient) DeleteSender(req *http.Request) (fu
 func (client ReplicationRecoveryPlansClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -261,9 +259,8 @@ func (client ReplicationRecoveryPlansClient) FailoverCommitPreparer(ctx context.
 // FailoverCommitSender sends the FailoverCommit request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) FailoverCommitSender(req *http.Request) (future ReplicationRecoveryPlansFailoverCommitFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -276,7 +273,6 @@ func (client ReplicationRecoveryPlansClient) FailoverCommitSender(req *http.Requ
 func (client ReplicationRecoveryPlansClient) FailoverCommitResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,6 +310,7 @@ func (client ReplicationRecoveryPlansClient) Get(ctx context.Context, recoveryPl
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -344,8 +341,7 @@ func (client ReplicationRecoveryPlansClient) GetPreparer(ctx context.Context, re
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -353,7 +349,6 @@ func (client ReplicationRecoveryPlansClient) GetSender(req *http.Request) (*http
 func (client ReplicationRecoveryPlansClient) GetResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -390,6 +385,10 @@ func (client ReplicationRecoveryPlansClient) List(ctx context.Context) (result R
 	result.RPCVar, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.RPCVar.hasNextLink() && result.RPCVar.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -419,8 +418,7 @@ func (client ReplicationRecoveryPlansClient) ListPreparer(ctx context.Context) (
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -428,7 +426,6 @@ func (client ReplicationRecoveryPlansClient) ListSender(req *http.Request) (*htt
 func (client ReplicationRecoveryPlansClient) ListResponder(resp *http.Response) (result RecoveryPlanCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -453,6 +450,7 @@ func (client ReplicationRecoveryPlansClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -536,9 +534,8 @@ func (client ReplicationRecoveryPlansClient) PlannedFailoverPreparer(ctx context
 // PlannedFailoverSender sends the PlannedFailover request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) PlannedFailoverSender(req *http.Request) (future ReplicationRecoveryPlansPlannedFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -551,7 +548,6 @@ func (client ReplicationRecoveryPlansClient) PlannedFailoverSender(req *http.Req
 func (client ReplicationRecoveryPlansClient) PlannedFailoverResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -613,9 +609,8 @@ func (client ReplicationRecoveryPlansClient) ReprotectPreparer(ctx context.Conte
 // ReprotectSender sends the Reprotect request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) ReprotectSender(req *http.Request) (future ReplicationRecoveryPlansReprotectFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -628,7 +623,6 @@ func (client ReplicationRecoveryPlansClient) ReprotectSender(req *http.Request) 
 func (client ReplicationRecoveryPlansClient) ReprotectResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -700,9 +694,8 @@ func (client ReplicationRecoveryPlansClient) TestFailoverPreparer(ctx context.Co
 // TestFailoverSender sends the TestFailover request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) TestFailoverSender(req *http.Request) (future ReplicationRecoveryPlansTestFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -715,7 +708,6 @@ func (client ReplicationRecoveryPlansClient) TestFailoverSender(req *http.Reques
 func (client ReplicationRecoveryPlansClient) TestFailoverResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -786,9 +778,8 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanupPreparer(ctx con
 // TestFailoverCleanupSender sends the TestFailoverCleanup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) TestFailoverCleanupSender(req *http.Request) (future ReplicationRecoveryPlansTestFailoverCleanupFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -801,7 +792,6 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanupSender(req *http
 func (client ReplicationRecoveryPlansClient) TestFailoverCleanupResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -872,9 +862,8 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailoverPreparer(ctx conte
 // UnplannedFailoverSender sends the UnplannedFailover request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) UnplannedFailoverSender(req *http.Request) (future ReplicationRecoveryPlansUnplannedFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -887,7 +876,6 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailoverSender(req *http.R
 func (client ReplicationRecoveryPlansClient) UnplannedFailoverResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -952,9 +940,8 @@ func (client ReplicationRecoveryPlansClient) UpdatePreparer(ctx context.Context,
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationRecoveryPlansClient) UpdateSender(req *http.Request) (future ReplicationRecoveryPlansUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -967,7 +954,6 @@ func (client ReplicationRecoveryPlansClient) UpdateSender(req *http.Request) (fu
 func (client ReplicationRecoveryPlansClient) UpdateResponder(resp *http.Response) (result RecoveryPlan, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

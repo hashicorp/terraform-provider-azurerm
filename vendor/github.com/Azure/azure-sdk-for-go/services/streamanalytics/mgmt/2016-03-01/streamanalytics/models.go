@@ -31,270 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 
-// BindingType enumerates the values for binding type.
-type BindingType string
-
-const (
-	// BindingTypeFunctionRetrieveDefaultDefinitionParameters ...
-	BindingTypeFunctionRetrieveDefaultDefinitionParameters BindingType = "FunctionRetrieveDefaultDefinitionParameters"
-	// BindingTypeMicrosoftMachineLearningWebService ...
-	BindingTypeMicrosoftMachineLearningWebService BindingType = "Microsoft.MachineLearning/WebService"
-	// BindingTypeMicrosoftStreamAnalyticsJavascriptUdf ...
-	BindingTypeMicrosoftStreamAnalyticsJavascriptUdf BindingType = "Microsoft.StreamAnalytics/JavascriptUdf"
-)
-
-// PossibleBindingTypeValues returns an array of possible values for the BindingType const type.
-func PossibleBindingTypeValues() []BindingType {
-	return []BindingType{BindingTypeFunctionRetrieveDefaultDefinitionParameters, BindingTypeMicrosoftMachineLearningWebService, BindingTypeMicrosoftStreamAnalyticsJavascriptUdf}
-}
-
-// CompatibilityLevel enumerates the values for compatibility level.
-type CompatibilityLevel string
-
-const (
-	// OneFullStopZero ...
-	OneFullStopZero CompatibilityLevel = "1.0"
-)
-
-// PossibleCompatibilityLevelValues returns an array of possible values for the CompatibilityLevel const type.
-func PossibleCompatibilityLevelValues() []CompatibilityLevel {
-	return []CompatibilityLevel{OneFullStopZero}
-}
-
-// Encoding enumerates the values for encoding.
-type Encoding string
-
-const (
-	// UTF8 ...
-	UTF8 Encoding = "UTF8"
-)
-
-// PossibleEncodingValues returns an array of possible values for the Encoding const type.
-func PossibleEncodingValues() []Encoding {
-	return []Encoding{UTF8}
-}
-
-// EventsOutOfOrderPolicy enumerates the values for events out of order policy.
-type EventsOutOfOrderPolicy string
-
-const (
-	// Adjust ...
-	Adjust EventsOutOfOrderPolicy = "Adjust"
-	// Drop ...
-	Drop EventsOutOfOrderPolicy = "Drop"
-)
-
-// PossibleEventsOutOfOrderPolicyValues returns an array of possible values for the EventsOutOfOrderPolicy const type.
-func PossibleEventsOutOfOrderPolicyValues() []EventsOutOfOrderPolicy {
-	return []EventsOutOfOrderPolicy{Adjust, Drop}
-}
-
-// JSONOutputSerializationFormat enumerates the values for json output serialization format.
-type JSONOutputSerializationFormat string
-
-const (
-	// Array ...
-	Array JSONOutputSerializationFormat = "Array"
-	// LineSeparated ...
-	LineSeparated JSONOutputSerializationFormat = "LineSeparated"
-)
-
-// PossibleJSONOutputSerializationFormatValues returns an array of possible values for the JSONOutputSerializationFormat const type.
-func PossibleJSONOutputSerializationFormatValues() []JSONOutputSerializationFormat {
-	return []JSONOutputSerializationFormat{Array, LineSeparated}
-}
-
-// OutputErrorPolicy enumerates the values for output error policy.
-type OutputErrorPolicy string
-
-const (
-	// OutputErrorPolicyDrop ...
-	OutputErrorPolicyDrop OutputErrorPolicy = "Drop"
-	// OutputErrorPolicyStop ...
-	OutputErrorPolicyStop OutputErrorPolicy = "Stop"
-)
-
-// PossibleOutputErrorPolicyValues returns an array of possible values for the OutputErrorPolicy const type.
-func PossibleOutputErrorPolicyValues() []OutputErrorPolicy {
-	return []OutputErrorPolicy{OutputErrorPolicyDrop, OutputErrorPolicyStop}
-}
-
-// OutputStartMode enumerates the values for output start mode.
-type OutputStartMode string
-
-const (
-	// CustomTime ...
-	CustomTime OutputStartMode = "CustomTime"
-	// JobStartTime ...
-	JobStartTime OutputStartMode = "JobStartTime"
-	// LastOutputEventTime ...
-	LastOutputEventTime OutputStartMode = "LastOutputEventTime"
-)
-
-// PossibleOutputStartModeValues returns an array of possible values for the OutputStartMode const type.
-func PossibleOutputStartModeValues() []OutputStartMode {
-	return []OutputStartMode{CustomTime, JobStartTime, LastOutputEventTime}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Standard}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// TypeAvro ...
-	TypeAvro Type = "Avro"
-	// TypeCsv ...
-	TypeCsv Type = "Csv"
-	// TypeJSON ...
-	TypeJSON Type = "Json"
-	// TypeSerialization ...
-	TypeSerialization Type = "Serialization"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{TypeAvro, TypeCsv, TypeJSON, TypeSerialization}
-}
-
-// TypeBasicFunctionBinding enumerates the values for type basic function binding.
-type TypeBasicFunctionBinding string
-
-const (
-	// TypeFunctionBinding ...
-	TypeFunctionBinding TypeBasicFunctionBinding = "FunctionBinding"
-	// TypeMicrosoftMachineLearningWebService ...
-	TypeMicrosoftMachineLearningWebService TypeBasicFunctionBinding = "Microsoft.MachineLearning/WebService"
-	// TypeMicrosoftStreamAnalyticsJavascriptUdf ...
-	TypeMicrosoftStreamAnalyticsJavascriptUdf TypeBasicFunctionBinding = "Microsoft.StreamAnalytics/JavascriptUdf"
-)
-
-// PossibleTypeBasicFunctionBindingValues returns an array of possible values for the TypeBasicFunctionBinding const type.
-func PossibleTypeBasicFunctionBindingValues() []TypeBasicFunctionBinding {
-	return []TypeBasicFunctionBinding{TypeFunctionBinding, TypeMicrosoftMachineLearningWebService, TypeMicrosoftStreamAnalyticsJavascriptUdf}
-}
-
-// TypeBasicFunctionProperties enumerates the values for type basic function properties.
-type TypeBasicFunctionProperties string
-
-const (
-	// TypeFunctionProperties ...
-	TypeFunctionProperties TypeBasicFunctionProperties = "FunctionProperties"
-	// TypeScalar ...
-	TypeScalar TypeBasicFunctionProperties = "Scalar"
-)
-
-// PossibleTypeBasicFunctionPropertiesValues returns an array of possible values for the TypeBasicFunctionProperties const type.
-func PossibleTypeBasicFunctionPropertiesValues() []TypeBasicFunctionProperties {
-	return []TypeBasicFunctionProperties{TypeFunctionProperties, TypeScalar}
-}
-
-// TypeBasicInputProperties enumerates the values for type basic input properties.
-type TypeBasicInputProperties string
-
-const (
-	// TypeInputProperties ...
-	TypeInputProperties TypeBasicInputProperties = "InputProperties"
-	// TypeReference ...
-	TypeReference TypeBasicInputProperties = "Reference"
-	// TypeStream ...
-	TypeStream TypeBasicInputProperties = "Stream"
-)
-
-// PossibleTypeBasicInputPropertiesValues returns an array of possible values for the TypeBasicInputProperties const type.
-func PossibleTypeBasicInputPropertiesValues() []TypeBasicInputProperties {
-	return []TypeBasicInputProperties{TypeInputProperties, TypeReference, TypeStream}
-}
-
-// TypeBasicOutputDataSource enumerates the values for type basic output data source.
-type TypeBasicOutputDataSource string
-
-const (
-	// TypeMicrosoftDataLakeAccounts ...
-	TypeMicrosoftDataLakeAccounts TypeBasicOutputDataSource = "Microsoft.DataLake/Accounts"
-	// TypeMicrosoftServiceBusEventHub ...
-	TypeMicrosoftServiceBusEventHub TypeBasicOutputDataSource = "Microsoft.ServiceBus/EventHub"
-	// TypeMicrosoftServiceBusQueue ...
-	TypeMicrosoftServiceBusQueue TypeBasicOutputDataSource = "Microsoft.ServiceBus/Queue"
-	// TypeMicrosoftServiceBusTopic ...
-	TypeMicrosoftServiceBusTopic TypeBasicOutputDataSource = "Microsoft.ServiceBus/Topic"
-	// TypeMicrosoftSQLServerDatabase ...
-	TypeMicrosoftSQLServerDatabase TypeBasicOutputDataSource = "Microsoft.Sql/Server/Database"
-	// TypeMicrosoftStorageBlob ...
-	TypeMicrosoftStorageBlob TypeBasicOutputDataSource = "Microsoft.Storage/Blob"
-	// TypeMicrosoftStorageDocumentDB ...
-	TypeMicrosoftStorageDocumentDB TypeBasicOutputDataSource = "Microsoft.Storage/DocumentDB"
-	// TypeMicrosoftStorageTable ...
-	TypeMicrosoftStorageTable TypeBasicOutputDataSource = "Microsoft.Storage/Table"
-	// TypeOutputDataSource ...
-	TypeOutputDataSource TypeBasicOutputDataSource = "OutputDataSource"
-	// TypePowerBI ...
-	TypePowerBI TypeBasicOutputDataSource = "PowerBI"
-)
-
-// PossibleTypeBasicOutputDataSourceValues returns an array of possible values for the TypeBasicOutputDataSource const type.
-func PossibleTypeBasicOutputDataSourceValues() []TypeBasicOutputDataSource {
-	return []TypeBasicOutputDataSource{TypeMicrosoftDataLakeAccounts, TypeMicrosoftServiceBusEventHub, TypeMicrosoftServiceBusQueue, TypeMicrosoftServiceBusTopic, TypeMicrosoftSQLServerDatabase, TypeMicrosoftStorageBlob, TypeMicrosoftStorageDocumentDB, TypeMicrosoftStorageTable, TypeOutputDataSource, TypePowerBI}
-}
-
-// TypeBasicReferenceInputDataSource enumerates the values for type basic reference input data source.
-type TypeBasicReferenceInputDataSource string
-
-const (
-	// TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob ...
-	TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob TypeBasicReferenceInputDataSource = "Microsoft.Storage/Blob"
-	// TypeBasicReferenceInputDataSourceTypeReferenceInputDataSource ...
-	TypeBasicReferenceInputDataSourceTypeReferenceInputDataSource TypeBasicReferenceInputDataSource = "ReferenceInputDataSource"
-)
-
-// PossibleTypeBasicReferenceInputDataSourceValues returns an array of possible values for the TypeBasicReferenceInputDataSource const type.
-func PossibleTypeBasicReferenceInputDataSourceValues() []TypeBasicReferenceInputDataSource {
-	return []TypeBasicReferenceInputDataSource{TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob, TypeBasicReferenceInputDataSourceTypeReferenceInputDataSource}
-}
-
-// TypeBasicStreamInputDataSource enumerates the values for type basic stream input data source.
-type TypeBasicStreamInputDataSource string
-
-const (
-	// TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs ...
-	TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs TypeBasicStreamInputDataSource = "Microsoft.Devices/IotHubs"
-	// TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub ...
-	TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub TypeBasicStreamInputDataSource = "Microsoft.ServiceBus/EventHub"
-	// TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob ...
-	TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob TypeBasicStreamInputDataSource = "Microsoft.Storage/Blob"
-	// TypeBasicStreamInputDataSourceTypeStreamInputDataSource ...
-	TypeBasicStreamInputDataSourceTypeStreamInputDataSource TypeBasicStreamInputDataSource = "StreamInputDataSource"
-)
-
-// PossibleTypeBasicStreamInputDataSourceValues returns an array of possible values for the TypeBasicStreamInputDataSource const type.
-func PossibleTypeBasicStreamInputDataSourceValues() []TypeBasicStreamInputDataSource {
-	return []TypeBasicStreamInputDataSource{TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs, TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub, TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob, TypeBasicStreamInputDataSourceTypeStreamInputDataSource}
-}
-
-// UdfType enumerates the values for udf type.
-type UdfType string
-
-const (
-	// Scalar ...
-	Scalar UdfType = "Scalar"
-)
-
-// PossibleUdfTypeValues returns an array of possible values for the UdfType const type.
-func PossibleUdfTypeValues() []UdfType {
-	return []UdfType{Scalar}
-}
-
 // AvroSerialization describes how data from an input is serialized or how data is serialized when written
 // to an output in Avro format.
 type AvroSerialization struct {
@@ -1738,6 +1474,16 @@ type Function struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Function.
+func (f Function) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["properties"] = f.Properties
+	if f.Name != nil {
+		objectMap["name"] = f.Name
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for Function struct.
 func (f *Function) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1959,10 +1705,15 @@ func (flr FunctionListResult) IsEmpty() bool {
 	return flr.Value == nil || len(*flr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (flr FunctionListResult) hasNextLink() bool {
+	return flr.NextLink != nil && len(*flr.NextLink) != 0
+}
+
 // functionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (flr FunctionListResult) functionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if flr.NextLink == nil || len(to.String(flr.NextLink)) < 1 {
+	if !flr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1990,11 +1741,16 @@ func (page *FunctionListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.flr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.flr)
+		if err != nil {
+			return err
+		}
+		page.flr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.flr = next
 	return nil
 }
 
@@ -2024,8 +1780,11 @@ func (page FunctionListResultPage) Values() []Function {
 }
 
 // Creates a new instance of the FunctionListResultPage type.
-func NewFunctionListResultPage(getNextPage func(context.Context, FunctionListResult) (FunctionListResult, error)) FunctionListResultPage {
-	return FunctionListResultPage{fn: getNextPage}
+func NewFunctionListResultPage(cur FunctionListResult, getNextPage func(context.Context, FunctionListResult) (FunctionListResult, error)) FunctionListResultPage {
+	return FunctionListResultPage{
+		fn:  getNextPage,
+		flr: cur,
+	}
 }
 
 // FunctionOutput describes the output of a function.
@@ -2239,6 +1998,16 @@ type Input struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Input.
+func (i Input) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["properties"] = i.Properties
+	if i.Name != nil {
+		objectMap["name"] = i.Name
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for Input struct.
 func (i *Input) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -2366,10 +2135,15 @@ func (ilr InputListResult) IsEmpty() bool {
 	return ilr.Value == nil || len(*ilr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ilr InputListResult) hasNextLink() bool {
+	return ilr.NextLink != nil && len(*ilr.NextLink) != 0
+}
+
 // inputListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ilr InputListResult) inputListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ilr.NextLink == nil || len(to.String(ilr.NextLink)) < 1 {
+	if !ilr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2397,11 +2171,16 @@ func (page *InputListResultPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ilr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ilr)
+		if err != nil {
+			return err
+		}
+		page.ilr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ilr = next
 	return nil
 }
 
@@ -2431,8 +2210,11 @@ func (page InputListResultPage) Values() []Input {
 }
 
 // Creates a new instance of the InputListResultPage type.
-func NewInputListResultPage(getNextPage func(context.Context, InputListResult) (InputListResult, error)) InputListResultPage {
-	return InputListResultPage{fn: getNextPage}
+func NewInputListResultPage(cur InputListResult, getNextPage func(context.Context, InputListResult) (InputListResult, error)) InputListResultPage {
+	return InputListResultPage{
+		fn:  getNextPage,
+		ilr: cur,
+	}
 }
 
 // BasicInputProperties the properties that are associated with an input.
@@ -3059,10 +2841,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3090,11 +2877,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -3124,8 +2916,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Output an output object, containing all information associated with the named output. All outputs are
@@ -3436,10 +3231,15 @@ func (olr OutputListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OutputListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // outputListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OutputListResult) outputListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3467,11 +3267,16 @@ func (page *OutputListResultPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -3501,8 +3306,11 @@ func (page OutputListResultPage) Values() []Output {
 }
 
 // Creates a new instance of the OutputListResultPage type.
-func NewOutputListResultPage(getNextPage func(context.Context, OutputListResult) (OutputListResult, error)) OutputListResultPage {
-	return OutputListResultPage{fn: getNextPage}
+func NewOutputListResultPage(cur OutputListResult, getNextPage func(context.Context, OutputListResult) (OutputListResult, error)) OutputListResultPage {
+	return OutputListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OutputProperties the properties that are associated with an output.
@@ -3515,6 +3323,14 @@ type OutputProperties struct {
 	Diagnostics *Diagnostics `json:"diagnostics,omitempty"`
 	// Etag - READ-ONLY; The current entity tag for the output. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OutputProperties.
+func (op OutputProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["datasource"] = op.Datasource
+	objectMap["serialization"] = op.Serialization
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for OutputProperties struct.
@@ -4621,10 +4437,15 @@ func (sjlr StreamingJobListResult) IsEmpty() bool {
 	return sjlr.Value == nil || len(*sjlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sjlr StreamingJobListResult) hasNextLink() bool {
+	return sjlr.NextLink != nil && len(*sjlr.NextLink) != 0
+}
+
 // streamingJobListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sjlr StreamingJobListResult) streamingJobListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sjlr.NextLink == nil || len(to.String(sjlr.NextLink)) < 1 {
+	if !sjlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4652,11 +4473,16 @@ func (page *StreamingJobListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sjlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sjlr)
+		if err != nil {
+			return err
+		}
+		page.sjlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sjlr = next
 	return nil
 }
 
@@ -4686,8 +4512,11 @@ func (page StreamingJobListResultPage) Values() []StreamingJob {
 }
 
 // Creates a new instance of the StreamingJobListResultPage type.
-func NewStreamingJobListResultPage(getNextPage func(context.Context, StreamingJobListResult) (StreamingJobListResult, error)) StreamingJobListResultPage {
-	return StreamingJobListResultPage{fn: getNextPage}
+func NewStreamingJobListResultPage(cur StreamingJobListResult, getNextPage func(context.Context, StreamingJobListResult) (StreamingJobListResult, error)) StreamingJobListResultPage {
+	return StreamingJobListResultPage{
+		fn:   getNextPage,
+		sjlr: cur,
+	}
 }
 
 // StreamingJobProperties the properties that are associated with a streaming job.
@@ -4730,6 +4559,51 @@ type StreamingJobProperties struct {
 	Functions *[]Function `json:"functions,omitempty"`
 	// Etag - READ-ONLY; The current entity tag for the streaming job. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StreamingJobProperties.
+func (sjp StreamingJobProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sjp.Sku != nil {
+		objectMap["sku"] = sjp.Sku
+	}
+	if sjp.OutputStartMode != "" {
+		objectMap["outputStartMode"] = sjp.OutputStartMode
+	}
+	if sjp.OutputStartTime != nil {
+		objectMap["outputStartTime"] = sjp.OutputStartTime
+	}
+	if sjp.EventsOutOfOrderPolicy != "" {
+		objectMap["eventsOutOfOrderPolicy"] = sjp.EventsOutOfOrderPolicy
+	}
+	if sjp.OutputErrorPolicy != "" {
+		objectMap["outputErrorPolicy"] = sjp.OutputErrorPolicy
+	}
+	if sjp.EventsOutOfOrderMaxDelayInSeconds != nil {
+		objectMap["eventsOutOfOrderMaxDelayInSeconds"] = sjp.EventsOutOfOrderMaxDelayInSeconds
+	}
+	if sjp.EventsLateArrivalMaxDelayInSeconds != nil {
+		objectMap["eventsLateArrivalMaxDelayInSeconds"] = sjp.EventsLateArrivalMaxDelayInSeconds
+	}
+	if sjp.DataLocale != nil {
+		objectMap["dataLocale"] = sjp.DataLocale
+	}
+	if sjp.CompatibilityLevel != "" {
+		objectMap["compatibilityLevel"] = sjp.CompatibilityLevel
+	}
+	if sjp.Inputs != nil {
+		objectMap["inputs"] = sjp.Inputs
+	}
+	if sjp.Transformation != nil {
+		objectMap["transformation"] = sjp.Transformation
+	}
+	if sjp.Outputs != nil {
+		objectMap["outputs"] = sjp.Outputs
+	}
+	if sjp.Functions != nil {
+		objectMap["functions"] = sjp.Functions
+	}
+	return json.Marshal(objectMap)
 }
 
 // StreamingJobsCreateOrReplaceFuture an abstraction for monitoring and retrieving the results of a
@@ -5038,6 +4912,15 @@ type SubResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubResource.
+func (sr SubResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sr.Name != nil {
+		objectMap["name"] = sr.Name
+	}
+	return json.Marshal(objectMap)
+}
+
 // SubscriptionQuota describes the current quota for the subscription.
 type SubscriptionQuota struct {
 	// SubscriptionQuotaProperties - READ-ONLY; Describes the properties of the quota.
@@ -5211,4 +5094,16 @@ type TransformationProperties struct {
 	Query *string `json:"query,omitempty"`
 	// Etag - READ-ONLY; The current entity tag for the transformation. This is an opaque string. You can use it to detect whether the resource has changed between requests. You can also use it in the If-Match or If-None-Match headers for write operations for optimistic concurrency.
 	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TransformationProperties.
+func (tp TransformationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tp.StreamingUnits != nil {
+		objectMap["streamingUnits"] = tp.StreamingUnits
+	}
+	if tp.Query != nil {
+		objectMap["query"] = tp.Query
+	}
+	return json.Marshal(objectMap)
 }

@@ -1,130 +1,174 @@
-## 2.0.0 (Unreleased)
-
-NOTES:
-
-* **Major Version:** Version 2.0 of the Azure Provider is a major version - some deprecated fields/resources have been removed - please [refer to the 2.0 upgrade guide for more information](https://www.terraform.io/docs/providers/azurerm/guides/2.0-upgrade-guide.html).
-* **Provider Block:** The Azure Provider now requires that a `features` block is specified within the Provider block, which can be used to alter the behaviour of certain resources - [more information on the `features` block can be found in the documentation](https://www.terraform.io/docs/providers/azurerm/index.html#features).
-* **Terraform 0.10/0.11:** Version 2.0 of the Azure Provider no longer supports Terraform 0.10 or 0.11 - you must upgrade to Terraform 0.12 to use version 2.0 of the Azure Provider.
+## 2.43.0 (Unreleased)
 
 FEATURES:
 
-* **Custom Timeouts:** - all resources within the Azure Provider now allow configuring custom timeouts - please [see Terraform's Timeout documentation](https://www.terraform.io/docs/configuration/resources.html#operation-timeouts) and the documentation in each data source resource for more information.
-* **Requires Import:** The Azure Provider now checks for the presence of an existing resource prior to creating it - which means that if you try and create a resource which already exists (without importing it) you'll be prompted to import this into the state.
-* **New Data Source:** `azurerm_eventhub_authorization_rule` [GH-5805]
-* **New Resource:** `azurerm_express_route_gateway` [GH-5523]
-* **New Resource:** `azurerm_linux_virtual_machine` [GH-5705]
-* **New Resource:** `azurerm_linux_virtual_machine_scale_set` [GH-5705]
-* **New Resource:** `azurerm_network_interface_security_group_association` [GH-5784]
-* **New Resource:** `azurerm_virtual_machine_scale_set_extension` [GH-5705]
-* **New Resource:** `azurerm_windows_virtual_machine` [GH-5705]
-* **New Resource:** `azurerm_windows_virtual_machine_scale_set` [GH-5705]
-
-BREAKING CHANGES:
-
-* Data Source: `azurerm_api_management` - removing the deprecated `sku` block [GH-5725]
-* Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
-* Data Source: `azurerm_azuread_application` - This data source has been removed since it was deprecated [GH-5748]
-* Data Source: `azurerm_azuread_service_principal` - This data source has been removed since it was deprecated [GH-5748]
-* Data Source: `azurerm_dns_zone` - removing the deprecated `zone_type` field [GH-5794]
-* Data Source: `azurerm_dns_zone` - removing the deprecated `registration_virtual_network_ids` field [GH-5794]
-* Data Source: `azurerm_dns_zone` - removing the deprecated `resolution_virtual_network_ids` field [GH-5794]
-* Data Source: `azurerm_key_vault` - removing the `sku` block since this has been deprecated in favour of the `sku_name` field [GH-5774]
-* Data Source: `azurerm_key_vault_key` - removing the deprecated `vault_uri` field [GH-5774]
-* Data Source: `azurerm_key_vault_secret` - removing the deprecated `vault_uri` field [GH-5774]
-* Data Source: `azurerm_role_definition` - removing the alias `VirtualMachineContributor` which has been deprecated in favour of the full name `Virtual Machine Contributor` [GH-5733]
-* Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
-* Data Source: `azurerm_subnet` - removing the deprecated `ip_configuration` field [GH-5801]
-* `azurerm_api_management` - removing the deprecated `sku` block [GH-5725]
-* `azurerm_api_management` - removing the deprecated fields in the `security` block [GH-5725]
-* `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
-* `azurerm_application_gateway` - updating the default value for the `body` field within the `match` block from `*` to an empty string [GH-5752]
-* `azurerm_automation_account` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5781]
-* `azurerm_automation_credential` - removing the deprecated `account_name` field [GH-5781]
-* `azurerm_automation_runbook` - removing the deprecated `account_name` field [GH-5781]
-* `azurerm_automation_schedule` - removing the deprecated `account_name` field [GH-5781]
-* `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
-* `azurerm_azuread_application` - This resource has been removed since it was deprecated [GH-5748]
-* `azurerm_azuread_service_principal_password` - This resource has been removed since it was deprecated [GH-5748]
-* `azurerm_azuread_service_principal` - This resource has been removed since it was deprecated [GH-5748]
-* `azurerm_cognitive_account` - removing the deprecated `sku_name` block [GH-5797]
-* `azurerm_container_service` - This resource has been removed since it was deprecated [GH-5709]
-* `azurerm_devspace_controller` - removing the deprecated `sku` block [GH-5795]
-* `azurerm_dns_cname_record` - removing the deprecated `records` field [GH-5794]
-* `azurerm_dns_ns_record` - removing the deprecated `records` field [GH-5794]
-* `azurerm_dns_zone` - removing the deprecated `zone_type` field [GH-5794]
-* `azurerm_dns_zone` - removing the deprecated `registration_virtual_network_ids` field [GH-5794]
-* `azurerm_dns_zone` - removing the deprecated `resolution_virtual_network_ids` field [GH-5794]
-* `azurerm_eventhub` - removing the deprecated `location` field [GH-5793]
-* `azurerm_eventhub_authorization_rule` - removing the deprecated `location` field [GH-5793]
-* `azurerm_eventhub_consumer_group` - removing the deprecated `location` field [GH-5793]
-* `azurerm_eventhub_namespace` - removing the deprecated `kafka_enabled` field since this is now managed by Azure [GH-5793]
-* `azurerm_eventhub_namespace_authorization_rule` - removing the deprecated `location` field [GH-5793]
-* `azurerm_frontdoor` - The `forwarding_protocol` property now defaults to `HttpsOnly` [GH-5792]
-* `azurerm_iot_dps` - This resource has been removed since it was deprecated [GH-5753]
-* `azurerm_iot_dps_certificate` - This resource has been removed since it was deprecated [GH-5753]
-* `azurerm_iothub`- The deprecated `sku.tier` property will be removed. [GH-5790]
-* `azurerm_iothub_dps` - The deprecated `sku.tier` property will be removed. [GH-5790]
-* `azurerm_key_vault` - removing the `sku` block since this has been deprecated in favour of the `sku_name` field [GH-5774]
-* `azurerm_key_vault_access_policy` - removing the deprecated field `vault_name` which has been superseded by the `key_vault_id` field [GH-5774]
-* `azurerm_key_vault_access_policy` - removing the deprecated field `resource_group_name ` which has been superseded by the `key_vault_id` field [GH-5774]
-* `azurerm_key_vault_certificate` - removing the deprecated `vault_uri` field [GH-5774]
-* `azurerm_key_vault_key` - removing the deprecated `vault_uri` field [GH-5774]
-* `azurerm_key_vault_secret` - removing the deprecated `vault_uri` field [GH-5774]
-* `azurerm_kubernetes_cluster` - updating the default value for `load_balancer_sku` to `Standard` from `Basic` [GH-5747]
-* `azurerm_log_analytics_workspace_linked_service` - This resource has been removed since it was deprecated [GH-5754]
-* `azurerm_maps_account` - the `sku_name` field is now case-sensitive [GH-5776]
-* `azurerm_mariadb_server` - removing the `sku` block since it's been deprecated in favour of the `sku_name` field [GH-5777]
-* `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
-* `azurerm_mysql_server` - removing the deprecated `sku` block [GH-5743]
-* `azurerm_network_interface` - removing the deprecated `application_gateway_backend_address_pools_ids` field from the `ip_configurations` block [GH-5784]
-* `azurerm_network_interface` - removing the deprecated `application_security_group_ids ` field from the `ip_configurations` block [GH-5784]
-* `azurerm_network_interface` - removing the deprecated `load_balancer_backend_address_pools_ids ` field from the `ip_configurations` block [GH-5784]
-* `azurerm_network_interface` - removing the deprecated `load_balancer_inbound_nat_rules_ids ` field from the `ip_configurations` block [GH-5784]
-* `azurerm_network_interface` - removing the deprecated `internal_fqdn` field [GH-5784]
-* `azurerm_network_interface` - removing the `network_security_group_id` field in favour of a new split-out resource `azurerm_network_interface_security_group_association` [GH-5784]
-* `azurerm_network_interface` - the `virtual_machine_id` field is now computed-only since it's not setable [GH-5784]
-* `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
-* `azurerm_postgresql_server` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5721]
-* `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
-* `azurerm_scheduler_job` - This resource has been removed since it was deprecated [GH-5712]
-* `azurerm_scheduler_job_collection` - This resource has been removed since it was deprecated [GH-5712]
-* `azurerm_storage_account` - removing the deprecated `account_type` field [GH-5710]
-* `azurerm_storage_account` - removing the deprecated `enable_advanced_threat_protection` field [GH-5710]
-* `azurerm_storage_account` - updating the default value for `enable_https_traffic_only` from `false` to `true` [GH-5808]
-* `azurerm_storage_blob` - making the `type` field case-sensitive [GH-5710]
-* `azurerm_storage_blob` - removing the deprecated `attempts` field [GH-5710]
-* `azurerm_storage_blob` - removing the deprecated `resource_group_name` field [GH-5710]
-* `azurerm_storage_container` - removing the deprecated `resource_group_name` field [GH-5710]
-* `azurerm_storage_container` - removing the deprecated `properties` block [GH-5710]
-* `azurerm_storage_queue` - removing the deprecated `resource_group_name` field [GH-5710]
-* `azurerm_storage_share` - removing the deprecated `resource_group_name` field [GH-5710]
-* `azurerm_storage_table` - removing the deprecated `resource_group_name` field [GH-5710]
-* `azurerm_subnet` - removing the deprecated `ip_configuration` field [GH-5801]
-* `azurerm_subnet` - removing the deprecated `network_security_group_id` field [GH-5801]
-* `azurerm_subnet` - removing the deprecated `route_table_id` field [GH-5801]
-* `azurerm_subnet` - making the `actions` list within the `service_delegation` block within the `service_endpoints` block non-computed [GH-5801]
+* **New Data Source:** `azurerm_sentinel_alert_rule_template` [GH-7020]
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_kubernetes_service_version` - support for filtering of preview releases [GH-5662]
-* `azurerm_dedicated_host` - support for setting `sku_name` to `DSv3-Type2` and `ESv3-Type2` [GH-5768]
-* `azurerm_sql_database` - support for configuring `zone_redundant` [GH-5772]
-* `azurerm_storage_account` - support for configuring the `static_website` block [GH-5649]
-* `azurerm_storage_account` - support for configuring `cors_rules` within the `blob_properties` block [GH-5425]
-* `azurerm_subnet` - support for delta updates [GH-5801]
-* `azurerm_windows_virtual_machine` - fixing a bug when provisioning from a Shared Gallery image [GH-5661]
+* Data Source: `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* Data Source: `azurerm_kubernetes_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* Data Source: `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* Data Source: `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_api_management` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_container_group` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_cosmosdb_gremlin_graph` - support the `default_ttl` property [GH-10159]
+* `azurerm_data_factory` - support for `public_network_enabled` [GH-9605]
+* `azurerm_data_factory_dataset_delimited_text` - support for the `compression_type` property [GH-10070]
+* `azurerm_data_factory_linked_service_sql_server`: support for the `key_vault_password` block [GH-10032]
+* `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
+* `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
+* `azurerm_eventhub_namespace` - support the `trusted_service_access_enabled` property [GH-10169]
+* `azurerm_function_app` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_function_app_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_kusto_cluster` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_security_center_automation` - the field `event_source` within the `source` block now supports `SecureScoreControls ` and `SecureScores` [GH-10126]
+* `azurerm_synapse_workspace` - support for the `sql_identity_control_enabled` property [GH-10033]
+* `azurerm_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine_scale_set` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 
 BUG FIXES:
 
-* `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
-* `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
-* `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
-* `azurerm_role_assignment` - validating that the `name` is a UUID [GH-5624]
-* `azurerm_signalr_service` - ensuring the SignalR segment is parsed in the correct case [GH-5737]
-* `azurerm_subnet` - supporting updating of the `enforce_private_link_endpoint_network_policies` field [GH-5801]
-* `azurerm_subnet` - supporting updating of the `enforce_private_link_service_network_policies` field [GH-5801]
-* `azurerm_windows_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
+* Data Source: `azurerm_log_analytics_workspace` - returning the Resource ID in the correct casing [GH-10162]
+* `azurerm_advanced_threat_protection` - fix a regression in the Resouce ID format [GH-10190]
+* `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_app_service_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_application_gateway` - ensuring the casing on `identity_ids` within the `identity` block [GH-10031]
+* `azurerm_blueprint_assignment` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_container_group` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_databricks_workspace` - changing the sku no longer always forces a new resource to be created [GH-9541]
+* `azurerm_function_app` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_function_app_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_kubernetes_cluster` - ensuring the casing of the `user_assigned_identity_id` field within the `kubelet_identity` block [GH-10105]
+* `azurerm_kusto_cluster` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_linux_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
+* `azurerm_mssql_virtual_machine` - address persistent diff and use relative expiry for service principal password [GH-10125]
+* `azurerm_role_assignment` - fix race condition in read after create [GH-10134]
+* `azurerm_role_definition` - address eventual consistency issues in update and delete [GH-10170]
+* `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_windows_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
+
+## 2.42.0 (January 08, 2021)
+
+BREAKING CHANGES
+
+* `azurerm_key_vault` - the field `soft_delete_enabled` is now defaulted to `true` to match the breaking change in the Azure API where Key Vaults now have Soft Delete enabled by default, which cannot be disabled. This property is now non-functional, defaults to `true` and will be removed in version 3.0 of the Azure Provider. ([#10088](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10088))
+* `azurerm_key_vault` - the field `soft_delete_retention_days` is now defaulted to `90` days to match the Azure API behaviour, as the Azure API does not return a value for this field when not explicitly configured, so defaulting this removes a diff with `0`. ([#10088](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10088))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_eventgrid_domain_topic` ([#10050](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10050))
+* **New Data Source:** `azurerm_ssh_public_key` ([#9842](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9842))
+* **New Resource:** `azurerm_data_factory_linked_service_synapse` ([#9928](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9928))
+* **New Resource:** `azurerm_disk_access` ([#9889](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9889))
+* **New Resource:** `azurerm_media_streaming_locator` ([#9992](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9992))
+* **New Resource:** `azurerm_sentinel_alert_rule_fusion` ([#9829](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9829))
+* **New Resource:** `azurerm_ssh_public_key` ([#9842](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9842))
+
+IMPROVEMENTS:
+
+* batch: updating to API version `2020-03-01` ([#10036](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10036))
+* dependencies: upgrading to `v49.2.0` of `github.com/Azure/azure-sdk-for-go` ([#10042](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10042))
+* dependencies: upgrading to `v0.15.1` of `github.com/tombuildsstuff/giovanni` ([#10035](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10035))
+* Data Source: `azurerm_hdinsight_cluster` - support for the `kafka_rest_proxy_endpoint` property ([#8064](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8064))
+* Data Source: `azurerm_databricks_workspace` - support for the `tags` property ([#9933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9933))
+* Data Source: `azurerm_subscription` - support for the `tags` property ([#8064](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8064))
+* `azurerm_app_service` - now supports  `detailed_error_mesage_enabled` and `failed_request_tracing_enabled ` logs settings ([#9162](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9162))
+* `azurerm_app_service` - now supports  `service_tag` in `ip_restriction` blocks ([#9609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9609))
+* `azurerm_app_service_slot` - now supports  `detailed_error_mesage_enabled` and `failed_request_tracing_enabled ` logs settings ([#9162](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9162))
+* `azurerm_batch_pool` support for the `public_address_provisioning_type` property ([#10036](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10036))
+* `azurerm_api_management` - support `Consumption_0` for the `sku_name` property ([#6868](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6868))
+* `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set ([#9902](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9902))
+* `azurerm_cosmosdb_mongo_collection` - correctly read back the `_id` index when mongo 3.6 ([#8690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8690))
+* `azurerm_container_group` - support for the `volume.empty_dir` property ([#9836](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9836))
+* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property ([#9934](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9934))
+* `azurerm_dedicated_host` - support for addtional `sku_name` values ([#9951](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9951))
+* `azurerm_devspace_controller` - deprecating since new DevSpace Controllers can no longer be provisioned, this will be removed in version 3.0 of the Azure Provider ([#10049](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10049))
+* `azurerm_function_app` - make `pre_warmed_instance_count` computed to use azure's default ([#9069](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9069))
+* `azurerm_function_app` - now supports  `service_tag` in `ip_restriction` blocks ([#9609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9609))
+* `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property ([#10000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10000))
+* `azurerm_hdinsight_kafka_cluster` - support for the `rest_proxy` and `kafka_management_node` blocks ([#8064](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8064))
+* `azurerm_key_vault` - the field `soft_delete_enabled` is now defaulted to `true` to match the Azure API behaviour where Soft Delete is force-enabled and can no longer be disabled. This field is deprecated, can be safely removed from your Terraform Configuration, and will be removed in version 3.0 of the Azure Provider. ([#10088](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10088))
+* `azurerm_kubernetes_cluster` - add support for network_mode ([#8828](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8828))
+* `azurerm_log_analytics_linked_service` - add validation for resource ID type ([#9932](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9932))
+* `azurerm_log_analytics_linked_service` - update validation to use generated validate functions ([#9950](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9950))
+* `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID ([#9914](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9914))
+* `azurerm_monitor_diagnostic_setting` - validation that `log_analytics_workspace_id` is a Log Analytics Workspace ID ([#9914](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9914))
+* `azurerm_monitor_diagnostic_setting` - validation that `storage_account_id` is a Storage Account ID ([#9914](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9914))
+* `azurerm_network_security_rule` - increase allowed the number of `application_security_group` blocks allowed ([#9884](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9884))
+* `azurerm_sentinel_alert_rule_ms_security_incident` - support the `alert_rule_template_guid` and `display_name_exclude_filter` properties ([#9797](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9797))
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property ([#9712](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9712))
+* `azurerm_sentinel_alert_rule_scheduled` - support for creating incidents ([#8564](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8564))
+* `azurerm_spring_cloud_app` - support the properties `https_only`, `is_public`, and `persistent_disk` ([#9957](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9957))
+* `azurerm_subscription` - support for the `tags` property ([#9047](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9047))
+* `azurerm_synapse_workspace` - support for the `managed_resource_group_name` property ([#10017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10017))
+* `azurerm_traffic_manager_profile` - support for the `traffic_view_enabled` property ([#10005](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10005))
+
+BUG FIXES:
+
+provider: will not correctly register the `Microsoft.Blueprint` and `Microsoft.HealthcareApis` RPs ([#10062](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10062))
+* `azurerm_application_gateway` - allow `750` for `file_upload_limit_mb` when the sku is `WAF_v2` ([#8753](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8753))
+* `azurerm_firewall_policy_rule_collection_group` - correctly validate the `network_rule_collection.destination_ports` property ([#9490](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9490))
+* `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional ([#8850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8850))
+* `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility ([#9966](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9966))
+* `azurerm_cosmosdb_table` - do not call the throughput api when serverless ([#9749](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9749))
+* `azurerm_key_vault` - the field `soft_delete_retention_days` is now defaulted to `90` days to match the Azure API behaviour. ([#10088](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10088))
+* `azurerm_kubernetes_cluster` - parse oms `log_analytics_workspace_id` to ensure correct casing ([#9976](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9976))
+* `azurerm_role_assignment` fix crash in retry logic ([#10051](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10051))
+* `azurerm_storage_account` - allow hns when `account_tier` is `Premium` ([#9548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9548))
+* `azurerm_storage_share_file` - allowing files smaller than 4KB to be uploaded ([#10035](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10035))
+
+## 2.41.0 (December 17, 2020)
+
+UPGRADE NOTES:
+
+* `azurerm_key_vault` - Azure will be introducing a breaking change on December 31st, 2020 by force-enabling Soft Delete on all new and existing Key Vaults. To workaround this, this release of the Azure Provider still allows you to configure Soft Delete on before this date (but once this is enabled this cannot be disabled). Since new Key Vaults will automatically be provisioned using Soft Delete in the future, and existing Key Vaults will be upgraded - a future release will deprecate the `soft_delete_enabled` field and default this to true early in 2021. ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_certificate` - Terraform will now attempt to `purge` Certificates during deletion due to the upcoming breaking change in the Azure API where Key Vaults will have soft-delete force-enabled. This can be disabled by setting the `purge_soft_delete_on_destroy` field within the `features -> keyvault` block to `false`. ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_key` - Terraform will now attempt to `purge` Keys during deletion due to the upcoming breaking change in the Azure API where Key Vaults will have soft-delete force-enabled. This can be disabled by setting the `purge_soft_delete_on_destroy` field within the `features -> keyvault` block to `false`. ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_secret` - Terraform will now attempt to `purge` Secrets during deletion due to the upcoming breaking change in the Azure API where Key Vaults will have soft-delete force-enabled. This can be disabled by setting the `purge_soft_delete_on_destroy` field within the `features -> keyvault` block to `false`. ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+
+FEATURES:
+
+* **New Resource:** `azurerm_eventgrid_system_topic_event_subscription` ([#9852](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9852))
+* **New Resource:** `azurerm_media_job` ([#9859](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9859))
+* **New Resource:** `azurerm_media_streaming_endpoint` ([#9537](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9537))
+* **New Resource:** `azurerm_subnet_service_endpoint_storage_policy` ([#8966](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8966))
+* **New Resource:** `azurerm_synapse_managed_private_endpoint` ([#9260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9260))
+
+IMPROVEMENTS:
+
+* `azurerm_app_service` - Add support for `outbound_ip_address_list` and `possible_outbound_ip_address_list` ([#9871](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9871))
+* `azurerm_disk_encryption_set` - support for updating `key_vault_key_id` ([#7913](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7913))
+* `azurerm_iot_time_series_insights_gen2_environment` - exposing `data_access_fqdn` ([#9848](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9848))
+* `azurerm_key_vault_certificate` - performing a "purge" of the Certificate during deletion if the feature is opted-in within the `features` block, see the "Upgrade Notes" for more information ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_key` - performing a "purge" of the Key during deletion if the feature is opted-in within the `features` block, see the "Upgrade Notes" for more information ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_secret` - performing a "purge" of the Secret during deletion if the feature is opted-in within the `features` block, see the "Upgrade Notes" for more information ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_log_analytics_linked_service` - Add new fields `workspace_id`, `read_access_id`, and `write_access_id` ([#9410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9410))
+* `azurerm_linux_virtual_machine` - Normalise SSH keys to cover VM import cases ([#9897](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9897))
+* `azurerm_subnet` - support for the `service_endpoint_policy` block ([#8966](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8966))
+* `azurerm_traffic_manager_profile` - support for new field `max_return` and support for `traffic_routing_method` to be `MultiValue` ([#9487](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9487))
+
+BUG FIXES:
+
+* `azurerm_key_vault_certificate` - reading `dns_names` and `emails` within the `subject_alternative_names` block from the Certificate if not returned from the API ([#8631](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8631))
+* `azurerm_key_vault_certificate` - polling until the Certificate is fully deleted during deletion ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_key` - polling until the Key is fully deleted during deletion ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_key_vault_secret` -  polling until the Secret is fully deleted during deletion ([#9911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9911))
+* `azurerm_log_analytics_workspace` - adding a state migration to correctly update the Resource ID ([#9853](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9853))
 
 ---
 
-For information on v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v1.44.0/CHANGELOG.md).
+For information on changes between the v2.40.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
+
+For information on changes in version v1.44.0 and prior releases, please see [the v1.x changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v1.md).

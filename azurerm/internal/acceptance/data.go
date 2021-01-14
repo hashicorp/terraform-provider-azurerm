@@ -5,26 +5,27 @@ import (
 	"math"
 	"os"
 	"strconv"
-	"sync"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-var once sync.Once
+func init() {
+	// unit testing
+	if os.Getenv("TF_ACC") == "" {
+		return
+	}
+
+	EnsureProvidersAreInitialised()
+}
 
 type TestData struct {
 	// Locations is a set of Azure Regions which should be used for this Test
 	Locations Regions
 
-	// RandomString is a random integer which is unique to this test case
+	// RandomInteger is a random integer which is unique to this test case
 	RandomInteger int
 
 	// RandomString is a random 5 character string is unique to this test case
@@ -45,21 +46,16 @@ type TestData struct {
 	// EnvironmentName is the name of the Azure Environment where we're running
 	EnvironmentName string
 
+	// MetadataURL is the url of the endpoint where the environment is obtained
+	MetadataURL string
+
 	// resourceLabel is the local used for the resource - generally "test""
 	resourceLabel string
 }
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	once.Do(func() {
-		azureProvider := provider.AzureProvider().(*schema.Provider)
-
-		AzureProvider = azureProvider
-		SupportedProviders = map[string]terraform.ResourceProvider{
-			"azurerm": azureProvider,
-			"azuread": azuread.Provider().(*schema.Provider),
-		}
-	})
+	EnsureProvidersAreInitialised()
 
 	env, err := Environment()
 	if err != nil {
@@ -67,11 +63,12 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	}
 
 	testData := TestData{
-		RandomInteger:   tf.AccRandTimeInt(),
+		RandomInteger:   RandTimeInt(),
 		RandomString:    acctest.RandString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,
 		EnvironmentName: EnvironmentName(),
+		MetadataURL:     os.Getenv("ARM_METADATA_HOST"),
 
 		ResourceType:  resourceType,
 		resourceLabel: resourceLabel,
@@ -90,12 +87,13 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	return testData
 }
 
+// RandomIntOfLength is a random 8 to 18 digit integer which is unique to this test case
 func (td *TestData) RandomIntOfLength(len int) int {
 	// len should not be
 	//  - greater then 18, longest a int can represent
 	//  - less then 8, as that gives us YYMMDDRR
 	if 8 > len || len > 18 {
-		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive"))
+		panic("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive")
 	}
 
 	// 18 - just return the int
@@ -115,4 +113,14 @@ func (td *TestData) RandomIntOfLength(len int) int {
 	i, _ := strconv.Atoi(v + r)
 
 	return i
+}
+
+// RandomStringOfLength is a random 1 to 1024 character string which is unique to this test case
+func (td *TestData) RandomStringOfLength(len int) string {
+	// len should not be less then 1 or greater than 1024
+	if 1 > len || len > 1024 {
+		panic("Invalid Test: RandomStringOfLength: length argument must be between 1 and 1024 characters")
+	}
+
+	return acctest.RandString(len)
 }

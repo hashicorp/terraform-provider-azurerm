@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_maps_account" "example" {
   name                = "example-maps-account"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "s1"
+  sku_name            = "S1"
 
   tags = {
     environment = "Test"
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku of the Azure Maps Account. Possible values are `s0` and `s1`.
+* `sku_name` - (Required) The sku of the Azure Maps Account. Possible values are `S0` and `S1`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 

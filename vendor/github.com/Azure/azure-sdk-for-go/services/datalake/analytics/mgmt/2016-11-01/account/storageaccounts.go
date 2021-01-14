@@ -36,7 +36,8 @@ func NewStorageAccountsClient(subscriptionID string) StorageAccountsClient {
 	return NewStorageAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStorageAccountsClientWithBaseURI creates an instance of the StorageAccountsClient client.
+// NewStorageAccountsClientWithBaseURI creates an instance of the StorageAccountsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStorageAccountsClientWithBaseURI(baseURI string, subscriptionID string) StorageAccountsClient {
 	return StorageAccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -81,6 +82,7 @@ func (client StorageAccountsClient) Add(ctx context.Context, resourceGroupName s
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,8 +115,7 @@ func (client StorageAccountsClient) AddPreparer(ctx context.Context, resourceGro
 // AddSender sends the Add request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) AddSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // AddResponder handles the response to the Add request. The method always
@@ -122,7 +123,6 @@ func (client StorageAccountsClient) AddSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) AddResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -161,6 +161,7 @@ func (client StorageAccountsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -191,8 +192,7 @@ func (client StorageAccountsClient) DeletePreparer(ctx context.Context, resource
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -200,7 +200,6 @@ func (client StorageAccountsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +238,7 @@ func (client StorageAccountsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,8 +269,7 @@ func (client StorageAccountsClient) GetPreparer(ctx context.Context, resourceGro
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -278,7 +277,6 @@ func (client StorageAccountsClient) GetSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) GetResponder(resp *http.Response) (result StorageAccountInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +318,7 @@ func (client StorageAccountsClient) GetStorageContainer(ctx context.Context, res
 	result, err = client.GetStorageContainerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "GetStorageContainer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -351,8 +350,7 @@ func (client StorageAccountsClient) GetStorageContainerPreparer(ctx context.Cont
 // GetStorageContainerSender sends the GetStorageContainer request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) GetStorageContainerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetStorageContainerResponder handles the response to the GetStorageContainer request. The method always
@@ -360,7 +358,6 @@ func (client StorageAccountsClient) GetStorageContainerSender(req *http.Request)
 func (client StorageAccountsClient) GetStorageContainerResponder(resp *http.Response) (result StorageContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -421,6 +418,10 @@ func (client StorageAccountsClient) ListByAccount(ctx context.Context, resourceG
 	result.sailr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.sailr.hasNextLink() && result.sailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -468,8 +469,7 @@ func (client StorageAccountsClient) ListByAccountPreparer(ctx context.Context, r
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always
@@ -477,7 +477,6 @@ func (client StorageAccountsClient) ListByAccountSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListByAccountResponder(resp *http.Response) (result StorageAccountInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -502,6 +501,7 @@ func (client StorageAccountsClient) listByAccountNextResults(ctx context.Context
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -557,6 +557,10 @@ func (client StorageAccountsClient) ListSasTokens(ctx context.Context, resourceG
 	result.stilr, err = client.ListSasTokensResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListSasTokens", resp, "Failure responding to request")
+		return
+	}
+	if result.stilr.hasNextLink() && result.stilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -588,8 +592,7 @@ func (client StorageAccountsClient) ListSasTokensPreparer(ctx context.Context, r
 // ListSasTokensSender sends the ListSasTokens request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) ListSasTokensSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSasTokensResponder handles the response to the ListSasTokens request. The method always
@@ -597,7 +600,6 @@ func (client StorageAccountsClient) ListSasTokensSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListSasTokensResponder(resp *http.Response) (result SasTokenInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -622,6 +624,7 @@ func (client StorageAccountsClient) listSasTokensNextResults(ctx context.Context
 	result, err = client.ListSasTokensResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "listSasTokensNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -676,6 +679,10 @@ func (client StorageAccountsClient) ListStorageContainers(ctx context.Context, r
 	result.sclr, err = client.ListStorageContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListStorageContainers", resp, "Failure responding to request")
+		return
+	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -706,8 +713,7 @@ func (client StorageAccountsClient) ListStorageContainersPreparer(ctx context.Co
 // ListStorageContainersSender sends the ListStorageContainers request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) ListStorageContainersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListStorageContainersResponder handles the response to the ListStorageContainers request. The method always
@@ -715,7 +721,6 @@ func (client StorageAccountsClient) ListStorageContainersSender(req *http.Reques
 func (client StorageAccountsClient) ListStorageContainersResponder(resp *http.Response) (result StorageContainerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -740,6 +745,7 @@ func (client StorageAccountsClient) listStorageContainersNextResults(ctx context
 	result, err = client.ListStorageContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "listStorageContainersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -795,6 +801,7 @@ func (client StorageAccountsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -830,8 +837,7 @@ func (client StorageAccountsClient) UpdatePreparer(ctx context.Context, resource
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -839,7 +845,6 @@ func (client StorageAccountsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

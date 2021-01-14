@@ -36,7 +36,8 @@ func NewHeatMapClient(subscriptionID string) HeatMapClient {
 	return NewHeatMapClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewHeatMapClientWithBaseURI creates an instance of the HeatMapClient client.
+// NewHeatMapClientWithBaseURI creates an instance of the HeatMapClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewHeatMapClientWithBaseURI(baseURI string, subscriptionID string) HeatMapClient {
 	return HeatMapClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -88,6 +89,7 @@ func (client HeatMapClient) Get(ctx context.Context, resourceGroupName string, p
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.HeatMapClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,8 +126,7 @@ func (client HeatMapClient) GetPreparer(ctx context.Context, resourceGroupName s
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client HeatMapClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -133,7 +134,6 @@ func (client HeatMapClient) GetSender(req *http.Request) (*http.Response, error)
 func (client HeatMapClient) GetResponder(resp *http.Response) (result HeatMapModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

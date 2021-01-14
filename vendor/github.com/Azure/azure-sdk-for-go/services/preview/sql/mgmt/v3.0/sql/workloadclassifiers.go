@@ -38,7 +38,9 @@ func NewWorkloadClassifiersClient(subscriptionID string) WorkloadClassifiersClie
 	return NewWorkloadClassifiersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkloadClassifiersClientWithBaseURI creates an instance of the WorkloadClassifiersClient client.
+// NewWorkloadClassifiersClientWithBaseURI creates an instance of the WorkloadClassifiersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewWorkloadClassifiersClientWithBaseURI(baseURI string, subscriptionID string) WorkloadClassifiersClient {
 	return WorkloadClassifiersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -114,9 +116,8 @@ func (client WorkloadClassifiersClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkloadClassifiersClient) CreateOrUpdateSender(req *http.Request) (future WorkloadClassifiersCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -129,7 +130,6 @@ func (client WorkloadClassifiersClient) CreateOrUpdateSender(req *http.Request) 
 func (client WorkloadClassifiersClient) CreateOrUpdateResponder(resp *http.Response) (result WorkloadClassifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,9 +198,8 @@ func (client WorkloadClassifiersClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkloadClassifiersClient) DeleteSender(req *http.Request) (future WorkloadClassifiersDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -213,7 +212,6 @@ func (client WorkloadClassifiersClient) DeleteSender(req *http.Request) (future 
 func (client WorkloadClassifiersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -255,6 +253,7 @@ func (client WorkloadClassifiersClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -287,8 +286,7 @@ func (client WorkloadClassifiersClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkloadClassifiersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -296,7 +294,6 @@ func (client WorkloadClassifiersClient) GetSender(req *http.Request) (*http.Resp
 func (client WorkloadClassifiersClient) GetResponder(resp *http.Response) (result WorkloadClassifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -339,6 +336,10 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroup(ctx context.Context,
 	result.wclr, err = client.ListByWorkloadGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "ListByWorkloadGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.wclr.hasNextLink() && result.wclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -370,8 +371,7 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroupPreparer(ctx context.
 // ListByWorkloadGroupSender sends the ListByWorkloadGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkloadClassifiersClient) ListByWorkloadGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByWorkloadGroupResponder handles the response to the ListByWorkloadGroup request. The method always
@@ -379,7 +379,6 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroupSender(req *http.Requ
 func (client WorkloadClassifiersClient) ListByWorkloadGroupResponder(resp *http.Response) (result WorkloadClassifierListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -404,6 +403,7 @@ func (client WorkloadClassifiersClient) listByWorkloadGroupNextResults(ctx conte
 	result, err = client.ListByWorkloadGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "listByWorkloadGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -3,58 +3,53 @@ subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 description: |-
-    Manages a resource group on Azure.
+  Manages a Resource Group.
 ---
 
 # azurerm_resource_group
 
-Manages a resource group on Azure.
+Manages a Resource Group.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "testResourceGroup1"
-  location = "West US"
-
-  tags = {
-    environment = "Production"
-  }
+  name     = "example"
+  location = "West Europe"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the resource group. Must be unique on your
-    Azure subscription.
+* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new Resource Group to be created.
 
-* `location` - (Required) The location where the resource group should be created.
-    For a list of all Azure locations, please consult [this link](http://azure.microsoft.com/en-us/regions/) or run `az account list-locations --output table`.
+* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+---
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 
 ## Attributes Reference
 
-In addition to the arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Resource Group.
-
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Resource Group.
-* `update` - (Defaults to 90 minutes) Used when updating the Resource Group.
+* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Resource Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Resource Group.
+* `update` - (Defaults to 1 hour and 30 minutes) Used when updating the Resource Group.
+* `delete` - (Defaults to 1 hour and 30 minutes) Used when deleting the Resource Group.
 
 ## Import
 
 Resource Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_resource_group.mygroup /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup
+terraform import azurerm_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example
 ```

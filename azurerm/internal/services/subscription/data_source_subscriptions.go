@@ -5,15 +5,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmSubscriptions() *schema.Resource {
+func dataSourceSubscriptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSubscriptionsRead,
+		Read: dataSourceSubscriptionsRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -32,14 +33,51 @@ func dataSourceArmSubscriptions() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: azure.SchemaSubscription(false),
+					Schema: map[string]*schema.Schema{
+						"subscription_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"state": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"location_placement_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"quota_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"spending_limit": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tags": tags.SchemaDataSource(),
+					},
 				},
 			},
 		},
 	}
 }
 
-func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
 	subClient := armClient.Subscription.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -48,13 +86,13 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
 	displayNameContains := strings.ToLower(d.Get("display_name_contains").(string))
 
-	//ListComplete returns an iterator struct
+	// ListComplete returns an iterator struct
 	results, err := subClient.ListComplete(ctx)
 	if err != nil {
 		return fmt.Errorf("Error listing subscriptions: %+v", err)
 	}
 
-	//iterate across each subscriptions and append them to slice
+	// iterate across each subscriptions and append them to slice
 	subscriptions := make([]map[string]interface{}, 0)
 	for results.NotDone() {
 		val := results.Value()
@@ -86,21 +124,23 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("Error going to next subscriptions value: %+v", err)
 		}
 
-		//check if the display name prefix matches the given input
+		// check if the display name prefix matches the given input
 		if displayNamePrefix != "" {
 			if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
-				//the display name does not match the given prefix
+				// the display name does not match the given prefix
 				continue
 			}
 		}
 
-		//check if the display name matches the 'contains' comparison
+		// check if the display name matches the 'contains' comparison
 		if displayNameContains != "" {
 			if !strings.Contains(strings.ToLower(s["display_name"].(string)), displayNameContains) {
-				//the display name does not match the contains check
+				// the display name does not match the contains check
 				continue
 			}
 		}
+
+		s["tags"] = tags.Flatten(val.Tags)
 
 		subscriptions = append(subscriptions, s)
 	}

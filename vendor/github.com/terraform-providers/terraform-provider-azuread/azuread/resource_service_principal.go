@@ -50,13 +50,12 @@ func resourceServicePrincipal() *schema.Resource {
 				Computed: true,
 			},
 
-			"oauth2_permissions": graph.SchemaOauth2Permissions(),
+			"oauth2_permissions": graph.SchemaOauth2PermissionsComputed(),
 
 			"tags": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Set:      schema.HashString,
-				ForceNew: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -95,7 +94,7 @@ func resourceServicePrincipalCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	d.SetId(*sp.ObjectID)
 
-	_, err = graph.WaitForReplication(func() (interface{}, error) {
+	_, err = graph.WaitForCreationReplication(func() (interface{}, error) {
 		return client.Get(ctx, *sp.ObjectID)
 	})
 	if err != nil {
@@ -113,6 +112,15 @@ func resourceServicePrincipalUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if d.HasChange("app_role_assignment_required") {
 		properties.AppRoleAssignmentRequired = p.Bool(d.Get("app_role_assignment_required").(bool))
+	}
+
+	if d.HasChange("tags") {
+		if v, ok := d.GetOk("tags"); ok {
+			properties.Tags = tf.ExpandStringSlicePtr(v.(*schema.Set).List())
+		} else {
+			empty := []string{} // clear tags with empty array
+			properties.Tags = &empty
+		}
 	}
 
 	if _, err := client.Update(ctx, d.Id(), properties); err != nil {

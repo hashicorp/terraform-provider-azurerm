@@ -36,7 +36,8 @@ func NewSolutionsClient(subscriptionID string, providerName string, resourceType
 	return NewSolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID, providerName, resourceType, resourceName)
 }
 
-// NewSolutionsClientWithBaseURI creates an instance of the SolutionsClient client.
+// NewSolutionsClientWithBaseURI creates an instance of the SolutionsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSolutionsClientWithBaseURI(baseURI string, subscriptionID string, providerName string, resourceType string, resourceName string) SolutionsClient {
 	return SolutionsClient{NewWithBaseURI(baseURI, subscriptionID, providerName, resourceType, resourceName)}
 }
@@ -112,9 +113,8 @@ func (client SolutionsClient) CreateOrUpdatePreparer(ctx context.Context, resour
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SolutionsClient) CreateOrUpdateSender(req *http.Request) (future SolutionsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -127,7 +127,6 @@ func (client SolutionsClient) CreateOrUpdateSender(req *http.Request) (future So
 func (client SolutionsClient) CreateOrUpdateResponder(resp *http.Response) (result Solution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,9 +196,8 @@ func (client SolutionsClient) DeletePreparer(ctx context.Context, resourceGroupN
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SolutionsClient) DeleteSender(req *http.Request) (future SolutionsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -212,7 +210,6 @@ func (client SolutionsClient) DeleteSender(req *http.Request) (future SolutionsD
 func (client SolutionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -258,6 +255,7 @@ func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -287,8 +285,7 @@ func (client SolutionsClient) GetPreparer(ctx context.Context, resourceGroupName
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SolutionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -296,7 +293,6 @@ func (client SolutionsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client SolutionsClient) GetResponder(resp *http.Response) (result Solution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -342,6 +338,7 @@ func (client SolutionsClient) ListByResourceGroup(ctx context.Context, resourceG
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,8 +367,7 @@ func (client SolutionsClient) ListByResourceGroupPreparer(ctx context.Context, r
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client SolutionsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -379,7 +375,6 @@ func (client SolutionsClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client SolutionsClient) ListByResourceGroupResponder(resp *http.Response) (result SolutionPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -415,6 +410,7 @@ func (client SolutionsClient) ListBySubscription(ctx context.Context) (result So
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -442,8 +438,7 @@ func (client SolutionsClient) ListBySubscriptionPreparer(ctx context.Context) (*
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client SolutionsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -451,7 +446,6 @@ func (client SolutionsClient) ListBySubscriptionSender(req *http.Request) (*http
 func (client SolutionsClient) ListBySubscriptionResponder(resp *http.Response) (result SolutionPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -524,9 +518,8 @@ func (client SolutionsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client SolutionsClient) UpdateSender(req *http.Request) (future SolutionsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -539,7 +532,6 @@ func (client SolutionsClient) UpdateSender(req *http.Request) (future SolutionsU
 func (client SolutionsClient) UpdateResponder(resp *http.Response) (result Solution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

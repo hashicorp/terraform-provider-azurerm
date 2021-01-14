@@ -38,7 +38,8 @@ func NewReplicationStorageClassificationMappingsClient(subscriptionID string, re
 }
 
 // NewReplicationStorageClassificationMappingsClientWithBaseURI creates an instance of the
-// ReplicationStorageClassificationMappingsClient client.
+// ReplicationStorageClassificationMappingsClient client using a custom endpoint.  Use this when interacting with an
+// Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationStorageClassificationMappingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationStorageClassificationMappingsClient {
 	return ReplicationStorageClassificationMappingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -104,9 +105,8 @@ func (client ReplicationStorageClassificationMappingsClient) CreatePreparer(ctx 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) CreateSender(req *http.Request) (future ReplicationStorageClassificationMappingsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -119,7 +119,6 @@ func (client ReplicationStorageClassificationMappingsClient) CreateSender(req *h
 func (client ReplicationStorageClassificationMappingsClient) CreateResponder(resp *http.Response) (result StorageClassificationMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -185,9 +184,8 @@ func (client ReplicationStorageClassificationMappingsClient) DeletePreparer(ctx 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) DeleteSender(req *http.Request) (future ReplicationStorageClassificationMappingsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -200,7 +198,6 @@ func (client ReplicationStorageClassificationMappingsClient) DeleteSender(req *h
 func (client ReplicationStorageClassificationMappingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +236,7 @@ func (client ReplicationStorageClassificationMappingsClient) Get(ctx context.Con
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,8 +269,7 @@ func (client ReplicationStorageClassificationMappingsClient) GetPreparer(ctx con
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -280,7 +277,6 @@ func (client ReplicationStorageClassificationMappingsClient) GetSender(req *http
 func (client ReplicationStorageClassificationMappingsClient) GetResponder(resp *http.Response) (result StorageClassificationMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +313,10 @@ func (client ReplicationStorageClassificationMappingsClient) List(ctx context.Co
 	result.scmc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.scmc.hasNextLink() && result.scmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -346,8 +346,7 @@ func (client ReplicationStorageClassificationMappingsClient) ListPreparer(ctx co
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -355,7 +354,6 @@ func (client ReplicationStorageClassificationMappingsClient) ListSender(req *htt
 func (client ReplicationStorageClassificationMappingsClient) ListResponder(resp *http.Response) (result StorageClassificationMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -380,6 +378,7 @@ func (client ReplicationStorageClassificationMappingsClient) listNextResults(ctx
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -432,6 +431,10 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 	result.scmc, err = client.ListByReplicationStorageClassificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "ListByReplicationStorageClassifications", resp, "Failure responding to request")
+		return
+	}
+	if result.scmc.hasNextLink() && result.scmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -463,8 +466,7 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 // ListByReplicationStorageClassificationsSender sends the ListByReplicationStorageClassifications request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) ListByReplicationStorageClassificationsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationStorageClassificationsResponder handles the response to the ListByReplicationStorageClassifications request. The method always
@@ -472,7 +474,6 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 func (client ReplicationStorageClassificationMappingsClient) ListByReplicationStorageClassificationsResponder(resp *http.Response) (result StorageClassificationMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -497,6 +498,7 @@ func (client ReplicationStorageClassificationMappingsClient) listByReplicationSt
 	result, err = client.ListByReplicationStorageClassificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "listByReplicationStorageClassificationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

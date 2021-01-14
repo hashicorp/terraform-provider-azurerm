@@ -10,8 +10,6 @@ description: |-
 
 Manages a Private Endpoint.
 
--> **NOTE** Private Endpoint is currently in Public Preview.
-
 Azure Private Endpoint is a network interface that connects you privately and securely to a service powered by Azure Private Link. Private Endpoint uses a private IP address from your VNet, effectively bringing the service into your VNet. The service could be an Azure service such as Azure Storage, SQL, etc. or your own Private Link Service.
 
 ## Example Usage
@@ -33,7 +31,7 @@ resource "azurerm_subnet" "service" {
   name                 = "service"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -42,7 +40,7 @@ resource "azurerm_subnet" "endpoint" {
   name                 = "endpoint"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -109,7 +107,19 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
+* `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
+
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `private_dns_zone_group` supports the following:
+
+* `name` - (Required) Specifies the Name of the Private DNS Zone Group. Changing this forces a new `private_dns_zone_group` resource to be created.
+
+* `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 
 ---
 
@@ -146,6 +156,65 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 The following attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
+
+---
+
+A `private_dns_zone_group` block exports:
+
+* `id` - The ID of the Private DNS Zone Group.
+
+---
+
+A `custom_dns_configs` block exports:
+
+* `fqdn` - The fully qualified domain name to the `private_endpoint`.
+
+* `ip_addresses` - A list of all IP Addresses that map to the `private_endpoint` fqdn.
+
+-> **NOTE:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
+
+---
+
+A `private_dns_zone_configs` block exports:
+
+* `name` - The name of the Private DNS Zone that the config belongs to.
+
+* `id` - The ID of the Private DNS Zone Config.
+
+* `private_dns_zone_id` - A list of IP Addresses
+
+* `record_sets` - A `record_sets` block as defined below.
+
+---
+
+A `private_service_connection` block exports:
+
+* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+
+---
+
+A `record_sets` block exports:
+
+* `name` - The name of the Private DNS Zone that the config belongs to.
+
+* `type` - The type of DNS record.
+
+* `fqdn` - The fully qualified domain name to the `private_dns_zone`.
+
+* `ttl` - The time to live for each connection to the `private_dns_zone`.
+
+* `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
+
+-> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
+
+---
+
+## Example HCL Configurations
+
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
+* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
+* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-dns-group)
 
 ## Timeouts
 

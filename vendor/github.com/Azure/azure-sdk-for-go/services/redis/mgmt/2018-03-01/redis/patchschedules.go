@@ -36,12 +36,13 @@ func NewPatchSchedulesClient(subscriptionID string) PatchSchedulesClient {
 	return NewPatchSchedulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPatchSchedulesClientWithBaseURI creates an instance of the PatchSchedulesClient client.
+// NewPatchSchedulesClientWithBaseURI creates an instance of the PatchSchedulesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPatchSchedulesClientWithBaseURI(baseURI string, subscriptionID string) PatchSchedulesClient {
 	return PatchSchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or replace the patching schedule for Redis cache (requires Premium SKU).
+// CreateOrUpdate create or replace the patching schedule for Redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the Redis cache.
@@ -80,6 +81,7 @@ func (client PatchSchedulesClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,8 +114,7 @@ func (client PatchSchedulesClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client PatchSchedulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -121,7 +122,6 @@ func (client PatchSchedulesClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client PatchSchedulesClient) CreateOrUpdateResponder(resp *http.Response) (result PatchSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -129,7 +129,7 @@ func (client PatchSchedulesClient) CreateOrUpdateResponder(resp *http.Response) 
 	return
 }
 
-// Delete deletes the patching schedule of a redis cache (requires Premium SKU).
+// Delete deletes the patching schedule of a redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the redis cache.
@@ -160,6 +160,7 @@ func (client PatchSchedulesClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -190,8 +191,7 @@ func (client PatchSchedulesClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client PatchSchedulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -199,14 +199,13 @@ func (client PatchSchedulesClient) DeleteSender(req *http.Request) (*http.Respon
 func (client PatchSchedulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
 }
 
-// Get gets the patching schedule of a redis cache (requires Premium SKU).
+// Get gets the patching schedule of a redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the redis cache.
@@ -237,6 +236,7 @@ func (client PatchSchedulesClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -267,8 +267,7 @@ func (client PatchSchedulesClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client PatchSchedulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -276,7 +275,6 @@ func (client PatchSchedulesClient) GetSender(req *http.Request) (*http.Response,
 func (client PatchSchedulesClient) GetResponder(resp *http.Response) (result PatchSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -316,6 +314,10 @@ func (client PatchSchedulesClient) ListByRedisResource(ctx context.Context, reso
 	result.pslr, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "ListByRedisResource", resp, "Failure responding to request")
+		return
+	}
+	if result.pslr.hasNextLink() && result.pslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -345,8 +347,7 @@ func (client PatchSchedulesClient) ListByRedisResourcePreparer(ctx context.Conte
 // ListByRedisResourceSender sends the ListByRedisResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client PatchSchedulesClient) ListByRedisResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByRedisResourceResponder handles the response to the ListByRedisResource request. The method always
@@ -354,7 +355,6 @@ func (client PatchSchedulesClient) ListByRedisResourceSender(req *http.Request) 
 func (client PatchSchedulesClient) ListByRedisResourceResponder(resp *http.Response) (result PatchScheduleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -379,6 +379,7 @@ func (client PatchSchedulesClient) listByRedisResourceNextResults(ctx context.Co
 	result, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "listByRedisResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

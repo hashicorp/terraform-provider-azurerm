@@ -39,7 +39,8 @@ func NewExtendedDatabaseBlobAuditingPoliciesClient(subscriptionID string) Extend
 }
 
 // NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI creates an instance of the
-// ExtendedDatabaseBlobAuditingPoliciesClient client.
+// ExtendedDatabaseBlobAuditingPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ExtendedDatabaseBlobAuditingPoliciesClient {
 	return ExtendedDatabaseBlobAuditingPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -78,6 +79,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdate(ctx cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,8 +113,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdatePreparer(
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -120,7 +121,6 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdateSender(re
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ExtendedDatabaseBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) Get(ctx context.Context
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,8 +193,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) GetPreparer(ctx context
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -201,10 +201,130 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) GetSender(req *http.Req
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result ExtendedDatabaseBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListByDatabase lists extended auditing settings of a database.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// databaseName - the name of the database.
+func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result ExtendedDatabaseBlobAuditingPolicyListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedDatabaseBlobAuditingPoliciesClient.ListByDatabase")
+		defer func() {
+			sc := -1
+			if result.edbaplr.Response.Response != nil {
+				sc = result.edbaplr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listByDatabaseNextResults
+	req, err := client.ListByDatabasePreparer(ctx, resourceGroupName, serverName, databaseName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "ListByDatabase", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByDatabaseSender(req)
+	if err != nil {
+		result.edbaplr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "ListByDatabase", resp, "Failure sending request")
+		return
+	}
+
+	result.edbaplr, err = client.ListByDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.edbaplr.hasNextLink() && result.edbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
+
+	return
+}
+
+// ListByDatabasePreparer prepares the ListByDatabase request.
+func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2017-03-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/extendedAuditingSettings", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByDatabaseSender sends the ListByDatabase request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
+// closes the http.Response Body.
+func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ExtendedDatabaseBlobAuditingPolicyListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByDatabaseNextResults retrieves the next set of results, if any.
+func (client ExtendedDatabaseBlobAuditingPoliciesClient) listByDatabaseNextResults(ctx context.Context, lastResults ExtendedDatabaseBlobAuditingPolicyListResult) (result ExtendedDatabaseBlobAuditingPolicyListResult, err error) {
+	req, err := lastResults.extendedDatabaseBlobAuditingPolicyListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByDatabaseSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
+	}
+	return
+}
+
+// ListByDatabaseComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabaseComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result ExtendedDatabaseBlobAuditingPolicyListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedDatabaseBlobAuditingPoliciesClient.ListByDatabase")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByDatabase(ctx, resourceGroupName, serverName, databaseName)
 	return
 }

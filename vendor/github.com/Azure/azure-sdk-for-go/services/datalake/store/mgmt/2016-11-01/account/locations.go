@@ -35,7 +35,8 @@ func NewLocationsClient(subscriptionID string) LocationsClient {
 	return NewLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLocationsClientWithBaseURI creates an instance of the LocationsClient client.
+// NewLocationsClientWithBaseURI creates an instance of the LocationsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLocationsClientWithBaseURI(baseURI string, subscriptionID string) LocationsClient {
 	return LocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -70,6 +71,7 @@ func (client LocationsClient) GetCapability(ctx context.Context, location string
 	result, err = client.GetCapabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetCapability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -98,8 +100,7 @@ func (client LocationsClient) GetCapabilityPreparer(ctx context.Context, locatio
 // GetCapabilitySender sends the GetCapability request. The method will close the
 // http.Response Body if it receives an error.
 func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCapabilityResponder handles the response to the GetCapability request. The method always
@@ -107,7 +108,6 @@ func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Resp
 func (client LocationsClient) GetCapabilityResponder(resp *http.Response) (result CapabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,6 +145,7 @@ func (client LocationsClient) GetUsage(ctx context.Context, location string) (re
 	result, err = client.GetUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetUsage", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,8 +174,7 @@ func (client LocationsClient) GetUsagePreparer(ctx context.Context, location str
 // GetUsageSender sends the GetUsage request. The method will close the
 // http.Response Body if it receives an error.
 func (client LocationsClient) GetUsageSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetUsageResponder handles the response to the GetUsage request. The method always
@@ -182,7 +182,6 @@ func (client LocationsClient) GetUsageSender(req *http.Request) (*http.Response,
 func (client LocationsClient) GetUsageResponder(resp *http.Response) (result UsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

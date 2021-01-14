@@ -3,44 +3,45 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_connection_monitor"
 description: |-
-  Configures a Network Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
-
+  Manages a Network Connection Monitor.
 ---
 
-# azurerm_connection_monitor
+# azurerm_network_connection_monitor
 
-Configures a Network Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
+Manages a Network Connection Monitor.
+
+~> **NOTE:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with Terraform, which now only supports v2.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "connection-monitor-rg"
-  location = "West US"
+  name     = "example-Watcher-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_network_watcher" "example" {
-  name                = "network-watcher"
+  name                = "example-Watcher"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_virtual_network" "example" {
-  name                = "production-network"
+  name                = "example-Vnet"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "internal"
+  name                 = "example-Subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "example" {
-  name                = "cmtest-nic"
+  name                = "example-Nic"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -52,11 +53,11 @@ resource "azurerm_network_interface" "example" {
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "cmtest-vm"
+  name                  = "example-VM"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_F2"
+  vm_size               = "Standard_D2s_v3"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -66,14 +67,14 @@ resource "azurerm_virtual_machine" "example" {
   }
 
   storage_os_disk {
-    name              = "osdisk"
+    name              = "osdisk-example01"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "cmtest-vm"
+    computer_name  = "hostnametest01"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -84,76 +85,203 @@ resource "azurerm_virtual_machine" "example" {
 }
 
 resource "azurerm_virtual_machine_extension" "example" {
-  name                       = "cmtest-vm-network-watcher"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  virtual_machine_name       = azurerm_virtual_machine.example.name
+  name                       = "example-VMExtension"
+  virtual_machine_id         = azurerm_virtual_machine.example.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"
   auto_upgrade_minor_version = true
 }
 
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-Workspace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "pergb2018"
+}
+
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "cmtest-connectionmonitor"
-  location             = azurerm_resource_group.example.location
-  resource_group_name  = azurerm_resource_group.example.name
+  name                 = "example-Monitor"
   network_watcher_name = azurerm_network_watcher.example.name
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_network_watcher.example.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.example.id
+
+    filter {
+      item {
+        address = azurerm_virtual_machine.example.id
+        type    = "AgentAddress"
+      }
+
+      type = "Include"
+    }
   }
 
-  destination {
+  endpoint {
+    name    = "destination"
     address = "terraform.io"
-    port    = 80
   }
+
+  test_configuration {
+    name                      = "tcpName"
+    protocol                  = "Tcp"
+    test_frequency_in_seconds = 60
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "exampletg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcpName"]
+    disable                  = false
+  }
+
+  notes = "examplenote"
+
+  output_workspace_resource_ids = [azurerm_log_analytics_workspace.example.id]
 
   depends_on = [azurerm_virtual_machine_extension.example]
 }
 ```
 
-~> **NOTE:** This Resource requires that [the Network Watcher Agent Virtual Machine Extension](https://docs.microsoft.com/en-us/azure/network-watcher/connection-monitor) is installed on the Virtual Machine before monitoring can be started. The extension can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html).
-
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Network Connection Monitor. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Network Connection Monitor. Changing this forces a new resource to be created.
 
-* `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the Network Connection Monitor should exist. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Connection Monitor. Changing this forces a new resource to be created.
+* `network_watcher_id` - (Required) The ID of the Network Watcher. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `endpoint` - (Required) A `endpoint` block as defined below.
 
-* `auto_start` - (Optional) Specifies whether the connection monitor will start automatically once created. Defaults to `true`. Changing this forces a new resource to be created.
+* `test_configuration` - (Required) A `test_configuration` block as defined below.
 
-* `interval_in_seconds` - (Optional) Monitoring interval in seconds. Defaults to `60`.
-
-* `source` - (Required) A `source` block as defined below.
-
-* `destination` - (Required) A `destination` block as defined below.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `test_group` - (Required) A `test_group` block as defined below.
 
 ---
 
-A `source` block contains:
+* `notes` - (Optional) The description of the Network Connection Monitor.
 
-* `virtual_machine_id` - (Required) The ID of the Virtual Machine to monitor connectivity from.
+* `output_workspace_resource_ids` - (Optional) A list of IDs of the Log Analytics Workspace which will accept the output from the Network Connection Monitor.
 
-* `port` - (Optional) The port on the Virtual Machine to monitor connectivity from. Defaults to `0` (Dynamic Port Assignment).
+* `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
 
-A `destination` block contains:
+---
 
-* `virtual_machine_id` - (Optional) The ID of the Virtual Machine to monitor connectivity to.
+A `endpoint` block supports the following:
 
-* `address` - (Optional) IP address or domain name to monitor connectivity to.
+* `name` - (Required) The name of the endpoint for the Network Connection Monitor .
 
-* `port` - (Required) The port on the destination to monitor connectivity to.
+* `address` - (Optional) The IP address or domain name of the Network Connection Monitor endpoint.
 
-~> **NOTE:** One of `virtual_machine_id` or `address` must be specified.
+* `filter` - (Optional) A `filter` block as defined below.
+
+* `virtual_machine_id` - (Optional) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor.
+
+---
+
+A `filter` block supports the following:
+
+* `type` - (Optional) The behaviour type of this endpoint filter. Currently the only allowed value is `Include`. Defaults to `Include`.
+
+* `item` - (Optional) A `item` block as defined below.
+
+---
+
+A `item` block supports the following:
+
+* `type` - (Optional) The type of items included in the filter. Possible values are `AgentAddress`. Defaults to `AgentAddress`.
+
+* `address` - (Optional) The address of the filter item.
+
+---
+
+A `test_configuration` block supports the following:
+
+* `name` - (Required) The name of test configuration for the Network Connection Monitor.
+
+* `protocol` - (Required) The protocol used to evaluate tests. Possible values are `Tcp`, `Http` and `Icmp`.
+
+* `test_frequency_in_seconds` - (Optional) The time interval in seconds at which the test evaluation will happen. Defaults to `60`.
+
+* `http_configuration` - (Optional) A `http_configuration` block as defined below.
+
+* `icmp_configuration` - (Optional) A `icmp_configuration` block as defined below.
+
+* `preferred_ip_version` - (Optional) The preferred IP version which is used in the test evaluation. Possible values are `IPv4` and `IPv6`. 
+
+* `success_threshold` - (Optional) A `success_threshold` block as defined below.
+
+* `tcp_configuration` - (Optional) A `tcp_configuration` block as defined below.
+
+---
+
+A `http_configuration` block supports the following:
+
+* `method` - (Optional) The HTTP method for the HTTP request. Possible values are `Get` and `Post`. Defaults to `Get`.
+
+* `port` - (Optional) The port for the HTTP connection.
+
+* `path` - (Optional) The path component of the URI. It only accepts the absolute path.
+
+* `prefer_https` - (Optional) Should HTTPS be preferred over HTTP in cases where the choice is not explicit? Defaults to `false`.
+
+* `request_header` - (Optional) A `request_header` block as defined below.
+
+* `valid_status_code_ranges` - (Optional) The HTTP status codes to consider successful. For instance, `2xx`, `301-304` and `418`.
+
+---
+
+A `request_header` block supports the following:
+
+* `name` - (Required) The name of the HTTP header.
+
+* `value` - (Required) The value of the HTTP header.
+
+---
+
+A `icmp_configuration` block supports the following:
+
+* `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
+
+---
+
+A `success_threshold` block supports the following:
+
+* `checks_failed_percent` - (Optional) The maximum percentage of failed checks permitted for a test to be successful.
+
+* `round_trip_time_ms` - (Optional) The maximum round-trip time in milliseconds permitted for a test to be successful.
+
+---
+
+A `tcp_configuration` block supports the following:
+
+* `port` - (Required) The port for the Tcp connection.
+
+* `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
+
+---
+
+A `test_group` block supports the following:
+
+* `name` - (Required) The name of the test group for the Network Connection Monitor.
+
+* `destination_endpoints` - (Required) A list of destination endpoint names.
+
+* `source_endpoints` - (Required) A list of source endpoint names.
+
+* `test_configuration_names` - (Required) A list of test configuration names.
+
+* `enabled` - (Optional) Should the test group be enabled? Defaults to `true`.
 
 ## Attributes Reference
 
@@ -166,8 +294,8 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Connection Monitor.
-* `update` - (Defaults to 30 minutes) Used when updating the Network Connection Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Connection Monitor.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Connection Monitor.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Network Connection Monitor.
 
 ## Import
@@ -175,5 +303,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Network Connection Monitors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_connection_monitor.monitor1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/monitor1
+terraform import azurerm_network_connection_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/connectionMonitor1
 ```

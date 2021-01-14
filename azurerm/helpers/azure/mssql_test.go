@@ -2,7 +2,7 @@ package azure
 
 import "testing"
 
-//Your server name can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.
+// Your server name can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.
 func TestValidateMsSqlServerName(t *testing.T) {
 	cases := []struct {
 		Value  string
@@ -63,7 +63,7 @@ func TestValidateMsSqlServerName(t *testing.T) {
 	}
 }
 
-//Your database name can't end with '.' or ' ', can't contain '<,>,*,%,&,:,\,/,?' or control characters, and can't have more than 128 characters.
+// Your database name can't end with '.' or ' ', can't contain '<,>,*,%,&,:,\,/,?' or control characters, and can't have more than 128 characters.
 func TestValidateMsSqlDatabaseName(t *testing.T) {
 	cases := []struct {
 		Value  string
@@ -140,8 +140,8 @@ func TestValidateMsSqlDatabaseName(t *testing.T) {
 	}
 }
 
-//Following characters and any control characters are not allowed for resource name '%,&,\\\\,?,/'.\"
-//The name can not end with characters: '. '
+// Following characters and any control characters are not allowed for resource name '%,&,\\\\,?,/'.\"
+// The name can not end with characters: '. '
 func TestValidateMsSqlElasticPoolName(t *testing.T) {
 	cases := []struct {
 		Value  string

@@ -21,9 +21,12 @@ import (
 type ArmClient struct {
 	subscriptionID   string
 	clientID         string
+	objectID         string
 	tenantID         string
 	terraformVersion string
 	environment      azure.Environment
+
+	authenticatedAsAServicePrincipal bool
 
 	StopContext context.Context
 
@@ -36,19 +39,32 @@ type ArmClient struct {
 }
 
 // getArmClient is a helper method which returns a fully instantiated *ArmClient based on the auth Config's current settings.
-func getArmClient(authCfg *authentication.Config, tfVersion string) (*ArmClient, error) {
+func getArmClient(authCfg *authentication.Config, tfVersion string, ctx context.Context) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authCfg.Environment)
 	if err != nil {
 		return nil, err
+	}
+
+	objectID := ""
+	// TODO remove this when we confirm that MSI no longer returns nil with getAuthenticatedObjectID
+	if getAuthenticatedObjectID := authCfg.GetAuthenticatedObjectID; getAuthenticatedObjectID != nil {
+		v, err := getAuthenticatedObjectID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting authenticated object ID: %v", err)
+		}
+		objectID = v
 	}
 
 	// client declarations:
 	client := ArmClient{
 		subscriptionID:   authCfg.SubscriptionID,
 		clientID:         authCfg.ClientID,
+		objectID:         objectID,
 		tenantID:         authCfg.TenantID,
 		terraformVersion: tfVersion,
 		environment:      *env,
+
+		authenticatedAsAServicePrincipal: authCfg.AuthenticatedAsAServicePrincipal,
 	}
 
 	sender := sender.BuildSender("AzureAD")

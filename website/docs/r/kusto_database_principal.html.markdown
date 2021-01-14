@@ -10,6 +10,8 @@ description: |-
 
 Manages a Kusto (also known as Azure Data Explorer) Database Principal
 
+~> **NOTE:** This resource is being **deprecated** due to API updates and should no longer be used.  Please use [azurerm_kusto_database_principal_assignment](./kusto_database_principal_assignment.html) instead.
+
 ## Example Usage
 
 ```hcl
@@ -22,8 +24,8 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_kusto_cluster" "cluster" {
   name                = "kustocluster"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
   sku {
     name     = "Standard_D13_v2"

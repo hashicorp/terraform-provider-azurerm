@@ -37,7 +37,8 @@ func NewLinkedServicesClient(subscriptionID string) LinkedServicesClient {
 	return NewLinkedServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLinkedServicesClientWithBaseURI creates an instance of the LinkedServicesClient client.
+// NewLinkedServicesClientWithBaseURI creates an instance of the LinkedServicesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLinkedServicesClientWithBaseURI(baseURI string, subscriptionID string) LinkedServicesClient {
 	return LinkedServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,14 +74,7 @@ func (client LinkedServicesClient) CreateOrUpdate(ctx context.Context, resourceG
 		{TargetValue: linkedServiceName,
 			Constraints: []validation.Constraint{{Target: "linkedServiceName", Name: validation.MaxLength, Rule: 260, Chain: nil},
 				{Target: "linkedServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "linkedServiceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}},
-		{TargetValue: linkedService,
-			Constraints: []validation.Constraint{{Target: "linkedService.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "linkedService.Properties.ConnectVia", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "linkedService.Properties.ConnectVia.Type", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "linkedService.Properties.ConnectVia.ReferenceName", Name: validation.Null, Rule: true, Chain: nil},
-					}},
-				}}}}}); err != nil {
+				{Target: "linkedServiceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("datafactory.LinkedServicesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -100,6 +94,7 @@ func (client LinkedServicesClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.LinkedServicesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -136,8 +131,7 @@ func (client LinkedServicesClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client LinkedServicesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -145,7 +139,6 @@ func (client LinkedServicesClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client LinkedServicesClient) CreateOrUpdateResponder(resp *http.Response) (result LinkedServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,6 +194,7 @@ func (client LinkedServicesClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.LinkedServicesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,8 +225,7 @@ func (client LinkedServicesClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client LinkedServicesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -240,7 +233,6 @@ func (client LinkedServicesClient) DeleteSender(req *http.Request) (*http.Respon
 func (client LinkedServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -297,6 +289,7 @@ func (client LinkedServicesClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.LinkedServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -331,8 +324,7 @@ func (client LinkedServicesClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client LinkedServicesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -340,7 +332,6 @@ func (client LinkedServicesClient) GetSender(req *http.Request) (*http.Response,
 func (client LinkedServicesClient) GetResponder(resp *http.Response) (result LinkedServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -392,6 +383,11 @@ func (client LinkedServicesClient) ListByFactory(ctx context.Context, resourceGr
 	result.lslr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.LinkedServicesClient", "ListByFactory", resp, "Failure responding to request")
+		return
+	}
+	if result.lslr.hasNextLink() && result.lslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -421,8 +417,7 @@ func (client LinkedServicesClient) ListByFactoryPreparer(ctx context.Context, re
 // ListByFactorySender sends the ListByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client LinkedServicesClient) ListByFactorySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByFactoryResponder handles the response to the ListByFactory request. The method always
@@ -430,7 +425,6 @@ func (client LinkedServicesClient) ListByFactorySender(req *http.Request) (*http
 func (client LinkedServicesClient) ListByFactoryResponder(resp *http.Response) (result LinkedServiceListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

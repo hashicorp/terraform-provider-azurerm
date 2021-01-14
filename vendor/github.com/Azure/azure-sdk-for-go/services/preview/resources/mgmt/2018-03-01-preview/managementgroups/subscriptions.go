@@ -37,7 +37,8 @@ func NewSubscriptionsClient() SubscriptionsClient {
 	return NewSubscriptionsClientWithBaseURI(DefaultBaseURI)
 }
 
-// NewSubscriptionsClientWithBaseURI creates an instance of the SubscriptionsClient client.
+// NewSubscriptionsClientWithBaseURI creates an instance of the SubscriptionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSubscriptionsClientWithBaseURI(baseURI string) SubscriptionsClient {
 	return SubscriptionsClient{NewWithBaseURI(baseURI)}
 }
@@ -74,6 +75,7 @@ func (client SubscriptionsClient) Create(ctx context.Context, groupID string, su
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.SubscriptionsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,8 +111,7 @@ func (client SubscriptionsClient) CreatePreparer(ctx context.Context, groupID st
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -118,7 +119,6 @@ func (client SubscriptionsClient) CreateSender(req *http.Request) (*http.Respons
 func (client SubscriptionsClient) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -157,6 +157,7 @@ func (client SubscriptionsClient) Delete(ctx context.Context, groupID string, su
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.SubscriptionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,8 +193,7 @@ func (client SubscriptionsClient) DeletePreparer(ctx context.Context, groupID st
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -201,7 +201,6 @@ func (client SubscriptionsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client SubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

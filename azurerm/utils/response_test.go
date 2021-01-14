@@ -44,7 +44,7 @@ type testNetError struct {
 	temporary bool
 }
 
-// testNetError fulfills net.Error interface
+// testNetError fulfils net.Error interface
 func (e testNetError) Error() string   { return "testError" }
 func (e testNetError) Timeout() bool   { return e.timeout }
 func (e testNetError) Temporary() bool { return e.temporary }
@@ -61,9 +61,11 @@ func TestResponseErrorIsRetryable(t *testing.T) {
 		{"Temporary errors are retryable", testNetError{false, true}, true},
 		{"net.Errors that are neither temporary nor timeouts are not retryable", testNetError{false, false}, false},
 		{"Retryable error nested in autorest.DetailedError is retryable", autorest.DetailedError{
-			Original: testNetError{true, true}}, true},
+			Original: testNetError{true, true},
+		}, true},
 		{"Unhandled error nested in autorest.DetailedError is not retryable", autorest.DetailedError{
-			Original: fmt.Errorf("Some other error")}, false},
+			Original: fmt.Errorf("Some other error"),
+		}, false},
 		{"nil is handled as non-retryable", nil, false},
 	}
 

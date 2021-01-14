@@ -39,7 +39,8 @@ func NewExtendedServerBlobAuditingPoliciesClient(subscriptionID string) Extended
 }
 
 // NewExtendedServerBlobAuditingPoliciesClientWithBaseURI creates an instance of the
-// ExtendedServerBlobAuditingPoliciesClient client.
+// ExtendedServerBlobAuditingPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ExtendedServerBlobAuditingPoliciesClient {
 	return ExtendedServerBlobAuditingPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,9 +104,8 @@ func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdatePreparer(ct
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -118,7 +118,6 @@ func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req 
 func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ExtendedServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +157,7 @@ func (client ExtendedServerBlobAuditingPoliciesClient) Get(ctx context.Context, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,8 +188,7 @@ func (client ExtendedServerBlobAuditingPoliciesClient) GetPreparer(ctx context.C
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtendedServerBlobAuditingPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -197,10 +196,128 @@ func (client ExtendedServerBlobAuditingPoliciesClient) GetSender(req *http.Reque
 func (client ExtendedServerBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result ExtendedServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListByServer lists extended auditing settings of a server.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+func (client ExtendedServerBlobAuditingPoliciesClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result ExtendedServerBlobAuditingPolicyListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedServerBlobAuditingPoliciesClient.ListByServer")
+		defer func() {
+			sc := -1
+			if result.esbaplr.Response.Response != nil {
+				sc = result.esbaplr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listByServerNextResults
+	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "ListByServer", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByServerSender(req)
+	if err != nil {
+		result.esbaplr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "ListByServer", resp, "Failure sending request")
+		return
+	}
+
+	result.esbaplr, err = client.ListByServerResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.esbaplr.hasNextLink() && result.esbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
+
+	return
+}
+
+// ListByServerPreparer prepares the ListByServer request.
+func (client ExtendedServerBlobAuditingPoliciesClient) ListByServerPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2017-03-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/extendedAuditingSettings", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByServerSender sends the ListByServer request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExtendedServerBlobAuditingPoliciesClient) ListByServerSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListByServerResponder handles the response to the ListByServer request. The method always
+// closes the http.Response Body.
+func (client ExtendedServerBlobAuditingPoliciesClient) ListByServerResponder(resp *http.Response) (result ExtendedServerBlobAuditingPolicyListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByServerNextResults retrieves the next set of results, if any.
+func (client ExtendedServerBlobAuditingPoliciesClient) listByServerNextResults(ctx context.Context, lastResults ExtendedServerBlobAuditingPolicyListResult) (result ExtendedServerBlobAuditingPolicyListResult, err error) {
+	req, err := lastResults.extendedServerBlobAuditingPolicyListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "listByServerNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByServerSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "listByServerNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByServerResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
+	}
+	return
+}
+
+// ListByServerComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ExtendedServerBlobAuditingPoliciesClient) ListByServerComplete(ctx context.Context, resourceGroupName string, serverName string) (result ExtendedServerBlobAuditingPolicyListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedServerBlobAuditingPoliciesClient.ListByServer")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByServer(ctx, resourceGroupName, serverName)
 	return
 }

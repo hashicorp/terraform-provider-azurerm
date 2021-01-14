@@ -36,7 +36,9 @@ func NewReplicationProtectedItemsClient(subscriptionID string, resourceGroupName
 	return NewReplicationProtectedItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationProtectedItemsClientWithBaseURI creates an instance of the ReplicationProtectedItemsClient client.
+// NewReplicationProtectedItemsClientWithBaseURI creates an instance of the ReplicationProtectedItemsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationProtectedItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationProtectedItemsClient {
 	return ReplicationProtectedItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -102,9 +104,8 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPointPreparer(ctx con
 // ApplyRecoveryPointSender sends the ApplyRecoveryPoint request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ApplyRecoveryPointSender(req *http.Request) (future ReplicationProtectedItemsApplyRecoveryPointFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -117,7 +118,6 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPointSender(req *http
 func (client ReplicationProtectedItemsClient) ApplyRecoveryPointResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,9 +186,8 @@ func (client ReplicationProtectedItemsClient) CreatePreparer(ctx context.Context
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) CreateSender(req *http.Request) (future ReplicationProtectedItemsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -201,7 +200,6 @@ func (client ReplicationProtectedItemsClient) CreateSender(req *http.Request) (f
 func (client ReplicationProtectedItemsClient) CreateResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -270,9 +268,8 @@ func (client ReplicationProtectedItemsClient) DeletePreparer(ctx context.Context
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) DeleteSender(req *http.Request) (future ReplicationProtectedItemsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -285,7 +282,6 @@ func (client ReplicationProtectedItemsClient) DeleteSender(req *http.Request) (f
 func (client ReplicationProtectedItemsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -350,9 +346,8 @@ func (client ReplicationProtectedItemsClient) FailoverCommitPreparer(ctx context
 // FailoverCommitSender sends the FailoverCommit request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) FailoverCommitSender(req *http.Request) (future ReplicationProtectedItemsFailoverCommitFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -365,7 +360,6 @@ func (client ReplicationProtectedItemsClient) FailoverCommitSender(req *http.Req
 func (client ReplicationProtectedItemsClient) FailoverCommitResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -405,6 +399,7 @@ func (client ReplicationProtectedItemsClient) Get(ctx context.Context, fabricNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -437,8 +432,7 @@ func (client ReplicationProtectedItemsClient) GetPreparer(ctx context.Context, f
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -446,7 +440,6 @@ func (client ReplicationProtectedItemsClient) GetSender(req *http.Request) (*htt
 func (client ReplicationProtectedItemsClient) GetResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -486,6 +479,10 @@ func (client ReplicationProtectedItemsClient) List(ctx context.Context, skipToke
 	result.rpic, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rpic.hasNextLink() && result.rpic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -521,8 +518,7 @@ func (client ReplicationProtectedItemsClient) ListPreparer(ctx context.Context, 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -530,7 +526,6 @@ func (client ReplicationProtectedItemsClient) ListSender(req *http.Request) (*ht
 func (client ReplicationProtectedItemsClient) ListResponder(resp *http.Response) (result ReplicationProtectedItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -555,6 +550,7 @@ func (client ReplicationProtectedItemsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -607,6 +603,10 @@ func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContain
 	result.rpic, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
+		return
+	}
+	if result.rpic.hasNextLink() && result.rpic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -638,8 +638,7 @@ func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContain
 // ListByReplicationProtectionContainersSender sends the ListByReplicationProtectionContainers request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContainersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationProtectionContainersResponder handles the response to the ListByReplicationProtectionContainers request. The method always
@@ -647,7 +646,6 @@ func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContain
 func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContainersResponder(resp *http.Response) (result ReplicationProtectedItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -672,6 +670,7 @@ func (client ReplicationProtectedItemsClient) listByReplicationProtectionContain
 	result, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "listByReplicationProtectionContainersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -753,9 +752,8 @@ func (client ReplicationProtectedItemsClient) PlannedFailoverPreparer(ctx contex
 // PlannedFailoverSender sends the PlannedFailover request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) PlannedFailoverSender(req *http.Request) (future ReplicationProtectedItemsPlannedFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -768,7 +766,6 @@ func (client ReplicationProtectedItemsClient) PlannedFailoverSender(req *http.Re
 func (client ReplicationProtectedItemsClient) PlannedFailoverResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -836,9 +833,8 @@ func (client ReplicationProtectedItemsClient) PurgePreparer(ctx context.Context,
 // PurgeSender sends the Purge request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) PurgeSender(req *http.Request) (future ReplicationProtectedItemsPurgeFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -851,7 +847,6 @@ func (client ReplicationProtectedItemsClient) PurgeSender(req *http.Request) (fu
 func (client ReplicationProtectedItemsClient) PurgeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -917,9 +912,8 @@ func (client ReplicationProtectedItemsClient) RepairReplicationPreparer(ctx cont
 // RepairReplicationSender sends the RepairReplication request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) RepairReplicationSender(req *http.Request) (future ReplicationProtectedItemsRepairReplicationFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -932,7 +926,6 @@ func (client ReplicationProtectedItemsClient) RepairReplicationSender(req *http.
 func (client ReplicationProtectedItemsClient) RepairReplicationResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1001,9 +994,8 @@ func (client ReplicationProtectedItemsClient) ReprotectPreparer(ctx context.Cont
 // ReprotectSender sends the Reprotect request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) ReprotectSender(req *http.Request) (future ReplicationProtectedItemsReprotectFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1016,7 +1008,6 @@ func (client ReplicationProtectedItemsClient) ReprotectSender(req *http.Request)
 func (client ReplicationProtectedItemsClient) ReprotectResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1085,9 +1076,8 @@ func (client ReplicationProtectedItemsClient) TestFailoverPreparer(ctx context.C
 // TestFailoverSender sends the TestFailover request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) TestFailoverSender(req *http.Request) (future ReplicationProtectedItemsTestFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1100,7 +1090,6 @@ func (client ReplicationProtectedItemsClient) TestFailoverSender(req *http.Reque
 func (client ReplicationProtectedItemsClient) TestFailoverResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1175,9 +1164,8 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanupPreparer(ctx co
 // TestFailoverCleanupSender sends the TestFailoverCleanup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) TestFailoverCleanupSender(req *http.Request) (future ReplicationProtectedItemsTestFailoverCleanupFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1190,7 +1178,6 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanupSender(req *htt
 func (client ReplicationProtectedItemsClient) TestFailoverCleanupResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1259,9 +1246,8 @@ func (client ReplicationProtectedItemsClient) UnplannedFailoverPreparer(ctx cont
 // UnplannedFailoverSender sends the UnplannedFailover request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) UnplannedFailoverSender(req *http.Request) (future ReplicationProtectedItemsUnplannedFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1274,7 +1260,6 @@ func (client ReplicationProtectedItemsClient) UnplannedFailoverSender(req *http.
 func (client ReplicationProtectedItemsClient) UnplannedFailoverResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1343,9 +1328,8 @@ func (client ReplicationProtectedItemsClient) UpdatePreparer(ctx context.Context
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) UpdateSender(req *http.Request) (future ReplicationProtectedItemsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1358,7 +1342,6 @@ func (client ReplicationProtectedItemsClient) UpdateSender(req *http.Request) (f
 func (client ReplicationProtectedItemsClient) UpdateResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1428,9 +1411,8 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityServicePreparer(ctx 
 // UpdateMobilityServiceSender sends the UpdateMobilityService request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectedItemsClient) UpdateMobilityServiceSender(req *http.Request) (future ReplicationProtectedItemsUpdateMobilityServiceFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1443,7 +1425,6 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityServiceSender(req *h
 func (client ReplicationProtectedItemsClient) UpdateMobilityServiceResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

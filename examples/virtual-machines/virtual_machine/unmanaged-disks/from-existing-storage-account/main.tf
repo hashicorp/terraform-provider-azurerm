@@ -1,9 +1,6 @@
-# provider "azurerm" {
-#   subscription_id = "REPLACE-WITH-YOUR-SUBSCRIPTION-ID"
-#   client_id       = "REPLACE-WITH-YOUR-CLIENT-ID"
-#   client_secret   = "REPLACE-WITH-YOUR-CLIENT-SECRET"
-#   tenant_id       = "REPLACE-WITH-YOUR-TENANT-ID"
-# }
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group}"
@@ -21,7 +18,7 @@ resource "azurerm_subnet" "subnet" {
   name                 = "${var.hostname}subnet"
   virtual_network_name = "${azurerm_virtual_network.vnet.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
-  address_prefix       = "${var.subnet_prefix}"
+  address_prefixes     = ["${var.subnet_prefix}"]
 }
 
 resource "azurerm_public_ip" "transferpip" {

@@ -35,7 +35,8 @@ func NewRecoveryPointsClient(subscriptionID string) RecoveryPointsClient {
 	return NewRecoveryPointsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRecoveryPointsClientWithBaseURI creates an instance of the RecoveryPointsClient client.
+// NewRecoveryPointsClientWithBaseURI creates an instance of the RecoveryPointsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRecoveryPointsClientWithBaseURI(baseURI string, subscriptionID string) RecoveryPointsClient {
 	return RecoveryPointsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -77,6 +78,7 @@ func (client RecoveryPointsClient) Get(ctx context.Context, vaultName string, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.RecoveryPointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,8 +112,7 @@ func (client RecoveryPointsClient) GetPreparer(ctx context.Context, vaultName st
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecoveryPointsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -119,7 +120,6 @@ func (client RecoveryPointsClient) GetSender(req *http.Request) (*http.Response,
 func (client RecoveryPointsClient) GetResponder(resp *http.Response) (result RecoveryPointResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -163,6 +163,10 @@ func (client RecoveryPointsClient) List(ctx context.Context, vaultName string, r
 	result.rprl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.RecoveryPointsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rprl.hasNextLink() && result.rprl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -198,8 +202,7 @@ func (client RecoveryPointsClient) ListPreparer(ctx context.Context, vaultName s
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecoveryPointsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -207,7 +210,6 @@ func (client RecoveryPointsClient) ListSender(req *http.Request) (*http.Response
 func (client RecoveryPointsClient) ListResponder(resp *http.Response) (result RecoveryPointResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -232,6 +234,7 @@ func (client RecoveryPointsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.RecoveryPointsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

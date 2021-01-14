@@ -36,7 +36,9 @@ func NewComponentQuotaStatusClient(subscriptionID string) ComponentQuotaStatusCl
 	return NewComponentQuotaStatusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewComponentQuotaStatusClientWithBaseURI creates an instance of the ComponentQuotaStatusClient client.
+// NewComponentQuotaStatusClientWithBaseURI creates an instance of the ComponentQuotaStatusClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewComponentQuotaStatusClientWithBaseURI(baseURI string, subscriptionID string) ComponentQuotaStatusClient {
 	return ComponentQuotaStatusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -82,6 +84,7 @@ func (client ComponentQuotaStatusClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentQuotaStatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,8 +114,7 @@ func (client ComponentQuotaStatusClient) GetPreparer(ctx context.Context, resour
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComponentQuotaStatusClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -120,7 +122,6 @@ func (client ComponentQuotaStatusClient) GetSender(req *http.Request) (*http.Res
 func (client ComponentQuotaStatusClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentQuotaStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

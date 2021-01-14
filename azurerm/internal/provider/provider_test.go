@@ -2,23 +2,20 @@ package provider
 
 import (
 	"fmt"
-	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func TestProvider(t *testing.T) {
-	if err := AzureProvider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := TestAzureProvider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 
 func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
-	// this is required until 2.0
-	os.Setenv("ARM_PROVIDER_CUSTOM_TIMEOUTS", "true")
-
-	provider := AzureProvider().(*schema.Provider)
+	provider := TestAzureProvider().(*schema.Provider)
 	for dataSourceName, dataSource := range provider.DataSourcesMap {
 		t.Run(fmt.Sprintf("DataSource/%s", dataSourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Data Source %q..", dataSourceName)
@@ -54,10 +51,7 @@ func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
 }
 
 func TestResourcesSupportCustomTimeouts(t *testing.T) {
-	// this is required until 2.0
-	os.Setenv("ARM_PROVIDER_CUSTOM_TIMEOUTS", "true")
-
-	provider := AzureProvider().(*schema.Provider)
+	provider := TestAzureProvider().(*schema.Provider)
 	for resourceName, resource := range provider.ResourcesMap {
 		t.Run(fmt.Sprintf("Resource/%s", resourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Resource %q..", resourceName)
@@ -80,6 +74,8 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 			if resource.Timeouts.Read == nil {
 				t.Fatalf("Resource %q doesn't define a Read timeout", resourceName)
+			} else if *resource.Timeouts.Read > 5*time.Minute {
+				t.Fatalf("Read timeouts shouldn't be more than 5 minutes, this indicates a bug which needs to be fixed")
 			}
 
 			// Optional
@@ -91,5 +87,5 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ = AzureProvider()
+	_ = AzureProvider()
 }

@@ -37,7 +37,9 @@ func NewDataFlowDebugSessionClient(subscriptionID string) DataFlowDebugSessionCl
 	return NewDataFlowDebugSessionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDataFlowDebugSessionClientWithBaseURI creates an instance of the DataFlowDebugSessionClient client.
+// NewDataFlowDebugSessionClientWithBaseURI creates an instance of the DataFlowDebugSessionClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDataFlowDebugSessionClientWithBaseURI(baseURI string, subscriptionID string) DataFlowDebugSessionClient {
 	return DataFlowDebugSessionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -68,14 +70,12 @@ func (client DataFlowDebugSessionClient) AddDataFlow(ctx context.Context, resour
 				{Target: "factoryName", Name: validation.MinLength, Rule: 3, Chain: nil},
 				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
 		{TargetValue: request,
-			Constraints: []validation.Constraint{{Target: "request.DataFlow", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.DataFlow.Properties", Name: validation.Null, Rule: true, Chain: nil}}},
-				{Target: "request.Staging", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "request.Staging.LinkedService", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "request.Staging.LinkedService.Type", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "request.Staging.LinkedService.ReferenceName", Name: validation.Null, Rule: true, Chain: nil},
-						}},
-					}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "request.Staging", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "request.Staging.LinkedService", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "request.Staging.LinkedService.Type", Name: validation.Null, Rule: true, Chain: nil},
+						{Target: "request.Staging.LinkedService.ReferenceName", Name: validation.Null, Rule: true, Chain: nil},
+					}},
+				}}}}}); err != nil {
 		return result, validation.NewError("datafactory.DataFlowDebugSessionClient", "AddDataFlow", err.Error())
 	}
 
@@ -95,6 +95,7 @@ func (client DataFlowDebugSessionClient) AddDataFlow(ctx context.Context, resour
 	result, err = client.AddDataFlowResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "AddDataFlow", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -126,8 +127,7 @@ func (client DataFlowDebugSessionClient) AddDataFlowPreparer(ctx context.Context
 // AddDataFlowSender sends the AddDataFlow request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataFlowDebugSessionClient) AddDataFlowSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // AddDataFlowResponder handles the response to the AddDataFlow request. The method always
@@ -135,7 +135,6 @@ func (client DataFlowDebugSessionClient) AddDataFlowSender(req *http.Request) (*
 func (client DataFlowDebugSessionClient) AddDataFlowResponder(resp *http.Response) (result AddDataFlowToDebugSessionResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -167,10 +166,7 @@ func (client DataFlowDebugSessionClient) Create(ctx context.Context, resourceGro
 		{TargetValue: factoryName,
 			Constraints: []validation.Constraint{{Target: "factoryName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "factoryName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
-		{TargetValue: request,
-			Constraints: []validation.Constraint{{Target: "request.IntegrationRuntime", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.IntegrationRuntime.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("datafactory.DataFlowDebugSessionClient", "Create", err.Error())
 	}
 
@@ -215,9 +211,8 @@ func (client DataFlowDebugSessionClient) CreatePreparer(ctx context.Context, res
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataFlowDebugSessionClient) CreateSender(req *http.Request) (future DataFlowDebugSessionCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -230,7 +225,6 @@ func (client DataFlowDebugSessionClient) CreateSender(req *http.Request) (future
 func (client DataFlowDebugSessionClient) CreateResponder(resp *http.Response) (result CreateDataFlowDebugSessionResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -282,6 +276,7 @@ func (client DataFlowDebugSessionClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -313,8 +308,7 @@ func (client DataFlowDebugSessionClient) DeletePreparer(ctx context.Context, res
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataFlowDebugSessionClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -322,7 +316,6 @@ func (client DataFlowDebugSessionClient) DeleteSender(req *http.Request) (*http.
 func (client DataFlowDebugSessionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -401,9 +394,8 @@ func (client DataFlowDebugSessionClient) ExecuteCommandPreparer(ctx context.Cont
 // ExecuteCommandSender sends the ExecuteCommand request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataFlowDebugSessionClient) ExecuteCommandSender(req *http.Request) (future DataFlowDebugSessionExecuteCommandFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -416,7 +408,6 @@ func (client DataFlowDebugSessionClient) ExecuteCommandSender(req *http.Request)
 func (client DataFlowDebugSessionClient) ExecuteCommandResponder(resp *http.Response) (result DataFlowDebugCommandResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -468,6 +459,11 @@ func (client DataFlowDebugSessionClient) QueryByFactory(ctx context.Context, res
 	result.qdfdsr, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "QueryByFactory", resp, "Failure responding to request")
+		return
+	}
+	if result.qdfdsr.hasNextLink() && result.qdfdsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -497,8 +493,7 @@ func (client DataFlowDebugSessionClient) QueryByFactoryPreparer(ctx context.Cont
 // QueryByFactorySender sends the QueryByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataFlowDebugSessionClient) QueryByFactorySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // QueryByFactoryResponder handles the response to the QueryByFactory request. The method always
@@ -506,7 +501,6 @@ func (client DataFlowDebugSessionClient) QueryByFactorySender(req *http.Request)
 func (client DataFlowDebugSessionClient) QueryByFactoryResponder(resp *http.Response) (result QueryDataFlowDebugSessionsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

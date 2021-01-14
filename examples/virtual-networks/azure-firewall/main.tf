@@ -1,6 +1,5 @@
-# Configure the Azure Provider
 provider "azurerm" {
-    version = "=1.31.0"
+  features {}
 }
 
 # Create a resource group
@@ -15,7 +14,7 @@ resource "random_string" "azustring" {
   special = false
   upper = false
   number = false
-  
+
 }
 
 # Storage account to hold diag data from VMs and Azure Resources
@@ -261,7 +260,7 @@ resource "azurerm_virtual_machine" "vmserver" {
       storage_uri   =   "${azurerm_storage_account.azusa.primary_blob_endpoint}"
   }
 
-  
+
 tags = {
     environment = "Staging"
     owner = "Someone@contoso.com"

@@ -11,12 +11,20 @@ func (r Registration) Name() string {
 	return "Container Services"
 }
 
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"Container",
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_kubernetes_service_versions": dataSourceArmKubernetesServiceVersions(),
-		"azurerm_container_registry":          dataSourceArmContainerRegistry(),
-		"azurerm_kubernetes_cluster":          dataSourceArmKubernetesCluster(),
+		"azurerm_kubernetes_service_versions":  dataSourceArmKubernetesServiceVersions(),
+		"azurerm_container_registry":           dataSourceArmContainerRegistry(),
+		"azurerm_kubernetes_cluster":           dataSourceArmKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool": dataSourceKubernetesClusterNodePool(),
 	}
 }
 

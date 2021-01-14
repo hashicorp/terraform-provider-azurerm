@@ -35,7 +35,9 @@ func NewReplicationNetworksClient(subscriptionID string, resourceGroupName strin
 	return NewReplicationNetworksClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationNetworksClientWithBaseURI creates an instance of the ReplicationNetworksClient client.
+// NewReplicationNetworksClientWithBaseURI creates an instance of the ReplicationNetworksClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationNetworksClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationNetworksClient {
 	return ReplicationNetworksClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -71,6 +73,7 @@ func (client ReplicationNetworksClient) Get(ctx context.Context, fabricName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -102,8 +105,7 @@ func (client ReplicationNetworksClient) GetPreparer(ctx context.Context, fabricN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworksClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -111,7 +113,6 @@ func (client ReplicationNetworksClient) GetSender(req *http.Request) (*http.Resp
 func (client ReplicationNetworksClient) GetResponder(resp *http.Response) (result Network, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -148,6 +149,10 @@ func (client ReplicationNetworksClient) List(ctx context.Context) (result Networ
 	result.nc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.nc.hasNextLink() && result.nc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -177,8 +182,7 @@ func (client ReplicationNetworksClient) ListPreparer(ctx context.Context) (*http
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworksClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -186,7 +190,6 @@ func (client ReplicationNetworksClient) ListSender(req *http.Request) (*http.Res
 func (client ReplicationNetworksClient) ListResponder(resp *http.Response) (result NetworkCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,6 +214,7 @@ func (client ReplicationNetworksClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -262,6 +266,10 @@ func (client ReplicationNetworksClient) ListByReplicationFabrics(ctx context.Con
 	result.nc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
+	}
+	if result.nc.hasNextLink() && result.nc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -292,8 +300,7 @@ func (client ReplicationNetworksClient) ListByReplicationFabricsPreparer(ctx con
 // ListByReplicationFabricsSender sends the ListByReplicationFabrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworksClient) ListByReplicationFabricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationFabricsResponder handles the response to the ListByReplicationFabrics request. The method always
@@ -301,7 +308,6 @@ func (client ReplicationNetworksClient) ListByReplicationFabricsSender(req *http
 func (client ReplicationNetworksClient) ListByReplicationFabricsResponder(resp *http.Response) (result NetworkCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -326,6 +332,7 @@ func (client ReplicationNetworksClient) listByReplicationFabricsNextResults(ctx 
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

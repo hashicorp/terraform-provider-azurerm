@@ -36,7 +36,8 @@ func NewMetricBaselineClient(subscriptionID string) MetricBaselineClient {
 	return NewMetricBaselineClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMetricBaselineClientWithBaseURI creates an instance of the MetricBaselineClient client.
+// NewMetricBaselineClientWithBaseURI creates an instance of the MetricBaselineClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewMetricBaselineClientWithBaseURI(baseURI string, subscriptionID string) MetricBaselineClient {
 	return MetricBaselineClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -82,6 +83,7 @@ func (client MetricBaselineClient) CalculateBaseline(ctx context.Context, resour
 	result, err = client.CalculateBaselineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricBaselineClient", "CalculateBaseline", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,8 +113,7 @@ func (client MetricBaselineClient) CalculateBaselinePreparer(ctx context.Context
 // CalculateBaselineSender sends the CalculateBaseline request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricBaselineClient) CalculateBaselineSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CalculateBaselineResponder handles the response to the CalculateBaseline request. The method always
@@ -120,7 +121,6 @@ func (client MetricBaselineClient) CalculateBaselineSender(req *http.Request) (*
 func (client MetricBaselineClient) CalculateBaselineResponder(resp *http.Response) (result CalculateBaselineResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -168,6 +168,7 @@ func (client MetricBaselineClient) Get(ctx context.Context, resourceURI string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricBaselineClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,8 +212,7 @@ func (client MetricBaselineClient) GetPreparer(ctx context.Context, resourceURI 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricBaselineClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -220,7 +220,6 @@ func (client MetricBaselineClient) GetSender(req *http.Request) (*http.Response,
 func (client MetricBaselineClient) GetResponder(resp *http.Response) (result BaselineResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -36,7 +36,9 @@ func NewDisasterRecoveryConfigsClient(subscriptionID string) DisasterRecoveryCon
 	return NewDisasterRecoveryConfigsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDisasterRecoveryConfigsClientWithBaseURI creates an instance of the DisasterRecoveryConfigsClient client.
+// NewDisasterRecoveryConfigsClientWithBaseURI creates an instance of the DisasterRecoveryConfigsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewDisasterRecoveryConfigsClientWithBaseURI(baseURI string, subscriptionID string) DisasterRecoveryConfigsClient {
 	return DisasterRecoveryConfigsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -87,6 +89,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, re
 	result, err = client.BreakPairingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "BreakPairing", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,8 +120,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairingPreparer(ctx context.Con
 // BreakPairingSender sends the BreakPairing request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) BreakPairingSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // BreakPairingResponder handles the response to the BreakPairing request. The method always
@@ -126,7 +128,6 @@ func (client DisasterRecoveryConfigsClient) BreakPairingSender(req *http.Request
 func (client DisasterRecoveryConfigsClient) BreakPairingResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -177,6 +178,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethod(ctx cont
 	result, err = client.CheckNameAvailabilityMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "CheckNameAvailabilityMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,8 +210,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodPreparer(
 // CheckNameAvailabilityMethodSender sends the CheckNameAvailabilityMethod request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckNameAvailabilityMethodResponder handles the response to the CheckNameAvailabilityMethod request. The method always
@@ -217,7 +218,6 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodSender(re
 func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -271,6 +271,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -303,8 +304,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdatePreparer(ctx context.C
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -312,7 +312,6 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdateSender(req *http.Reque
 func (client DisasterRecoveryConfigsClient) CreateOrUpdateResponder(resp *http.Response) (result ArmDisasterRecovery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -365,6 +364,7 @@ func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -395,8 +395,7 @@ func (client DisasterRecoveryConfigsClient) DeletePreparer(ctx context.Context, 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -404,7 +403,6 @@ func (client DisasterRecoveryConfigsClient) DeleteSender(req *http.Request) (*ht
 func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -456,6 +454,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 	result, err = client.FailOverResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "FailOver", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -486,8 +485,7 @@ func (client DisasterRecoveryConfigsClient) FailOverPreparer(ctx context.Context
 // FailOverSender sends the FailOver request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) FailOverSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // FailOverResponder handles the response to the FailOver request. The method always
@@ -495,7 +493,6 @@ func (client DisasterRecoveryConfigsClient) FailOverSender(req *http.Request) (*
 func (client DisasterRecoveryConfigsClient) FailOverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -547,6 +544,7 @@ func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -577,8 +575,7 @@ func (client DisasterRecoveryConfigsClient) GetPreparer(ctx context.Context, res
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -586,7 +583,6 @@ func (client DisasterRecoveryConfigsClient) GetSender(req *http.Request) (*http.
 func (client DisasterRecoveryConfigsClient) GetResponder(resp *http.Response) (result ArmDisasterRecovery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -643,6 +639,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Con
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -674,8 +671,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRulePreparer(ctx con
 // GetAuthorizationRuleSender sends the GetAuthorizationRule request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetAuthorizationRuleResponder handles the response to the GetAuthorizationRule request. The method always
@@ -683,7 +679,6 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleSender(req *http
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -733,6 +728,10 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 	result.adrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.adrlr.hasNextLink() && result.adrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -762,8 +761,7 @@ func (client DisasterRecoveryConfigsClient) ListPreparer(ctx context.Context, re
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -771,7 +769,6 @@ func (client DisasterRecoveryConfigsClient) ListSender(req *http.Request) (*http
 func (client DisasterRecoveryConfigsClient) ListResponder(resp *http.Response) (result ArmDisasterRecoveryListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -796,6 +793,7 @@ func (client DisasterRecoveryConfigsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -862,6 +860,10 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 	result.sarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -892,8 +894,7 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesPreparer(ctx c
 // ListAuthorizationRulesSender sends the ListAuthorizationRules request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListAuthorizationRulesResponder handles the response to the ListAuthorizationRules request. The method always
@@ -901,7 +902,6 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesSender(req *ht
 func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesResponder(resp *http.Response) (result SBAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -926,6 +926,7 @@ func (client DisasterRecoveryConfigsClient) listAuthorizationRulesNextResults(ct
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -995,6 +996,7 @@ func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resour
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1026,8 +1028,7 @@ func (client DisasterRecoveryConfigsClient) ListKeysPreparer(ctx context.Context
 // ListKeysSender sends the ListKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisasterRecoveryConfigsClient) ListKeysSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListKeysResponder handles the response to the ListKeys request. The method always
@@ -1035,7 +1036,6 @@ func (client DisasterRecoveryConfigsClient) ListKeysSender(req *http.Request) (*
 func (client DisasterRecoveryConfigsClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

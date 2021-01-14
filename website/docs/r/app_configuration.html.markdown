@@ -38,9 +38,17 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU name of the the App Configuration. Possible values are `free` and `standard`.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Configuration. At this time the only allowed value is `SystemAssigned`.
 
 ---
 ## Attributes Reference
@@ -51,23 +59,63 @@ The following attributes are exported:
 
 * `endpoint` - The URL of the App Configuration.
 
-* `primary_write_key` - An `access_key` block as defined below containing the primary write access key.
+* `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
 
-* `secondary_write_key` - An `access_key` block as defined below containing the secondary write access key.
+* `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
-* `primary_read_key` - An `access_key` block as defined below containing the primary read access key.
+* `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
-* `secondary_read_key` - An `access_key` block as defined below containing the secondary read access key.
+* `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
+
+* `identity` - An `identity` block as defined below.
 
 ---
 
-A `access_key` block exports the following:
+An `identity` block exports the following:
 
-* `id` - The ID of the access key.
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
 
-* `secret` - The secret of the access key.
+* `tenant_id` - The ID of the Azure Active Directory Tenant.
 
-* `connection_string` - The connection string including the endpoint, id and secret.
+---
+
+A `primary_read_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
+
+---
+
+A `primary_write_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
+
+---
+
+A `secondary_read_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
+
+---
+
+A `secondary_write_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
 
 ## Timeouts
 

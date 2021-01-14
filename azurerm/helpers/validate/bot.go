@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func ValidateBotMSTeamsCallingWebHook() schema.SchemaValidateFunc {
+func BotMSTeamsCallingWebHook() schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		value := i.(string)
 		if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {

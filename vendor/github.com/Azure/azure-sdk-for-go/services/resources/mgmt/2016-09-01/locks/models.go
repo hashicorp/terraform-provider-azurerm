@@ -29,23 +29,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 
-// LockLevel enumerates the values for lock level.
-type LockLevel string
-
-const (
-	// CanNotDelete ...
-	CanNotDelete LockLevel = "CanNotDelete"
-	// NotSpecified ...
-	NotSpecified LockLevel = "NotSpecified"
-	// ReadOnly ...
-	ReadOnly LockLevel = "ReadOnly"
-)
-
-// PossibleLockLevelValues returns an array of possible values for the LockLevel const type.
-func PossibleLockLevelValues() []LockLevel {
-	return []LockLevel{CanNotDelete, NotSpecified, ReadOnly}
-}
-
 // ManagementLockListResult the list of locks.
 type ManagementLockListResult struct {
 	autorest.Response `json:"-"`
@@ -123,10 +106,15 @@ func (mllr ManagementLockListResult) IsEmpty() bool {
 	return mllr.Value == nil || len(*mllr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mllr ManagementLockListResult) hasNextLink() bool {
+	return mllr.NextLink != nil && len(*mllr.NextLink) != 0
+}
+
 // managementLockListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mllr ManagementLockListResult) managementLockListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mllr.NextLink == nil || len(to.String(mllr.NextLink)) < 1 {
+	if !mllr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -154,11 +142,16 @@ func (page *ManagementLockListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mllr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mllr)
+		if err != nil {
+			return err
+		}
+		page.mllr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mllr = next
 	return nil
 }
 
@@ -188,8 +181,11 @@ func (page ManagementLockListResultPage) Values() []ManagementLockObject {
 }
 
 // Creates a new instance of the ManagementLockListResultPage type.
-func NewManagementLockListResultPage(getNextPage func(context.Context, ManagementLockListResult) (ManagementLockListResult, error)) ManagementLockListResultPage {
-	return ManagementLockListResultPage{fn: getNextPage}
+func NewManagementLockListResultPage(cur ManagementLockListResult, getNextPage func(context.Context, ManagementLockListResult) (ManagementLockListResult, error)) ManagementLockListResultPage {
+	return ManagementLockListResultPage{
+		fn:   getNextPage,
+		mllr: cur,
+	}
 }
 
 // ManagementLockObject the lock information.
@@ -377,10 +373,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -408,11 +409,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -442,6 +448,9 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }

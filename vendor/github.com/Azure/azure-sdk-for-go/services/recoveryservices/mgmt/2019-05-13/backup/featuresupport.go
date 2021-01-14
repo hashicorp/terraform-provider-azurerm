@@ -35,7 +35,8 @@ func NewFeatureSupportClient(subscriptionID string) FeatureSupportClient {
 	return NewFeatureSupportClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFeatureSupportClientWithBaseURI creates an instance of the FeatureSupportClient client.
+// NewFeatureSupportClientWithBaseURI creates an instance of the FeatureSupportClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFeatureSupportClientWithBaseURI(baseURI string, subscriptionID string) FeatureSupportClient {
 	return FeatureSupportClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -71,6 +72,7 @@ func (client FeatureSupportClient) Validate(ctx context.Context, azureRegion str
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.FeatureSupportClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -101,8 +103,7 @@ func (client FeatureSupportClient) ValidatePreparer(ctx context.Context, azureRe
 // ValidateSender sends the Validate request. The method will close the
 // http.Response Body if it receives an error.
 func (client FeatureSupportClient) ValidateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ValidateResponder handles the response to the Validate request. The method always
@@ -110,7 +111,6 @@ func (client FeatureSupportClient) ValidateSender(req *http.Request) (*http.Resp
 func (client FeatureSupportClient) ValidateResponder(resp *http.Response) (result AzureVMResourceFeatureSupportResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

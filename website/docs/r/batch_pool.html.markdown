@@ -239,6 +239,8 @@ A `container_configuration` block supports the following:
 
 * `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
+* `container_image_names` - (Optional) A list of container image names to use, as would be specified by `docker pull`.
+
 * `container_registries` - (Optional) Additional container registries from which container images can be pulled by the pool's VMs.
 
 ---
@@ -275,7 +277,11 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `public_ips` - (Optional) A list of public ip ids that will be allocated to nodes. Changing this forces a new resource to be created.
+
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
+
+* `public_address_provisioning_type` - (Optional) Type of public IP address provisioning. Supported values are `BatchManaged`, `UserManaged` and `NoPublicIPAddresses`.
 
 ---
 
@@ -321,5 +327,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Batch Pools can be imported using the `resource id`, e.g.
 
 ```shell
- terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
+terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Batch/batchAccounts/myBatchAccount1/pools/myBatchPool1
 ```

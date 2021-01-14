@@ -35,7 +35,8 @@ func NewPolicySetsClient(subscriptionID string) PolicySetsClient {
 	return NewPolicySetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPolicySetsClientWithBaseURI creates an instance of the PolicySetsClient client.
+// NewPolicySetsClientWithBaseURI creates an instance of the PolicySetsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPolicySetsClientWithBaseURI(baseURI string, subscriptionID string) PolicySetsClient {
 	return PolicySetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +74,7 @@ func (client PolicySetsClient) EvaluatePolicies(ctx context.Context, resourceGro
 	result, err = client.EvaluatePoliciesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.PolicySetsClient", "EvaluatePolicies", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -105,8 +107,7 @@ func (client PolicySetsClient) EvaluatePoliciesPreparer(ctx context.Context, res
 // EvaluatePoliciesSender sends the EvaluatePolicies request. The method will close the
 // http.Response Body if it receives an error.
 func (client PolicySetsClient) EvaluatePoliciesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // EvaluatePoliciesResponder handles the response to the EvaluatePolicies request. The method always
@@ -114,7 +115,6 @@ func (client PolicySetsClient) EvaluatePoliciesSender(req *http.Request) (*http.
 func (client PolicySetsClient) EvaluatePoliciesResponder(resp *http.Response) (result EvaluatePoliciesResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

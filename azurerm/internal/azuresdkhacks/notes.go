@@ -4,7 +4,7 @@ package azuresdkhacks
 // where when performing a delta update unchanged fields are omitted from the response when they could
 // also have a legitimate value of `null` (to remove/disable a sub-block).
 //
-// Ultimately the Azure SDK for Go has opted to serialise structs with `json:"name,omitempty"` which
+// Ultimately the Azure SDK for Go has opted to serialize structs with `json:"name,omitempty"` which
 // means that this value will be omitted if nil to allow for delta updates - however this means there's
 // no means of removing/resetting a value of a nested object once provided since a `nil` object will be
 // reset

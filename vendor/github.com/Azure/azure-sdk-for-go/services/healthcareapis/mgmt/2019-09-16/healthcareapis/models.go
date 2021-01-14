@@ -30,88 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis"
 
-// Kind enumerates the values for kind.
-type Kind string
-
-const (
-	// Fhir ...
-	Fhir Kind = "fhir"
-	// FhirR4 ...
-	FhirR4 Kind = "fhir-R4"
-	// FhirStu3 ...
-	FhirStu3 Kind = "fhir-Stu3"
-)
-
-// PossibleKindValues returns an array of possible values for the Kind const type.
-func PossibleKindValues() []Kind {
-	return []Kind{Fhir, FhirR4, FhirStu3}
-}
-
-// OperationResultStatus enumerates the values for operation result status.
-type OperationResultStatus string
-
-const (
-	// Canceled ...
-	Canceled OperationResultStatus = "Canceled"
-	// Failed ...
-	Failed OperationResultStatus = "Failed"
-	// Requested ...
-	Requested OperationResultStatus = "Requested"
-	// Running ...
-	Running OperationResultStatus = "Running"
-	// Succeeded ...
-	Succeeded OperationResultStatus = "Succeeded"
-)
-
-// PossibleOperationResultStatusValues returns an array of possible values for the OperationResultStatus const type.
-func PossibleOperationResultStatusValues() []OperationResultStatus {
-	return []OperationResultStatus{Canceled, Failed, Requested, Running, Succeeded}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// ProvisioningStateAccepted ...
-	ProvisioningStateAccepted ProvisioningState = "Accepted"
-	// ProvisioningStateCanceled ...
-	ProvisioningStateCanceled ProvisioningState = "Canceled"
-	// ProvisioningStateCreating ...
-	ProvisioningStateCreating ProvisioningState = "Creating"
-	// ProvisioningStateDeleting ...
-	ProvisioningStateDeleting ProvisioningState = "Deleting"
-	// ProvisioningStateDeprovisioned ...
-	ProvisioningStateDeprovisioned ProvisioningState = "Deprovisioned"
-	// ProvisioningStateFailed ...
-	ProvisioningStateFailed ProvisioningState = "Failed"
-	// ProvisioningStateSucceeded ...
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-	// ProvisioningStateUpdating ...
-	ProvisioningStateUpdating ProvisioningState = "Updating"
-	// ProvisioningStateVerifying ...
-	ProvisioningStateVerifying ProvisioningState = "Verifying"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{ProvisioningStateAccepted, ProvisioningStateCanceled, ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateDeprovisioned, ProvisioningStateFailed, ProvisioningStateSucceeded, ProvisioningStateUpdating, ProvisioningStateVerifying}
-}
-
-// ServiceNameUnavailabilityReason enumerates the values for service name unavailability reason.
-type ServiceNameUnavailabilityReason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists ServiceNameUnavailabilityReason = "AlreadyExists"
-	// Invalid ...
-	Invalid ServiceNameUnavailabilityReason = "Invalid"
-)
-
-// PossibleServiceNameUnavailabilityReasonValues returns an array of possible values for the ServiceNameUnavailabilityReason const type.
-func PossibleServiceNameUnavailabilityReasonValues() []ServiceNameUnavailabilityReason {
-	return []ServiceNameUnavailabilityReason{AlreadyExists, Invalid}
-}
-
 // CheckNameAvailabilityParameters input values.
 type CheckNameAvailabilityParameters struct {
 	// Name - The name of the service instance to check.
@@ -146,6 +64,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; Service provider: Microsoft.HealthcareApis
@@ -166,6 +93,15 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 	// Value - READ-ONLY; A list of service operations supported by the Microsoft.HealthcareApis resource provider.
 	Value *[]Operation `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if olr.NextLink != nil {
+		objectMap["nextLink"] = olr.NextLink
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -236,10 +172,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -267,11 +208,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -301,8 +247,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResultsDescription the properties indicating the operation result of an operation on a service.
@@ -317,6 +266,15 @@ type OperationResultsDescription struct {
 	StartTime *string `json:"startTime,omitempty"`
 	// Properties - Additional properties of the operation result.
 	Properties interface{} `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationResultsDescription.
+func (ord OperationResultsDescription) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ord.Properties != nil {
+		objectMap["properties"] = ord.Properties
+	}
+	return json.Marshal(objectMap)
 }
 
 // Resource the common properties of a service.
@@ -335,6 +293,8 @@ type Resource struct {
 	Tags map[string]*string `json:"tags"`
 	// Etag - An etag associated with the resource, used for optimistic concurrency when editing it.
 	Etag *string `json:"etag,omitempty"`
+	// Identity - Setting indicating whether the service has a managed identity associated with it.
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -351,6 +311,28 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	}
 	if r.Etag != nil {
 		objectMap["etag"] = r.Etag
+	}
+	if r.Identity != nil {
+		objectMap["identity"] = r.Identity
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceIdentity setting indicating whether the service has a managed identity associated with it.
+type ResourceIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of the resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of the resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - Type of identity being specified, currently SystemAssigned and None are allowed. Possible values include: 'SystemAssigned', 'None'
+	Type ManagedServiceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceIdentity.
+func (r ResourceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.Type != "" {
+		objectMap["type"] = r.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -389,6 +371,12 @@ type ServiceCorsConfigurationInfo struct {
 type ServiceCosmosDbConfigurationInfo struct {
 	// OfferThroughput - The provisioned throughput for the backing database.
 	OfferThroughput *int32 `json:"offerThroughput,omitempty"`
+}
+
+// ServiceExportConfigurationInfo export operation configuration information
+type ServiceExportConfigurationInfo struct {
+	// StorageAccountName - The name of the default export storage account.
+	StorageAccountName *string `json:"storageAccountName,omitempty"`
 }
 
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -462,6 +450,8 @@ type ServicesDescription struct {
 	Tags map[string]*string `json:"tags"`
 	// Etag - An etag associated with the resource, used for optimistic concurrency when editing it.
 	Etag *string `json:"etag,omitempty"`
+	// Identity - Setting indicating whether the service has a managed identity associated with it.
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServicesDescription.
@@ -481,6 +471,9 @@ func (sd ServicesDescription) MarshalJSON() ([]byte, error) {
 	}
 	if sd.Etag != nil {
 		objectMap["etag"] = sd.Etag
+	}
+	if sd.Identity != nil {
+		objectMap["identity"] = sd.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -563,10 +556,15 @@ func (sdlr ServicesDescriptionListResult) IsEmpty() bool {
 	return sdlr.Value == nil || len(*sdlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sdlr ServicesDescriptionListResult) hasNextLink() bool {
+	return sdlr.NextLink != nil && len(*sdlr.NextLink) != 0
+}
+
 // servicesDescriptionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sdlr ServicesDescriptionListResult) servicesDescriptionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sdlr.NextLink == nil || len(to.String(sdlr.NextLink)) < 1 {
+	if !sdlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -594,11 +592,16 @@ func (page *ServicesDescriptionListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sdlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sdlr)
+		if err != nil {
+			return err
+		}
+		page.sdlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sdlr = next
 	return nil
 }
 
@@ -628,8 +631,11 @@ func (page ServicesDescriptionListResultPage) Values() []ServicesDescription {
 }
 
 // Creates a new instance of the ServicesDescriptionListResultPage type.
-func NewServicesDescriptionListResultPage(getNextPage func(context.Context, ServicesDescriptionListResult) (ServicesDescriptionListResult, error)) ServicesDescriptionListResultPage {
-	return ServicesDescriptionListResultPage{fn: getNextPage}
+func NewServicesDescriptionListResultPage(cur ServicesDescriptionListResult, getNextPage func(context.Context, ServicesDescriptionListResult) (ServicesDescriptionListResult, error)) ServicesDescriptionListResultPage {
+	return ServicesDescriptionListResultPage{
+		fn:   getNextPage,
+		sdlr: cur,
+	}
 }
 
 // ServicesNameAvailabilityInfo the properties indicating whether a given service name is available.
@@ -641,6 +647,15 @@ type ServicesNameAvailabilityInfo struct {
 	Reason ServiceNameUnavailabilityReason `json:"reason,omitempty"`
 	// Message - The detailed reason message.
 	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServicesNameAvailabilityInfo.
+func (snai ServicesNameAvailabilityInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if snai.Message != nil {
+		objectMap["message"] = snai.Message
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServicesPatchDescription the description of the service.
@@ -670,6 +685,29 @@ type ServicesProperties struct {
 	AuthenticationConfiguration *ServiceAuthenticationConfigurationInfo `json:"authenticationConfiguration,omitempty"`
 	// CorsConfiguration - The settings for the CORS configuration of the service instance.
 	CorsConfiguration *ServiceCorsConfigurationInfo `json:"corsConfiguration,omitempty"`
+	// ExportConfiguration - The settings for the export operation of the service instance.
+	ExportConfiguration *ServiceExportConfigurationInfo `json:"exportConfiguration,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServicesProperties.
+func (sp ServicesProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.AccessPolicies != nil {
+		objectMap["accessPolicies"] = sp.AccessPolicies
+	}
+	if sp.CosmosDbConfiguration != nil {
+		objectMap["cosmosDbConfiguration"] = sp.CosmosDbConfiguration
+	}
+	if sp.AuthenticationConfiguration != nil {
+		objectMap["authenticationConfiguration"] = sp.AuthenticationConfiguration
+	}
+	if sp.CorsConfiguration != nil {
+		objectMap["corsConfiguration"] = sp.CorsConfiguration
+	}
+	if sp.ExportConfiguration != nil {
+		objectMap["exportConfiguration"] = sp.ExportConfiguration
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running

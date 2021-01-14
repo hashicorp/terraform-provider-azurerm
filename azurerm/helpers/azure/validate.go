@@ -18,7 +18,7 @@ func ValidateResourceID(i interface{}, k string) (warnings []string, errors []er
 	return warnings, errors
 }
 
-//true for a resource ID or an empty string
+// true for a resource ID or an empty string
 func ValidateResourceIDOrEmpty(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

@@ -35,7 +35,8 @@ func NewEnginesClient(subscriptionID string) EnginesClient {
 	return NewEnginesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEnginesClientWithBaseURI creates an instance of the EnginesClient client.
+// NewEnginesClientWithBaseURI creates an instance of the EnginesClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewEnginesClientWithBaseURI(baseURI string, subscriptionID string) EnginesClient {
 	return EnginesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -74,6 +75,7 @@ func (client EnginesClient) Get(ctx context.Context, vaultName string, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,8 +112,7 @@ func (client EnginesClient) GetPreparer(ctx context.Context, vaultName string, r
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client EnginesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -119,7 +120,6 @@ func (client EnginesClient) GetSender(req *http.Request) (*http.Response, error)
 func (client EnginesClient) GetResponder(resp *http.Response) (result EngineBaseResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,10 @@ func (client EnginesClient) List(ctx context.Context, vaultName string, resource
 	result.ebrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ebrl.hasNextLink() && result.ebrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -196,8 +200,7 @@ func (client EnginesClient) ListPreparer(ctx context.Context, vaultName string, 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client EnginesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -205,7 +208,6 @@ func (client EnginesClient) ListSender(req *http.Request) (*http.Response, error
 func (client EnginesClient) ListResponder(resp *http.Response) (result EngineBaseResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -230,6 +232,7 @@ func (client EnginesClient) listNextResults(ctx context.Context, lastResults Eng
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

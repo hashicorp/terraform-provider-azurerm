@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -23,7 +27,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "example" {
+resource "azurerm_backup_policy_vm" "example" {
   name                = "tfex-policy-simple"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -42,5 +46,5 @@ resource "azurerm_recovery_services_protected_vm" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
   source_vm_id        = "${module.virtual-machine.id}"
-  backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.example.id}"
+  backup_policy_id    = "${azurerm_backup_policy_vm.example.id}"
 }

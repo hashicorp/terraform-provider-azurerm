@@ -35,7 +35,9 @@ func NewReplicationAlertSettingsClient(subscriptionID string, resourceGroupName 
 	return NewReplicationAlertSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationAlertSettingsClientWithBaseURI creates an instance of the ReplicationAlertSettingsClient client.
+// NewReplicationAlertSettingsClientWithBaseURI creates an instance of the ReplicationAlertSettingsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationAlertSettingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationAlertSettingsClient {
 	return ReplicationAlertSettingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -71,6 +73,7 @@ func (client ReplicationAlertSettingsClient) Create(ctx context.Context, alertSe
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -103,8 +106,7 @@ func (client ReplicationAlertSettingsClient) CreatePreparer(ctx context.Context,
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationAlertSettingsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -112,7 +114,6 @@ func (client ReplicationAlertSettingsClient) CreateSender(req *http.Request) (*h
 func (client ReplicationAlertSettingsClient) CreateResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +151,7 @@ func (client ReplicationAlertSettingsClient) Get(ctx context.Context, alertSetti
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,8 +182,7 @@ func (client ReplicationAlertSettingsClient) GetPreparer(ctx context.Context, al
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationAlertSettingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -189,7 +190,6 @@ func (client ReplicationAlertSettingsClient) GetSender(req *http.Request) (*http
 func (client ReplicationAlertSettingsClient) GetResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -226,6 +226,10 @@ func (client ReplicationAlertSettingsClient) List(ctx context.Context) (result A
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -255,8 +259,7 @@ func (client ReplicationAlertSettingsClient) ListPreparer(ctx context.Context) (
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationAlertSettingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -264,7 +267,6 @@ func (client ReplicationAlertSettingsClient) ListSender(req *http.Request) (*htt
 func (client ReplicationAlertSettingsClient) ListResponder(resp *http.Response) (result AlertCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -289,6 +291,7 @@ func (client ReplicationAlertSettingsClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

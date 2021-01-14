@@ -4,55 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-type VirtualMachineID struct {
-	ResourceGroup string
-	Name          string
-}
-
-func ParseVirtualMachineID(input string) (*VirtualMachineID, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine ID %q: %+v", input, err)
-	}
-
-	virtualMachine := VirtualMachineID{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if virtualMachine.Name, err = id.PopSegment("virtualMachines"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &virtualMachine, nil
-}
-
-func ValidateVirtualMachineID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := ParseVirtualMachineID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
-}
 
 func virtualMachineAdditionalCapabilitiesSchema() *schema.Schema {
 	return &schema.Schema{
@@ -70,7 +31,6 @@ func virtualMachineAdditionalCapabilitiesSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
-					ForceNew: true,
 				},
 			},
 		},
@@ -128,12 +88,17 @@ func virtualMachineIdentitySchema() *schema.Schema {
 					Type:     schema.TypeSet,
 					Optional: true,
 					Elem: &schema.Schema{
-						Type: schema.TypeString,
-						// TODO: validation for a UAI which requires an ID Parser/Validator
+						Type:         schema.TypeString,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 
 				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"tenant_id": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -173,15 +138,19 @@ func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineI
 	return &identity, nil
 }
 
-func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) []interface{} {
+func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]interface{}, error) {
 	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -190,13 +159,19 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) []inte
 		principalId = *input.PrincipalID
 	}
 
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = *input.TenantID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"type":         string(input.Type),
 			"identity_ids": identityIds,
 			"principal_id": principalId,
+			"tenant_id":    tenantId,
 		},
-	}
+	}, nil
 }
 
 func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []compute.NetworkInterfaceReference {
@@ -283,16 +258,18 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					Type:     schema.TypeString,
+					Optional: true,
+					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     validate.DiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 2048),
+					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"name": {
@@ -387,7 +364,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				return nil, err
 			}
 
-			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.Name)
+			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.DiskName)
 			if err != nil {
 				// turns out ephemeral disks aren't returned/available here
 				if !utils.ResponseWasNotFound(disk.Response) {
@@ -409,11 +386,12 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				if diskSizeGb == 0 && disk.DiskProperties != nil && disk.DiskProperties.DiskSizeGB != nil {
 					diskSizeGb = int(*disk.DiskProperties.DiskSizeGB)
 				}
-			}
-		}
 
-		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
-			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+				// same goes for Disk Encryption Set Id apparently
+				if disk.Encryption != nil && disk.Encryption.DiskEncryptionSetID != nil {
+					diskEncryptionSetId = *disk.Encryption.DiskEncryptionSetID
+				}
+			}
 		}
 	}
 

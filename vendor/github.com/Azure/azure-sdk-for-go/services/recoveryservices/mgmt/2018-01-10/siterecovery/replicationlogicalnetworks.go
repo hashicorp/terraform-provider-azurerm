@@ -36,7 +36,9 @@ func NewReplicationLogicalNetworksClient(subscriptionID string, resourceGroupNam
 	return NewReplicationLogicalNetworksClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationLogicalNetworksClientWithBaseURI creates an instance of the ReplicationLogicalNetworksClient client.
+// NewReplicationLogicalNetworksClientWithBaseURI creates an instance of the ReplicationLogicalNetworksClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationLogicalNetworksClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationLogicalNetworksClient {
 	return ReplicationLogicalNetworksClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -72,6 +74,7 @@ func (client ReplicationLogicalNetworksClient) Get(ctx context.Context, fabricNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -103,8 +106,7 @@ func (client ReplicationLogicalNetworksClient) GetPreparer(ctx context.Context, 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationLogicalNetworksClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -112,7 +114,6 @@ func (client ReplicationLogicalNetworksClient) GetSender(req *http.Request) (*ht
 func (client ReplicationLogicalNetworksClient) GetResponder(resp *http.Response) (result LogicalNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +152,10 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabrics(ctx cont
 	result.lnc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
+	}
+	if result.lnc.hasNextLink() && result.lnc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -181,8 +186,7 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabricsPreparer(
 // ListByReplicationFabricsSender sends the ListByReplicationFabrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationLogicalNetworksClient) ListByReplicationFabricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationFabricsResponder handles the response to the ListByReplicationFabrics request. The method always
@@ -190,7 +194,6 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabricsSender(re
 func (client ReplicationLogicalNetworksClient) ListByReplicationFabricsResponder(resp *http.Response) (result LogicalNetworkCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,6 +218,7 @@ func (client ReplicationLogicalNetworksClient) listByReplicationFabricsNextResul
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -36,7 +36,9 @@ func NewExportConfigurationsClient(subscriptionID string) ExportConfigurationsCl
 	return NewExportConfigurationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExportConfigurationsClientWithBaseURI creates an instance of the ExportConfigurationsClient client.
+// NewExportConfigurationsClientWithBaseURI creates an instance of the ExportConfigurationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewExportConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) ExportConfigurationsClient {
 	return ExportConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -84,6 +86,7 @@ func (client ExportConfigurationsClient) Create(ctx context.Context, resourceGro
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,8 +118,7 @@ func (client ExportConfigurationsClient) CreatePreparer(ctx context.Context, res
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -124,7 +126,6 @@ func (client ExportConfigurationsClient) CreateSender(req *http.Request) (*http.
 func (client ExportConfigurationsClient) CreateResponder(resp *http.Response) (result ListApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -174,6 +175,7 @@ func (client ExportConfigurationsClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -204,8 +206,7 @@ func (client ExportConfigurationsClient) DeletePreparer(ctx context.Context, res
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -213,7 +214,6 @@ func (client ExportConfigurationsClient) DeleteSender(req *http.Request) (*http.
 func (client ExportConfigurationsClient) DeleteResponder(resp *http.Response) (result ApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -263,6 +263,7 @@ func (client ExportConfigurationsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -293,8 +294,7 @@ func (client ExportConfigurationsClient) GetPreparer(ctx context.Context, resour
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -302,7 +302,6 @@ func (client ExportConfigurationsClient) GetSender(req *http.Request) (*http.Res
 func (client ExportConfigurationsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -351,6 +350,7 @@ func (client ExportConfigurationsClient) List(ctx context.Context, resourceGroup
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -380,8 +380,7 @@ func (client ExportConfigurationsClient) ListPreparer(ctx context.Context, resou
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -389,7 +388,6 @@ func (client ExportConfigurationsClient) ListSender(req *http.Request) (*http.Re
 func (client ExportConfigurationsClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -440,6 +438,7 @@ func (client ExportConfigurationsClient) Update(ctx context.Context, resourceGro
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -472,8 +471,7 @@ func (client ExportConfigurationsClient) UpdatePreparer(ctx context.Context, res
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -481,7 +479,6 @@ func (client ExportConfigurationsClient) UpdateSender(req *http.Request) (*http.
 func (client ExportConfigurationsClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentExportConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

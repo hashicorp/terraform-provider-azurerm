@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the Type of the Extension. Changing this forces a new resource to be created.
 
-* `type_handler_version` - (Required) Specifies the version of the Script Handler which should be used.
+* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 
 ---
 

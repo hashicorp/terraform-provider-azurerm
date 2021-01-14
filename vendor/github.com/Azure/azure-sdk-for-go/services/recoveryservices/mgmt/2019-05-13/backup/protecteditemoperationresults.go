@@ -36,7 +36,8 @@ func NewProtectedItemOperationResultsClient(subscriptionID string) ProtectedItem
 }
 
 // NewProtectedItemOperationResultsClientWithBaseURI creates an instance of the ProtectedItemOperationResultsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewProtectedItemOperationResultsClientWithBaseURI(baseURI string, subscriptionID string) ProtectedItemOperationResultsClient {
 	return ProtectedItemOperationResultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -76,6 +77,7 @@ func (client ProtectedItemOperationResultsClient) Get(ctx context.Context, vault
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,8 +111,7 @@ func (client ProtectedItemOperationResultsClient) GetPreparer(ctx context.Contex
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectedItemOperationResultsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -118,7 +119,6 @@ func (client ProtectedItemOperationResultsClient) GetSender(req *http.Request) (
 func (client ProtectedItemOperationResultsClient) GetResponder(resp *http.Response) (result ProtectedItemResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

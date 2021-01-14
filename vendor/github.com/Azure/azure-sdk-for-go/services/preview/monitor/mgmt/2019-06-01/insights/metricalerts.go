@@ -36,7 +36,8 @@ func NewMetricAlertsClient(subscriptionID string) MetricAlertsClient {
 	return NewMetricAlertsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMetricAlertsClientWithBaseURI creates an instance of the MetricAlertsClient client.
+// NewMetricAlertsClientWithBaseURI creates an instance of the MetricAlertsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewMetricAlertsClientWithBaseURI(baseURI string, subscriptionID string) MetricAlertsClient {
 	return MetricAlertsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -86,6 +87,7 @@ func (client MetricAlertsClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,8 +119,7 @@ func (client MetricAlertsClient) CreateOrUpdatePreparer(ctx context.Context, res
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricAlertsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -126,7 +127,6 @@ func (client MetricAlertsClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client MetricAlertsClient) CreateOrUpdateResponder(resp *http.Response) (result MetricAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -165,6 +165,7 @@ func (client MetricAlertsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,8 +195,7 @@ func (client MetricAlertsClient) DeletePreparer(ctx context.Context, resourceGro
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricAlertsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -203,7 +203,6 @@ func (client MetricAlertsClient) DeleteSender(req *http.Request) (*http.Response
 func (client MetricAlertsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +240,7 @@ func (client MetricAlertsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -270,8 +270,7 @@ func (client MetricAlertsClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricAlertsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -279,7 +278,6 @@ func (client MetricAlertsClient) GetSender(req *http.Request) (*http.Response, e
 func (client MetricAlertsClient) GetResponder(resp *http.Response) (result MetricAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +315,7 @@ func (client MetricAlertsClient) ListByResourceGroup(ctx context.Context, resour
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -345,8 +344,7 @@ func (client MetricAlertsClient) ListByResourceGroupPreparer(ctx context.Context
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricAlertsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -354,7 +352,6 @@ func (client MetricAlertsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client MetricAlertsClient) ListByResourceGroupResponder(resp *http.Response) (result MetricAlertResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -390,6 +387,7 @@ func (client MetricAlertsClient) ListBySubscription(ctx context.Context) (result
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -417,8 +415,7 @@ func (client MetricAlertsClient) ListBySubscriptionPreparer(ctx context.Context)
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricAlertsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -426,7 +423,6 @@ func (client MetricAlertsClient) ListBySubscriptionSender(req *http.Request) (*h
 func (client MetricAlertsClient) ListBySubscriptionResponder(resp *http.Response) (result MetricAlertResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -466,6 +462,7 @@ func (client MetricAlertsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -497,8 +494,7 @@ func (client MetricAlertsClient) UpdatePreparer(ctx context.Context, resourceGro
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricAlertsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -506,7 +502,6 @@ func (client MetricAlertsClient) UpdateSender(req *http.Request) (*http.Response
 func (client MetricAlertsClient) UpdateResponder(resp *http.Response) (result MetricAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

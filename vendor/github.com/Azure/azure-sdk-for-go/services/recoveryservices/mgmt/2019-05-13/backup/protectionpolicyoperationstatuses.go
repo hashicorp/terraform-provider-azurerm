@@ -37,7 +37,8 @@ func NewProtectionPolicyOperationStatusesClient(subscriptionID string) Protectio
 }
 
 // NewProtectionPolicyOperationStatusesClientWithBaseURI creates an instance of the
-// ProtectionPolicyOperationStatusesClient client.
+// ProtectionPolicyOperationStatusesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProtectionPolicyOperationStatusesClientWithBaseURI(baseURI string, subscriptionID string) ProtectionPolicyOperationStatusesClient {
 	return ProtectionPolicyOperationStatusesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -78,6 +79,7 @@ func (client ProtectionPolicyOperationStatusesClient) Get(ctx context.Context, v
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPolicyOperationStatusesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,8 +111,7 @@ func (client ProtectionPolicyOperationStatusesClient) GetPreparer(ctx context.Co
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionPolicyOperationStatusesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -118,7 +119,6 @@ func (client ProtectionPolicyOperationStatusesClient) GetSender(req *http.Reques
 func (client ProtectionPolicyOperationStatusesClient) GetResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

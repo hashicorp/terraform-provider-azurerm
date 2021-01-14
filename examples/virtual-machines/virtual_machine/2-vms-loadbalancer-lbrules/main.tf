@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group}"
   location = "${var.location}"
@@ -39,7 +43,7 @@ resource "azurerm_subnet" "subnet" {
   name                 = "${var.rg_prefix}subnet"
   virtual_network_name = "${azurerm_virtual_network.vnet.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
-  address_prefix       = "${var.subnet_prefix}"
+  address_prefixes     = ["${var.subnet_prefix}"]
 }
 
 resource "azurerm_lb" "lb" {
@@ -105,10 +109,17 @@ resource "azurerm_network_interface" "nic" {
     name                                    = "ipconfig${count.index}"
     subnet_id                               = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation           = "Dynamic"
-    load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.backend_pool.id}"]
-    load_balancer_inbound_nat_rules_ids     = ["${element(azurerm_lb_nat_rule.tcp.*.id, count.index)}"]
   }
 }
+
+
+resource "azurerm_network_interface_nat_rule_association" "natrule" {
+  network_interface_id  = "element(azurerm_network_interface.nic.*.id, count.index)"
+  ip_configuration_name = "ipconfig${count.index}"
+  nat_rule_id           = "element(azurerm_lb_nat_rule.tcp.*.id, count.index)"
+  count                 = 2
+}
+
 
 resource "azurerm_virtual_machine" "vm" {
   name                  = "vm${count.index}"

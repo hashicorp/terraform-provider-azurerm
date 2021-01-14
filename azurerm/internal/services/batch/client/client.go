@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

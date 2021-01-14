@@ -38,7 +38,9 @@ func NewElasticPoolOperationsClient(subscriptionID string) ElasticPoolOperations
 	return NewElasticPoolOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewElasticPoolOperationsClientWithBaseURI creates an instance of the ElasticPoolOperationsClient client.
+// NewElasticPoolOperationsClientWithBaseURI creates an instance of the ElasticPoolOperationsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewElasticPoolOperationsClientWithBaseURI(baseURI string, subscriptionID string) ElasticPoolOperationsClient {
 	return ElasticPoolOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -76,6 +78,7 @@ func (client ElasticPoolOperationsClient) Cancel(ctx context.Context, resourceGr
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,8 +110,7 @@ func (client ElasticPoolOperationsClient) CancelPreparer(ctx context.Context, re
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ElasticPoolOperationsClient) CancelSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelResponder handles the response to the Cancel request. The method always
@@ -116,7 +118,6 @@ func (client ElasticPoolOperationsClient) CancelSender(req *http.Request) (*http
 func (client ElasticPoolOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -156,6 +157,10 @@ func (client ElasticPoolOperationsClient) ListByElasticPool(ctx context.Context,
 	result.epolr, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
+	}
+	if result.epolr.hasNextLink() && result.epolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -186,8 +191,7 @@ func (client ElasticPoolOperationsClient) ListByElasticPoolPreparer(ctx context.
 // ListByElasticPoolSender sends the ListByElasticPool request. The method will close the
 // http.Response Body if it receives an error.
 func (client ElasticPoolOperationsClient) ListByElasticPoolSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByElasticPoolResponder handles the response to the ListByElasticPool request. The method always
@@ -195,7 +199,6 @@ func (client ElasticPoolOperationsClient) ListByElasticPoolSender(req *http.Requ
 func (client ElasticPoolOperationsClient) ListByElasticPoolResponder(resp *http.Response) (result ElasticPoolOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,6 +223,7 @@ func (client ElasticPoolOperationsClient) listByElasticPoolNextResults(ctx conte
 	result, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "listByElasticPoolNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

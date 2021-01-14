@@ -37,7 +37,8 @@ func NewComponentCurrentBillingFeaturesClient(subscriptionID string) ComponentCu
 }
 
 // NewComponentCurrentBillingFeaturesClientWithBaseURI creates an instance of the ComponentCurrentBillingFeaturesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewComponentCurrentBillingFeaturesClientWithBaseURI(baseURI string, subscriptionID string) ComponentCurrentBillingFeaturesClient {
 	return ComponentCurrentBillingFeaturesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -83,6 +84,7 @@ func (client ComponentCurrentBillingFeaturesClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentCurrentBillingFeaturesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,8 +114,7 @@ func (client ComponentCurrentBillingFeaturesClient) GetPreparer(ctx context.Cont
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComponentCurrentBillingFeaturesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -121,7 +122,6 @@ func (client ComponentCurrentBillingFeaturesClient) GetSender(req *http.Request)
 func (client ComponentCurrentBillingFeaturesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentBillingFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -172,6 +172,7 @@ func (client ComponentCurrentBillingFeaturesClient) Update(ctx context.Context, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentCurrentBillingFeaturesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -203,8 +204,7 @@ func (client ComponentCurrentBillingFeaturesClient) UpdatePreparer(ctx context.C
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComponentCurrentBillingFeaturesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -212,7 +212,6 @@ func (client ComponentCurrentBillingFeaturesClient) UpdateSender(req *http.Reque
 func (client ComponentCurrentBillingFeaturesClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentBillingFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

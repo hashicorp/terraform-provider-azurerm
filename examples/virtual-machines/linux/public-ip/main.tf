@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-resources"
   location = var.location
@@ -14,9 +18,8 @@ resource "azurerm_subnet" "internal" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
-
 
 resource "azurerm_public_ip" "pip" {
   name                = "${var.prefix}-pip"
@@ -42,7 +45,6 @@ resource "azurerm_network_interface" "internal" {
   name                      = "${var.prefix}-nic2"
   resource_group_name       = azurerm_resource_group.main.name
   location                  = azurerm_resource_group.main.location
-  network_security_group_id = azurerm_network_security_group.webserver.id
 
   ip_configuration {
     name                          = "internal"
@@ -66,6 +68,11 @@ resource "azurerm_network_security_group" "webserver" {
     destination_port_range     = "443"
     destination_address_prefix = azurerm_network_interface.main.private_ip_address
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "main" {
+  network_interface_id      = azurerm_network_interface.internal.id
+  network_security_group_id = azurerm_network_security_group.webserver.id
 }
 
 resource "azurerm_linux_virtual_machine" "main" {
@@ -93,4 +100,3 @@ resource "azurerm_linux_virtual_machine" "main" {
     caching              = "ReadWrite"
   }
 }
-

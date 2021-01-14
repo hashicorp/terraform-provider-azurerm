@@ -22,14 +22,14 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_netapp_account" "example" {
   name                = "example-netapp"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   active_directory {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
-    dns                 = ["1.2.3.4"]
+    dns_servers         = ["1.2.3.4"]
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }
@@ -47,6 +47,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

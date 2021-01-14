@@ -35,7 +35,8 @@ func NewBaselinesClient(subscriptionID string) BaselinesClient {
 	return NewBaselinesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBaselinesClientWithBaseURI creates an instance of the BaselinesClient client.
+// NewBaselinesClientWithBaseURI creates an instance of the BaselinesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBaselinesClientWithBaseURI(baseURI string, subscriptionID string) BaselinesClient {
 	return BaselinesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -85,6 +86,7 @@ func (client BaselinesClient) List(ctx context.Context, resourceURI string, metr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.BaselinesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -136,8 +138,7 @@ func (client BaselinesClient) ListPreparer(ctx context.Context, resourceURI stri
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaselinesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -145,7 +146,6 @@ func (client BaselinesClient) ListSender(req *http.Request) (*http.Response, err
 func (client BaselinesClient) ListResponder(resp *http.Response) (result MetricBaselinesResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

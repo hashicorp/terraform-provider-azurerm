@@ -23,7 +23,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	vaultConfigsClient := backup.NewResourceVaultConfigsClient(o.SubscriptionId)
+	vaultConfigsClient := backup.NewResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

@@ -30,7 +30,7 @@ resource "azurerm_subnet" "example" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_application_security_group" "example" {
@@ -45,16 +45,14 @@ resource "azurerm_network_interface" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
-    name                           = "testconfiguration1"
-    subnet_id                      = azurerm_subnet.example.id
-    private_ip_address_allocation  = "Dynamic"
-    application_security_group_ids = [azurerm_application_security_group.example.id]
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "example" {
   network_interface_id          = azurerm_network_interface.example.id
-  ip_configuration_name         = "testconfiguration1"
   application_security_group_id = azurerm_application_security_group.example.id
 }
 ```
@@ -64,8 +62,6 @@ resource "azurerm_network_interface_application_security_group_association" "exa
 The following arguments are supported:
 
 * `network_interface_id` - (Required) The ID of the Network Interface. Changing this forces a new resource to be created.
-
-* `ip_configuration_name` - (Required) The Name of the IP Configuration within the Network Interface which should be connected to the Application Security Group. Changing this forces a new resource to be created.
 
 * `application_security_group_id` - (Required) The ID of the Application Security Group which this Network Interface which should be connected to. Changing this forces a new resource to be created.
 
@@ -88,9 +84,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 Associations between Network Interfaces and Application Security Groups can be imported using the `resource id`, e.g.
 
-
 ```shell
-terraform import azurerm_network_interface_application_security_group_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/applicationSecurityGroups/securityGroup1
+terraform import azurerm_network_interface_application_security_group_association.association1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/applicationSecurityGroups/securityGroup1"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId}`.
+-> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}|{applicationSecurityGroupId}`.

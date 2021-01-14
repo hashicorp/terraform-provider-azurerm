@@ -37,7 +37,8 @@ func NewDatabaseUsagesClient(subscriptionID string) DatabaseUsagesClient {
 	return NewDatabaseUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseUsagesClientWithBaseURI creates an instance of the DatabaseUsagesClient client.
+// NewDatabaseUsagesClientWithBaseURI creates an instance of the DatabaseUsagesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDatabaseUsagesClientWithBaseURI(baseURI string, subscriptionID string) DatabaseUsagesClient {
 	return DatabaseUsagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -75,6 +76,7 @@ func (client DatabaseUsagesClient) ListByDatabase(ctx context.Context, resourceG
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseUsagesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -105,8 +107,7 @@ func (client DatabaseUsagesClient) ListByDatabasePreparer(ctx context.Context, r
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseUsagesClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
@@ -114,7 +115,6 @@ func (client DatabaseUsagesClient) ListByDatabaseSender(req *http.Request) (*htt
 func (client DatabaseUsagesClient) ListByDatabaseResponder(resp *http.Response) (result DatabaseUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -37,7 +37,8 @@ func NewCapabilitiesClient(subscriptionID string) CapabilitiesClient {
 	return NewCapabilitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCapabilitiesClientWithBaseURI creates an instance of the CapabilitiesClient client.
+// NewCapabilitiesClientWithBaseURI creates an instance of the CapabilitiesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCapabilitiesClientWithBaseURI(baseURI string, subscriptionID string) CapabilitiesClient {
 	return CapabilitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +74,7 @@ func (client CapabilitiesClient) ListByLocation(ctx context.Context, locationNam
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.CapabilitiesClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -104,8 +106,7 @@ func (client CapabilitiesClient) ListByLocationPreparer(ctx context.Context, loc
 // ListByLocationSender sends the ListByLocation request. The method will close the
 // http.Response Body if it receives an error.
 func (client CapabilitiesClient) ListByLocationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByLocationResponder handles the response to the ListByLocation request. The method always
@@ -113,7 +114,6 @@ func (client CapabilitiesClient) ListByLocationSender(req *http.Request) (*http.
 func (client CapabilitiesClient) ListByLocationResponder(resp *http.Response) (result LocationCapabilities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

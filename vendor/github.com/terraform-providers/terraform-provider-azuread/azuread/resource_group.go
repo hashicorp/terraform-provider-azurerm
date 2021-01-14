@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/p"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 )
 
 func resourceGroup() *schema.Resource {
@@ -37,9 +36,10 @@ func resourceGroup() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"object_id": {
+			"description": {
 				Type:     schema.TypeString,
-				Computed: true,
+				ForceNew: true, // there is no update method available in the SDK
+				Optional: true,
 			},
 
 			"members": {
@@ -63,6 +63,11 @@ func resourceGroup() *schema.Resource {
 					ValidateFunc: validate.UUID,
 				},
 			},
+
+			"object_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -74,10 +79,15 @@ func resourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 
 	properties := graphrbac.GroupCreateParameters{
-		DisplayName:     &name,
-		MailEnabled:     p.Bool(false),                 // we're defaulting to false, as the API currently only supports the creation of non-mail enabled security groups.
-		MailNickname:    p.String(uuid.New().String()), // this matches the portal behaviour
-		SecurityEnabled: p.Bool(true),                  // we're defaulting to true, as the API currently only supports the creation of non-mail enabled security groups.
+		DisplayName:          &name,
+		MailEnabled:          p.Bool(false),                 // we're defaulting to false, as the API currently only supports the creation of non-mail enabled security groups.
+		MailNickname:         p.String(uuid.New().String()), // this matches the portal behaviour
+		SecurityEnabled:      p.Bool(true),                  // we're defaulting to true, as the API currently only supports the creation of non-mail enabled security groups.
+		AdditionalProperties: make(map[string]interface{}),
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		properties.AdditionalProperties["description"] = v.(string)
 	}
 
 	group, err := client.Create(ctx, properties)
@@ -87,6 +97,7 @@ func resourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	if group.ObjectID == nil {
 		return fmt.Errorf("nil Group ID for %q: %+v", name, err)
 	}
+
 	d.SetId(*group.ObjectID)
 
 	// Add members if specified
@@ -101,13 +112,19 @@ func resourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Add owners if specified
 	if v, ok := d.GetOk("owners"); ok {
-		members := tf.ExpandStringSlicePtr(v.(*schema.Set).List())
-		if err := graph.GroupAddOwners(client, ctx, *group.ObjectID, *members); err != nil {
+		existingOwners, err := graph.GroupAllOwners(client, ctx, *group.ObjectID)
+		if err != nil {
+			return err
+		}
+		members := *tf.ExpandStringSlicePtr(v.(*schema.Set).List())
+		ownersToAdd := slices.Difference(members, existingOwners)
+
+		if err := graph.GroupAddOwners(client, ctx, *group.ObjectID, ownersToAdd); err != nil {
 			return err
 		}
 	}
 
-	_, err = graph.WaitForReplication(func() (interface{}, error) {
+	_, err = graph.WaitForCreationReplication(func() (interface{}, error) {
 		return client.Get(ctx, *group.ObjectID)
 	})
 	if err != nil {
@@ -134,6 +151,10 @@ func resourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.DisplayName)
 	d.Set("object_id", resp.ObjectID)
+
+	if v, ok := resp.AdditionalProperties["description"]; ok {
+		d.Set("description", v.(string))
+	}
 
 	members, err := graph.GroupAllMembers(client, ctx, d.Id())
 	if err != nil {

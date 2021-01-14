@@ -36,7 +36,8 @@ func NewActionGroupsClient(subscriptionID string) ActionGroupsClient {
 	return NewActionGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewActionGroupsClientWithBaseURI creates an instance of the ActionGroupsClient client.
+// NewActionGroupsClientWithBaseURI creates an instance of the ActionGroupsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewActionGroupsClientWithBaseURI(baseURI string, subscriptionID string) ActionGroupsClient {
 	return ActionGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -83,6 +84,7 @@ func (client ActionGroupsClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,8 +116,7 @@ func (client ActionGroupsClient) CreateOrUpdatePreparer(ctx context.Context, res
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -123,7 +124,6 @@ func (client ActionGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client ActionGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ActionGroupResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,7 @@ func (client ActionGroupsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -191,8 +192,7 @@ func (client ActionGroupsClient) DeletePreparer(ctx context.Context, resourceGro
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -200,7 +200,6 @@ func (client ActionGroupsClient) DeleteSender(req *http.Request) (*http.Response
 func (client ActionGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -246,6 +245,7 @@ func (client ActionGroupsClient) EnableReceiver(ctx context.Context, resourceGro
 	result, err = client.EnableReceiverResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "EnableReceiver", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,8 +277,7 @@ func (client ActionGroupsClient) EnableReceiverPreparer(ctx context.Context, res
 // EnableReceiverSender sends the EnableReceiver request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) EnableReceiverSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // EnableReceiverResponder handles the response to the EnableReceiver request. The method always
@@ -286,7 +285,6 @@ func (client ActionGroupsClient) EnableReceiverSender(req *http.Request) (*http.
 func (client ActionGroupsClient) EnableReceiverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusConflict),
 		autorest.ByClosing())
 	result.Response = resp
@@ -324,6 +322,7 @@ func (client ActionGroupsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -353,8 +352,7 @@ func (client ActionGroupsClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -362,7 +360,6 @@ func (client ActionGroupsClient) GetSender(req *http.Request) (*http.Response, e
 func (client ActionGroupsClient) GetResponder(resp *http.Response) (result ActionGroupResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -400,6 +397,7 @@ func (client ActionGroupsClient) ListByResourceGroup(ctx context.Context, resour
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,8 +426,7 @@ func (client ActionGroupsClient) ListByResourceGroupPreparer(ctx context.Context
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -437,7 +434,6 @@ func (client ActionGroupsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client ActionGroupsClient) ListByResourceGroupResponder(resp *http.Response) (result ActionGroupList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,6 +469,7 @@ func (client ActionGroupsClient) ListBySubscriptionID(ctx context.Context) (resu
 	result, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -500,8 +497,7 @@ func (client ActionGroupsClient) ListBySubscriptionIDPreparer(ctx context.Contex
 // ListBySubscriptionIDSender sends the ListBySubscriptionID request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) ListBySubscriptionIDSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionIDResponder handles the response to the ListBySubscriptionID request. The method always
@@ -509,7 +505,6 @@ func (client ActionGroupsClient) ListBySubscriptionIDSender(req *http.Request) (
 func (client ActionGroupsClient) ListBySubscriptionIDResponder(resp *http.Response) (result ActionGroupList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -549,6 +544,7 @@ func (client ActionGroupsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -580,8 +576,7 @@ func (client ActionGroupsClient) UpdatePreparer(ctx context.Context, resourceGro
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -589,7 +584,6 @@ func (client ActionGroupsClient) UpdateSender(req *http.Request) (*http.Response
 func (client ActionGroupsClient) UpdateResponder(resp *http.Response) (result ActionGroupResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

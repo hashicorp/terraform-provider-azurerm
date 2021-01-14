@@ -35,7 +35,9 @@ func NewVaultCertificatesClient(subscriptionID string) VaultCertificatesClient {
 	return NewVaultCertificatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVaultCertificatesClientWithBaseURI creates an instance of the VaultCertificatesClient client.
+// NewVaultCertificatesClientWithBaseURI creates an instance of the VaultCertificatesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewVaultCertificatesClientWithBaseURI(baseURI string, subscriptionID string) VaultCertificatesClient {
 	return VaultCertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +75,7 @@ func (client VaultCertificatesClient) Create(ctx context.Context, resourceGroupN
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultCertificatesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -105,8 +108,7 @@ func (client VaultCertificatesClient) CreatePreparer(ctx context.Context, resour
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client VaultCertificatesClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -114,7 +116,6 @@ func (client VaultCertificatesClient) CreateSender(req *http.Request) (*http.Res
 func (client VaultCertificatesClient) CreateResponder(resp *http.Response) (result VaultCertificateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

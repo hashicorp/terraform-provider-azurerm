@@ -35,7 +35,8 @@ func NewSubscriptionsClient(subscriptionID string) SubscriptionsClient {
 	return NewSubscriptionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSubscriptionsClientWithBaseURI creates an instance of the SubscriptionsClient client.
+// NewSubscriptionsClientWithBaseURI creates an instance of the SubscriptionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSubscriptionsClientWithBaseURI(baseURI string, subscriptionID string) SubscriptionsClient {
 	return SubscriptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -71,6 +72,7 @@ func (client SubscriptionsClient) ListQuotas(ctx context.Context, location strin
 	result, err = client.ListQuotasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.SubscriptionsClient", "ListQuotas", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -99,8 +101,7 @@ func (client SubscriptionsClient) ListQuotasPreparer(ctx context.Context, locati
 // ListQuotasSender sends the ListQuotas request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) ListQuotasSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListQuotasResponder handles the response to the ListQuotas request. The method always
@@ -108,7 +109,6 @@ func (client SubscriptionsClient) ListQuotasSender(req *http.Request) (*http.Res
 func (client SubscriptionsClient) ListQuotasResponder(resp *http.Response) (result SubscriptionQuotasListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

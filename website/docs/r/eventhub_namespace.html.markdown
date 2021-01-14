@@ -47,7 +47,13 @@ The following arguments are supported:
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
+* `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block as defined below. 
+
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
+
+* `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -55,9 +61,19 @@ The following arguments are supported:
 
 ---
 
+A `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for this EventHub Namespace. At this time the only possible value is `SystemAssigned`.
+
+~> **Note:** Due to the limitation of the current Azure API, once an EventHub Namespace has been assigned an identity, it cannot be removed.
+
+---
+
 A `network_rulesets` block supports the following:
 
-* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
 
 * `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 
@@ -77,7 +93,7 @@ A `ip_rule` block supports the following:
 
 * `ip_mask` - (Required) The ip mask to match on.
 
-* `action` - (Optional) The action to take when the rule is  matched. Possible values are `Allow`.
+* `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`.
 
 ## Attributes Reference
 
@@ -85,18 +101,34 @@ The following attributes are exported:
 
 * `id` - The EventHub Namespace ID.
 
+* `identity` - An `identity` block as documented below.
+
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
 * `default_primary_connection_string` - The primary connection string for the authorization
     rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string` - The secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
+* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization
+    rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
+* `default_secondary_connection_string` - The secondary connection string for the
+    authorization rule `RootManageSharedAccessKey`.
+
+* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the
+    authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
+
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Client ID of the Service Principal assigned to this EventHub Namespace.
+
+* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
 

@@ -35,7 +35,9 @@ func NewAlertRuleIncidentsClient(subscriptionID string) AlertRuleIncidentsClient
 	return NewAlertRuleIncidentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAlertRuleIncidentsClientWithBaseURI creates an instance of the AlertRuleIncidentsClient client.
+// NewAlertRuleIncidentsClientWithBaseURI creates an instance of the AlertRuleIncidentsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewAlertRuleIncidentsClientWithBaseURI(baseURI string, subscriptionID string) AlertRuleIncidentsClient {
 	return AlertRuleIncidentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,6 +74,7 @@ func (client AlertRuleIncidentsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRuleIncidentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -102,8 +105,7 @@ func (client AlertRuleIncidentsClient) GetPreparer(ctx context.Context, resource
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRuleIncidentsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -111,7 +113,6 @@ func (client AlertRuleIncidentsClient) GetSender(req *http.Request) (*http.Respo
 func (client AlertRuleIncidentsClient) GetResponder(resp *http.Response) (result Incident, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +151,7 @@ func (client AlertRuleIncidentsClient) ListByAlertRule(ctx context.Context, reso
 	result, err = client.ListByAlertRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRuleIncidentsClient", "ListByAlertRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,8 +181,7 @@ func (client AlertRuleIncidentsClient) ListByAlertRulePreparer(ctx context.Conte
 // ListByAlertRuleSender sends the ListByAlertRule request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRuleIncidentsClient) ListByAlertRuleSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAlertRuleResponder handles the response to the ListByAlertRule request. The method always
@@ -188,7 +189,6 @@ func (client AlertRuleIncidentsClient) ListByAlertRuleSender(req *http.Request) 
 func (client AlertRuleIncidentsClient) ListByAlertRuleResponder(resp *http.Response) (result IncidentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

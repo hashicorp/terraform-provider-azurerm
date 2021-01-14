@@ -35,7 +35,7 @@ resource "azurerm_subnet" "example" {
   name                 = "acctsub"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "example" {
@@ -64,7 +64,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -132,19 +131,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the virtual machine extension peering. Changing
     this forces a new resource to be created.
 
-* `location` - (Optional / **Deprecated**) The location where the extension is created. Changing
-    this forces a new resource to be created.
-
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
-    create the virtual network. Changing this forces a new resource to be
-    created.
-
-* `virtual_machine_name` - (Optional / **Deprecated**) The name of the virtual machine. Changing
-    this forces a new resource to be created.
-
-* `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces
-    `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new
-    resource to be created
+* `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers
     can be found by using the Azure CLI.

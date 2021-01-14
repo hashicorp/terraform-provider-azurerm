@@ -35,7 +35,8 @@ func NewVMInsightsClient(subscriptionID string) VMInsightsClient {
 	return NewVMInsightsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVMInsightsClientWithBaseURI creates an instance of the VMInsightsClient client.
+// NewVMInsightsClientWithBaseURI creates an instance of the VMInsightsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVMInsightsClientWithBaseURI(baseURI string, subscriptionID string) VMInsightsClient {
 	return VMInsightsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -71,6 +72,7 @@ func (client VMInsightsClient) GetOnboardingStatus(ctx context.Context, resource
 	result, err = client.GetOnboardingStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.VMInsightsClient", "GetOnboardingStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -98,8 +100,7 @@ func (client VMInsightsClient) GetOnboardingStatusPreparer(ctx context.Context, 
 // GetOnboardingStatusSender sends the GetOnboardingStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client VMInsightsClient) GetOnboardingStatusSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetOnboardingStatusResponder handles the response to the GetOnboardingStatus request. The method always
@@ -107,7 +108,6 @@ func (client VMInsightsClient) GetOnboardingStatusSender(req *http.Request) (*ht
 func (client VMInsightsClient) GetOnboardingStatusResponder(resp *http.Response) (result VMInsightsOnboardingStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

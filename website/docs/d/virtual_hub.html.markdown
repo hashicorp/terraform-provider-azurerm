@@ -14,8 +14,8 @@ Uses this data source to access information about an existing Virtual Hub.
 
 ```hcl
 data "azurerm_virtual_hub" "example" {
-  name           = "example-hub"
-  resource_group = "example-resources"
+  name                = "example-hub"
+  resource_group_name = "example-resources"
 }
 
 output "virtual_hub_id" {

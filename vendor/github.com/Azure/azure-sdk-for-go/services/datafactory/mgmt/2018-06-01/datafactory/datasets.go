@@ -37,7 +37,8 @@ func NewDatasetsClient(subscriptionID string) DatasetsClient {
 	return NewDatasetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatasetsClientWithBaseURI creates an instance of the DatasetsClient client.
+// NewDatasetsClientWithBaseURI creates an instance of the DatasetsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDatasetsClientWithBaseURI(baseURI string, subscriptionID string) DatasetsClient {
 	return DatasetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,14 +74,7 @@ func (client DatasetsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 		{TargetValue: datasetName,
 			Constraints: []validation.Constraint{{Target: "datasetName", Name: validation.MaxLength, Rule: 260, Chain: nil},
 				{Target: "datasetName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "datasetName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}},
-		{TargetValue: dataset,
-			Constraints: []validation.Constraint{{Target: "dataset.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "dataset.Properties.LinkedServiceName", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "dataset.Properties.LinkedServiceName.Type", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "dataset.Properties.LinkedServiceName.ReferenceName", Name: validation.Null, Rule: true, Chain: nil},
-					}},
-				}}}}}); err != nil {
+				{Target: "datasetName", Name: validation.Pattern, Rule: `^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("datafactory.DatasetsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -100,6 +94,7 @@ func (client DatasetsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DatasetsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -136,8 +131,7 @@ func (client DatasetsClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatasetsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -145,7 +139,6 @@ func (client DatasetsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client DatasetsClient) CreateOrUpdateResponder(resp *http.Response) (result DatasetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,6 +194,7 @@ func (client DatasetsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DatasetsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,8 +225,7 @@ func (client DatasetsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatasetsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -240,7 +233,6 @@ func (client DatasetsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client DatasetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -297,6 +289,7 @@ func (client DatasetsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DatasetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -331,8 +324,7 @@ func (client DatasetsClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatasetsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -340,7 +332,6 @@ func (client DatasetsClient) GetSender(req *http.Request) (*http.Response, error
 func (client DatasetsClient) GetResponder(resp *http.Response) (result DatasetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -392,6 +383,11 @@ func (client DatasetsClient) ListByFactory(ctx context.Context, resourceGroupNam
 	result.dlr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DatasetsClient", "ListByFactory", resp, "Failure responding to request")
+		return
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -421,8 +417,7 @@ func (client DatasetsClient) ListByFactoryPreparer(ctx context.Context, resource
 // ListByFactorySender sends the ListByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatasetsClient) ListByFactorySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByFactoryResponder handles the response to the ListByFactory request. The method always
@@ -430,7 +425,6 @@ func (client DatasetsClient) ListByFactorySender(req *http.Request) (*http.Respo
 func (client DatasetsClient) ListByFactoryResponder(resp *http.Response) (result DatasetListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

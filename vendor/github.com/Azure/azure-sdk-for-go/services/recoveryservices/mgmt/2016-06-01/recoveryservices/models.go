@@ -30,117 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 
-// AuthType enumerates the values for auth type.
-type AuthType string
-
-const (
-	// AAD ...
-	AAD AuthType = "AAD"
-	// AccessControlService ...
-	AccessControlService AuthType = "AccessControlService"
-	// ACS ...
-	ACS AuthType = "ACS"
-	// AzureActiveDirectory ...
-	AzureActiveDirectory AuthType = "AzureActiveDirectory"
-	// Invalid ...
-	Invalid AuthType = "Invalid"
-)
-
-// PossibleAuthTypeValues returns an array of possible values for the AuthType const type.
-func PossibleAuthTypeValues() []AuthType {
-	return []AuthType{AAD, AccessControlService, ACS, AzureActiveDirectory, Invalid}
-}
-
-// AuthTypeBasicResourceCertificateDetails enumerates the values for auth type basic resource certificate
-// details.
-type AuthTypeBasicResourceCertificateDetails string
-
-const (
-	// AuthTypeAccessControlService ...
-	AuthTypeAccessControlService AuthTypeBasicResourceCertificateDetails = "AccessControlService"
-	// AuthTypeAzureActiveDirectory ...
-	AuthTypeAzureActiveDirectory AuthTypeBasicResourceCertificateDetails = "AzureActiveDirectory"
-	// AuthTypeResourceCertificateDetails ...
-	AuthTypeResourceCertificateDetails AuthTypeBasicResourceCertificateDetails = "ResourceCertificateDetails"
-)
-
-// PossibleAuthTypeBasicResourceCertificateDetailsValues returns an array of possible values for the AuthTypeBasicResourceCertificateDetails const type.
-func PossibleAuthTypeBasicResourceCertificateDetailsValues() []AuthTypeBasicResourceCertificateDetails {
-	return []AuthTypeBasicResourceCertificateDetails{AuthTypeAccessControlService, AuthTypeAzureActiveDirectory, AuthTypeResourceCertificateDetails}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// RS0 ...
-	RS0 SkuName = "RS0"
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{RS0, Standard}
-}
-
-// TriggerType enumerates the values for trigger type.
-type TriggerType string
-
-const (
-	// ForcedUpgrade ...
-	ForcedUpgrade TriggerType = "ForcedUpgrade"
-	// UserTriggered ...
-	UserTriggered TriggerType = "UserTriggered"
-)
-
-// PossibleTriggerTypeValues returns an array of possible values for the TriggerType const type.
-func PossibleTriggerTypeValues() []TriggerType {
-	return []TriggerType{ForcedUpgrade, UserTriggered}
-}
-
-// UsagesUnit enumerates the values for usages unit.
-type UsagesUnit string
-
-const (
-	// Bytes ...
-	Bytes UsagesUnit = "Bytes"
-	// BytesPerSecond ...
-	BytesPerSecond UsagesUnit = "BytesPerSecond"
-	// Count ...
-	Count UsagesUnit = "Count"
-	// CountPerSecond ...
-	CountPerSecond UsagesUnit = "CountPerSecond"
-	// Percent ...
-	Percent UsagesUnit = "Percent"
-	// Seconds ...
-	Seconds UsagesUnit = "Seconds"
-)
-
-// PossibleUsagesUnitValues returns an array of possible values for the UsagesUnit const type.
-func PossibleUsagesUnitValues() []UsagesUnit {
-	return []UsagesUnit{Bytes, BytesPerSecond, Count, CountPerSecond, Percent, Seconds}
-}
-
-// VaultUpgradeState enumerates the values for vault upgrade state.
-type VaultUpgradeState string
-
-const (
-	// Failed ...
-	Failed VaultUpgradeState = "Failed"
-	// InProgress ...
-	InProgress VaultUpgradeState = "InProgress"
-	// Unknown ...
-	Unknown VaultUpgradeState = "Unknown"
-	// Upgraded ...
-	Upgraded VaultUpgradeState = "Upgraded"
-)
-
-// PossibleVaultUpgradeStateValues returns an array of possible values for the VaultUpgradeState const type.
-func PossibleVaultUpgradeStateValues() []VaultUpgradeState {
-	return []VaultUpgradeState{Failed, InProgress, Unknown, Upgraded}
-}
-
 // CertificateRequest details of the certificate to be uploaded to the vault.
 type CertificateRequest struct {
 	Properties *RawCertificateData `json:"properties,omitempty"`
@@ -158,25 +47,10 @@ type CheckNameAvailabilityParameters struct {
 // CheckNameAvailabilityResult response for check name availability API. Resource provider will set
 // availability as true | false.
 type CheckNameAvailabilityResult struct {
-	NameAvailable *bool   `json:"nameAvailable,omitempty"`
-	Reason        *string `json:"reason,omitempty"`
-	Message       *string `json:"message,omitempty"`
-}
-
-// CheckNameAvailabilityResultResource response for check name availability API. Resource provider will set
-// availability as true | false.
-type CheckNameAvailabilityResultResource struct {
 	autorest.Response `json:"-"`
-	// Properties - CheckNameAvailabilityResultResource properties
-	Properties *CheckNameAvailabilityResult `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name associated with the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
-	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	NameAvailable     *bool   `json:"nameAvailable,omitempty"`
+	Reason            *string `json:"reason,omitempty"`
+	Message           *string `json:"message,omitempty"`
 }
 
 // ClientDiscoveryDisplay localized display information of an operation.
@@ -293,10 +167,15 @@ func (cdr ClientDiscoveryResponse) IsEmpty() bool {
 	return cdr.Value == nil || len(*cdr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cdr ClientDiscoveryResponse) hasNextLink() bool {
+	return cdr.NextLink != nil && len(*cdr.NextLink) != 0
+}
+
 // clientDiscoveryResponsePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cdr ClientDiscoveryResponse) clientDiscoveryResponsePreparer(ctx context.Context) (*http.Request, error) {
-	if cdr.NextLink == nil || len(to.String(cdr.NextLink)) < 1 {
+	if !cdr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -324,11 +203,16 @@ func (page *ClientDiscoveryResponsePage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cdr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cdr)
+		if err != nil {
+			return err
+		}
+		page.cdr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cdr = next
 	return nil
 }
 
@@ -358,8 +242,11 @@ func (page ClientDiscoveryResponsePage) Values() []ClientDiscoveryValueForSingle
 }
 
 // Creates a new instance of the ClientDiscoveryResponsePage type.
-func NewClientDiscoveryResponsePage(getNextPage func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error)) ClientDiscoveryResponsePage {
-	return ClientDiscoveryResponsePage{fn: getNextPage}
+func NewClientDiscoveryResponsePage(cur ClientDiscoveryResponse, getNextPage func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error)) ClientDiscoveryResponsePage {
+	return ClientDiscoveryResponsePage{
+		fn:  getNextPage,
+		cdr: cur,
+	}
 }
 
 // ClientDiscoveryValueForSingleAPI available operation details.
@@ -372,6 +259,25 @@ type ClientDiscoveryValueForSingleAPI struct {
 	Origin *string `json:"origin,omitempty"`
 	// Properties - ShoeBox properties for the given operation.
 	Properties *ClientDiscoveryForProperties `json:"properties,omitempty"`
+}
+
+// IdentityData identity for the resource.
+type IdentityData struct {
+	// PrincipalID - READ-ONLY; The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'SystemAssigned', 'None'
+	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IdentityData.
+func (ID IdentityData) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ID.Type != "" {
+		objectMap["type"] = ID.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // JobsSummary summary of the replication job data for this vault.
@@ -443,6 +349,7 @@ func (ptr PatchTrackedResource) MarshalJSON() ([]byte, error) {
 type PatchVault struct {
 	Properties *VaultProperties `json:"properties,omitempty"`
 	Sku        *Sku             `json:"sku,omitempty"`
+	Identity   *IdentityData    `json:"identity,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
@@ -466,6 +373,9 @@ func (pv PatchVault) MarshalJSON() ([]byte, error) {
 	if pv.Sku != nil {
 		objectMap["sku"] = pv.Sku
 	}
+	if pv.Identity != nil {
+		objectMap["identity"] = pv.Identity
+	}
 	if pv.Location != nil {
 		objectMap["location"] = pv.Location
 	}
@@ -476,6 +386,301 @@ func (pv PatchVault) MarshalJSON() ([]byte, error) {
 		objectMap["eTag"] = pv.ETag
 	}
 	return json.Marshal(objectMap)
+}
+
+// PrivateEndpoint the Private Endpoint network resource that is linked to the Private Endpoint connection.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; Gets or sets id.
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection private Endpoint Connection Response Properties.
+type PrivateEndpointConnection struct {
+	// ProvisioningState - READ-ONLY; Gets or sets provisioning state of the private endpoint connection. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateDeleting', 'ProvisioningStateFailed', 'ProvisioningStatePending'
+	ProvisioningState                 ProvisioningState                  `json:"provisioningState,omitempty"`
+	PrivateEndpoint                   *PrivateEndpoint                   `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = pec.PrivateEndpoint
+	}
+	if pec.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = pec.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionVaultProperties information to be stored in Vault properties as an element of
+// privateEndpointConnections List.
+type PrivateEndpointConnectionVaultProperties struct {
+	// ID - READ-ONLY; Format of id subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.[Service]/{resource}/{resourceName}/privateEndpointConnections/{connectionName}.
+	ID         *string                    `json:"id,omitempty"`
+	Properties *PrivateEndpointConnection `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionVaultProperties.
+func (pecvp PrivateEndpointConnectionVaultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecvp.Properties != nil {
+		objectMap["properties"] = pecvp.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkResource information of the private link resource.
+type PrivateLinkResource struct {
+	autorest.Response `json:"-"`
+	// PrivateLinkResourceProperties - Resource properties
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified identifier of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; e.g. Microsoft.RecoveryServices/vaults/privateLinkResources
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceProperties properties of the private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; e.g. f9ad6492-33d4-4690-9999-6bfd52a0d081 (Backup) or f9ad6492-33d4-4690-9999-6bfd52a0d082 (SiteRecovery)
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; [backup-ecs1, backup-prot1, backup-prot1b, backup-prot1c, backup-id1]
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - READ-ONLY; The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkResources class which represent the stamps associated with the vault.
+type PrivateLinkResources struct {
+	autorest.Response `json:"-"`
+	// Value - A collection of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+	// NextLink - Link to the next chunk of the response
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// PrivateLinkResourcesIterator provides access to a complete listing of PrivateLinkResource values.
+type PrivateLinkResourcesIterator struct {
+	i    int
+	page PrivateLinkResourcesPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateLinkResourcesIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateLinkResourcesIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateLinkResourcesIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateLinkResourcesIterator) Response() PrivateLinkResources {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateLinkResourcesIterator) Value() PrivateLinkResource {
+	if !iter.page.NotDone() {
+		return PrivateLinkResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateLinkResourcesIterator type.
+func NewPrivateLinkResourcesIterator(page PrivateLinkResourcesPage) PrivateLinkResourcesIterator {
+	return PrivateLinkResourcesIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (plr PrivateLinkResources) IsEmpty() bool {
+	return plr.Value == nil || len(*plr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (plr PrivateLinkResources) hasNextLink() bool {
+	return plr.NextLink != nil && len(*plr.NextLink) != 0
+}
+
+// privateLinkResourcesPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (plr PrivateLinkResources) privateLinkResourcesPreparer(ctx context.Context) (*http.Request, error) {
+	if !plr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(plr.NextLink)))
+}
+
+// PrivateLinkResourcesPage contains a page of PrivateLinkResource values.
+type PrivateLinkResourcesPage struct {
+	fn  func(context.Context, PrivateLinkResources) (PrivateLinkResources, error)
+	plr PrivateLinkResources
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateLinkResourcesPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.plr)
+		if err != nil {
+			return err
+		}
+		page.plr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateLinkResourcesPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateLinkResourcesPage) NotDone() bool {
+	return !page.plr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateLinkResourcesPage) Response() PrivateLinkResources {
+	return page.plr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateLinkResourcesPage) Values() []PrivateLinkResource {
+	if page.plr.IsEmpty() {
+		return nil
+	}
+	return *page.plr.Value
+}
+
+// Creates a new instance of the PrivateLinkResourcesPage type.
+func NewPrivateLinkResourcesPage(cur PrivateLinkResources, getNextPage func(context.Context, PrivateLinkResources) (PrivateLinkResources, error)) PrivateLinkResourcesPage {
+	return PrivateLinkResourcesPage{
+		fn:  getNextPage,
+		plr: cur,
+	}
+}
+
+// PrivateLinkServiceConnectionState gets or sets private link service connection state.
+type PrivateLinkServiceConnectionState struct {
+	// Status - READ-ONLY; Gets or sets the status. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status PrivateEndpointConnectionStatus `json:"status,omitempty"`
+	// Description - READ-ONLY; Gets or sets description.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - READ-ONLY; Gets or sets actions required.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
 // RawCertificateData raw certificate data.
@@ -519,6 +724,15 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.ETag != nil {
+		objectMap["eTag"] = r.ETag
+	}
+	return json.Marshal(objectMap)
 }
 
 // ResourceCertificateAndAadDetails certificate details representing the Vault credentials for AAD.
@@ -899,6 +1113,7 @@ type UpgradeDetails struct {
 // Vault resource information, as returned by the resource provider.
 type Vault struct {
 	autorest.Response `json:"-"`
+	Identity          *IdentityData    `json:"identity,omitempty"`
 	Properties        *VaultProperties `json:"properties,omitempty"`
 	Sku               *Sku             `json:"sku,omitempty"`
 	// Location - Resource location.
@@ -918,6 +1133,9 @@ type Vault struct {
 // MarshalJSON is the custom marshaler for Vault.
 func (vVar Vault) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if vVar.Identity != nil {
+		objectMap["identity"] = vVar.Identity
+	}
 	if vVar.Properties != nil {
 		objectMap["properties"] = vVar.Properties
 	}
@@ -947,6 +1165,13 @@ type VaultCertificateResponse struct {
 	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
 	ID         *string                         `json:"id,omitempty"`
 	Properties BasicResourceCertificateDetails `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VaultCertificateResponse.
+func (vcr VaultCertificateResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["properties"] = vcr.Properties
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for VaultCertificateResponse struct.
@@ -1105,6 +1330,15 @@ type VaultList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VaultList.
+func (vl VaultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vl.Value != nil {
+		objectMap["value"] = vl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // VaultListIterator provides access to a complete listing of Vault values.
 type VaultListIterator struct {
 	i    int
@@ -1173,10 +1407,15 @@ func (vl VaultList) IsEmpty() bool {
 	return vl.Value == nil || len(*vl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vl VaultList) hasNextLink() bool {
+	return vl.NextLink != nil && len(*vl.NextLink) != 0
+}
+
 // vaultListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vl VaultList) vaultListPreparer(ctx context.Context) (*http.Request, error) {
-	if vl.NextLink == nil || len(to.String(vl.NextLink)) < 1 {
+	if !vl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1204,11 +1443,16 @@ func (page *VaultListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vl)
+		if err != nil {
+			return err
+		}
+		page.vl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vl = next
 	return nil
 }
 
@@ -1238,8 +1482,11 @@ func (page VaultListPage) Values() []Vault {
 }
 
 // Creates a new instance of the VaultListPage type.
-func NewVaultListPage(getNextPage func(context.Context, VaultList) (VaultList, error)) VaultListPage {
-	return VaultListPage{fn: getNextPage}
+func NewVaultListPage(cur VaultList, getNextPage func(context.Context, VaultList) (VaultList, error)) VaultListPage {
+	return VaultListPage{
+		fn: getNextPage,
+		vl: cur,
+	}
 }
 
 // VaultProperties properties of the vault.
@@ -1247,6 +1494,21 @@ type VaultProperties struct {
 	// ProvisioningState - READ-ONLY; Provisioning State.
 	ProvisioningState *string         `json:"provisioningState,omitempty"`
 	UpgradeDetails    *UpgradeDetails `json:"upgradeDetails,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connection.
+	PrivateEndpointConnections *[]PrivateEndpointConnectionVaultProperties `json:"privateEndpointConnections,omitempty"`
+	// PrivateEndpointStateForBackup - READ-ONLY; Private endpoint state for backup. Possible values include: 'VaultPrivateEndpointStateNone', 'VaultPrivateEndpointStateEnabled'
+	PrivateEndpointStateForBackup VaultPrivateEndpointState `json:"privateEndpointStateForBackup,omitempty"`
+	// PrivateEndpointStateForSiteRecovery - READ-ONLY; Private endpoint state for site recovery. Possible values include: 'VaultPrivateEndpointStateNone', 'VaultPrivateEndpointStateEnabled'
+	PrivateEndpointStateForSiteRecovery VaultPrivateEndpointState `json:"privateEndpointStateForSiteRecovery,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VaultProperties.
+func (vp VaultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vp.UpgradeDetails != nil {
+		objectMap["upgradeDetails"] = vp.UpgradeDetails
+	}
+	return json.Marshal(objectMap)
 }
 
 // VaultUsage usages of a vault.

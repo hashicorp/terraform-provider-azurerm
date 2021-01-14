@@ -31,7 +31,7 @@ resource "azurerm_subnet" "example" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -128,11 +128,13 @@ The following arguments are supported:
     `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
     Defaults to `false`.
 
+* `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
+
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
-    gateway is created will be routed (*forced tunneling*). Refer to the
-    [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
-    If not specified, forced tunneling is disabled.
+    gateway is created will be routed (*forced tunnelling*). Refer to the
+    [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    If not specified, forced tunnelling is disabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
@@ -143,6 +145,8 @@ The following arguments are supported:
     sku is only supported by an `ExpressRoute` gateway.
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
+
+~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region. 
 
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
 
@@ -172,7 +176,7 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of the public ip address to associate
+* `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
 
 The `vpn_client_configuration` block supports:
@@ -180,23 +184,43 @@ The `vpn_client_configuration` block supports:
 * `address_space` - (Required) The address space out of which ip addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
+
+* `aad_tenant` - (Optional) AzureAD Tenant URL
+    This setting is incompatible with the use of 
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
+* `aad_audience` - (Optional) The client id of the Azure VPN application.
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    This setting is incompatible with the use of 
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
+* `aad_issuer` - (Optional) The STS url for your tenant
+    This setting is incompatible with the use of 
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
-    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
+    This setting is incompatible with the use of 
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
     are defined below.
-    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
+    This setting is incompatible with the use of 
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `radius_server_address` - (Optional) The address of the Radius server.
-    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `radius_server_secret` - (Optional) The secret used by the Radius server.
-    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
+    Values `SSTP` and `IkeV2` are incompatible with the use of 
+    `aad_tenant`, `aad_audience` and `aad_issuer`.
 
 The `bgp_settings` block supports:
 
@@ -209,6 +233,10 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
+
+A `custom_route` block supports the following:
+
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
 
 The `root_certificate` block supports:
 

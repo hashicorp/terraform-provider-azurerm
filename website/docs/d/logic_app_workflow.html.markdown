@@ -39,6 +39,8 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Logic App Workflow exists.
 
+* `logic_app_integration_account_id` - The ID of the integration account linked by this Logic App Workflow.
+
 * `workflow_schema` - The Schema used for this Logic App Workflow.
 
 * `workflow_version` - The version of the Schema used for this Logic App Workflow. Defaults to `1.0.0.0`.
@@ -48,6 +50,14 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the resource.
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow
+
+* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
+
+* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
+
+* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
+
+* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
 
 ## Timeouts
 

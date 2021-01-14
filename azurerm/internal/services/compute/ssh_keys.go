@@ -1,18 +1,21 @@
 package compute
 
 import (
+	"bytes"
+	"crypto/rsa"
 	"encoding/base64"
-	"encoding/binary"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
-	"golang.org/x/crypto/ssh"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"golang.org/x/crypto/ssh"
 )
 
 func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
@@ -23,13 +26,15 @@ func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
 		Type:     schema.TypeSet,
 		Optional: true,
 		ForceNew: isVirtualMachine,
+		Set:      SSHKeySchemaHash,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"public_key": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ForceNew:     isVirtualMachine,
-					ValidateFunc: ValidateSSHKey,
+					Type:             schema.TypeString,
+					Required:         true,
+					ForceNew:         isVirtualMachine,
+					ValidateFunc:     ValidateSSHKey,
+					DiffSuppressFunc: SSHKeyDiffSuppress,
 				},
 
 				"username": {
@@ -95,13 +100,10 @@ func formatUsernameForAuthorizedKeysPath(username string) string {
 func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	// the Azure VM agent hard-codes this to `/home/username/.ssh/authorized_keys`
 	// as such we can hard-code this for a better UX
-	compiled, err := regexp.Compile("(/home/)+(?P<username>.*?)(/.ssh/authorized_keys)+")
-	if err != nil {
-		return nil
-	}
+	r := regexp.MustCompile("(/home/)+(?P<username>.*?)(/.ssh/authorized_keys)+")
 
-	keys := compiled.SubexpNames()
-	values := compiled.FindStringSubmatch(input)
+	keys := r.SubexpNames()
+	values := r.FindStringSubmatch(input)
 
 	if values == nil {
 		return nil
@@ -141,13 +143,15 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 		}
 
 		if pubKey.Type() != ssh.KeyAlgoRSA {
-			return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by Azure")}
+			return nil, []error{fmt.Errorf("Error - the provided %s SSH key is not supported. Only RSA SSH keys are supported by Azure", pubKey.Type())}
 		} else {
-			//check length - held at bytes 20 and 21 for ssh-rsa
-			sizeRaw := []byte{byteStr[20], byteStr[21]}
-			sizeDec := binary.BigEndian.Uint16(sizeRaw)
-			if sizeDec < 257 {
-				return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by azure")}
+			rsaPubKey, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(*rsa.PublicKey)
+			if !ok {
+				return nil, []error{fmt.Errorf("Error - could not retrieve the RSA public key from the SSH public key")}
+			}
+			rsaPubKeyBits := rsaPubKey.Size() * 8
+			if rsaPubKeyBits < 2048 {
+				return nil, []error{fmt.Errorf("Error - the provided RSA SSH key has %d bits. Only ssh-rsa keys with 2048 bits or higher are supported by Azure", rsaPubKeyBits)}
 			}
 		}
 	} else {
@@ -155,4 +159,39 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 	}
 
 	return warnings, errors
+}
+
+func SSHKeyDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
+	oldNormalised, err := azure.NormaliseSSHKey(old)
+	if err != nil {
+		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
+		return false
+	}
+
+	newNormalised, err := azure.NormaliseSSHKey(new)
+	if err != nil {
+		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
+		return false
+	}
+
+	if *oldNormalised == *newNormalised {
+		return true
+	}
+
+	return false
+}
+
+func SSHKeySchemaHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		normalisedKey, err := azure.NormaliseSSHKey(m["public_key"].(string))
+		if err != nil {
+			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
+		}
+		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
+		buf.WriteString(fmt.Sprintf("%s", m["username"]))
+	}
+
+	return hashcode.String(buf.String())
 }

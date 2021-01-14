@@ -17,33 +17,25 @@ Manages a Key Vault Secret.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "my-resource-group"
-  location = "West US"
-}
-
-resource "random_id" "server" {
-  keepers = {
-    ami_id = 1
-  }
-
-  byte_length = 8
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = format("%s%s", "kv", random_id.server.hex)
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.service_principal_object_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -54,11 +46,9 @@ resource "azurerm_key_vault" "example" {
       "set",
       "get",
       "delete",
+      "purge",
+      "recover"
     ]
-  }
-
-  tags = {
-    environment = "Production"
   }
 }
 
@@ -66,10 +56,6 @@ resource "azurerm_key_vault_secret" "example" {
   name         = "secret-sauce"
   value        = "szechuan"
   key_vault_id = azurerm_key_vault.example.id
-
-  tags = {
-    environment = "Production"
-  }
 }
 ```
 
@@ -116,5 +102,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Key Vault Secrets which are Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_secret.examplehttps://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_secret.example "https://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217"
 ```

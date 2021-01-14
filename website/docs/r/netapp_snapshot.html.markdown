@@ -29,7 +29,7 @@ resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "netapp"
@@ -93,6 +93,8 @@ The following arguments are supported:
 * `volume_name` - (Required) The name of the NetApp volume in which the NetApp Snapshot should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

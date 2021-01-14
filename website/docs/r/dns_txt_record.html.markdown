@@ -60,7 +60,7 @@ The following arguments are supported:
 
 The `record` block supports:
 
-* `value` - (Required) The value of the record.
+* `value` - (Required) The value of the record. Max length: 1024 characters
 
 ## Attributes Reference
 

@@ -35,7 +35,9 @@ func NewReplicationEventsClient(subscriptionID string, resourceGroupName string,
 	return NewReplicationEventsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationEventsClientWithBaseURI creates an instance of the ReplicationEventsClient client.
+// NewReplicationEventsClientWithBaseURI creates an instance of the ReplicationEventsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationEventsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationEventsClient {
 	return ReplicationEventsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -70,6 +72,7 @@ func (client ReplicationEventsClient) Get(ctx context.Context, eventName string)
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -100,8 +103,7 @@ func (client ReplicationEventsClient) GetPreparer(ctx context.Context, eventName
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationEventsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -109,7 +111,6 @@ func (client ReplicationEventsClient) GetSender(req *http.Request) (*http.Respon
 func (client ReplicationEventsClient) GetResponder(resp *http.Response) (result Event, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -148,6 +149,10 @@ func (client ReplicationEventsClient) List(ctx context.Context, filter string) (
 	result.ec, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.ec.hasNextLink() && result.ec.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -180,8 +185,7 @@ func (client ReplicationEventsClient) ListPreparer(ctx context.Context, filter s
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationEventsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -189,7 +193,6 @@ func (client ReplicationEventsClient) ListSender(req *http.Request) (*http.Respo
 func (client ReplicationEventsClient) ListResponder(resp *http.Response) (result EventCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,6 +217,7 @@ func (client ReplicationEventsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

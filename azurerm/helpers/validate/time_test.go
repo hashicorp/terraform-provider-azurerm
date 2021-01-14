@@ -5,48 +5,6 @@ import (
 	"time"
 )
 
-func TestRFC3339Time(t *testing.T) {
-	cases := []struct {
-		Time   string
-		Errors int
-	}{
-		{
-			Time:   "",
-			Errors: 1,
-		},
-		{
-			Time:   "this is not a date",
-			Errors: 1,
-		},
-		{
-			Time:   "2000-01-01",
-			Errors: 1,
-		},
-		{
-			Time:   "2000-01-01T01:23:45",
-			Errors: 1,
-		},
-		{
-			Time:   "2000-01-01T01:23:45Z",
-			Errors: 0,
-		},
-		{
-			Time:   "2000-01-01T01:23:45+00:00",
-			Errors: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.Time, func(t *testing.T) {
-			_, errors := RFC3339Time(tc.Time, "test")
-
-			if len(errors) != tc.Errors {
-				t.Fatalf("Expected RFC3339Time to have %d not %d errors for %q", tc.Errors, len(errors), tc.Time)
-			}
-		})
-	}
-}
-
 func TestISO8601DateTime(t *testing.T) {
 	cases := []struct {
 		Time   string
@@ -156,6 +114,7 @@ func TestRFC3339DateInFutureBy(t *testing.T) {
 		})
 	}
 }
+
 func TestISO8601Duration(t *testing.T) {
 	cases := []struct {
 		Value  string

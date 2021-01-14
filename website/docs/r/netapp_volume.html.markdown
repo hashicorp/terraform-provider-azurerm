@@ -29,7 +29,7 @@ resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "netapp"
@@ -57,6 +57,10 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                = "example-netappvolume"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -65,6 +69,7 @@ resource "azurerm_netapp_volume" "example" {
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
   subnet_id           = azurerm_subnet.example.id
+  protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
 }
 ```
@@ -87,11 +92,17 @@ The following arguments are supported:
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
+* `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost.
+
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+-> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type. 
 
 ---
 
@@ -101,11 +112,13 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `cifs_enabled` - (Required) Is the CIFS protocol allowed?
+* `protocols_enabled` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
-* `nfsv3_enabled` - (Required) Is the NFSv3 protocol allowed?
+* `cifs_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**) Is the CIFS protocol allowed?
 
-* `nfsv4_enabled` - (Required) Is the NFSv4 protocol allowed?
+* `nfsv3_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**) Is the NFSv3 protocol allowed?
+
+* `nfsv4_enabled` - (Optional / **Deprecated in favour of `protocols_enabled`**)  Is the NFSv4 protocol allowed?
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
@@ -118,6 +131,8 @@ An `export_policy_rule` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
+
+* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
 
 ## Timeouts
 

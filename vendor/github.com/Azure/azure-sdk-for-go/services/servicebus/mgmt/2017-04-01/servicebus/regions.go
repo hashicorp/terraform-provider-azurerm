@@ -36,7 +36,8 @@ func NewRegionsClient(subscriptionID string) RegionsClient {
 	return NewRegionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRegionsClientWithBaseURI creates an instance of the RegionsClient client.
+// NewRegionsClientWithBaseURI creates an instance of the RegionsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRegionsClientWithBaseURI(baseURI string, subscriptionID string) RegionsClient {
 	return RegionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -79,6 +80,10 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result P
 	result.pmrlr, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RegionsClient", "ListBySku", resp, "Failure responding to request")
+		return
+	}
+	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -107,8 +112,7 @@ func (client RegionsClient) ListBySkuPreparer(ctx context.Context, sku string) (
 // ListBySkuSender sends the ListBySku request. The method will close the
 // http.Response Body if it receives an error.
 func (client RegionsClient) ListBySkuSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySkuResponder handles the response to the ListBySku request. The method always
@@ -116,7 +120,6 @@ func (client RegionsClient) ListBySkuSender(req *http.Request) (*http.Response, 
 func (client RegionsClient) ListBySkuResponder(resp *http.Response) (result PremiumMessagingRegionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -141,6 +144,7 @@ func (client RegionsClient) listBySkuNextResults(ctx context.Context, lastResult
 	result, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RegionsClient", "listBySkuNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

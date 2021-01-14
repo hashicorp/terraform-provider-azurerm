@@ -35,7 +35,9 @@ func NewJobOperationResultsClient(subscriptionID string) JobOperationResultsClie
 	return NewJobOperationResultsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobOperationResultsClientWithBaseURI creates an instance of the JobOperationResultsClient client.
+// NewJobOperationResultsClientWithBaseURI creates an instance of the JobOperationResultsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewJobOperationResultsClientWithBaseURI(baseURI string, subscriptionID string) JobOperationResultsClient {
 	return JobOperationResultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +75,7 @@ func (client JobOperationResultsClient) Get(ctx context.Context, vaultName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -104,8 +107,7 @@ func (client JobOperationResultsClient) GetPreparer(ctx context.Context, vaultNa
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobOperationResultsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -113,7 +115,6 @@ func (client JobOperationResultsClient) GetSender(req *http.Request) (*http.Resp
 func (client JobOperationResultsClient) GetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

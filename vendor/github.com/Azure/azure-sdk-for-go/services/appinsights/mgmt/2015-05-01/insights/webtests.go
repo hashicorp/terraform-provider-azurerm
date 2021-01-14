@@ -36,7 +36,8 @@ func NewWebTestsClient(subscriptionID string) WebTestsClient {
 	return NewWebTestsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWebTestsClientWithBaseURI creates an instance of the WebTestsClient client.
+// NewWebTestsClientWithBaseURI creates an instance of the WebTestsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWebTestsClientWithBaseURI(baseURI string, subscriptionID string) WebTestsClient {
 	return WebTestsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -90,6 +91,7 @@ func (client WebTestsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,8 +123,7 @@ func (client WebTestsClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -130,7 +131,6 @@ func (client WebTestsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client WebTestsClient) CreateOrUpdateResponder(resp *http.Response) (result WebTest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -179,6 +179,7 @@ func (client WebTestsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,8 +209,7 @@ func (client WebTestsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -217,7 +217,6 @@ func (client WebTestsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client WebTestsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -265,6 +264,7 @@ func (client WebTestsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -294,8 +294,7 @@ func (client WebTestsClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -303,7 +302,6 @@ func (client WebTestsClient) GetSender(req *http.Request) (*http.Response, error
 func (client WebTestsClient) GetResponder(resp *http.Response) (result WebTest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -346,6 +344,10 @@ func (client WebTestsClient) List(ctx context.Context) (result WebTestListResult
 	result.wtlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -373,8 +375,7 @@ func (client WebTestsClient) ListPreparer(ctx context.Context) (*http.Request, e
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -382,7 +383,6 @@ func (client WebTestsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client WebTestsClient) ListResponder(resp *http.Response) (result WebTestListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -407,6 +407,7 @@ func (client WebTestsClient) listNextResults(ctx context.Context, lastResults We
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -469,6 +470,10 @@ func (client WebTestsClient) ListByComponent(ctx context.Context, componentName 
 	result.wtlr, err = client.ListByComponentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "ListByComponent", resp, "Failure responding to request")
+		return
+	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -498,8 +503,7 @@ func (client WebTestsClient) ListByComponentPreparer(ctx context.Context, compon
 // ListByComponentSender sends the ListByComponent request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) ListByComponentSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByComponentResponder handles the response to the ListByComponent request. The method always
@@ -507,7 +511,6 @@ func (client WebTestsClient) ListByComponentSender(req *http.Request) (*http.Res
 func (client WebTestsClient) ListByComponentResponder(resp *http.Response) (result WebTestListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -532,6 +535,7 @@ func (client WebTestsClient) listByComponentNextResults(ctx context.Context, las
 	result, err = client.ListByComponentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "listByComponentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -593,6 +597,10 @@ func (client WebTestsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.wtlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -621,8 +629,7 @@ func (client WebTestsClient) ListByResourceGroupPreparer(ctx context.Context, re
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -630,7 +637,6 @@ func (client WebTestsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client WebTestsClient) ListByResourceGroupResponder(resp *http.Response) (result WebTestListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -655,6 +661,7 @@ func (client WebTestsClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -717,6 +724,7 @@ func (client WebTestsClient) UpdateTags(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -748,8 +756,7 @@ func (client WebTestsClient) UpdateTagsPreparer(ctx context.Context, resourceGro
 // UpdateTagsSender sends the UpdateTags request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebTestsClient) UpdateTagsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateTagsResponder handles the response to the UpdateTags request. The method always
@@ -757,7 +764,6 @@ func (client WebTestsClient) UpdateTagsSender(req *http.Request) (*http.Response
 func (client WebTestsClient) UpdateTagsResponder(resp *http.Response) (result WebTest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

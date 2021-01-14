@@ -11,7 +11,8 @@ description: |-
 
 Use this data source to access information about an existing Redis Cache
 
-# Example Usage
+## Example Usage
+
 ```hcl
 data "azurerm_redis_cache" "example" {
   name                = "myrediscache"
@@ -62,6 +63,10 @@ output "hostname" {
 * `primary_access_key` - The Primary Access Key for the Redis Instance
 
 * `secondary_access_key` - The Secondary Access Key for the Redis Instance
+
+* `primary_connection_string` - The primary connection string of the Redis Instance.
+
+* `secondary_connection_string` - The secondary connection string of the Redis Instance.
 
 * `redis_configuration` - A `redis_configuration` block as defined below.
 

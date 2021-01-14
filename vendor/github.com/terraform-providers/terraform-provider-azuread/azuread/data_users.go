@@ -45,6 +45,18 @@ func dataUsers() *schema.Resource {
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
+
+			"mail_nicknames": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MinItems:      1,
+				ConflictsWith: []string{"object_ids", "user_principal_names"},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+			},
 		},
 	}
 }
@@ -75,8 +87,17 @@ func dataSourceUsersRead(d *schema.ResourceData, meta interface{}) error {
 			}
 			users = append(users, *u)
 		}
+	} else if mailNicknames, ok := d.Get("mail_nicknames").([]interface{}); ok && len(mailNicknames) > 0 {
+		expectedCount = len(mailNicknames)
+		for _, v := range mailNicknames {
+			u, err := graph.UserGetByMailNickname(&client, ctx, v.(string))
+			if err != nil {
+				return fmt.Errorf("Error finding Azure AD User with email alias %q: %+v", v.(string), err)
+			}
+			users = append(users, *u)
+		}
 	} else {
-		return fmt.Errorf("one of `object_ids` or `user_principal_names` must be supplied")
+		return fmt.Errorf("one of `object_ids`, `user_principal_names` or `mail_nicknames` must be supplied")
 	}
 
 	if len(users) != expectedCount {
@@ -85,6 +106,7 @@ func dataSourceUsersRead(d *schema.ResourceData, meta interface{}) error {
 
 	upns := make([]string, 0, len(users))
 	oids := make([]string, 0, len(users))
+	mailNicknames := make([]string, 0, len(users))
 	for _, u := range users {
 		if u.ObjectID == nil || u.UserPrincipalName == nil {
 			return fmt.Errorf("User with nil ObjectId or UPN was found: %v", u)
@@ -92,6 +114,7 @@ func dataSourceUsersRead(d *schema.ResourceData, meta interface{}) error {
 
 		oids = append(oids, *u.ObjectID)
 		upns = append(upns, *u.UserPrincipalName)
+		mailNicknames = append(mailNicknames, *u.MailNickname)
 	}
 
 	h := sha1.New()
@@ -102,5 +125,6 @@ func dataSourceUsersRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId("users#" + base64.URLEncoding.EncodeToString(h.Sum(nil)))
 	d.Set("object_ids", oids)
 	d.Set("user_principal_names", upns)
+	d.Set("mail_nicknames", mailNicknames)
 	return nil
 }

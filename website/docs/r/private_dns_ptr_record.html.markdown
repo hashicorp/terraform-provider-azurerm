@@ -54,6 +54,8 @@ The following attributes are exported:
 
 * `id` - The Private DNS PTR Record ID.
 
+* `fqdn` - The FQDN of the DNS PTR Record.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

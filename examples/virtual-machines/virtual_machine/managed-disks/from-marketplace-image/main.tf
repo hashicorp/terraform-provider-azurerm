@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 locals {
   virtual_machine_name = "${var.prefix}-vm"
 }

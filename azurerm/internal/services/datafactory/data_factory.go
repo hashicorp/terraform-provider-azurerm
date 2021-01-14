@@ -1,6 +1,7 @@
 package datafactory
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
@@ -189,4 +191,73 @@ func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
 		output = append(output, result)
 	}
 	return output
+}
+
+func deserializeDataFactoryPipelineActivities(jsonData string) (*[]datafactory.BasicActivity, error) {
+	jsonData = fmt.Sprintf(`{ "activities": %s }`, jsonData)
+	pipeline := &datafactory.Pipeline{}
+	err := pipeline.UnmarshalJSON([]byte(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	return pipeline.Activities, nil
+}
+
+func serializeDataFactoryPipelineActivities(activities *[]datafactory.BasicActivity) (string, error) {
+	pipeline := &datafactory.Pipeline{Activities: activities}
+	result, err := pipeline.MarshalJSON()
+	if err != nil {
+		return "nil", err
+	}
+
+	var m map[string]*json.RawMessage
+	err = json.Unmarshal(result, &m)
+	if err != nil {
+		return "", err
+	}
+
+	activitiesJson, err := json.Marshal(m["activities"])
+	if err != nil {
+		return "", err
+	}
+
+	return string(activitiesJson), nil
+}
+
+func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
+	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+}
+
+func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	return &datafactory.AzureKeyVaultSecretReference{
+		SecretName: config["secret_name"].(string),
+		Store: &datafactory.LinkedServiceReference{
+			Type:          utils.String("LinkedServiceReference"),
+			ReferenceName: utils.String(config["linked_service_name"].(string)),
+		},
+	}
+}
+
+func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+	if secretReference == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if store := secretReference.Store; store != nil {
+		if store.ReferenceName != nil {
+			parameters["linked_service_name"] = *store.ReferenceName
+		}
+	}
+
+	parameters["secret_name"] = secretReference.SecretName
+
+	return []interface{}{parameters}
 }

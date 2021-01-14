@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -11,8 +15,8 @@ resource "azurerm_app_service_plan" "example" {
   is_xenon            = true
 
   sku {
-    tier = "PremiumContainer"
-    size = "PC2"
+    tier = "PremiumV3"
+    size = "P1V3"
   }
 }
 

@@ -35,7 +35,9 @@ func NewProtectionContainersGroupClient(subscriptionID string) ProtectionContain
 	return NewProtectionContainersGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectionContainersGroupClientWithBaseURI creates an instance of the ProtectionContainersGroupClient client.
+// NewProtectionContainersGroupClientWithBaseURI creates an instance of the ProtectionContainersGroupClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewProtectionContainersGroupClientWithBaseURI(baseURI string, subscriptionID string) ProtectionContainersGroupClient {
 	return ProtectionContainersGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +75,10 @@ func (client ProtectionContainersGroupClient) List(ctx context.Context, vaultNam
 	result.pcrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersGroupClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pcrl.hasNextLink() && result.pcrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -105,8 +111,7 @@ func (client ProtectionContainersGroupClient) ListPreparer(ctx context.Context, 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectionContainersGroupClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -114,7 +119,6 @@ func (client ProtectionContainersGroupClient) ListSender(req *http.Request) (*ht
 func (client ProtectionContainersGroupClient) ListResponder(resp *http.Response) (result ProtectionContainerResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -139,6 +143,7 @@ func (client ProtectionContainersGroupClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersGroupClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

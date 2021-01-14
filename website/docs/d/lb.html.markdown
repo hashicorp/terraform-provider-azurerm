@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Load Balancer.
 
-* `frontend_ip_configuration` - (Optional) A `frontend_ip_configuration` block as documented below.
+* `frontend_ip_configuration` - A `frontend_ip_configuration` block as documented below.
 
 * `location` - The Azure location where the Load Balancer exists.
 
@@ -57,6 +57,7 @@ A `frontend_ip_configuration` block exports the following:
 * `subnet_id` - The ID of the Subnet which is associated with the IP Configuration.
 * `private_ip_address` - Private IP Address to assign to the Load Balancer.
 * `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer.
+* `private_ip_address_version` - The Private IP Address Version, either `IPv4` or `IPv6`.
 * `public_ip_address_id` - The ID of a  Public IP Address which is associated with this Load Balancer.
 * `zones` - A list of Availability Zones which the Load Balancer's IP Addresses should be created in.
 

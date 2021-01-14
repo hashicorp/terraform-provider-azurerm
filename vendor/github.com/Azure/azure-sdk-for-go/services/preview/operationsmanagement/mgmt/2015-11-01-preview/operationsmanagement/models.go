@@ -65,6 +65,18 @@ type ManagementAssociation struct {
 	Properties *ManagementAssociationProperties `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagementAssociation.
+func (ma ManagementAssociation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ma.Location != nil {
+		objectMap["location"] = ma.Location
+	}
+	if ma.Properties != nil {
+		objectMap["properties"] = ma.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
 // ManagementAssociationProperties managementAssociation properties supported by the OperationsManagement
 // resource provider.
 type ManagementAssociationProperties struct {
@@ -94,6 +106,18 @@ type ManagementConfiguration struct {
 	Properties *ManagementConfigurationProperties `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagementConfiguration.
+func (mc ManagementConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mc.Location != nil {
+		objectMap["location"] = mc.Location
+	}
+	if mc.Properties != nil {
+		objectMap["properties"] = mc.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
 // ManagementConfigurationProperties managementConfiguration properties supported by the
 // OperationsManagement resource provider.
 type ManagementConfigurationProperties struct {
@@ -107,6 +131,24 @@ type ManagementConfigurationProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Template - The Json object containing the ARM template to deploy
 	Template interface{} `json:"template,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagementConfigurationProperties.
+func (mcp ManagementConfigurationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcp.ApplicationID != nil {
+		objectMap["applicationId"] = mcp.ApplicationID
+	}
+	if mcp.ParentResourceType != nil {
+		objectMap["parentResourceType"] = mcp.ParentResourceType
+	}
+	if mcp.Parameters != nil {
+		objectMap["parameters"] = mcp.Parameters
+	}
+	if mcp.Template != nil {
+		objectMap["template"] = mcp.Template
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagementConfigurationPropertiesList the list of ManagementConfiguration response
@@ -215,6 +257,21 @@ type SolutionProperties struct {
 	ContainedResources *[]string `json:"containedResources,omitempty"`
 	// ReferencedResources - The resources that will be referenced from this solution. Deleting any of those solution out of band will break the solution.
 	ReferencedResources *[]string `json:"referencedResources,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SolutionProperties.
+func (sp SolutionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.WorkspaceResourceID != nil {
+		objectMap["workspaceResourceId"] = sp.WorkspaceResourceID
+	}
+	if sp.ContainedResources != nil {
+		objectMap["containedResources"] = sp.ContainedResources
+	}
+	if sp.ReferencedResources != nil {
+		objectMap["referencedResources"] = sp.ReferencedResources
+	}
+	return json.Marshal(objectMap)
 }
 
 // SolutionPropertiesList the list of solution response

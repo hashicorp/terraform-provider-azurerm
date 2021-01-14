@@ -51,21 +51,21 @@ resource "azurerm_virtual_machine" "example" {
   }
 }
 
-data "azurerm_builtin_role_definition" "contributor" {
+data "azurerm_role_definition" "contributor" {
   name = "Contributor"
 }
 
 resource "azurerm_role_assignment" "example" {
   name               = azurerm_virtual_machine.example.name
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_builtin_role_definition.contributor.id}"
+  role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_role_definition.contributor.id}"
   principal_id       = azurerm_virtual_machine.example.identity[0]["principal_id"]
 }
 ```
 
 ## Configuring Terraform to use a managed identity
 
-At this point we assume that managed idenity is configured on the resource (e.g. virtual machine) being used - and that permissions have been assigned via Azure's Identity and Access Management system.
+At this point we assume that managed identity is configured on the resource (e.g. virtual machine) being used - and that permissions have been assigned via Azure's Identity and Access Management system.
 
 Terraform can be configured to use managed identity for authentication in one of two ways: using environment variables, or by defining the fields within the provider block.
 

@@ -38,7 +38,9 @@ func NewDatabaseOperationsClient(subscriptionID string) DatabaseOperationsClient
 	return NewDatabaseOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseOperationsClientWithBaseURI creates an instance of the DatabaseOperationsClient client.
+// NewDatabaseOperationsClientWithBaseURI creates an instance of the DatabaseOperationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDatabaseOperationsClientWithBaseURI(baseURI string, subscriptionID string) DatabaseOperationsClient {
 	return DatabaseOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -77,6 +79,7 @@ func (client DatabaseOperationsClient) Cancel(ctx context.Context, resourceGroup
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -108,8 +111,7 @@ func (client DatabaseOperationsClient) CancelPreparer(ctx context.Context, resou
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseOperationsClient) CancelSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelResponder handles the response to the Cancel request. The method always
@@ -117,7 +119,6 @@ func (client DatabaseOperationsClient) CancelSender(req *http.Request) (*http.Re
 func (client DatabaseOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -158,6 +159,10 @@ func (client DatabaseOperationsClient) ListByDatabase(ctx context.Context, resou
 	result.dolr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -188,8 +193,7 @@ func (client DatabaseOperationsClient) ListByDatabasePreparer(ctx context.Contex
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseOperationsClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
@@ -197,7 +201,6 @@ func (client DatabaseOperationsClient) ListByDatabaseSender(req *http.Request) (
 func (client DatabaseOperationsClient) ListByDatabaseResponder(resp *http.Response) (result DatabaseOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,6 +225,7 @@ func (client DatabaseOperationsClient) listByDatabaseNextResults(ctx context.Con
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

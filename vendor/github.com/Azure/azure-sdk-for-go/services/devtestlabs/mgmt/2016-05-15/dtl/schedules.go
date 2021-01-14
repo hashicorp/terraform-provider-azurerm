@@ -36,7 +36,8 @@ func NewSchedulesClient(subscriptionID string) SchedulesClient {
 	return NewSchedulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSchedulesClientWithBaseURI creates an instance of the SchedulesClient client.
+// NewSchedulesClientWithBaseURI creates an instance of the SchedulesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSchedulesClientWithBaseURI(baseURI string, subscriptionID string) SchedulesClient {
 	return SchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -80,6 +81,7 @@ func (client SchedulesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,8 +114,7 @@ func (client SchedulesClient) CreateOrUpdatePreparer(ctx context.Context, resour
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -121,7 +122,6 @@ func (client SchedulesClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client SchedulesClient) CreateOrUpdateResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client SchedulesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -191,8 +192,7 @@ func (client SchedulesClient) DeletePreparer(ctx context.Context, resourceGroupN
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -200,7 +200,6 @@ func (client SchedulesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client SchedulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -263,9 +262,8 @@ func (client SchedulesClient) ExecutePreparer(ctx context.Context, resourceGroup
 // ExecuteSender sends the Execute request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ExecuteSender(req *http.Request) (future SchedulesExecuteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -278,7 +276,6 @@ func (client SchedulesClient) ExecuteSender(req *http.Request) (future Schedules
 func (client SchedulesClient) ExecuteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -318,6 +315,7 @@ func (client SchedulesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -351,8 +349,7 @@ func (client SchedulesClient) GetPreparer(ctx context.Context, resourceGroupName
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -360,7 +357,6 @@ func (client SchedulesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client SchedulesClient) GetResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -404,6 +400,10 @@ func (client SchedulesClient) List(ctx context.Context, resourceGroupName string
 	result.rwcs, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -445,8 +445,7 @@ func (client SchedulesClient) ListPreparer(ctx context.Context, resourceGroupNam
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -454,7 +453,6 @@ func (client SchedulesClient) ListSender(req *http.Request) (*http.Response, err
 func (client SchedulesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -479,6 +477,7 @@ func (client SchedulesClient) listNextResults(ctx context.Context, lastResults R
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -532,6 +531,10 @@ func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupN
 	result.rwcs, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "ListApplicable", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -562,8 +565,7 @@ func (client SchedulesClient) ListApplicablePreparer(ctx context.Context, resour
 // ListApplicableSender sends the ListApplicable request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ListApplicableSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListApplicableResponder handles the response to the ListApplicable request. The method always
@@ -571,7 +573,6 @@ func (client SchedulesClient) ListApplicableSender(req *http.Request) (*http.Res
 func (client SchedulesClient) ListApplicableResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -596,6 +597,7 @@ func (client SchedulesClient) listApplicableNextResults(ctx context.Context, las
 	result, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listApplicableNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -649,6 +651,7 @@ func (client SchedulesClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -681,8 +684,7 @@ func (client SchedulesClient) UpdatePreparer(ctx context.Context, resourceGroupN
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -690,7 +692,6 @@ func (client SchedulesClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client SchedulesClient) UpdateResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

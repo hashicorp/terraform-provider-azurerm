@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
@@ -31,54 +32,33 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 
-// CustomParameterType enumerates the values for custom parameter type.
-type CustomParameterType string
-
-const (
-	// Bool ...
-	Bool CustomParameterType = "Bool"
-	// Object ...
-	Object CustomParameterType = "Object"
-	// String ...
-	String CustomParameterType = "String"
-)
-
-// PossibleCustomParameterTypeValues returns an array of possible values for the CustomParameterType const type.
-func PossibleCustomParameterTypeValues() []CustomParameterType {
-	return []CustomParameterType{Bool, Object, String}
+// AddressSpace addressSpace contains an array of IP address ranges that can be used by subnets of the
+// virtual network.
+type AddressSpace struct {
+	// AddressPrefixes - A list of address blocks reserved for this virtual network in CIDR notation.
+	AddressPrefixes *[]string `json:"addressPrefixes,omitempty"`
 }
 
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
+// CreatedBy provides details of the entity that created/updated the workspace.
+type CreatedBy struct {
+	// Oid - READ-ONLY; The Object ID that created the workspace.
+	Oid *uuid.UUID `json:"oid,omitempty"`
+	// Puid - READ-ONLY; The Personal Object ID corresponding to the object ID above
+	Puid *string `json:"puid,omitempty"`
+	// ApplicationID - READ-ONLY; The application ID of the application that initiated the creation of the workspace. For example, Azure Portal.
+	ApplicationID *uuid.UUID `json:"applicationId,omitempty"`
+}
 
-const (
-	// Accepted ...
-	Accepted ProvisioningState = "Accepted"
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Created ...
-	Created ProvisioningState = "Created"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleted ...
-	Deleted ProvisioningState = "Deleted"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Ready ...
-	Ready ProvisioningState = "Ready"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Accepted, Canceled, Created, Creating, Deleted, Deleting, Failed, Ready, Running, Succeeded, Updating}
+// Encryption the object that contains details of encryption used on the workspace.
+type Encryption struct {
+	// KeySource - The encryption keySource (provider). Possible values (case-insensitive):  Default, Microsoft.Keyvault. Possible values include: 'Default', 'MicrosoftKeyvault'
+	KeySource KeySource `json:"keySource,omitempty"`
+	// KeyName - The name of KeyVault key.
+	KeyName *string `json:"KeyName,omitempty"`
+	// KeyVersion - The version of KeyVault key.
+	KeyVersion *string `json:"keyversion,omitempty"`
+	// KeyVaultURI - The Uri of KeyVault.
+	KeyVaultURI *string `json:"keyvaulturi,omitempty"`
 }
 
 // ErrorDetail ...
@@ -107,6 +87,16 @@ type ErrorInfo struct {
 type ErrorResponse struct {
 	// Error - The error details.
 	Error *ErrorInfo `json:"error,omitempty"`
+}
+
+// ManagedIdentityConfiguration the Managed Identity details for storage account.
+type ManagedIdentityConfiguration struct {
+	// PrincipalID - READ-ONLY; The objectId of the Managed Identity that is linked to the Managed Storage account.
+	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant Id where the Managed Identity is created.
+	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+	// Type - READ-ONLY; The type of Identity created. It can be either SystemAssigned or UserAssigned.
+	Type *string `json:"type,omitempty"`
 }
 
 // Operation REST API operation
@@ -205,10 +195,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -236,11 +231,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -270,8 +270,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Resource the core properties of ARM resources
@@ -316,6 +319,360 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 		objectMap["location"] = tr.Location
 	}
 	return json.Marshal(objectMap)
+}
+
+// VirtualNetworkPeering peerings in a VirtualNetwork resource
+type VirtualNetworkPeering struct {
+	autorest.Response `json:"-"`
+	// VirtualNetworkPeeringPropertiesFormat - List of properties for vNet Peering
+	*VirtualNetworkPeeringPropertiesFormat `json:"properties,omitempty"`
+	// Name - READ-ONLY; Name of the virtual network peering resource
+	Name *string `json:"name,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; type of the virtual network peering resource
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkPeering.
+func (vnp VirtualNetworkPeering) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnp.VirtualNetworkPeeringPropertiesFormat != nil {
+		objectMap["properties"] = vnp.VirtualNetworkPeeringPropertiesFormat
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VirtualNetworkPeering struct.
+func (vnp *VirtualNetworkPeering) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var virtualNetworkPeeringPropertiesFormat VirtualNetworkPeeringPropertiesFormat
+				err = json.Unmarshal(*v, &virtualNetworkPeeringPropertiesFormat)
+				if err != nil {
+					return err
+				}
+				vnp.VirtualNetworkPeeringPropertiesFormat = &virtualNetworkPeeringPropertiesFormat
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vnp.Name = &name
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vnp.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vnp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// VirtualNetworkPeeringList gets all virtual network peerings under a workspace.
+type VirtualNetworkPeeringList struct {
+	autorest.Response `json:"-"`
+	// Value - List of virtual network peerings on workspace.
+	Value *[]VirtualNetworkPeering `json:"value,omitempty"`
+	// NextLink - URL to get the next set of virtual network peering list results if there are any.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// VirtualNetworkPeeringListIterator provides access to a complete listing of VirtualNetworkPeering values.
+type VirtualNetworkPeeringListIterator struct {
+	i    int
+	page VirtualNetworkPeeringListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *VirtualNetworkPeeringListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkPeeringListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *VirtualNetworkPeeringListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter VirtualNetworkPeeringListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter VirtualNetworkPeeringListIterator) Response() VirtualNetworkPeeringList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter VirtualNetworkPeeringListIterator) Value() VirtualNetworkPeering {
+	if !iter.page.NotDone() {
+		return VirtualNetworkPeering{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the VirtualNetworkPeeringListIterator type.
+func NewVirtualNetworkPeeringListIterator(page VirtualNetworkPeeringListPage) VirtualNetworkPeeringListIterator {
+	return VirtualNetworkPeeringListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (vnpl VirtualNetworkPeeringList) IsEmpty() bool {
+	return vnpl.Value == nil || len(*vnpl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (vnpl VirtualNetworkPeeringList) hasNextLink() bool {
+	return vnpl.NextLink != nil && len(*vnpl.NextLink) != 0
+}
+
+// virtualNetworkPeeringListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (vnpl VirtualNetworkPeeringList) virtualNetworkPeeringListPreparer(ctx context.Context) (*http.Request, error) {
+	if !vnpl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(vnpl.NextLink)))
+}
+
+// VirtualNetworkPeeringListPage contains a page of VirtualNetworkPeering values.
+type VirtualNetworkPeeringListPage struct {
+	fn   func(context.Context, VirtualNetworkPeeringList) (VirtualNetworkPeeringList, error)
+	vnpl VirtualNetworkPeeringList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *VirtualNetworkPeeringListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkPeeringListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.vnpl)
+		if err != nil {
+			return err
+		}
+		page.vnpl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *VirtualNetworkPeeringListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page VirtualNetworkPeeringListPage) NotDone() bool {
+	return !page.vnpl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page VirtualNetworkPeeringListPage) Response() VirtualNetworkPeeringList {
+	return page.vnpl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page VirtualNetworkPeeringListPage) Values() []VirtualNetworkPeering {
+	if page.vnpl.IsEmpty() {
+		return nil
+	}
+	return *page.vnpl.Value
+}
+
+// Creates a new instance of the VirtualNetworkPeeringListPage type.
+func NewVirtualNetworkPeeringListPage(cur VirtualNetworkPeeringList, getNextPage func(context.Context, VirtualNetworkPeeringList) (VirtualNetworkPeeringList, error)) VirtualNetworkPeeringListPage {
+	return VirtualNetworkPeeringListPage{
+		fn:   getNextPage,
+		vnpl: cur,
+	}
+}
+
+// VirtualNetworkPeeringPropertiesFormat properties of the virtual network peering.
+type VirtualNetworkPeeringPropertiesFormat struct {
+	// AllowVirtualNetworkAccess - Whether the VMs in the local virtual network space would be able to access the VMs in remote virtual network space.
+	AllowVirtualNetworkAccess *bool `json:"allowVirtualNetworkAccess,omitempty"`
+	// AllowForwardedTraffic - Whether the forwarded traffic from the VMs in the local virtual network will be allowed/disallowed in remote virtual network.
+	AllowForwardedTraffic *bool `json:"allowForwardedTraffic,omitempty"`
+	// AllowGatewayTransit - If gateway links can be used in remote virtual networking to link to this virtual network.
+	AllowGatewayTransit *bool `json:"allowGatewayTransit,omitempty"`
+	// UseRemoteGateways - If remote gateways can be used on this virtual network. If the flag is set to true, and allowGatewayTransit on remote peering is also true, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to true. This flag cannot be set if virtual network already has a gateway.
+	UseRemoteGateways *bool `json:"useRemoteGateways,omitempty"`
+	// DatabricksVirtualNetwork -  The remote virtual network should be in the same region. See here to learn more (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
+	DatabricksVirtualNetwork *VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork `json:"databricksVirtualNetwork,omitempty"`
+	// DatabricksAddressSpace - The reference to the databricks virtual network address space.
+	DatabricksAddressSpace *AddressSpace `json:"databricksAddressSpace,omitempty"`
+	// RemoteVirtualNetwork -  The remote virtual network should be in the same region. See here to learn more (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
+	RemoteVirtualNetwork *VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork `json:"remoteVirtualNetwork,omitempty"`
+	// RemoteAddressSpace - The reference to the remote virtual network address space.
+	RemoteAddressSpace *AddressSpace `json:"remoteAddressSpace,omitempty"`
+	// PeeringState - READ-ONLY; The status of the virtual network peering. Possible values include: 'Initiated', 'Connected', 'Disconnected'
+	PeeringState PeeringState `json:"peeringState,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioning state of the virtual network peering resource. Possible values include: 'Succeeded', 'Updating', 'Deleting', 'Failed'
+	ProvisioningState PeeringProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkPeeringPropertiesFormat.
+func (vnppf VirtualNetworkPeeringPropertiesFormat) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnppf.AllowVirtualNetworkAccess != nil {
+		objectMap["allowVirtualNetworkAccess"] = vnppf.AllowVirtualNetworkAccess
+	}
+	if vnppf.AllowForwardedTraffic != nil {
+		objectMap["allowForwardedTraffic"] = vnppf.AllowForwardedTraffic
+	}
+	if vnppf.AllowGatewayTransit != nil {
+		objectMap["allowGatewayTransit"] = vnppf.AllowGatewayTransit
+	}
+	if vnppf.UseRemoteGateways != nil {
+		objectMap["useRemoteGateways"] = vnppf.UseRemoteGateways
+	}
+	if vnppf.DatabricksVirtualNetwork != nil {
+		objectMap["databricksVirtualNetwork"] = vnppf.DatabricksVirtualNetwork
+	}
+	if vnppf.DatabricksAddressSpace != nil {
+		objectMap["databricksAddressSpace"] = vnppf.DatabricksAddressSpace
+	}
+	if vnppf.RemoteVirtualNetwork != nil {
+		objectMap["remoteVirtualNetwork"] = vnppf.RemoteVirtualNetwork
+	}
+	if vnppf.RemoteAddressSpace != nil {
+		objectMap["remoteAddressSpace"] = vnppf.RemoteAddressSpace
+	}
+	return json.Marshal(objectMap)
+}
+
+// VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork the remote virtual network should be in
+// the same region. See here to learn more
+// (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
+type VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork struct {
+	// ID - The Id of the databricks virtual network.
+	ID *string `json:"id,omitempty"`
+}
+
+// VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork the remote virtual network should be in the
+// same region. See here to learn more
+// (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
+type VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork struct {
+	// ID - The Id of the remote virtual network.
+	ID *string `json:"id,omitempty"`
+}
+
+// VNetPeeringCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type VNetPeeringCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *VNetPeeringCreateOrUpdateFuture) Result(client VNetPeeringClient) (vnp VirtualNetworkPeering, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if vnp.Response.Response, err = future.GetResult(sender); err == nil && vnp.Response.Response.StatusCode != http.StatusNoContent {
+		vnp, err = client.CreateOrUpdateResponder(vnp.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", vnp.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// VNetPeeringDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type VNetPeeringDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *VNetPeeringDeleteFuture) Result(client VNetPeeringClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // Workspace information about workspace.
@@ -451,7 +808,7 @@ type WorkspaceCustomObjectParameter struct {
 
 // WorkspaceCustomParameters custom Parameters used for Cluster Creation.
 type WorkspaceCustomParameters struct {
-	// AmlWorkspaceID - The Workspace ID of an Azure Machine Learning Workspace
+	// AmlWorkspaceID - The ID of a Azure Machine Learning workspace to link with Databricks workspace
 	AmlWorkspaceID *WorkspaceCustomStringParameter `json:"amlWorkspaceId,omitempty"`
 	// CustomVirtualNetworkID - The ID of a Virtual Network where this Databricks Cluster should be created
 	CustomVirtualNetworkID *WorkspaceCustomStringParameter `json:"customVirtualNetworkId,omitempty"`
@@ -461,20 +818,12 @@ type WorkspaceCustomParameters struct {
 	CustomPrivateSubnetName *WorkspaceCustomStringParameter `json:"customPrivateSubnetName,omitempty"`
 	// EnableNoPublicIP - Should the Public IP be Disabled?
 	EnableNoPublicIP *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp,omitempty"`
-	// LoadBalancerBackendPoolName - The name of a Backend Address Pool within an Azure Load Balancer
-	LoadBalancerBackendPoolName *WorkspaceCustomStringParameter `json:"loadBalancerBackendPoolName,omitempty"`
-	// LoadBalancerID - The Resource ID of an Azure Load Balancer
-	LoadBalancerID *WorkspaceCustomStringParameter `json:"loadBalancerId,omitempty"`
-	// RelayNamespaceName - The name of an Azure Relay Namespace
-	RelayNamespaceName *WorkspaceCustomStringParameter `json:"relayNamespaceName,omitempty"`
-	// StorageAccountName - The name which should be used for the Storage Account
-	StorageAccountName *WorkspaceCustomStringParameter `json:"storageAccountName,omitempty"`
-	// StorageAccountSkuName - The SKU which should be used for this Storage Account
-	StorageAccountSkuName *WorkspaceCustomStringParameter `json:"storageAccountSkuName,omitempty"`
-	// ResourceTags - A map of Tags which should be applied to the resources used by this Databricks Cluster.
-	ResourceTags *WorkspaceCustomObjectParameter `json:"resourceTags,omitempty"`
-	// VnetAddressPrefix - The first 2 octets of the virtual network /16 address range (e.g., '10.139' for the address range 10.139.0.0/16).
-	VnetAddressPrefix *WorkspaceCustomStringParameter `json:"vnetAddressPrefix,omitempty"`
+	// PrepareEncryption - Prepare the workspace for encryption. Enables the Managed Identity for managed storage account.
+	PrepareEncryption *WorkspaceCustomBooleanParameter `json:"prepareEncryption,omitempty"`
+	// Encryption - Contains the encryption details for Customer-Managed Key (CMK) enabled workspace.
+	Encryption *WorkspaceEncryptionParameter `json:"encryption,omitempty"`
+	// RequireInfrastructureEncryption - A boolean indicating whether or not the DBFS root file system will be enabled with secondary layer of encryption with platform managed keys for data at rest.
+	RequireInfrastructureEncryption *WorkspaceCustomBooleanParameter `json:"requireInfrastructureEncryption,omitempty"`
 }
 
 // WorkspaceCustomStringParameter the Value.
@@ -483,6 +832,14 @@ type WorkspaceCustomStringParameter struct {
 	Type CustomParameterType `json:"type,omitempty"`
 	// Value - The value which should be used for this field.
 	Value *string `json:"value,omitempty"`
+}
+
+// WorkspaceEncryptionParameter the object that contains details of encryption used on the workspace.
+type WorkspaceEncryptionParameter struct {
+	// Type - The type of variable that this is. Possible values include: 'Bool', 'Object', 'String'
+	Type CustomParameterType `json:"type,omitempty"`
+	// Value - The value which should be used for this field.
+	Value *Encryption `json:"value,omitempty"`
 }
 
 // WorkspaceListResult list of workspaces.
@@ -562,10 +919,15 @@ func (wlr WorkspaceListResult) IsEmpty() bool {
 	return wlr.Value == nil || len(*wlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wlr WorkspaceListResult) hasNextLink() bool {
+	return wlr.NextLink != nil && len(*wlr.NextLink) != 0
+}
+
 // workspaceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wlr WorkspaceListResult) workspaceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wlr.NextLink == nil || len(to.String(wlr.NextLink)) < 1 {
+	if !wlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -593,11 +955,16 @@ func (page *WorkspaceListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wlr)
+		if err != nil {
+			return err
+		}
+		page.wlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wlr = next
 	return nil
 }
 
@@ -627,8 +994,11 @@ func (page WorkspaceListResultPage) Values() []Workspace {
 }
 
 // Creates a new instance of the WorkspaceListResultPage type.
-func NewWorkspaceListResultPage(getNextPage func(context.Context, WorkspaceListResult) (WorkspaceListResult, error)) WorkspaceListResultPage {
-	return WorkspaceListResultPage{fn: getNextPage}
+func NewWorkspaceListResultPage(cur WorkspaceListResult, getNextPage func(context.Context, WorkspaceListResult) (WorkspaceListResult, error)) WorkspaceListResultPage {
+	return WorkspaceListResultPage{
+		fn:  getNextPage,
+		wlr: cur,
+	}
 }
 
 // WorkspaceProperties the workspace properties.
@@ -637,12 +1007,54 @@ type WorkspaceProperties struct {
 	ManagedResourceGroupID *string `json:"managedResourceGroupId,omitempty"`
 	// Parameters - The workspace's custom parameters.
 	Parameters *WorkspaceCustomParameters `json:"parameters,omitempty"`
-	// ProvisioningState - READ-ONLY; The workspace provisioning state. Possible values include: 'Accepted', 'Running', 'Ready', 'Creating', 'Created', 'Deleting', 'Deleted', 'Canceled', 'Failed', 'Succeeded', 'Updating'
+	// ProvisioningState - READ-ONLY; The workspace provisioning state. Possible values include: 'ProvisioningStateAccepted', 'ProvisioningStateRunning', 'ProvisioningStateReady', 'ProvisioningStateCreating', 'ProvisioningStateCreated', 'ProvisioningStateDeleting', 'ProvisioningStateDeleted', 'ProvisioningStateCanceled', 'ProvisioningStateFailed', 'ProvisioningStateSucceeded', 'ProvisioningStateUpdating'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// UIDefinitionURI - The blob URI where the UI definition file is located.
 	UIDefinitionURI *string `json:"uiDefinitionUri,omitempty"`
 	// Authorizations - The workspace provider authorizations.
 	Authorizations *[]WorkspaceProviderAuthorization `json:"authorizations,omitempty"`
+	// CreatedBy - Indicates the Object ID, PUID and Application ID of entity that created the workspace.
+	CreatedBy *CreatedBy `json:"createdBy,omitempty"`
+	// UpdatedBy - Indicates the Object ID, PUID and Application ID of entity that last updated the workspace.
+	UpdatedBy *CreatedBy `json:"updatedBy,omitempty"`
+	// CreatedDateTime - Specifies the date and time when the workspace is created.
+	CreatedDateTime *date.Time `json:"createdDateTime,omitempty"`
+	// WorkspaceID - READ-ONLY; The unique identifier of the databricks workspace in databricks control plane.
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// WorkspaceURL - READ-ONLY; The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
+	WorkspaceURL *string `json:"workspaceUrl,omitempty"`
+	// StorageAccountIdentity - The details of Managed Identity of Storage Account
+	StorageAccountIdentity *ManagedIdentityConfiguration `json:"storageAccountIdentity,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkspaceProperties.
+func (wp WorkspaceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wp.ManagedResourceGroupID != nil {
+		objectMap["managedResourceGroupId"] = wp.ManagedResourceGroupID
+	}
+	if wp.Parameters != nil {
+		objectMap["parameters"] = wp.Parameters
+	}
+	if wp.UIDefinitionURI != nil {
+		objectMap["uiDefinitionUri"] = wp.UIDefinitionURI
+	}
+	if wp.Authorizations != nil {
+		objectMap["authorizations"] = wp.Authorizations
+	}
+	if wp.CreatedBy != nil {
+		objectMap["createdBy"] = wp.CreatedBy
+	}
+	if wp.UpdatedBy != nil {
+		objectMap["updatedBy"] = wp.UpdatedBy
+	}
+	if wp.CreatedDateTime != nil {
+		objectMap["createdDateTime"] = wp.CreatedDateTime
+	}
+	if wp.StorageAccountIdentity != nil {
+		objectMap["storageAccountIdentity"] = wp.StorageAccountIdentity
+	}
+	return json.Marshal(objectMap)
 }
 
 // WorkspaceProviderAuthorization the workspace provider authorization.

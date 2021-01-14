@@ -39,7 +39,8 @@ func NewManagedDatabaseSecurityAlertPoliciesClient(subscriptionID string) Manage
 }
 
 // NewManagedDatabaseSecurityAlertPoliciesClientWithBaseURI creates an instance of the
-// ManagedDatabaseSecurityAlertPoliciesClient client.
+// ManagedDatabaseSecurityAlertPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedDatabaseSecurityAlertPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabaseSecurityAlertPoliciesClient {
 	return ManagedDatabaseSecurityAlertPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -78,6 +79,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdate(ctx cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,8 +113,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdatePreparer(
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -120,7 +121,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdateSender(re
 func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedDatabaseSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) Get(ctx context.Context
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,8 +193,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) GetPreparer(ctx context
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSecurityAlertPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -201,7 +201,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) GetSender(req *http.Req
 func (client ManagedDatabaseSecurityAlertPoliciesClient) GetResponder(resp *http.Response) (result ManagedDatabaseSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -243,6 +242,10 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabase(ctx cont
 	result.mdsaplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.mdsaplr.hasNextLink() && result.mdsaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -273,8 +276,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabasePreparer(
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
@@ -282,7 +284,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabaseSender(re
 func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ManagedDatabaseSecurityAlertPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,6 +308,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) listByDatabaseNextResul
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -39,7 +39,8 @@ func NewManagedInstanceTdeCertificatesClient(subscriptionID string) ManagedInsta
 }
 
 // NewManagedInstanceTdeCertificatesClientWithBaseURI creates an instance of the ManagedInstanceTdeCertificatesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewManagedInstanceTdeCertificatesClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstanceTdeCertificatesClient {
 	return ManagedInstanceTdeCertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -109,9 +110,8 @@ func (client ManagedInstanceTdeCertificatesClient) CreatePreparer(ctx context.Co
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceTdeCertificatesClient) CreateSender(req *http.Request) (future ManagedInstanceTdeCertificatesCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -124,7 +124,6 @@ func (client ManagedInstanceTdeCertificatesClient) CreateSender(req *http.Reques
 func (client ManagedInstanceTdeCertificatesClient) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

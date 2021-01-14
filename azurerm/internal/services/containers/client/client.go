@@ -1,9 +1,10 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -15,6 +16,8 @@ type Client struct {
 	ReplicationsClient       *containerregistry.ReplicationsClient
 	ServicesClient           *containerservice.ContainerServicesClient
 	WebhooksClient           *containerregistry.WebhooksClient
+
+	Environment azure.Environment
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -48,5 +51,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		WebhooksClient:           &webhooksClient,
 		ReplicationsClient:       &replicationsClient,
 		ServicesClient:           &servicesClient,
+		Environment:              o.Environment,
 	}
 }

@@ -38,7 +38,8 @@ func NewManagedDatabaseSensitivityLabelsClient(subscriptionID string) ManagedDat
 }
 
 // NewManagedDatabaseSensitivityLabelsClientWithBaseURI creates an instance of the
-// ManagedDatabaseSensitivityLabelsClient client.
+// ManagedDatabaseSensitivityLabelsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedDatabaseSensitivityLabelsClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabaseSensitivityLabelsClient {
 	return ManagedDatabaseSensitivityLabelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -80,6 +81,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) CreateOrUpdate(ctx context.
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -116,8 +118,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) CreateOrUpdatePreparer(ctx 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -125,7 +126,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) CreateOrUpdateSender(req *h
 func (client ManagedDatabaseSensitivityLabelsClient) CreateOrUpdateResponder(resp *http.Response) (result SensitivityLabel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) Delete(ctx context.Context,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -203,8 +204,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) DeletePreparer(ctx context.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -212,7 +212,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) DeleteSender(req *http.Requ
 func (client ManagedDatabaseSensitivityLabelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -255,6 +254,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) DisableRecommendation(ctx c
 	result, err = client.DisableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "DisableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,8 +289,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) DisableRecommendationPrepar
 // DisableRecommendationSender sends the DisableRecommendation request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) DisableRecommendationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DisableRecommendationResponder handles the response to the DisableRecommendation request. The method always
@@ -298,7 +297,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) DisableRecommendationSender
 func (client ManagedDatabaseSensitivityLabelsClient) DisableRecommendationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -342,6 +340,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) EnableRecommendation(ctx co
 	result, err = client.EnableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "EnableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -376,8 +375,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) EnableRecommendationPrepare
 // EnableRecommendationSender sends the EnableRecommendation request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) EnableRecommendationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // EnableRecommendationResponder handles the response to the EnableRecommendation request. The method always
@@ -385,7 +383,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) EnableRecommendationSender(
 func (client ManagedDatabaseSensitivityLabelsClient) EnableRecommendationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -429,6 +426,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -463,8 +461,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) GetPreparer(ctx context.Con
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -472,7 +469,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) GetSender(req *http.Request
 func (client ManagedDatabaseSensitivityLabelsClient) GetResponder(resp *http.Response) (result SensitivityLabel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -515,6 +511,10 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabase(ctx c
 	result.sllr, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "ListCurrentByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -548,8 +548,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabasePrepar
 // ListCurrentByDatabaseSender sends the ListCurrentByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListCurrentByDatabaseResponder handles the response to the ListCurrentByDatabase request. The method always
@@ -557,7 +556,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabaseSender
 func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -582,6 +580,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) listCurrentByDatabaseNextRe
 	result, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "listCurrentByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -638,6 +637,10 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabase(c
 	result.sllr, err = client.ListRecommendedByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "ListRecommendedByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -677,8 +680,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabasePr
 // ListRecommendedByDatabaseSender sends the ListRecommendedByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListRecommendedByDatabaseResponder handles the response to the ListRecommendedByDatabase request. The method always
@@ -686,7 +688,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabaseSe
 func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -711,6 +712,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) listRecommendedByDatabaseNe
 	result, err = client.ListRecommendedByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "listRecommendedByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

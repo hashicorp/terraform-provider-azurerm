@@ -40,7 +40,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this forces a new resource to be created.
+* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
+
+~> **NOTE** While downgrading to `trial`, the Databricks Workspace resource would be recreated.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
@@ -68,9 +70,13 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Databricks Workspace.
+* `id` - The ID of the Databricks Workspace in the Azure management plane.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
+
+* `workspace_url` - The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
+
+* `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
 
 ## Timeouts
 

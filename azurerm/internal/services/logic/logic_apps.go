@@ -4,18 +4,44 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by it's nature)
+// NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by its nature)
+func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+	output := []interface{}{}
+	for k, v := range input {
+		output = append(output, map[string]interface{}{
+			"action_name":   k,
+			"action_result": v.([]interface{})[0],
+		})
+	}
+
+	return output
+}
+
+func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+	output := map[string]interface{}{}
+	for _, v := range input {
+		b := v.(map[string]interface{})
+		output[b["action_name"].(string)] = []string{b["action_result"].(string)}
+	}
+
+	return output
+}
 
 func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals, resourceName)
@@ -26,7 +52,7 @@ func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, log
 }
 
 func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -66,7 +92,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
 			return tf.ImportAsExistsError(resourceName, resourceId)
 		}
@@ -104,7 +130,7 @@ func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, res
 }
 
 func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -162,7 +188,7 @@ func retrieveLogicAppTrigger(d *schema.ResourceData, meta interface{}, resourceG
 }
 
 func retrieveLogicAppComponent(d *schema.ResourceData, meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

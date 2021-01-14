@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// CheckNameAvailabilityClient is the mariaDB Client
+// CheckNameAvailabilityClient is the the Microsoft Azure management API provides create, read, update, and delete
+// functionality for Azure MariaDB resources including servers, databases, firewall rules, VNET rules, log files and
+// configurations with new business model.
 type CheckNameAvailabilityClient struct {
 	BaseClient
 }
@@ -36,7 +38,9 @@ func NewCheckNameAvailabilityClient(subscriptionID string) CheckNameAvailability
 	return NewCheckNameAvailabilityClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCheckNameAvailabilityClientWithBaseURI creates an instance of the CheckNameAvailabilityClient client.
+// NewCheckNameAvailabilityClientWithBaseURI creates an instance of the CheckNameAvailabilityClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewCheckNameAvailabilityClientWithBaseURI(baseURI string, subscriptionID string) CheckNameAvailabilityClient {
 	return CheckNameAvailabilityClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -56,6 +60,8 @@ func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvail
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: nameAvailabilityRequest,
 			Constraints: []validation.Constraint{{Target: "nameAvailabilityRequest.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mariadb.CheckNameAvailabilityClient", "Execute", err.Error())
@@ -77,6 +83,7 @@ func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvail
 	result, err = client.ExecuteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.CheckNameAvailabilityClient", "Execute", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -97,7 +104,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DBforMariaDB/checkNameAvailability", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DBForMariaDB/checkNameAvailability", pathParameters),
 		autorest.WithJSON(nameAvailabilityRequest),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -106,8 +113,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 // ExecuteSender sends the Execute request. The method will close the
 // http.Response Body if it receives an error.
 func (client CheckNameAvailabilityClient) ExecuteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteResponder handles the response to the Execute request. The method always
@@ -115,7 +121,6 @@ func (client CheckNameAvailabilityClient) ExecuteSender(req *http.Request) (*htt
 func (client CheckNameAvailabilityClient) ExecuteResponder(resp *http.Response) (result NameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -36,7 +36,9 @@ func NewContainerHostMappingsClient(subscriptionID string) ContainerHostMappings
 	return NewContainerHostMappingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewContainerHostMappingsClientWithBaseURI creates an instance of the ContainerHostMappingsClient client.
+// NewContainerHostMappingsClientWithBaseURI creates an instance of the ContainerHostMappingsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewContainerHostMappingsClientWithBaseURI(baseURI string, subscriptionID string) ContainerHostMappingsClient {
 	return ContainerHostMappingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -79,6 +81,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Co
 	result, err = client.GetContainerHostMappingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ContainerHostMappingsClient", "GetContainerHostMapping", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,8 +114,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx co
 // GetContainerHostMappingSender sends the GetContainerHostMapping request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerHostMappingsClient) GetContainerHostMappingSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetContainerHostMappingResponder handles the response to the GetContainerHostMapping request. The method always
@@ -120,7 +122,6 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingSender(req *htt
 func (client ContainerHostMappingsClient) GetContainerHostMappingResponder(resp *http.Response) (result ContainerHostMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

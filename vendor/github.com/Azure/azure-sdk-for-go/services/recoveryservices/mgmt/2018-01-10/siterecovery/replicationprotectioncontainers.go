@@ -37,7 +37,8 @@ func NewReplicationProtectionContainersClient(subscriptionID string, resourceGro
 }
 
 // NewReplicationProtectionContainersClientWithBaseURI creates an instance of the ReplicationProtectionContainersClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewReplicationProtectionContainersClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationProtectionContainersClient {
 	return ReplicationProtectionContainersClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -101,9 +102,8 @@ func (client ReplicationProtectionContainersClient) CreatePreparer(ctx context.C
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) CreateSender(req *http.Request) (future ReplicationProtectionContainersCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -116,7 +116,6 @@ func (client ReplicationProtectionContainersClient) CreateSender(req *http.Reque
 func (client ReplicationProtectionContainersClient) CreateResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -180,9 +179,8 @@ func (client ReplicationProtectionContainersClient) DeletePreparer(ctx context.C
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) DeleteSender(req *http.Request) (future ReplicationProtectionContainersDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -195,7 +193,6 @@ func (client ReplicationProtectionContainersClient) DeleteSender(req *http.Reque
 func (client ReplicationProtectionContainersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -261,9 +258,8 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItemPrepa
 // DiscoverProtectableItemSender sends the DiscoverProtectableItem request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) DiscoverProtectableItemSender(req *http.Request) (future ReplicationProtectionContainersDiscoverProtectableItemFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -276,7 +272,6 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItemSende
 func (client ReplicationProtectionContainersClient) DiscoverProtectableItemResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +310,7 @@ func (client ReplicationProtectionContainersClient) Get(ctx context.Context, fab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,8 +342,7 @@ func (client ReplicationProtectionContainersClient) GetPreparer(ctx context.Cont
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -355,7 +350,6 @@ func (client ReplicationProtectionContainersClient) GetSender(req *http.Request)
 func (client ReplicationProtectionContainersClient) GetResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -392,6 +386,10 @@ func (client ReplicationProtectionContainersClient) List(ctx context.Context) (r
 	result.pcc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -421,8 +419,7 @@ func (client ReplicationProtectionContainersClient) ListPreparer(ctx context.Con
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -430,7 +427,6 @@ func (client ReplicationProtectionContainersClient) ListSender(req *http.Request
 func (client ReplicationProtectionContainersClient) ListResponder(resp *http.Response) (result ProtectionContainerCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -455,6 +451,7 @@ func (client ReplicationProtectionContainersClient) listNextResults(ctx context.
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -506,6 +503,10 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabrics(ctx
 	result.pcc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
+	}
+	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -536,8 +537,7 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabricsPrep
 // ListByReplicationFabricsSender sends the ListByReplicationFabrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) ListByReplicationFabricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationFabricsResponder handles the response to the ListByReplicationFabrics request. The method always
@@ -545,7 +545,6 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabricsSend
 func (client ReplicationProtectionContainersClient) ListByReplicationFabricsResponder(resp *http.Response) (result ProtectionContainerCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -570,6 +569,7 @@ func (client ReplicationProtectionContainersClient) listByReplicationFabricsNext
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -650,9 +650,8 @@ func (client ReplicationProtectionContainersClient) SwitchProtectionPreparer(ctx
 // SwitchProtectionSender sends the SwitchProtection request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainersClient) SwitchProtectionSender(req *http.Request) (future ReplicationProtectionContainersSwitchProtectionFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -665,7 +664,6 @@ func (client ReplicationProtectionContainersClient) SwitchProtectionSender(req *
 func (client ReplicationProtectionContainersClient) SwitchProtectionResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

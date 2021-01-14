@@ -35,7 +35,9 @@ func NewMarketplaceAgreementsClient(subscriptionID string) MarketplaceAgreements
 	return NewMarketplaceAgreementsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMarketplaceAgreementsClientWithBaseURI creates an instance of the MarketplaceAgreementsClient client.
+// NewMarketplaceAgreementsClientWithBaseURI creates an instance of the MarketplaceAgreementsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewMarketplaceAgreementsClientWithBaseURI(baseURI string, subscriptionID string) MarketplaceAgreementsClient {
 	return MarketplaceAgreementsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,6 +74,7 @@ func (client MarketplaceAgreementsClient) Cancel(ctx context.Context, publisherI
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "marketplaceordering.MarketplaceAgreementsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -102,8 +105,7 @@ func (client MarketplaceAgreementsClient) CancelPreparer(ctx context.Context, pu
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client MarketplaceAgreementsClient) CancelSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelResponder handles the response to the Cancel request. The method always
@@ -111,7 +113,6 @@ func (client MarketplaceAgreementsClient) CancelSender(req *http.Request) (*http
 func (client MarketplaceAgreementsClient) CancelResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +153,7 @@ func (client MarketplaceAgreementsClient) Create(ctx context.Context, publisherI
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "marketplaceordering.MarketplaceAgreementsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -185,8 +187,7 @@ func (client MarketplaceAgreementsClient) CreatePreparer(ctx context.Context, pu
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client MarketplaceAgreementsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -194,7 +195,6 @@ func (client MarketplaceAgreementsClient) CreateSender(req *http.Request) (*http
 func (client MarketplaceAgreementsClient) CreateResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,6 +234,7 @@ func (client MarketplaceAgreementsClient) Get(ctx context.Context, publisherID s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "marketplaceordering.MarketplaceAgreementsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,8 +266,7 @@ func (client MarketplaceAgreementsClient) GetPreparer(ctx context.Context, publi
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client MarketplaceAgreementsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -274,7 +274,6 @@ func (client MarketplaceAgreementsClient) GetSender(req *http.Request) (*http.Re
 func (client MarketplaceAgreementsClient) GetResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,6 +313,7 @@ func (client MarketplaceAgreementsClient) GetAgreement(ctx context.Context, publ
 	result, err = client.GetAgreementResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "marketplaceordering.MarketplaceAgreementsClient", "GetAgreement", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -344,8 +344,7 @@ func (client MarketplaceAgreementsClient) GetAgreementPreparer(ctx context.Conte
 // GetAgreementSender sends the GetAgreement request. The method will close the
 // http.Response Body if it receives an error.
 func (client MarketplaceAgreementsClient) GetAgreementSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetAgreementResponder handles the response to the GetAgreement request. The method always
@@ -353,7 +352,6 @@ func (client MarketplaceAgreementsClient) GetAgreementSender(req *http.Request) 
 func (client MarketplaceAgreementsClient) GetAgreementResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -389,6 +387,7 @@ func (client MarketplaceAgreementsClient) List(ctx context.Context) (result List
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "marketplaceordering.MarketplaceAgreementsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -416,8 +415,7 @@ func (client MarketplaceAgreementsClient) ListPreparer(ctx context.Context) (*ht
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client MarketplaceAgreementsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -425,7 +423,6 @@ func (client MarketplaceAgreementsClient) ListSender(req *http.Request) (*http.R
 func (client MarketplaceAgreementsClient) ListResponder(resp *http.Response) (result ListAgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -465,6 +462,7 @@ func (client MarketplaceAgreementsClient) Sign(ctx context.Context, publisherID 
 	result, err = client.SignResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "marketplaceordering.MarketplaceAgreementsClient", "Sign", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -495,8 +493,7 @@ func (client MarketplaceAgreementsClient) SignPreparer(ctx context.Context, publ
 // SignSender sends the Sign request. The method will close the
 // http.Response Body if it receives an error.
 func (client MarketplaceAgreementsClient) SignSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SignResponder handles the response to the Sign request. The method always
@@ -504,7 +501,6 @@ func (client MarketplaceAgreementsClient) SignSender(req *http.Request) (*http.R
 func (client MarketplaceAgreementsClient) SignResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

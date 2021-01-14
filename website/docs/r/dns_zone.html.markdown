@@ -23,7 +23,7 @@ resource "azurerm_dns_zone" "example-public" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_dns_zone" "example-private" {
+resource "azurerm_private_dns_zone" "example-private" {
   name                = "mydomain.com"
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -36,13 +36,38 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
+* `soa_record` - (Optional) An `soa_record` block as defined below. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `soa_record` block supports:
+
+* `email` - (Required) The email contact for the SOA record.
+
+* `host_name` - (Required) The domain name of the authoritative name server for the SOA record. Defaults to `ns1-03.azure-dns.com.`.
+
+* `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
+
+* `minimum_ttl` - (Optional) The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration. Defaults to `300`.
+
+* `refresh_time` - (Optional) The refresh time for the SOA record. Defaults to `3600`.
+
+* `retry_time` - (Optional) The retry time for the SOA record. Defaults to `300`.
+
+* `serial_number` - (Optional) The serial number for the SOA record. Defaults to `1`.
+
+* `ttl` - (Optional) The Time To Live of the SOA Record in seconds. Defaults to `3600`.
+
+* `tags` - (Optional) A mapping of tags to assign to the Record Set.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The DNS Zone ID.
+* `fqdn` - The fully qualified domain name of the Record Set.
 * `max_number_of_record_sets` - (Optional) Maximum number of Records in the zone. Defaults to `1000`.
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
 * `name_servers` - (Optional) A list of values that make up the NS record for the zone.

@@ -30,223 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 
-// ApplicationType enumerates the values for application type.
-type ApplicationType string
-
-const (
-	// Other ...
-	Other ApplicationType = "other"
-	// Web ...
-	Web ApplicationType = "web"
-)
-
-// PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
-func PossibleApplicationTypeValues() []ApplicationType {
-	return []ApplicationType{Other, Web}
-}
-
-// CategoryType enumerates the values for category type.
-type CategoryType string
-
-const (
-	// CategoryTypePerformance ...
-	CategoryTypePerformance CategoryType = "performance"
-	// CategoryTypeRetention ...
-	CategoryTypeRetention CategoryType = "retention"
-	// CategoryTypeTSG ...
-	CategoryTypeTSG CategoryType = "TSG"
-	// CategoryTypeWorkbook ...
-	CategoryTypeWorkbook CategoryType = "workbook"
-)
-
-// PossibleCategoryTypeValues returns an array of possible values for the CategoryType const type.
-func PossibleCategoryTypeValues() []CategoryType {
-	return []CategoryType{CategoryTypePerformance, CategoryTypeRetention, CategoryTypeTSG, CategoryTypeWorkbook}
-}
-
-// FavoriteSourceType enumerates the values for favorite source type.
-type FavoriteSourceType string
-
-const (
-	// Events ...
-	Events FavoriteSourceType = "events"
-	// Funnel ...
-	Funnel FavoriteSourceType = "funnel"
-	// Impact ...
-	Impact FavoriteSourceType = "impact"
-	// Notebook ...
-	Notebook FavoriteSourceType = "notebook"
-	// Retention ...
-	Retention FavoriteSourceType = "retention"
-	// Segmentation ...
-	Segmentation FavoriteSourceType = "segmentation"
-	// Sessions ...
-	Sessions FavoriteSourceType = "sessions"
-	// Userflows ...
-	Userflows FavoriteSourceType = "userflows"
-)
-
-// PossibleFavoriteSourceTypeValues returns an array of possible values for the FavoriteSourceType const type.
-func PossibleFavoriteSourceTypeValues() []FavoriteSourceType {
-	return []FavoriteSourceType{Events, Funnel, Impact, Notebook, Retention, Segmentation, Sessions, Userflows}
-}
-
-// FavoriteType enumerates the values for favorite type.
-type FavoriteType string
-
-const (
-	// Shared ...
-	Shared FavoriteType = "shared"
-	// User ...
-	User FavoriteType = "user"
-)
-
-// PossibleFavoriteTypeValues returns an array of possible values for the FavoriteType const type.
-func PossibleFavoriteTypeValues() []FavoriteType {
-	return []FavoriteType{Shared, User}
-}
-
-// FlowType enumerates the values for flow type.
-type FlowType string
-
-const (
-	// Bluefield ...
-	Bluefield FlowType = "Bluefield"
-)
-
-// PossibleFlowTypeValues returns an array of possible values for the FlowType const type.
-func PossibleFlowTypeValues() []FlowType {
-	return []FlowType{Bluefield}
-}
-
-// ItemScope enumerates the values for item scope.
-type ItemScope string
-
-const (
-	// ItemScopeShared ...
-	ItemScopeShared ItemScope = "shared"
-	// ItemScopeUser ...
-	ItemScopeUser ItemScope = "user"
-)
-
-// PossibleItemScopeValues returns an array of possible values for the ItemScope const type.
-func PossibleItemScopeValues() []ItemScope {
-	return []ItemScope{ItemScopeShared, ItemScopeUser}
-}
-
-// ItemScopePath enumerates the values for item scope path.
-type ItemScopePath string
-
-const (
-	// AnalyticsItems ...
-	AnalyticsItems ItemScopePath = "analyticsItems"
-	// MyanalyticsItems ...
-	MyanalyticsItems ItemScopePath = "myanalyticsItems"
-)
-
-// PossibleItemScopePathValues returns an array of possible values for the ItemScopePath const type.
-func PossibleItemScopePathValues() []ItemScopePath {
-	return []ItemScopePath{AnalyticsItems, MyanalyticsItems}
-}
-
-// ItemType enumerates the values for item type.
-type ItemType string
-
-const (
-	// Folder ...
-	Folder ItemType = "folder"
-	// Function ...
-	Function ItemType = "function"
-	// Query ...
-	Query ItemType = "query"
-	// Recent ...
-	Recent ItemType = "recent"
-)
-
-// PossibleItemTypeValues returns an array of possible values for the ItemType const type.
-func PossibleItemTypeValues() []ItemType {
-	return []ItemType{Folder, Function, Query, Recent}
-}
-
-// ItemTypeParameter enumerates the values for item type parameter.
-type ItemTypeParameter string
-
-const (
-	// ItemTypeParameterFolder ...
-	ItemTypeParameterFolder ItemTypeParameter = "folder"
-	// ItemTypeParameterFunction ...
-	ItemTypeParameterFunction ItemTypeParameter = "function"
-	// ItemTypeParameterNone ...
-	ItemTypeParameterNone ItemTypeParameter = "none"
-	// ItemTypeParameterQuery ...
-	ItemTypeParameterQuery ItemTypeParameter = "query"
-	// ItemTypeParameterRecent ...
-	ItemTypeParameterRecent ItemTypeParameter = "recent"
-)
-
-// PossibleItemTypeParameterValues returns an array of possible values for the ItemTypeParameter const type.
-func PossibleItemTypeParameterValues() []ItemTypeParameter {
-	return []ItemTypeParameter{ItemTypeParameterFolder, ItemTypeParameterFunction, ItemTypeParameterNone, ItemTypeParameterQuery, ItemTypeParameterRecent}
-}
-
-// PurgeState enumerates the values for purge state.
-type PurgeState string
-
-const (
-	// Completed ...
-	Completed PurgeState = "completed"
-	// Pending ...
-	Pending PurgeState = "pending"
-)
-
-// PossiblePurgeStateValues returns an array of possible values for the PurgeState const type.
-func PossiblePurgeStateValues() []PurgeState {
-	return []PurgeState{Completed, Pending}
-}
-
-// RequestSource enumerates the values for request source.
-type RequestSource string
-
-const (
-	// Rest ...
-	Rest RequestSource = "rest"
-)
-
-// PossibleRequestSourceValues returns an array of possible values for the RequestSource const type.
-func PossibleRequestSourceValues() []RequestSource {
-	return []RequestSource{Rest}
-}
-
-// SharedTypeKind enumerates the values for shared type kind.
-type SharedTypeKind string
-
-const (
-	// SharedTypeKindShared ...
-	SharedTypeKindShared SharedTypeKind = "shared"
-	// SharedTypeKindUser ...
-	SharedTypeKindUser SharedTypeKind = "user"
-)
-
-// PossibleSharedTypeKindValues returns an array of possible values for the SharedTypeKind const type.
-func PossibleSharedTypeKindValues() []SharedTypeKind {
-	return []SharedTypeKind{SharedTypeKindShared, SharedTypeKindUser}
-}
-
-// WebTestKind enumerates the values for web test kind.
-type WebTestKind string
-
-const (
-	// Multistep ...
-	Multistep WebTestKind = "multistep"
-	// Ping ...
-	Ping WebTestKind = "ping"
-)
-
-// PossibleWebTestKindValues returns an array of possible values for the WebTestKind const type.
-func PossibleWebTestKindValues() []WebTestKind {
-	return []WebTestKind{Multistep, Ping}
-}
-
 // Annotation annotation associated with an application insights resource.
 type Annotation struct {
 	// AnnotationName - Name of annotation
@@ -427,6 +210,30 @@ type ApplicationInsightsComponentAnalyticsItem struct {
 	Properties   *ApplicationInsightsComponentAnalyticsItemProperties `json:"Properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentAnalyticsItem.
+func (aicai ApplicationInsightsComponentAnalyticsItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aicai.ID != nil {
+		objectMap["Id"] = aicai.ID
+	}
+	if aicai.Name != nil {
+		objectMap["Name"] = aicai.Name
+	}
+	if aicai.Content != nil {
+		objectMap["Content"] = aicai.Content
+	}
+	if aicai.Scope != "" {
+		objectMap["Scope"] = aicai.Scope
+	}
+	if aicai.Type != "" {
+		objectMap["Type"] = aicai.Type
+	}
+	if aicai.Properties != nil {
+		objectMap["Properties"] = aicai.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
 // ApplicationInsightsComponentAnalyticsItemProperties a set of properties that can be defined in the
 // context of a specific item type. Each type may have its own properties.
 type ApplicationInsightsComponentAnalyticsItemProperties struct {
@@ -450,6 +257,24 @@ type ApplicationInsightsComponentAPIKey struct {
 	LinkedReadProperties *[]string `json:"linkedReadProperties,omitempty"`
 	// LinkedWriteProperties - The write access rights of this API Key.
 	LinkedWriteProperties *[]string `json:"linkedWriteProperties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentAPIKey.
+func (aicak ApplicationInsightsComponentAPIKey) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aicak.CreatedDate != nil {
+		objectMap["createdDate"] = aicak.CreatedDate
+	}
+	if aicak.Name != nil {
+		objectMap["name"] = aicak.Name
+	}
+	if aicak.LinkedReadProperties != nil {
+		objectMap["linkedReadProperties"] = aicak.LinkedReadProperties
+	}
+	if aicak.LinkedWriteProperties != nil {
+		objectMap["linkedWriteProperties"] = aicak.LinkedWriteProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsComponentAPIKeyListResult describes the list of API Keys of an Application Insights
@@ -490,6 +315,24 @@ type ApplicationInsightsComponentDataVolumeCap struct {
 	StopSendNotificationWhenHitCap *bool `json:"StopSendNotificationWhenHitCap,omitempty"`
 	// MaxHistoryCap - READ-ONLY; Maximum daily data volume cap that the user can set for this component.
 	MaxHistoryCap *float64 `json:"MaxHistoryCap,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentDataVolumeCap.
+func (aicdvc ApplicationInsightsComponentDataVolumeCap) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aicdvc.Cap != nil {
+		objectMap["Cap"] = aicdvc.Cap
+	}
+	if aicdvc.WarningThreshold != nil {
+		objectMap["WarningThreshold"] = aicdvc.WarningThreshold
+	}
+	if aicdvc.StopSendNotificationWhenHitThreshold != nil {
+		objectMap["StopSendNotificationWhenHitThreshold"] = aicdvc.StopSendNotificationWhenHitThreshold
+	}
+	if aicdvc.StopSendNotificationWhenHitCap != nil {
+		objectMap["StopSendNotificationWhenHitCap"] = aicdvc.StopSendNotificationWhenHitCap
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsComponentExportConfiguration properties that define a Continuous Export
@@ -534,6 +377,18 @@ type ApplicationInsightsComponentExportConfiguration struct {
 	StorageName *string `json:"StorageName,omitempty"`
 	// ContainerName - READ-ONLY; The name of the destination storage container.
 	ContainerName *string `json:"ContainerName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentExportConfiguration.
+func (aicec ApplicationInsightsComponentExportConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aicec.RecordTypes != nil {
+		objectMap["RecordTypes"] = aicec.RecordTypes
+	}
+	if aicec.NotificationQueueEnabled != nil {
+		objectMap["NotificationQueueEnabled"] = aicec.NotificationQueueEnabled
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsComponentExportRequest an Application Insights component Continuous Export
@@ -585,6 +440,36 @@ type ApplicationInsightsComponentFavorite struct {
 	IsGeneratedFromTemplate *bool `json:"IsGeneratedFromTemplate,omitempty"`
 	// UserID - READ-ONLY; Unique user id of the specific user that owns this favorite.
 	UserID *string `json:"UserId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentFavorite.
+func (aicf ApplicationInsightsComponentFavorite) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aicf.Name != nil {
+		objectMap["Name"] = aicf.Name
+	}
+	if aicf.Config != nil {
+		objectMap["Config"] = aicf.Config
+	}
+	if aicf.Version != nil {
+		objectMap["Version"] = aicf.Version
+	}
+	if aicf.FavoriteType != "" {
+		objectMap["FavoriteType"] = aicf.FavoriteType
+	}
+	if aicf.SourceType != nil {
+		objectMap["SourceType"] = aicf.SourceType
+	}
+	if aicf.Tags != nil {
+		objectMap["Tags"] = aicf.Tags
+	}
+	if aicf.Category != nil {
+		objectMap["Category"] = aicf.Category
+	}
+	if aicf.IsGeneratedFromTemplate != nil {
+		objectMap["IsGeneratedFromTemplate"] = aicf.IsGeneratedFromTemplate
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsComponentFeature an Application Insights component daily data volume cap status
@@ -740,10 +625,15 @@ func (aiclr ApplicationInsightsComponentListResult) IsEmpty() bool {
 	return aiclr.Value == nil || len(*aiclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (aiclr ApplicationInsightsComponentListResult) hasNextLink() bool {
+	return aiclr.NextLink != nil && len(*aiclr.NextLink) != 0
+}
+
 // applicationInsightsComponentListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (aiclr ApplicationInsightsComponentListResult) applicationInsightsComponentListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if aiclr.NextLink == nil || len(to.String(aiclr.NextLink)) < 1 {
+	if !aiclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -771,11 +661,16 @@ func (page *ApplicationInsightsComponentListResultPage) NextWithContext(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.aiclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.aiclr)
+		if err != nil {
+			return err
+		}
+		page.aiclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.aiclr = next
 	return nil
 }
 
@@ -805,8 +700,11 @@ func (page ApplicationInsightsComponentListResultPage) Values() []ApplicationIns
 }
 
 // Creates a new instance of the ApplicationInsightsComponentListResultPage type.
-func NewApplicationInsightsComponentListResultPage(getNextPage func(context.Context, ApplicationInsightsComponentListResult) (ApplicationInsightsComponentListResult, error)) ApplicationInsightsComponentListResultPage {
-	return ApplicationInsightsComponentListResultPage{fn: getNextPage}
+func NewApplicationInsightsComponentListResultPage(cur ApplicationInsightsComponentListResult, getNextPage func(context.Context, ApplicationInsightsComponentListResult) (ApplicationInsightsComponentListResult, error)) ApplicationInsightsComponentListResultPage {
+	return ApplicationInsightsComponentListResultPage{
+		fn:    getNextPage,
+		aiclr: cur,
+	}
 }
 
 // ApplicationInsightsComponentProactiveDetectionConfiguration properties that define a ProactiveDetection
@@ -883,6 +781,43 @@ type ApplicationInsightsComponentProperties struct {
 	DisableIPMasking *bool `json:"DisableIpMasking,omitempty"`
 	// ImmediatePurgeDataOn30Days - Purge data immediately after 30 days.
 	ImmediatePurgeDataOn30Days *bool `json:"ImmediatePurgeDataOn30Days,omitempty"`
+	// PrivateLinkScopedResources - READ-ONLY; List of linked private link scope resources.
+	PrivateLinkScopedResources *[]PrivateLinkScopedResource `json:"PrivateLinkScopedResources,omitempty"`
+	// IngestionMode - Indicates the flow of the ingestion. Possible values include: 'ApplicationInsights', 'ApplicationInsightsWithDiagnosticSettings', 'LogAnalytics'
+	IngestionMode IngestionMode `json:"IngestionMode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsComponentProperties.
+func (aicp ApplicationInsightsComponentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aicp.ApplicationType != "" {
+		objectMap["Application_Type"] = aicp.ApplicationType
+	}
+	if aicp.FlowType != "" {
+		objectMap["Flow_Type"] = aicp.FlowType
+	}
+	if aicp.RequestSource != "" {
+		objectMap["Request_Source"] = aicp.RequestSource
+	}
+	if aicp.HockeyAppID != nil {
+		objectMap["HockeyAppId"] = aicp.HockeyAppID
+	}
+	if aicp.SamplingPercentage != nil {
+		objectMap["SamplingPercentage"] = aicp.SamplingPercentage
+	}
+	if aicp.RetentionInDays != nil {
+		objectMap["RetentionInDays"] = aicp.RetentionInDays
+	}
+	if aicp.DisableIPMasking != nil {
+		objectMap["DisableIpMasking"] = aicp.DisableIPMasking
+	}
+	if aicp.ImmediatePurgeDataOn30Days != nil {
+		objectMap["ImmediatePurgeDataOn30Days"] = aicp.ImmediatePurgeDataOn30Days
+	}
+	if aicp.IngestionMode != "" {
+		objectMap["IngestionMode"] = aicp.IngestionMode
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationInsightsComponentQuotaStatus an Application Insights component daily data volume cap status
@@ -1040,6 +975,226 @@ type ListApplicationInsightsComponentProactiveDetectionConfiguration struct {
 	Value             *[]ApplicationInsightsComponentProactiveDetectionConfiguration `json:"value,omitempty"`
 }
 
+// MyWorkbook an Application Insights private workbook definition.
+type MyWorkbook struct {
+	autorest.Response `json:"-"`
+	// Kind - The kind of workbook. Choices are user and shared. Possible values include: 'SharedTypeKindUser', 'SharedTypeKindShared'
+	Kind SharedTypeKind `json:"kind,omitempty"`
+	// MyWorkbookProperties - Metadata describing a workbook for an Azure resource.
+	*MyWorkbookProperties `json:"properties,omitempty"`
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbook.
+func (mw MyWorkbook) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mw.Kind != "" {
+		objectMap["kind"] = mw.Kind
+	}
+	if mw.MyWorkbookProperties != nil {
+		objectMap["properties"] = mw.MyWorkbookProperties
+	}
+	if mw.ID != nil {
+		objectMap["id"] = mw.ID
+	}
+	if mw.Name != nil {
+		objectMap["name"] = mw.Name
+	}
+	if mw.Type != nil {
+		objectMap["type"] = mw.Type
+	}
+	if mw.Location != nil {
+		objectMap["location"] = mw.Location
+	}
+	if mw.Tags != nil {
+		objectMap["tags"] = mw.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MyWorkbook struct.
+func (mw *MyWorkbook) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "kind":
+			if v != nil {
+				var kind SharedTypeKind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				mw.Kind = kind
+			}
+		case "properties":
+			if v != nil {
+				var myWorkbookProperties MyWorkbookProperties
+				err = json.Unmarshal(*v, &myWorkbookProperties)
+				if err != nil {
+					return err
+				}
+				mw.MyWorkbookProperties = &myWorkbookProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mw.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mw.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mw.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mw.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mw.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// MyWorkbookError error message body that will indicate why the operation failed.
+type MyWorkbookError struct {
+	// Code - Service-defined error code. This code serves as a sub-status for the HTTP error code specified in the response.
+	Code *string `json:"code,omitempty"`
+	// Message - Human-readable representation of the error.
+	Message *string `json:"message,omitempty"`
+	// Details - The list of invalid fields send in request, in case of validation error.
+	Details *[]ErrorFieldContract `json:"details,omitempty"`
+}
+
+// MyWorkbookProperties properties that contain a private workbook.
+type MyWorkbookProperties struct {
+	// DisplayName - The user-defined name of the private workbook.
+	DisplayName *string `json:"displayName,omitempty"`
+	// SerializedData - Configuration of this particular private workbook. Configuration data is a string containing valid JSON
+	SerializedData *string `json:"serializedData,omitempty"`
+	// Version - This instance's version of the data model. This can change as new features are added that can be marked private workbook.
+	Version *string `json:"version,omitempty"`
+	// TimeModified - READ-ONLY; Date and time in UTC of the last modification that was made to this private workbook definition.
+	TimeModified *string `json:"timeModified,omitempty"`
+	// Category - Workbook category, as defined by the user at creation time.
+	Category *string `json:"category,omitempty"`
+	// Tags - A list of 0 or more tags that are associated with this private workbook definition
+	Tags *[]string `json:"tags,omitempty"`
+	// UserID - READ-ONLY; Unique user id of the specific user that owns this private workbook.
+	UserID *string `json:"userId,omitempty"`
+	// SourceID - Optional resourceId for a source resource.
+	SourceID *string `json:"sourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbookProperties.
+func (mwp MyWorkbookProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mwp.DisplayName != nil {
+		objectMap["displayName"] = mwp.DisplayName
+	}
+	if mwp.SerializedData != nil {
+		objectMap["serializedData"] = mwp.SerializedData
+	}
+	if mwp.Version != nil {
+		objectMap["version"] = mwp.Version
+	}
+	if mwp.Category != nil {
+		objectMap["category"] = mwp.Category
+	}
+	if mwp.Tags != nil {
+		objectMap["tags"] = mwp.Tags
+	}
+	if mwp.SourceID != nil {
+		objectMap["sourceId"] = mwp.SourceID
+	}
+	return json.Marshal(objectMap)
+}
+
+// MyWorkbookResource an azure resource object
+type MyWorkbookResource struct {
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbookResource.
+func (mwr MyWorkbookResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mwr.ID != nil {
+		objectMap["id"] = mwr.ID
+	}
+	if mwr.Name != nil {
+		objectMap["name"] = mwr.Name
+	}
+	if mwr.Type != nil {
+		objectMap["type"] = mwr.Type
+	}
+	if mwr.Location != nil {
+		objectMap["location"] = mwr.Location
+	}
+	if mwr.Tags != nil {
+		objectMap["tags"] = mwr.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// MyWorkbooksListResult workbook list result.
+type MyWorkbooksListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; An array of private workbooks.
+	Value *[]MyWorkbook `json:"value,omitempty"`
+}
+
 // Operation CDN REST API operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -1136,10 +1291,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1167,11 +1327,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1201,8 +1366,19 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
+}
+
+// PrivateLinkScopedResource the private link scope resource reference.
+type PrivateLinkScopedResource struct {
+	// ResourceID - The full resource Id of the private link scope resource.
+	ResourceID *string `json:"ResourceId,omitempty"`
+	// ScopeID - The private link scope unique Identifier.
+	ScopeID *string `json:"ScopeId,omitempty"`
 }
 
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on a
@@ -1420,10 +1596,15 @@ func (wtlr WebTestListResult) IsEmpty() bool {
 	return wtlr.Value == nil || len(*wtlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wtlr WebTestListResult) hasNextLink() bool {
+	return wtlr.NextLink != nil && len(*wtlr.NextLink) != 0
+}
+
 // webTestListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wtlr WebTestListResult) webTestListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wtlr.NextLink == nil || len(to.String(wtlr.NextLink)) < 1 {
+	if !wtlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1451,11 +1632,16 @@ func (page *WebTestListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wtlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wtlr)
+		if err != nil {
+			return err
+		}
+		page.wtlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wtlr = next
 	return nil
 }
 
@@ -1485,8 +1671,11 @@ func (page WebTestListResultPage) Values() []WebTest {
 }
 
 // Creates a new instance of the WebTestListResultPage type.
-func NewWebTestListResultPage(getNextPage func(context.Context, WebTestListResult) (WebTestListResult, error)) WebTestListResultPage {
-	return WebTestListResultPage{fn: getNextPage}
+func NewWebTestListResultPage(cur WebTestListResult, getNextPage func(context.Context, WebTestListResult) (WebTestListResult, error)) WebTestListResultPage {
+	return WebTestListResultPage{
+		fn:   getNextPage,
+		wtlr: cur,
+	}
 }
 
 // WebTestProperties metadata describing a web test for an Azure resource.
@@ -1513,6 +1702,42 @@ type WebTestProperties struct {
 	Configuration *WebTestPropertiesConfiguration `json:"Configuration,omitempty"`
 	// ProvisioningState - READ-ONLY; Current state of this component, whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WebTestProperties.
+func (wtp WebTestProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wtp.SyntheticMonitorID != nil {
+		objectMap["SyntheticMonitorId"] = wtp.SyntheticMonitorID
+	}
+	if wtp.WebTestName != nil {
+		objectMap["Name"] = wtp.WebTestName
+	}
+	if wtp.Description != nil {
+		objectMap["Description"] = wtp.Description
+	}
+	if wtp.Enabled != nil {
+		objectMap["Enabled"] = wtp.Enabled
+	}
+	if wtp.Frequency != nil {
+		objectMap["Frequency"] = wtp.Frequency
+	}
+	if wtp.Timeout != nil {
+		objectMap["Timeout"] = wtp.Timeout
+	}
+	if wtp.WebTestKind != "" {
+		objectMap["Kind"] = wtp.WebTestKind
+	}
+	if wtp.RetryEnabled != nil {
+		objectMap["RetryEnabled"] = wtp.RetryEnabled
+	}
+	if wtp.Locations != nil {
+		objectMap["Locations"] = wtp.Locations
+	}
+	if wtp.Configuration != nil {
+		objectMap["Configuration"] = wtp.Configuration
+	}
+	return json.Marshal(objectMap)
 }
 
 // WebTestPropertiesConfiguration an XML configuration specification for a WebTest.
@@ -1694,6 +1919,39 @@ type WorkbookProperties struct {
 	UserID *string `json:"userId,omitempty"`
 	// SourceResourceID - Optional resourceId for a source resource.
 	SourceResourceID *string `json:"sourceResourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkbookProperties.
+func (wp WorkbookProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wp.Name != nil {
+		objectMap["name"] = wp.Name
+	}
+	if wp.SerializedData != nil {
+		objectMap["serializedData"] = wp.SerializedData
+	}
+	if wp.Version != nil {
+		objectMap["version"] = wp.Version
+	}
+	if wp.WorkbookID != nil {
+		objectMap["workbookId"] = wp.WorkbookID
+	}
+	if wp.SharedTypeKind != "" {
+		objectMap["kind"] = wp.SharedTypeKind
+	}
+	if wp.Category != nil {
+		objectMap["category"] = wp.Category
+	}
+	if wp.Tags != nil {
+		objectMap["tags"] = wp.Tags
+	}
+	if wp.UserID != nil {
+		objectMap["userId"] = wp.UserID
+	}
+	if wp.SourceResourceID != nil {
+		objectMap["sourceResourceId"] = wp.SourceResourceID
+	}
+	return json.Marshal(objectMap)
 }
 
 // WorkbookResource an azure resource object

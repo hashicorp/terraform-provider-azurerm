@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_mysql_firewall_rule
 
-Manages a Firewall Rule for a MySQL Server
+Manages a Firewall Rule for a MySQL Server.
 
 ## Example Usage (Single IP Address)
 
@@ -52,6 +52,27 @@ resource "azurerm_mysql_firewall_rule" "example" {
 }
 ```
 
+## Example Usage (Allow access to Azure services)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "api-rg-pro"
+  location = "West Europe"
+}
+
+resource "azurerm_mysql_server" "example" {
+  # ...
+}
+
+resource "azurerm_mysql_firewall_rule" "example" {
+  name                = "office"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mysql_server.example.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -65,6 +86,8 @@ The following arguments are supported:
 * `start_ip_address` - (Required) Specifies the Start IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
+
+-> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate)).
 
 ## Attributes Reference
 

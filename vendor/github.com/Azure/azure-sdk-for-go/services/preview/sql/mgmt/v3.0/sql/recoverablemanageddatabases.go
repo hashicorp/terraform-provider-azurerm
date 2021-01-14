@@ -37,7 +37,9 @@ func NewRecoverableManagedDatabasesClient(subscriptionID string) RecoverableMana
 	return NewRecoverableManagedDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRecoverableManagedDatabasesClientWithBaseURI creates an instance of the RecoverableManagedDatabasesClient client.
+// NewRecoverableManagedDatabasesClientWithBaseURI creates an instance of the RecoverableManagedDatabasesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewRecoverableManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) RecoverableManagedDatabasesClient {
 	return RecoverableManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -74,6 +76,7 @@ func (client RecoverableManagedDatabasesClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -104,8 +107,7 @@ func (client RecoverableManagedDatabasesClient) GetPreparer(ctx context.Context,
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecoverableManagedDatabasesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -113,7 +115,6 @@ func (client RecoverableManagedDatabasesClient) GetSender(req *http.Request) (*h
 func (client RecoverableManagedDatabasesClient) GetResponder(resp *http.Response) (result RecoverableManagedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -154,6 +155,10 @@ func (client RecoverableManagedDatabasesClient) ListByInstance(ctx context.Conte
 	result.rmdlr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
+		return
+	}
+	if result.rmdlr.hasNextLink() && result.rmdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -183,8 +188,7 @@ func (client RecoverableManagedDatabasesClient) ListByInstancePreparer(ctx conte
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client RecoverableManagedDatabasesClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always
@@ -192,7 +196,6 @@ func (client RecoverableManagedDatabasesClient) ListByInstanceSender(req *http.R
 func (client RecoverableManagedDatabasesClient) ListByInstanceResponder(resp *http.Response) (result RecoverableManagedDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,6 +220,7 @@ func (client RecoverableManagedDatabasesClient) listByInstanceNextResults(ctx co
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

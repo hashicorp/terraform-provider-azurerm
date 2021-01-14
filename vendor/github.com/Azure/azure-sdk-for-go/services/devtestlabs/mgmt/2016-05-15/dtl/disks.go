@@ -36,7 +36,8 @@ func NewDisksClient(subscriptionID string) DisksClient {
 	return NewDisksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDisksClientWithBaseURI creates an instance of the DisksClient client.
+// NewDisksClientWithBaseURI creates an instance of the DisksClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDisksClientWithBaseURI(baseURI string, subscriptionID string) DisksClient {
 	return DisksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -102,9 +103,8 @@ func (client DisksClient) AttachPreparer(ctx context.Context, resourceGroupName 
 // AttachSender sends the Attach request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisksClient) AttachSender(req *http.Request) (future DisksAttachFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -117,7 +117,6 @@ func (client DisksClient) AttachSender(req *http.Request) (future DisksAttachFut
 func (client DisksClient) AttachResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -191,9 +190,8 @@ func (client DisksClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisksClient) CreateOrUpdateSender(req *http.Request) (future DisksCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -206,7 +204,6 @@ func (client DisksClient) CreateOrUpdateSender(req *http.Request) (future DisksC
 func (client DisksClient) CreateOrUpdateResponder(resp *http.Response) (result Disk, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -272,9 +269,8 @@ func (client DisksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisksClient) DeleteSender(req *http.Request) (future DisksDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -287,7 +283,6 @@ func (client DisksClient) DeleteSender(req *http.Request) (future DisksDeleteFut
 func (client DisksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -356,9 +351,8 @@ func (client DisksClient) DetachPreparer(ctx context.Context, resourceGroupName 
 // DetachSender sends the Detach request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisksClient) DetachSender(req *http.Request) (future DisksDetachFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -371,7 +365,6 @@ func (client DisksClient) DetachSender(req *http.Request) (future DisksDetachFut
 func (client DisksClient) DetachResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -412,6 +405,7 @@ func (client DisksClient) Get(ctx context.Context, resourceGroupName string, lab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -446,8 +440,7 @@ func (client DisksClient) GetPreparer(ctx context.Context, resourceGroupName str
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisksClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -455,7 +448,6 @@ func (client DisksClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client DisksClient) GetResponder(resp *http.Response) (result Disk, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -500,6 +492,10 @@ func (client DisksClient) List(ctx context.Context, resourceGroupName string, la
 	result.rwcd, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcd.hasNextLink() && result.rwcd.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -542,8 +538,7 @@ func (client DisksClient) ListPreparer(ctx context.Context, resourceGroupName st
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DisksClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -551,7 +546,6 @@ func (client DisksClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client DisksClient) ListResponder(resp *http.Response) (result ResponseWithContinuationDisk, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -576,6 +570,7 @@ func (client DisksClient) listNextResults(ctx context.Context, lastResults Respo
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -35,7 +35,9 @@ func NewRegisteredIdentitiesClient(subscriptionID string) RegisteredIdentitiesCl
 	return NewRegisteredIdentitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRegisteredIdentitiesClientWithBaseURI creates an instance of the RegisteredIdentitiesClient client.
+// NewRegisteredIdentitiesClientWithBaseURI creates an instance of the RegisteredIdentitiesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewRegisteredIdentitiesClientWithBaseURI(baseURI string, subscriptionID string) RegisteredIdentitiesClient {
 	return RegisteredIdentitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,6 +74,7 @@ func (client RegisteredIdentitiesClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.RegisteredIdentitiesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -102,8 +105,7 @@ func (client RegisteredIdentitiesClient) DeletePreparer(ctx context.Context, res
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client RegisteredIdentitiesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -111,7 +113,6 @@ func (client RegisteredIdentitiesClient) DeleteSender(req *http.Request) (*http.
 func (client RegisteredIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

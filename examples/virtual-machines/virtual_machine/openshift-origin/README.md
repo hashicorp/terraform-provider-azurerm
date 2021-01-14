@@ -10,11 +10,11 @@ This template deploys OpenShift Origin with basic username / password for authen
 
 |Resource           |Properties                                                                                                                          |
 |-------------------|------------------------------------------------------------------------------------------------------------------------------------|
-|Virtual Network    |**Address prefix:** 10.0.0.0/16<br />**Master subnet:** 10.0.0.0/24<br />**Node subnet:** 10.0.1.0/24                               |
+|Virtual Network    |**Address prefix:** 10.0.0.0/16<br />**Primary subnet:** 10.0.0.0/24<br />**Node subnet:** 10.0.1.0/24                               |
 |Load Balancer      |2 probes and two rules for TCP 80 and TCP 443                                                                                       |
-|Public IP Addresses|OpenShift Master public IP<br />OpenShift Router public IP attached to Load Balancer                                                |
+|Public IP Addresses|OpenShift Primary public IP<br />OpenShift Router public IP attached to Load Balancer                                                |
 |Storage Accounts   |2 Storage Accounts                                                                                                                  |
-|Virtual Machines   |Single master<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Virtual Machines   |Single Primary<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 
 If you have a Red Hat subscription and would like to deploy an OpenShift Container Platform (formerly OpenShift Enterprise) cluster, please visit: https://github.com/Microsoft/openshift-container-platform
 
@@ -61,13 +61,13 @@ Once you have collected all of the prerequisites for the template, you can deplo
 
 Monitor deployment via Terraform and get the console URL from outputs of successful deployment which will look something like (if using sample parameters file and "West US 2" location):
 
-`https://me-master1.westus2.cloudapp.azure.com:8443/console`
+`https://me-primary1.westus2.cloudapp.azure.com:8443/console`
 
 The cluster will use self-signed certificates. Accept the warning and proceed to the login page.
 
 ### NOTE
 
-Ensure combination of openshiftMasterPublicIpDnsLabelPrefix, and nodeLbPublicIpDnsLabelPrefix parameters, combined with the deployment location give you globally unique URL for the cluster or deployment will fail at the step of allocating public IPs with fully-qualified-domain-names as above.
+Ensure combination of openshiftPrimaryPublicIpDnsLabelPrefix, and nodeLbPublicIpDnsLabelPrefix parameters, combined with the deployment location give you globally unique URL for the cluster or deployment will fail at the step of allocating public IPs with fully-qualified-domain-names as above.
 
 ### NOTE
 
@@ -83,7 +83,7 @@ Be sure to follow the OpenShift instructions to create the ncessary DNS entry fo
 
 This template creates an OpenShift user but does not make it a full OpenShift user.  To do that, please perform the following.
 
-1. SSH in to master node
+1. SSH in to primary node
 2. Execute the following command:
 
    ```sh
@@ -98,7 +98,7 @@ Few options you have
 1. Deployment Output
 
   a. openshiftConsoleUrl the openshift console url<br/>
-  b. openshiftMasterSsh  ssh command for master node<br/>
+  b. openshiftPrimarySsh  ssh command for primary node<br/>
   c. openshiftNodeLoadBalancerFQDN node load balancer<br/>
 
   get the deployment output data
@@ -106,7 +106,7 @@ Few options you have
   a. portal.azure.com -> choose 'Resource groups' select your group select 'Deployments' and there the deployment 'Microsoft.Template'. As output from the deployment it contains information about the openshift console url, ssh command and load balancer url.<br/>
   b. With the Azure CLI : azure group deployment list &lt;resource group name> 
 
-2. add additional users. you can find much detail about this in the openshift.org documentation under 'Cluster Administration' and 'Managing Users'. This installation uses htpasswd as the identity provider. To add more user ssh in to master node and execute following command:
+2. add additional users. you can find much detail about this in the openshift.org documentation under 'Cluster Administration' and 'Managing Users'. This installation uses htpasswd as the identity provider. To add more user ssh in to primary node and execute following command:
 
    ```sh
    sudo htpasswd /etc/origin/master/htpasswd user1
