@@ -1126,11 +1126,13 @@ func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerse
 		for key := range input.UserAssignedIdentities {
 			keys = append(keys, key)
 		}
-		parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
-		if err != nil {
-			return nil, err
+		if len(keys) > 0 {
+			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			if err != nil {
+				return nil, err
+			}
+			identity["user_assigned_identity_id"] = parsedId.ID()
 		}
-		identity["user_assigned_identity_id"] = parsedId.ID()
 	}
 
 	identity["type"] = string(input.Type)
