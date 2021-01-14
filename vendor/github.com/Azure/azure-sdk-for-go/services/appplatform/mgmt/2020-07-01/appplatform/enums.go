@@ -120,6 +120,25 @@ func PossibleManagedIdentityTypeValues() []ManagedIdentityType {
 	return []ManagedIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
 }
 
+// MonitoringSettingState enumerates the values for monitoring setting state.
+type MonitoringSettingState string
+
+const (
+	// MonitoringSettingStateFailed ...
+	MonitoringSettingStateFailed MonitoringSettingState = "Failed"
+	// MonitoringSettingStateNotAvailable ...
+	MonitoringSettingStateNotAvailable MonitoringSettingState = "NotAvailable"
+	// MonitoringSettingStateSucceeded ...
+	MonitoringSettingStateSucceeded MonitoringSettingState = "Succeeded"
+	// MonitoringSettingStateUpdating ...
+	MonitoringSettingStateUpdating MonitoringSettingState = "Updating"
+)
+
+// PossibleMonitoringSettingStateValues returns an array of possible values for the MonitoringSettingState const type.
+func PossibleMonitoringSettingStateValues() []MonitoringSettingState {
+	return []MonitoringSettingState{MonitoringSettingStateFailed, MonitoringSettingStateNotAvailable, MonitoringSettingStateSucceeded, MonitoringSettingStateUpdating}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
@@ -258,25 +277,6 @@ const (
 // PossibleTestKeyTypeValues returns an array of possible values for the TestKeyType const type.
 func PossibleTestKeyTypeValues() []TestKeyType {
 	return []TestKeyType{Primary, Secondary}
-}
-
-// TraceProxyState enumerates the values for trace proxy state.
-type TraceProxyState string
-
-const (
-	// TraceProxyStateFailed ...
-	TraceProxyStateFailed TraceProxyState = "Failed"
-	// TraceProxyStateNotAvailable ...
-	TraceProxyStateNotAvailable TraceProxyState = "NotAvailable"
-	// TraceProxyStateSucceeded ...
-	TraceProxyStateSucceeded TraceProxyState = "Succeeded"
-	// TraceProxyStateUpdating ...
-	TraceProxyStateUpdating TraceProxyState = "Updating"
-)
-
-// PossibleTraceProxyStateValues returns an array of possible values for the TraceProxyState const type.
-func PossibleTraceProxyStateValues() []TraceProxyState {
-	return []TraceProxyState{TraceProxyStateFailed, TraceProxyStateNotAvailable, TraceProxyStateSucceeded, TraceProxyStateUpdating}
 }
 
 // UserSourceType enumerates the values for user source type.

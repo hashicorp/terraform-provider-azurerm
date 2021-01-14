@@ -49,13 +49,13 @@ func NewCertificatesClientWithBaseURI(baseURI string, subscriptionID string) Cer
 // serviceName - the name of the Service resource.
 // certificateName - the name of the certificate resource.
 // certificateResource - parameters for the create or update operation
-func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, certificateName string, certificateResource CertificateResource) (result CertificateResource, err error) {
+func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, certificateName string, certificateResource CertificateResource) (result CertificatesCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificatesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -75,16 +75,9 @@ func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -100,7 +93,7 @@ func (client CertificatesClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -117,8 +110,14 @@ func (client CertificatesClient) CreateOrUpdatePreparer(ctx context.Context, res
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client CertificatesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client CertificatesClient) CreateOrUpdateSender(req *http.Request) (future CertificatesCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -126,7 +125,7 @@ func (client CertificatesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (result CertificateResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -139,13 +138,13 @@ func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (r
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // certificateName - the name of the certificate resource.
-func (client CertificatesClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, certificateName string) (result autorest.Response, err error) {
+func (client CertificatesClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, certificateName string) (result CertificatesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificatesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -156,16 +155,9 @@ func (client CertificatesClient) Delete(ctx context.Context, resourceGroupName s
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -181,7 +173,7 @@ func (client CertificatesClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,8 +188,14 @@ func (client CertificatesClient) DeletePreparer(ctx context.Context, resourceGro
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client CertificatesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client CertificatesClient) DeleteSender(req *http.Request) (future CertificatesDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -205,7 +203,7 @@ func (client CertificatesClient) DeleteSender(req *http.Request) (*http.Response
 func (client CertificatesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -259,7 +257,7 @@ func (client CertificatesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -340,7 +338,7 @@ func (client CertificatesClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

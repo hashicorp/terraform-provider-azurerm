@@ -107,7 +107,7 @@ func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -139,7 +139,7 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -152,13 +152,13 @@ func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result Ap
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
-func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string) (result autorest.Response, err error) {
+func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string) (result AppsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,16 +169,9 @@ func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, s
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -194,7 +187,7 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -209,8 +202,14 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client AppsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client AppsClient) DeleteSender(req *http.Request) (future AppsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -218,7 +217,7 @@ func (client AppsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -273,7 +272,7 @@ func (client AppsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -355,7 +354,7 @@ func (client AppsClient) GetResourceUploadURLPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -436,7 +435,7 @@ func (client AppsClient) ListPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -547,7 +546,7 @@ func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01-preview"
+	const APIVersion = "2020-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -580,6 +579,94 @@ func (client AppsClient) UpdateResponder(resp *http.Response) (result AppResourc
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ValidateDomain check the resource name is valid as well as not in use.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// appName - the name of the App resource.
+// validatePayload - custom domain payload to be validated
+func (client AppsClient) ValidateDomain(ctx context.Context, resourceGroupName string, serviceName string, appName string, validatePayload CustomDomainValidatePayload) (result CustomDomainValidateResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ValidateDomain")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: validatePayload,
+			Constraints: []validation.Constraint{{Target: "validatePayload.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("appplatform.AppsClient", "ValidateDomain", err.Error())
+	}
+
+	req, err := client.ValidateDomainPreparer(ctx, resourceGroupName, serviceName, appName, validatePayload)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "ValidateDomain", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ValidateDomainSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "ValidateDomain", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ValidateDomainResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "ValidateDomain", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ValidateDomainPreparer prepares the ValidateDomain request.
+func (client AppsClient) ValidateDomainPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, validatePayload CustomDomainValidatePayload) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"appName":           autorest.Encode("path", appName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/validateDomain", pathParameters),
+		autorest.WithJSON(validatePayload),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ValidateDomainSender sends the ValidateDomain request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) ValidateDomainSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ValidateDomainResponder handles the response to the ValidateDomain request. The method always
+// closes the http.Response Body.
+func (client AppsClient) ValidateDomainResponder(resp *http.Response) (result CustomDomainValidateResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

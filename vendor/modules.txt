@@ -13,6 +13,7 @@ github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/anal
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
+github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform
 github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
 github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
@@ -61,7 +62,6 @@ github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/o
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
-github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation
 github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
