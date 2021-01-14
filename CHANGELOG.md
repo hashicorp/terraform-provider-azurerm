@@ -36,6 +36,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_log_analytics_workspace` - returning the Resource ID in the correct casing [GH-10162]
+* `azurerm_advanced_threat_protection` - fix a regression in the Resouce ID format [GH-10190]
 * `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_app_service` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_app_service_slot` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
