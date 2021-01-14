@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_app_service_slot` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_container_group` - adding validation on the `identity_ids` field within the `identity` block [GH-10105]
+* `azurerm_cosmosdb_account` - support for `analytical_storage_enabled property` [GH-10055]
 * `azurerm_cosmosdb_gremlin_graph` - support the `default_ttl` property [GH-10159]
 * `azurerm_data_factory` - support for `public_network_enabled` [GH-9605]
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_type` property [GH-10070]
