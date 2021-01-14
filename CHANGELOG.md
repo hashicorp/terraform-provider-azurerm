@@ -6,6 +6,10 @@
 * dependencies: updating `msi` to API version `2018-11-30` [GH-10171]
 * dependencies: updating `appplatform` to API version `2020-07-01` [GH-10175]
 
+BUG FIXES:
+
+`azurerm_backup_protected_file_share` - address brekaing API change so resource now functions again [GH-9015]
+
 ## 2.43.0 (January 14, 2021)
 
 FEATURES:
