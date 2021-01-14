@@ -1648,7 +1648,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
-	if v, ok := config["number_of_workers"]; ok {
+	if v, ok := config["number_of_workers"]; ok && v.(int) != 0 {
 		siteConfig.NumberOfWorkers = utils.Int32(int32(v.(int)))
 	}
 
