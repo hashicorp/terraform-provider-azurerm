@@ -45,6 +45,7 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_linux_virtual_machine_scale_set` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
 * `azurerm_monitor_diagnostic_setting` - handling mixed casing of the EventHub Namespace Authorization Rule ID [GH-10104]
+* `azurerm_mssql_virtual_machine` - address persistent diff and use relative expiry for service principal password [GH-10125]
 * `azurerm_role_assignment` - fix race condition in read after create [GH-10134]
 * `azurerm_role_definition` - address eventual consistency issues in update and delete [GH-10170]
 * `azurerm_virtual_machine` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
