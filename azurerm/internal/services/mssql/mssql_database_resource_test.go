@@ -62,6 +62,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
