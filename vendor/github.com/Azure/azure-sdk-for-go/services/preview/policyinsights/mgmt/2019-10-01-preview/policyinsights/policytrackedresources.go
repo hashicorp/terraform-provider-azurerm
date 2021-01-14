@@ -83,6 +83,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroup(ct
 	result.ptrqr, err = client.ListQueryResultsForManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForManagementGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -153,6 +154,7 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForManagementGroupNex
 	result, err = client.ListQueryResultsForManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForManagementGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -213,6 +215,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResource(ctx conte
 	result.ptrqr, err = client.ListQueryResultsForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForResource", resp, "Failure responding to request")
+		return
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -282,6 +285,7 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForResourceNextResult
 	result, err = client.ListQueryResultsForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -343,6 +347,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroup(ctx 
 	result.ptrqr, err = client.ListQueryResultsForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -413,6 +418,7 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForResourceGroupNextR
 	result, err = client.ListQueryResultsForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -473,6 +479,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscription(ctx c
 	result.ptrqr, err = client.ListQueryResultsForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForSubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -542,6 +549,7 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForSubscriptionNextRe
 	result, err = client.ListQueryResultsForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForSubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

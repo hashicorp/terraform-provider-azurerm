@@ -94,6 +94,7 @@ func (client WCFRelaysClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client WCFRelaysClient) CreateOrUpdateAuthorizationRule(ctx context.Contex
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,6 +288,7 @@ func (client WCFRelaysClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -377,6 +380,7 @@ func (client WCFRelaysClient) DeleteAuthorizationRule(ctx context.Context, resou
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -466,6 +470,7 @@ func (client WCFRelaysClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -558,6 +563,7 @@ func (client WCFRelaysClient) GetAuthorizationRule(ctx context.Context, resource
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -649,6 +655,7 @@ func (client WCFRelaysClient) ListAuthorizationRules(ctx context.Context, resour
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -714,6 +721,7 @@ func (client WCFRelaysClient) listAuthorizationRulesNextResults(ctx context.Cont
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -776,6 +784,7 @@ func (client WCFRelaysClient) ListByNamespace(ctx context.Context, resourceGroup
 	result.wrlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListByNamespace", resp, "Failure responding to request")
+		return
 	}
 	if result.wrlr.hasNextLink() && result.wrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -840,6 +849,7 @@ func (client WCFRelaysClient) listByNamespaceNextResults(ctx context.Context, la
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -907,6 +917,7 @@ func (client WCFRelaysClient) ListKeys(ctx context.Context, resourceGroupName st
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1001,6 +1012,7 @@ func (client WCFRelaysClient) RegenerateKeys(ctx context.Context, resourceGroupN
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

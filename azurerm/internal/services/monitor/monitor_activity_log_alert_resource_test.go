@@ -1,180 +1,166 @@
 package monitor_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+type MonitorActivityLogAlertResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
-				),
-			},
-			data.ImportStep(),
+func TestAccMonitorActivityLogAlert_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("action.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_monitor_activity_log_alert"),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
+func TestAccMonitorActivityLogAlert_singleResource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMMonitorActivityLogAlert_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_monitor_activity_log_alert"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleResource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
+				check.That(data.ResourceName).Key("action.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue("This is just a test resource."),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
+				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
+				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
+				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
+				check.That(data.ResourceName).Key("action.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.resource_id").HasValue(""),
+				check.That(data.ResourceName).Key("criteria.0.caller").HasValue(""),
+				check.That(data.ResourceName).Key("criteria.0.level").HasValue(""),
+				check.That(data.ResourceName).Key("criteria.0.status").HasValue(""),
+				check.That(data.ResourceName).Key("action.#").HasValue("0"),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue("This is just a test resource."),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
+				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
+				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
+				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
+				check.That(data.ResourceName).Key("action.#").HasValue("2"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
+				check.That(data.ResourceName).Key("criteria.0.resource_id").HasValue(""),
+				check.That(data.ResourceName).Key("criteria.0.caller").HasValue(""),
+				check.That(data.ResourceName).Key("criteria.0.level").HasValue(""),
+				check.That(data.ResourceName).Key("criteria.0.status").HasValue(""),
+				check.That(data.ResourceName).Key("action.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_singleResource(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is just a test resource."),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_provider", "Microsoft.Storage"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is just a test resource."),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_provider", "Microsoft.Storage"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-func testAccAzureRMMonitorActivityLogAlert_basic(data acceptance.TestData) string {
+func (MonitorActivityLogAlertResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -197,8 +183,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorActivityLogAlert_basic(data)
+func (r MonitorActivityLogAlertResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -211,10 +196,10 @@ resource "azurerm_monitor_activity_log_alert" "import" {
     category = "Recommendation"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMMonitorActivityLogAlert_singleResource(data acceptance.TestData) string {
+func (MonitorActivityLogAlertResource) singleResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -257,7 +242,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_complete(data acceptance.TestData) string {
+func (MonitorActivityLogAlertResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -326,57 +311,18 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
-func testCheckAzureRMMonitorActivityLogAlertDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ActivityLogAlertsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t MonitorActivityLogAlertResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["activityLogAlerts"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_activity_log_alert" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Activity log alert still exists:\n%#v", resp)
-		}
+	resp, err := clients.Monitor.ActivityLogAlertsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading activity log alert (%s): %+v", id, err)
 	}
 
-	return nil
-}
-
-func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ActivityLogAlertsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on monitorActivityLogAlertsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Activity Log Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
+	return utils.Bool(resp.ID != nil), nil
 }

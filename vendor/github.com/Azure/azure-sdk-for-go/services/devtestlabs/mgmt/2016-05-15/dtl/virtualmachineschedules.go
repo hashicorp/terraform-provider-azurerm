@@ -83,6 +83,7 @@ func (client VirtualMachineSchedulesClient) CreateOrUpdate(ctx context.Context, 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +165,7 @@ func (client VirtualMachineSchedulesClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,6 +323,7 @@ func (client VirtualMachineSchedulesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -407,6 +410,7 @@ func (client VirtualMachineSchedulesClient) List(ctx context.Context, resourceGr
 	result.rwcs, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -484,6 +488,7 @@ func (client VirtualMachineSchedulesClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -538,6 +543,7 @@ func (client VirtualMachineSchedulesClient) Update(ctx context.Context, resource
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

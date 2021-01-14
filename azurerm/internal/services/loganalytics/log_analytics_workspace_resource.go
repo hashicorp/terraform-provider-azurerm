@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsWorkspace() *schema.Resource {
+func resourceLogAnalyticsWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsWorkspaceCreateUpdate,
-		Read:   resourceArmLogAnalyticsWorkspaceRead,
-		Update: resourceArmLogAnalyticsWorkspaceCreateUpdate,
-		Delete: resourceArmLogAnalyticsWorkspaceDelete,
+		Create: resourceLogAnalyticsWorkspaceCreateUpdate,
+		Read:   resourceLogAnalyticsWorkspaceRead,
+		Update: resourceLogAnalyticsWorkspaceCreateUpdate,
+		Delete: resourceLogAnalyticsWorkspaceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.LogAnalyticsWorkspaceID(id)
@@ -132,7 +132,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -221,10 +221,10 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(id.ID())
 
-	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
+	return resourceLogAnalyticsWorkspaceRead(d, meta)
 }
 
-func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -278,7 +278,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

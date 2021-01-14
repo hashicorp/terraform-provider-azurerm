@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSnapshot() *schema.Resource {
+func resourceSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSnapshotCreateUpdate,
-		Read:   resourceArmSnapshotRead,
-		Update: resourceArmSnapshotCreateUpdate,
-		Delete: resourceArmSnapshotDelete,
+		Create: resourceSnapshotCreateUpdate,
+		Read:   resourceSnapshotRead,
+		Update: resourceSnapshotCreateUpdate,
+		Delete: resourceSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -88,7 +88,7 @@ func resourceArmSnapshot() *schema.Resource {
 	}
 }
 
-func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,10 +161,10 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSnapshotRead(d, meta)
+	return resourceSnapshotRead(d, meta)
 }
 
-func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

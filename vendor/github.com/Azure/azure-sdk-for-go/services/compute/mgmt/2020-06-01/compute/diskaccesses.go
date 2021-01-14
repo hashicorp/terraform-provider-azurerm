@@ -230,6 +230,7 @@ func (client DiskAccessesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -307,6 +308,7 @@ func (client DiskAccessesClient) GetPrivateLinkResources(ctx context.Context, re
 	result, err = client.GetPrivateLinkResourcesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "GetPrivateLinkResources", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -380,6 +382,7 @@ func (client DiskAccessesClient) List(ctx context.Context) (result DiskAccessLis
 	result.dal, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.dal.hasNextLink() && result.dal.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -442,6 +445,7 @@ func (client DiskAccessesClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -493,6 +497,7 @@ func (client DiskAccessesClient) ListByResourceGroup(ctx context.Context, resour
 	result.dal, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.dal.hasNextLink() && result.dal.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -556,6 +561,7 @@ func (client DiskAccessesClient) listByResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	validateAuto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -21,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsLinkedService() *schema.Resource {
+func resourceLogAnalyticsLinkedService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Read:   resourceArmLogAnalyticsLinkedServiceRead,
-		Update: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Delete: resourceArmLogAnalyticsLinkedServiceDelete,
+		Create: resourceLogAnalyticsLinkedServiceCreateUpdate,
+		Read:   resourceLogAnalyticsLinkedServiceRead,
+		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
+		Delete: resourceLogAnalyticsLinkedServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -170,7 +171,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 			// TODO: Remove in 3.0
 			if d.HasChange("resource_id") {
 				if resourceID := d.Get("resource_id").(string); resourceID != "" {
-					if !validate.IsAutomationAccountID(resourceID) {
+					if _, err := validateAuto.AutomationAccountID(resourceID, "resource_id"); err != nil {
 						return fmt.Errorf("'resource_id' must be an Automation Account resource ID, got %q", resourceID)
 					}
 				}
@@ -178,7 +179,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
-					if !validate.IsAutomationAccountID(readAccessID) {
+					if _, err := validateAuto.AutomationAccountID(readAccessID, "read_acces_id"); err != nil {
 						return fmt.Errorf("'read_access_id' must be an Automation Account resource ID, got %q", readAccessID)
 					}
 				}
@@ -197,7 +198,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -289,10 +290,10 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(id.ID())
 
-	return resourceArmLogAnalyticsLinkedServiceRead(d, meta)
+	return resourceLogAnalyticsLinkedServiceRead(d, meta)
 }
 
-func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -332,7 +333,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

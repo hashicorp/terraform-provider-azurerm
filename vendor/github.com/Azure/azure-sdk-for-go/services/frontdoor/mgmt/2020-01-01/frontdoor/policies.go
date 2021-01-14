@@ -262,6 +262,7 @@ func (client PoliciesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -345,6 +346,7 @@ func (client PoliciesClient) List(ctx context.Context, resourceGroupName string)
 	result.wafpl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wafpl.hasNextLink() && result.wafpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -408,6 +410,7 @@ func (client PoliciesClient) listNextResults(ctx context.Context, lastResults We
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

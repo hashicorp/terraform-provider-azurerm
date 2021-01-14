@@ -235,6 +235,7 @@ func (client ServicesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,6 +315,7 @@ func (client ServicesClient) List(ctx context.Context, resourceGroupName string,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ServicesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

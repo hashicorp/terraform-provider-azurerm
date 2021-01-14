@@ -34,7 +34,7 @@ fmt:
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 fumpt:
-	@echo "==> Fixing source code with gofmt..."
+	@echo "==> Fixing source code with Gofumpt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
 	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 

@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppAccount() *schema.Resource {
+func resourceNetAppAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppAccountCreateUpdate,
-		Read:   resourceArmNetAppAccountRead,
-		Update: resourceArmNetAppAccountCreateUpdate,
-		Delete: resourceArmNetAppAccountDelete,
+		Create: resourceNetAppAccountCreateUpdate,
+		Read:   resourceNetAppAccountRead,
+		Update: resourceNetAppAccountCreateUpdate,
+		Delete: resourceNetAppAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -106,7 +106,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	accountParameters := netapp.Account{
 		Location: utils.String(location),
 		AccountProperties: &netapp.AccountProperties{
-			ActiveDirectories: expandArmNetAppActiveDirectories(activeDirectories),
+			ActiveDirectories: expandNetAppActiveDirectories(activeDirectories),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -154,10 +154,10 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppAccountRead(d, meta)
+	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +210,7 @@ func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandArmNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
+func expandNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
 	results := make([]netapp.ActiveDirectory, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})

@@ -41,11 +41,11 @@ var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = HDInsightNodeDefin
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
+func resourceHDInsightInteractiveQueryCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightInteractiveQueryClusterCreate,
-		Read:   resourceArmHDInsightInteractiveQueryClusterRead,
-		Update: hdinsightClusterUpdate("Interactive Query", resourceArmHDInsightInteractiveQueryClusterRead),
+		Create: resourceHDInsightInteractiveQueryClusterCreate,
+		Read:   resourceHDInsightInteractiveQueryClusterRead,
+		Update: hdinsightClusterUpdate("Interactive Query", resourceHDInsightInteractiveQueryClusterRead),
 		Delete: hdinsightClusterDelete("Interactive Query"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -100,11 +100,11 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightInteractiveQueryClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightInteractiveQueryClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightInteractiveQueryClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightInteractiveQueryClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightInteractiveQueryClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightInteractiveQueryClusterZookeeperNodeDefinition, true),
 					},
 				},
 			},
@@ -126,7 +126,7 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -233,10 +233,10 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceArmHDInsightInteractiveQueryClusterRead(d, meta)
+	return resourceHDInsightInteractiveQueryClusterRead(d, meta)
 }
 
-func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient

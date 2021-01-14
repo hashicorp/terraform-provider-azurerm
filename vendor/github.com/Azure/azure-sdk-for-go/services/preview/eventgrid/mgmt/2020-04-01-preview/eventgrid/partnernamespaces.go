@@ -226,6 +226,7 @@ func (client PartnerNamespacesClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +310,7 @@ func (client PartnerNamespacesClient) ListByResourceGroup(ctx context.Context, r
 	result.pnlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -378,6 +380,7 @@ func (client PartnerNamespacesClient) listByResourceGroupNextResults(ctx context
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -436,6 +439,7 @@ func (client PartnerNamespacesClient) ListBySubscription(ctx context.Context, fi
 	result.pnlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -504,6 +508,7 @@ func (client PartnerNamespacesClient) listBySubscriptionNextResults(ctx context.
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -555,6 +560,7 @@ func (client PartnerNamespacesClient) ListSharedAccessKeys(ctx context.Context, 
 	result, err = client.ListSharedAccessKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListSharedAccessKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -637,6 +643,7 @@ func (client PartnerNamespacesClient) RegenerateKey(ctx context.Context, resourc
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementDiagnostic() *schema.Resource {
+func resourceApiManagementDiagnostic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementDiagnosticCreateUpdate,
-		Read:   resourceArmApiManagementDiagnosticRead,
-		Update: resourceArmApiManagementDiagnosticCreateUpdate,
-		Delete: resourceArmApiManagementDiagnosticDelete,
+		Create: resourceApiManagementDiagnosticCreateUpdate,
+		Read:   resourceApiManagementDiagnosticRead,
+		Update: resourceApiManagementDiagnosticCreateUpdate,
+		Delete: resourceApiManagementDiagnosticDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.DiagnosticID(id)
@@ -67,7 +67,7 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,10 +108,10 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementDiagnosticRead(d, meta)
+	return resourceApiManagementDiagnosticRead(d, meta)
 }
 
-func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +140,7 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmApiManagementDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

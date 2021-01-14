@@ -95,6 +95,7 @@ func (client CaseCommentsClient) CreateComment(ctx context.Context, resourceGrou
 	result, err = client.CreateCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseCommentsClient", "CreateComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
