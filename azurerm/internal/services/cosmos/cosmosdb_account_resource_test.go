@@ -495,7 +495,7 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.Eventual),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
-				check.That(data.ResourceName).Key("enable_analytical_storage").HasValue("true"),
+				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
