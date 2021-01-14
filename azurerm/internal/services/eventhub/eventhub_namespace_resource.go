@@ -151,6 +151,11 @@ func resourceEventHubNamespace() *schema.Resource {
 							}, false),
 						},
 
+						"trusted_service_access_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"virtual_network_rule": {
 							Type:       schema.TypeList,
@@ -473,6 +478,10 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
 	}
 
+	if v, ok := block["trusted_service_access_enabled"]; ok {
+		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
+	}
+
 	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
 		if len(v) > 0 {
 			var rules []eventhub.NWRuleSetVirtualNetworkRules
@@ -547,9 +556,10 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []i
 	}
 
 	return []interface{}{map[string]interface{}{
-		"default_action":       string(ruleset.DefaultAction),
-		"virtual_network_rule": vnetBlocks,
-		"ip_rule":              ipBlocks,
+		"default_action":                 string(ruleset.DefaultAction),
+		"virtual_network_rule":           vnetBlocks,
+		"ip_rule":                        ipBlocks,
+		"trusted_service_access_enabled": ruleset.TrustedServiceAccessEnabled,
 	}}
 }
 
