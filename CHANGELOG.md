@@ -1,5 +1,9 @@
 ## 2.43.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_sentinel_alert_rule_template` [GH-7020]
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_api_management` - ensuring the casing of the `identity_ids` field within the `identity` block [GH-10105]
