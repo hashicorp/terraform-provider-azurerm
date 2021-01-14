@@ -52,7 +52,7 @@ data "azurerm_ip_group" "test" {
   name                = azurerm_ip_group.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccIpGroup_basic(data))
+`, IPGroupResource{}.basic(data))
 }
 
 func (IPGroupDataSource) complete(data acceptance.TestData) string {
@@ -63,5 +63,5 @@ data "azurerm_ip_group" "test" {
   name                = azurerm_ip_group.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccIpGroup_complete(data))
+`, IPGroupResource{}.complete(data))
 }
