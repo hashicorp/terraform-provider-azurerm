@@ -164,7 +164,7 @@ func resourceMediaStreamingPolicyCreate(d *schema.ResourceData, meta interface{}
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) { {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_media_streaming_policy", resourceID.ID())
 		}
 	}
@@ -239,8 +239,6 @@ func resourceMediaStreamingPolicyRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error flattening `common_encryption_cbcs`: %s", err)
 		}
 
-		if resp.DefaultContentKeyPolicyName != nil {
-			d.Set("default_content_key_policy_name", *resp.DefaultContentKeyPolicyName)
 		d.Set("default_content_key_policy_name", props.DefaultContentKeyPolicyName)
 	}
 
@@ -258,7 +256,7 @@ func resourceMediaStreamingPolicyDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
-		return fmt.Errorf("deleting %: %+v", *id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

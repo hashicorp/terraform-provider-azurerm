@@ -41,46 +41,6 @@ resource "azurerm_media_streaming_policy" "example" {
   name                        = "Policy-1"
   resource_group_name         = azurerm_resource_group.example.name
   media_services_account_name = azurerm_media_services_account.example.name
-  no_encryption_enabled_protocols {
-    download         = true
-    dash             = true
-    hls              = true
-    smooth_streaming = true
-  }
-}
-```
-
-## Example Usage
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "media-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplestoracc"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_media_services_account" "example" {
-  name                = "examplemediaacc"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  storage_account {
-    id         = azurerm_storage_account.example.id
-    is_primary = true
-  }
-}
-
-resource "azurerm_media_streaming_policy" "example" {
-  name                        = "Policy-1"
-  resource_group_name         = azurerm_resource_group.example.name
-  media_services_account_name = azurerm_media_services_account.example.name
   common_encryption_cenc {
     enabled_protocols {
       download         = false
@@ -148,7 +108,7 @@ A `common_encryption_cenc` block supports the following:
 
 * `drm_playready` - (Optional) A `drm_playready` block as defined below. Changing this forces a new Streaming Policy to be created.
 
-* `drm_widevine_custom_license_acquisition_url_template` - (Optional) TODO. Changing this forces a new Streaming Policy to be created.
+* `drm_widevine_custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
 
 * `enabled_protocols` - (Optional) A `enabled_protocols` block as defined below. Changing this forces a new Streaming Policy to be created.
 
