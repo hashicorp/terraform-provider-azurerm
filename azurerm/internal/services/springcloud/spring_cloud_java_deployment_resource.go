@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -100,30 +100,48 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 
 func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
+	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	appId, err := parse.SpringCloudAppID(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceId := parse.NewSpringCloudDeploymentID(subscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, name).ID()
+	id := parse.NewSpringCloudDeploymentID(subscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_java_deployment", resourceId)
+			return tf.ImportAsExistsError("azurerm_spring_cloud_java_deployment", id.ID())
 		}
 	}
 
+	service, err := servicesClient.Get(ctx, appId.ResourceGroup, appId.SpringName)
+	if err != nil {
+		return fmt.Errorf("checking for presence of existing Spring Cloud Service %q (Resource Group %q): %+v", appId.SpringName, appId.ResourceGroup, err)
+	}
+
+	skuName := "S0"
+	skuTier := "Standard"
+	if sku := service.Sku; sku != nil {
+		if sku.Name != nil {
+			skuName = *sku.Name
+			skuTier = *sku.Tier
+		}
+	}
 	deployment := appplatform.DeploymentResource{
+		Sku: &appplatform.Sku{
+			Name:     utils.String(skuName),
+			Tier:     utils.String(skuTier),
+			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
+		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: &appplatform.UserSourceInfo{
 				Type:         appplatform.Jar,
@@ -133,21 +151,23 @@ func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta 
 				CPU:                  utils.Int32(int32(d.Get("cpu").(int))),
 				MemoryInGB:           utils.Int32(int32(d.Get("memory_in_gb").(int))),
 				JvmOptions:           utils.String(d.Get("jvm_options").(string)),
-				InstanceCount:        utils.Int32(int32(d.Get("instance_count").(int))),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				RuntimeVersion:       appplatform.RuntimeVersion(d.Get("runtime_version").(string)),
 			},
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, name, deployment)
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating/update Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+		return fmt.Errorf("creating/update Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+	}
+
+	d.SetId(id.ID())
+
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
@@ -173,11 +193,14 @@ func resourceSpringCloudJavaDeploymentRead(d *schema.ResourceData, meta interfac
 
 	d.Set("name", id.DeploymentName)
 	d.Set("spring_cloud_app_id", parse.NewSpringCloudAppID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName).ID())
+	if resp.Sku != nil {
+		d.Set("instance_count", resp.Sku.Capacity)
+	}
 	if resp.Properties != nil && resp.Properties.DeploymentSettings != nil {
 		settings := resp.Properties.DeploymentSettings
 		d.Set("cpu", settings.CPU)
 		d.Set("memory_in_gb", settings.MemoryInGB)
-		d.Set("instance_count", settings.InstanceCount)
+
 		d.Set("jvm_options", settings.JvmOptions)
 		d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 		d.Set("runtime_version", settings.RuntimeVersion)
