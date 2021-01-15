@@ -86,23 +86,23 @@ resource "azurerm_media_content_key_policy" "example" {
     }
   }
   policy_option {
-    name                            = "widevine"
+    name = "widevine"
     widevine_configuration_template = jsonencode({
-      "allowed_track_types": "SD_HD",
-      "content_key_specs": [{
-        "track_type": "SD",
-        "security_level": 1,
-        "required_output_protection": {
-          "hdcp": "HDCP_V2"
+      "allowed_track_types" : "SD_HD",
+      "content_key_specs" : [{
+        "track_type" : "SD",
+        "security_level" : 1,
+        "required_output_protection" : {
+          "hdcp" : "HDCP_V2"
         },
       }],
-      "policy_overrides": {
-        "can_play": true,
-        "can_persist": true,
-        "can_renew": false,
+      "policy_overrides" : {
+        "can_play" : true,
+        "can_persist" : true,
+        "can_renew" : false,
       },
     })
-    open_restriction_enabled        = true
+    open_restriction_enabled = true
   }
 }
 ```
