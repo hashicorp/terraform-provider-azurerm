@@ -102,6 +102,7 @@ func (client ManagedPrivateEndpointsClient) CreateOrUpdate(ctx context.Context, 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedPrivateEndpointsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -207,6 +208,7 @@ func (client ManagedPrivateEndpointsClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedPrivateEndpointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -307,6 +309,7 @@ func (client ManagedPrivateEndpointsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedPrivateEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -406,9 +409,11 @@ func (client ManagedPrivateEndpointsClient) ListByFactory(ctx context.Context, r
 	result.mpelr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedPrivateEndpointsClient", "ListByFactory", resp, "Failure responding to request")
+		return
 	}
 	if result.mpelr.hasNextLink() && result.mpelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

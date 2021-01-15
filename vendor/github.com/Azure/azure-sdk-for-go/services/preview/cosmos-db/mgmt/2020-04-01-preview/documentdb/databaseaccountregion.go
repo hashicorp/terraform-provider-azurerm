@@ -92,6 +92,7 @@ func (client DatabaseAccountRegionClient) ListMetrics(ctx context.Context, resou
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountRegionClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return

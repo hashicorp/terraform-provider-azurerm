@@ -160,7 +160,7 @@ func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient
 				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
 			}
 
-			if resourcePrice.PricingProperties.PricingTier == security.Standard {
+			if resourcePrice.PricingProperties.PricingTier == security.PricingTierStandard {
 				return true, nil
 			}
 		}
@@ -187,7 +187,15 @@ func resourceSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{
 
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
 		d.Set("scope", properties.Scope)
-		d.Set("workspace_id", properties.WorkspaceID)
+		workspaceId := ""
+		if properties.WorkspaceID != nil {
+			id, err := parse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
+			if err != nil {
+				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+			}
+			workspaceId = id.ID()
+		}
+		d.Set("workspace_id", utils.String(workspaceId))
 	}
 
 	return nil

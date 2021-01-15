@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -23,7 +24,7 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,7 +54,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -67,7 +68,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -82,7 +83,7 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -91,24 +92,15 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
+func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.template(data, "Basic"),
-			Check: resource.ComposeTestCheckFunc(
-				r.IsMissing("azurerm_lb.test", fmt.Sprintf("LbRule-%s", data.RandomStringOfLength(8))),
-			),
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -169,68 +161,54 @@ func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, st
 		return nil, err
 	}
 
-	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	rule, err := client.LoadBalancers.LoadBalancingRulesClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(lb.Response) {
-			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Load Balancing Rule %q", id.LoadBalancerName, id.ResourceGroup, id.Name)
+		if utils.ResponseWasNotFound(rule.Response) {
+			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Load Balancing Rule %q", id.LoadBalancerName, id.ResourceGroup, id.Name)
-	}
-	props := lb.LoadBalancerPropertiesFormat
-	if props == nil || props.LoadBalancingRules == nil || len(*props.LoadBalancingRules) == 0 {
-		return nil, fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", id.Name, id.LoadBalancerName, id.ResourceGroup)
+
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	found := false
-	for _, v := range *props.LoadBalancingRules {
-		if v.Name != nil && *v.Name == id.Name {
-			found = true
-		}
-	}
-	if !found {
-		return nil, fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", id.Name, id.LoadBalancerName, id.ResourceGroup)
-	}
-	return utils.Bool(found), nil
+	return utils.Bool(rule.ID != nil), nil
 }
 
-func (r LoadBalancerRule) IsMissing(loadBalancerName string, loadBalancingRuleName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[loadBalancerName]
-		if !ok {
-			return fmt.Errorf("not found: %q", loadBalancerName)
-		}
-
-		id, err := parse.LoadBalancerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		lb, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q (resource group %q) not found while checking for Load Balancing Rule removal", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Load Balancing Rule removal", id.Name, id.ResourceGroup)
-		}
-		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.LoadBalancingRules == nil {
-			return fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", loadBalancingRuleName, id.Name, id.ResourceGroup)
-		}
-
-		found := false
-		for _, v := range *props.LoadBalancingRules {
-			if v.Name != nil && *v.Name == loadBalancingRuleName {
-				found = true
-			}
-		}
-		if found {
-			return fmt.Errorf("Outbound Rule %q not removed from Load Balancer %q (resource group %q)", loadBalancingRuleName, id.Name, id.ResourceGroup)
-		}
-		return nil
+func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LoadBalancingRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	loadBalancer, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if loadBalancer.LoadBalancerPropertiesFormat == nil {
+		return nil, fmt.Errorf(`properties was nil`)
+	}
+	if loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules == nil {
+		return nil, fmt.Errorf(`properties.LoadBalancingRules was nil`)
+	}
+	rules := make([]network.LoadBalancingRule, 0)
+	for _, v := range *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules {
+		if v.Name == nil || *v.Name == id.Name {
+			continue
+		}
+
+		rules = append(rules, v)
+	}
+	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &rules
+
+	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
+	if err != nil {
+		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r LoadBalancerRule) template(data acceptance.TestData, sku string) string {
@@ -266,20 +244,19 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-// nolint: unparam
-func (r LoadBalancerRule) basic(data acceptance.TestData, sku string) string {
-	template := r.template(data, sku)
+func (r LoadBalancerRule) basic(data acceptance.TestData) string {
+	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "LbRule-%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 `, template, data.RandomStringOfLength(8))
 }
@@ -309,7 +286,7 @@ resource "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data, "Basic")
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 

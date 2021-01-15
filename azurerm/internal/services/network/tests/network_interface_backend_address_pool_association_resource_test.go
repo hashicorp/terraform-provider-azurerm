@@ -1,7 +1,9 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -9,148 +11,132 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(t *testing.T) {
+type NetworkInterfaceBackendAddressPoolResource struct {
+}
+
+func TestAccNetworkInterfaceBackendAddressPoolAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceBackendAddressPoolResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterfaceBackendAddressPoolAssociation_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
+	r := NetworkInterfaceBackendAddressPoolResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		// intentional as this is a Virtual Resource
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_interface_backend_address_pool_association"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(t *testing.T) {
+func TestAccNetworkInterfaceBackendAddressPoolAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceBackendAddressPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_backend_address_pool_association"),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkInterfaceBackendAddressPoolAssociationDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_deleted(t *testing.T) {
+func TestAccNetworkInterfaceBackendAddressPoolAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceBackendAddressPoolResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(data.ResourceName),
-					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateNIC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_updateNIC(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_updateNIC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
+func (t NetworkInterfaceBackendAddressPoolResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	splitId := strings.Split(state.ID, "|")
+	if len(splitId) != 2 {
+		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
+	}
 
-func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	id, err := azure.ParseAzureResourceID(splitId[0])
+	if err != nil {
+		return nil, err
+	}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
+	ipConfigurationName := id.Path["ipConfigurations"]
+	networkInterfaceName := id.Path["networkInterfaces"]
+	resourceGroup := id.ResourceGroup
+	backendAddressPoolId := splitId[1]
 
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
+	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, networkInterfaceName, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading NetworkInterfaceApplicationGatewayBackendAddressPoolAssociation (%s): %+v", id, err)
+	}
 
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
-		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
+	nicProps := read.InterfacePropertiesFormat
+	if nicProps == nil {
+		return nil, fmt.Errorf("`properties` was nil for Network Interface (%s): %+v", id, err)
+	}
 
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
+	c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	if c == nil {
+		return nil, fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q", ipConfigurationName, id)
+	}
+	config := *c
 
-		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if c == nil {
-			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
-		}
-		config := *c
-
-		found := false
-		if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools != nil {
-			for _, pool := range *config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools {
-				if *pool.ID == backendAddressPoolId {
-					found = true
-					break
-				}
+	found := false
+	if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools != nil {
+		for _, pool := range *config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools {
+			if *pool.ID == backendAddressPoolId {
+				found = true
+				break
 			}
 		}
-
-		if !found {
-			return fmt.Errorf("Association between NIC %q and LB Backend Address Pool %q was not found!", nicName, backendAddressPoolId)
-		}
-
-		return nil
 	}
+
+	return utils.Bool(found), nil
 }
 
-func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkInterfaceBackendAddressPoolAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -205,8 +191,7 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(res
 	}
 }
 
-func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_template(data)
+func (r NetworkInterfaceBackendAddressPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,11 +212,10 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
   ip_configuration_name   = "testconfiguration1"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data)
+func (r NetworkInterfaceBackendAddressPoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -240,11 +224,10 @@ resource "azurerm_network_interface_backend_address_pool_association" "import" {
   ip_configuration_name   = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
   backend_address_pool_id = azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_updateNIC(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_template(data)
+func (r NetworkInterfaceBackendAddressPoolResource) updateNIC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -272,10 +255,10 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
   ip_configuration_name   = "testconfiguration1"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_template(data acceptance.TestData) string {
+func (NetworkInterfaceBackendAddressPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

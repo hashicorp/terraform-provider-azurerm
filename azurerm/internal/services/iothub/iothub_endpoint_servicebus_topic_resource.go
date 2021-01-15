@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEndpointServiceBusTopic() *schema.Resource {
+func resourceIotHubEndpointServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubEndpointServiceBusTopicCreateUpdate,
-		Read:   resourceArmIotHubEndpointServiceBusTopicRead,
-		Update: resourceArmIotHubEndpointServiceBusTopicCreateUpdate,
-		Delete: resourceArmIotHubEndpointServiceBusTopicDelete,
+		Create: resourceIotHubEndpointServiceBusTopicCreateUpdate,
+		Read:   resourceIotHubEndpointServiceBusTopicRead,
+		Update: resourceIotHubEndpointServiceBusTopicCreateUpdate,
+		Delete: resourceIotHubEndpointServiceBusTopicDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceArmIotHubEndpointServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,10 +147,10 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubEndpointServiceBusTopicRead(d, meta)
+	return resourceIotHubEndpointServiceBusTopicRead(d, meta)
 }
 
-func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmIotHubEndpointServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

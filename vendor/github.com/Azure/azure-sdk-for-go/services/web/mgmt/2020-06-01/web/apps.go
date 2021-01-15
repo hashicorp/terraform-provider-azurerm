@@ -83,6 +83,7 @@ func (client AppsClient) AddPremierAddOn(ctx context.Context, resourceGroupName 
 	result, err = client.AddPremierAddOnResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "AddPremierAddOn", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client AppsClient) AddPremierAddOnSlot(ctx context.Context, resourceGroupN
 	result, err = client.AddPremierAddOnSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "AddPremierAddOnSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +263,7 @@ func (client AppsClient) AnalyzeCustomHostname(ctx context.Context, resourceGrou
 	result, err = client.AnalyzeCustomHostnameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "AnalyzeCustomHostname", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -349,6 +352,7 @@ func (client AppsClient) AnalyzeCustomHostnameSlot(ctx context.Context, resource
 	result, err = client.AnalyzeCustomHostnameSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "AnalyzeCustomHostnameSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -441,6 +445,7 @@ func (client AppsClient) ApplySlotConfigToProduction(ctx context.Context, resour
 	result, err = client.ApplySlotConfigToProductionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ApplySlotConfigToProduction", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -531,6 +536,7 @@ func (client AppsClient) ApplySlotConfigurationSlot(ctx context.Context, resourc
 	result, err = client.ApplySlotConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ApplySlotConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -712,6 +718,7 @@ func (client AppsClient) Backup(ctx context.Context, resourceGroupName string, n
 	result, err = client.BackupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Backup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -809,6 +816,7 @@ func (client AppsClient) BackupSlot(ctx context.Context, resourceGroupName strin
 	result, err = client.BackupSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "BackupSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1095,6 +1103,7 @@ func (client AppsClient) CreateDeployment(ctx context.Context, resourceGroupName
 	result, err = client.CreateDeploymentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateDeployment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1185,6 +1194,7 @@ func (client AppsClient) CreateDeploymentSlot(ctx context.Context, resourceGroup
 	result, err = client.CreateDeploymentSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateDeploymentSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1917,6 +1927,7 @@ func (client AppsClient) CreateOrUpdateConfiguration(ctx context.Context, resour
 	result, err = client.CreateOrUpdateConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2016,6 +2027,7 @@ func (client AppsClient) CreateOrUpdateConfigurationSlot(ctx context.Context, re
 	result, err = client.CreateOrUpdateConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2105,6 +2117,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifier(ctx context.Con
 	result, err = client.CreateOrUpdateDomainOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateDomainOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2196,6 +2209,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlot(ctx context
 	result, err = client.CreateOrUpdateDomainOwnershipIdentifierSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateDomainOwnershipIdentifierSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2286,6 +2300,7 @@ func (client AppsClient) CreateOrUpdateFunctionSecret(ctx context.Context, resou
 	result, err = client.CreateOrUpdateFunctionSecretResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateFunctionSecret", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2377,6 +2392,7 @@ func (client AppsClient) CreateOrUpdateFunctionSecretSlot(ctx context.Context, r
 	result, err = client.CreateOrUpdateFunctionSecretSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateFunctionSecretSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2467,6 +2483,7 @@ func (client AppsClient) CreateOrUpdateHostNameBinding(ctx context.Context, reso
 	result, err = client.CreateOrUpdateHostNameBindingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateHostNameBinding", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2557,6 +2574,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSlot(ctx context.Context, 
 	result, err = client.CreateOrUpdateHostNameBindingSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateHostNameBindingSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2647,6 +2665,7 @@ func (client AppsClient) CreateOrUpdateHostSecret(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateHostSecretResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateHostSecret", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2738,6 +2757,7 @@ func (client AppsClient) CreateOrUpdateHostSecretSlot(ctx context.Context, resou
 	result, err = client.CreateOrUpdateHostSecretSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateHostSecretSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2829,6 +2849,7 @@ func (client AppsClient) CreateOrUpdateHybridConnection(ctx context.Context, res
 	result, err = client.CreateOrUpdateHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateHybridConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2920,6 +2941,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSlot(ctx context.Context,
 	result, err = client.CreateOrUpdateHybridConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateHybridConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3011,6 +3033,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificate(ctx context.Context, re
 	result, err = client.CreateOrUpdatePublicCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdatePublicCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3102,6 +3125,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSlot(ctx context.Context
 	result, err = client.CreateOrUpdatePublicCertificateSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdatePublicCertificateSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3192,6 +3216,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnection(ctx context.Contex
 	result, err = client.CreateOrUpdateRelayServiceConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateRelayServiceConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3283,6 +3308,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlot(ctx context.Co
 	result, err = client.CreateOrUpdateRelayServiceConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateRelayServiceConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3655,6 +3681,7 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnection(ctx context
 	result, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateSwiftVirtualNetworkConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3746,6 +3773,7 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionSlot(ctx con
 	result, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateSwiftVirtualNetworkConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3835,6 +3863,7 @@ func (client AppsClient) CreateOrUpdateVnetConnection(ctx context.Context, resou
 	result, err = client.CreateOrUpdateVnetConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateVnetConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -3928,6 +3957,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGateway(ctx context.Context
 	result, err = client.CreateOrUpdateVnetConnectionGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateVnetConnectionGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4024,6 +4054,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlot(ctx context.Con
 	result, err = client.CreateOrUpdateVnetConnectionGatewaySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateVnetConnectionGatewaySlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4117,6 +4148,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, r
 	result, err = client.CreateOrUpdateVnetConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateVnetConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4207,6 +4239,7 @@ func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, n
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4296,6 +4329,7 @@ func (client AppsClient) DeleteBackup(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteBackupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteBackup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4379,6 +4413,7 @@ func (client AppsClient) DeleteBackupConfiguration(ctx context.Context, resource
 	result, err = client.DeleteBackupConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteBackupConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4463,6 +4498,7 @@ func (client AppsClient) DeleteBackupConfigurationSlot(ctx context.Context, reso
 	result, err = client.DeleteBackupConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteBackupConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4549,6 +4585,7 @@ func (client AppsClient) DeleteBackupSlot(ctx context.Context, resourceGroupName
 	result, err = client.DeleteBackupSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteBackupSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4634,6 +4671,7 @@ func (client AppsClient) DeleteContinuousWebJob(ctx context.Context, resourceGro
 	result, err = client.DeleteContinuousWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteContinuousWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4720,6 +4758,7 @@ func (client AppsClient) DeleteContinuousWebJobSlot(ctx context.Context, resourc
 	result, err = client.DeleteContinuousWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteContinuousWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4805,6 +4844,7 @@ func (client AppsClient) DeleteDeployment(ctx context.Context, resourceGroupName
 	result, err = client.DeleteDeploymentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteDeployment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4891,6 +4931,7 @@ func (client AppsClient) DeleteDeploymentSlot(ctx context.Context, resourceGroup
 	result, err = client.DeleteDeploymentSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteDeploymentSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -4976,6 +5017,7 @@ func (client AppsClient) DeleteDomainOwnershipIdentifier(ctx context.Context, re
 	result, err = client.DeleteDomainOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteDomainOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5062,6 +5104,7 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierSlot(ctx context.Context
 	result, err = client.DeleteDomainOwnershipIdentifierSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteDomainOwnershipIdentifierSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5147,6 +5190,7 @@ func (client AppsClient) DeleteFunction(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteFunctionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteFunction", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5232,6 +5276,7 @@ func (client AppsClient) DeleteFunctionSecret(ctx context.Context, resourceGroup
 	result, err = client.DeleteFunctionSecretResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteFunctionSecret", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5319,6 +5364,7 @@ func (client AppsClient) DeleteFunctionSecretSlot(ctx context.Context, resourceG
 	result, err = client.DeleteFunctionSecretSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteFunctionSecretSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5405,6 +5451,7 @@ func (client AppsClient) DeleteHostNameBinding(ctx context.Context, resourceGrou
 	result, err = client.DeleteHostNameBindingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteHostNameBinding", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5491,6 +5538,7 @@ func (client AppsClient) DeleteHostNameBindingSlot(ctx context.Context, resource
 	result, err = client.DeleteHostNameBindingSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteHostNameBindingSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5577,6 +5625,7 @@ func (client AppsClient) DeleteHostSecret(ctx context.Context, resourceGroupName
 	result, err = client.DeleteHostSecretResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteHostSecret", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5664,6 +5713,7 @@ func (client AppsClient) DeleteHostSecretSlot(ctx context.Context, resourceGroup
 	result, err = client.DeleteHostSecretSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteHostSecretSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5751,6 +5801,7 @@ func (client AppsClient) DeleteHybridConnection(ctx context.Context, resourceGro
 	result, err = client.DeleteHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteHybridConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5838,6 +5889,7 @@ func (client AppsClient) DeleteHybridConnectionSlot(ctx context.Context, resourc
 	result, err = client.DeleteHybridConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteHybridConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -5925,6 +5977,7 @@ func (client AppsClient) DeleteInstanceFunctionSlot(ctx context.Context, resourc
 	result, err = client.DeleteInstanceFunctionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteInstanceFunctionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6013,6 +6066,7 @@ func (client AppsClient) DeleteInstanceProcess(ctx context.Context, resourceGrou
 	result, err = client.DeleteInstanceProcessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteInstanceProcess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6103,6 +6157,7 @@ func (client AppsClient) DeleteInstanceProcessSlot(ctx context.Context, resource
 	result, err = client.DeleteInstanceProcessSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteInstanceProcessSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6189,6 +6244,7 @@ func (client AppsClient) DeletePremierAddOn(ctx context.Context, resourceGroupNa
 	result, err = client.DeletePremierAddOnResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePremierAddOn", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6275,6 +6331,7 @@ func (client AppsClient) DeletePremierAddOnSlot(ctx context.Context, resourceGro
 	result, err = client.DeletePremierAddOnSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePremierAddOnSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6445,6 +6502,7 @@ func (client AppsClient) DeleteProcess(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteProcessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteProcess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6532,6 +6590,7 @@ func (client AppsClient) DeleteProcessSlot(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteProcessSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteProcessSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6617,6 +6676,7 @@ func (client AppsClient) DeletePublicCertificate(ctx context.Context, resourceGr
 	result, err = client.DeletePublicCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePublicCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6703,6 +6763,7 @@ func (client AppsClient) DeletePublicCertificateSlot(ctx context.Context, resour
 	result, err = client.DeletePublicCertificateSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePublicCertificateSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6788,6 +6849,7 @@ func (client AppsClient) DeleteRelayServiceConnection(ctx context.Context, resou
 	result, err = client.DeleteRelayServiceConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteRelayServiceConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6874,6 +6936,7 @@ func (client AppsClient) DeleteRelayServiceConnectionSlot(ctx context.Context, r
 	result, err = client.DeleteRelayServiceConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteRelayServiceConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -6959,6 +7022,7 @@ func (client AppsClient) DeleteSiteExtension(ctx context.Context, resourceGroupN
 	result, err = client.DeleteSiteExtensionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSiteExtension", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7045,6 +7109,7 @@ func (client AppsClient) DeleteSiteExtensionSlot(ctx context.Context, resourceGr
 	result, err = client.DeleteSiteExtensionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSiteExtensionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7133,6 +7198,7 @@ func (client AppsClient) DeleteSlot(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7222,6 +7288,7 @@ func (client AppsClient) DeleteSourceControl(ctx context.Context, resourceGroupN
 	result, err = client.DeleteSourceControlResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSourceControl", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7306,6 +7373,7 @@ func (client AppsClient) DeleteSourceControlSlot(ctx context.Context, resourceGr
 	result, err = client.DeleteSourceControlSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSourceControlSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7390,6 +7458,7 @@ func (client AppsClient) DeleteSwiftVirtualNetwork(ctx context.Context, resource
 	result, err = client.DeleteSwiftVirtualNetworkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSwiftVirtualNetwork", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7475,6 +7544,7 @@ func (client AppsClient) DeleteSwiftVirtualNetworkSlot(ctx context.Context, reso
 	result, err = client.DeleteSwiftVirtualNetworkSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSwiftVirtualNetworkSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7559,6 +7629,7 @@ func (client AppsClient) DeleteTriggeredWebJob(ctx context.Context, resourceGrou
 	result, err = client.DeleteTriggeredWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteTriggeredWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7645,6 +7716,7 @@ func (client AppsClient) DeleteTriggeredWebJobSlot(ctx context.Context, resource
 	result, err = client.DeleteTriggeredWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteTriggeredWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7731,6 +7803,7 @@ func (client AppsClient) DeleteVnetConnection(ctx context.Context, resourceGroup
 	result, err = client.DeleteVnetConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteVnetConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7818,6 +7891,7 @@ func (client AppsClient) DeleteVnetConnectionSlot(ctx context.Context, resourceG
 	result, err = client.DeleteVnetConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteVnetConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -7909,6 +7983,7 @@ func (client AppsClient) DiscoverBackup(ctx context.Context, resourceGroupName s
 	result, err = client.DiscoverBackupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DiscoverBackup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8003,6 +8078,7 @@ func (client AppsClient) DiscoverBackupSlot(ctx context.Context, resourceGroupNa
 	result, err = client.DiscoverBackupSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DiscoverBackupSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8090,6 +8166,7 @@ func (client AppsClient) GenerateNewSitePublishingPassword(ctx context.Context, 
 	result, err = client.GenerateNewSitePublishingPasswordResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GenerateNewSitePublishingPassword", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8175,6 +8252,7 @@ func (client AppsClient) GenerateNewSitePublishingPasswordSlot(ctx context.Conte
 	result, err = client.GenerateNewSitePublishingPasswordSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GenerateNewSitePublishingPasswordSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8258,6 +8336,7 @@ func (client AppsClient) Get(ctx context.Context, resourceGroupName string, name
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8341,6 +8420,7 @@ func (client AppsClient) GetAuthSettings(ctx context.Context, resourceGroupName 
 	result, err = client.GetAuthSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetAuthSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8426,6 +8506,7 @@ func (client AppsClient) GetAuthSettingsSlot(ctx context.Context, resourceGroupN
 	result, err = client.GetAuthSettingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetAuthSettingsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8510,6 +8591,7 @@ func (client AppsClient) GetAuthSettingsV2(ctx context.Context, resourceGroupNam
 	result, err = client.GetAuthSettingsV2Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetAuthSettingsV2", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8595,6 +8677,7 @@ func (client AppsClient) GetAuthSettingsV2Slot(ctx context.Context, resourceGrou
 	result, err = client.GetAuthSettingsV2SlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetAuthSettingsV2Slot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8679,6 +8762,7 @@ func (client AppsClient) GetBackupConfiguration(ctx context.Context, resourceGro
 	result, err = client.GetBackupConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBackupConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8764,6 +8848,7 @@ func (client AppsClient) GetBackupConfigurationSlot(ctx context.Context, resourc
 	result, err = client.GetBackupConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBackupConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8849,6 +8934,7 @@ func (client AppsClient) GetBackupStatus(ctx context.Context, resourceGroupName 
 	result, err = client.GetBackupStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBackupStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -8936,6 +9022,7 @@ func (client AppsClient) GetBackupStatusSlot(ctx context.Context, resourceGroupN
 	result, err = client.GetBackupStatusSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBackupStatusSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9022,6 +9109,7 @@ func (client AppsClient) GetBasicPublishingCredentialsPolicies(ctx context.Conte
 	result, err = client.GetBasicPublishingCredentialsPoliciesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBasicPublishingCredentialsPolicies", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9106,6 +9194,7 @@ func (client AppsClient) GetConfiguration(ctx context.Context, resourceGroupName
 	result, err = client.GetConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9192,6 +9281,7 @@ func (client AppsClient) GetConfigurationSlot(ctx context.Context, resourceGroup
 	result, err = client.GetConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9277,6 +9367,7 @@ func (client AppsClient) GetConfigurationSnapshot(ctx context.Context, resourceG
 	result, err = client.GetConfigurationSnapshotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetConfigurationSnapshot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9365,6 +9456,7 @@ func (client AppsClient) GetConfigurationSnapshotSlot(ctx context.Context, resou
 	result, err = client.GetConfigurationSnapshotSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetConfigurationSnapshotSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9450,6 +9542,7 @@ func (client AppsClient) GetContainerLogsZip(ctx context.Context, resourceGroupN
 	result, err = client.GetContainerLogsZipResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZip", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9533,6 +9626,7 @@ func (client AppsClient) GetContainerLogsZipSlot(ctx context.Context, resourceGr
 	result, err = client.GetContainerLogsZipSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZipSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9617,6 +9711,7 @@ func (client AppsClient) GetContinuousWebJob(ctx context.Context, resourceGroupN
 	result, err = client.GetContinuousWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContinuousWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9704,6 +9799,7 @@ func (client AppsClient) GetContinuousWebJobSlot(ctx context.Context, resourceGr
 	result, err = client.GetContinuousWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContinuousWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9790,6 +9886,7 @@ func (client AppsClient) GetDeployment(ctx context.Context, resourceGroupName st
 	result, err = client.GetDeploymentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetDeployment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9877,6 +9974,7 @@ func (client AppsClient) GetDeploymentSlot(ctx context.Context, resourceGroupNam
 	result, err = client.GetDeploymentSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetDeploymentSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -9962,6 +10060,7 @@ func (client AppsClient) GetDiagnosticLogsConfiguration(ctx context.Context, res
 	result, err = client.GetDiagnosticLogsConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetDiagnosticLogsConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10047,6 +10146,7 @@ func (client AppsClient) GetDiagnosticLogsConfigurationSlot(ctx context.Context,
 	result, err = client.GetDiagnosticLogsConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetDiagnosticLogsConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10132,6 +10232,7 @@ func (client AppsClient) GetDomainOwnershipIdentifier(ctx context.Context, resou
 	result, err = client.GetDomainOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetDomainOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10219,6 +10320,7 @@ func (client AppsClient) GetDomainOwnershipIdentifierSlot(ctx context.Context, r
 	result, err = client.GetDomainOwnershipIdentifierSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetDomainOwnershipIdentifierSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10304,6 +10406,7 @@ func (client AppsClient) GetFtpAllowed(ctx context.Context, resourceGroupName st
 	result, err = client.GetFtpAllowedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFtpAllowed", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10388,6 +10491,7 @@ func (client AppsClient) GetFunction(ctx context.Context, resourceGroupName stri
 	result, err = client.GetFunctionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFunction", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10472,6 +10576,7 @@ func (client AppsClient) GetFunctionsAdminToken(ctx context.Context, resourceGro
 	result, err = client.GetFunctionsAdminTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFunctionsAdminToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10556,6 +10661,7 @@ func (client AppsClient) GetFunctionsAdminTokenSlot(ctx context.Context, resourc
 	result, err = client.GetFunctionsAdminTokenSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFunctionsAdminTokenSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10641,6 +10747,7 @@ func (client AppsClient) GetHostNameBinding(ctx context.Context, resourceGroupNa
 	result, err = client.GetHostNameBindingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetHostNameBinding", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10728,6 +10835,7 @@ func (client AppsClient) GetHostNameBindingSlot(ctx context.Context, resourceGro
 	result, err = client.GetHostNameBindingSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetHostNameBindingSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10815,6 +10923,7 @@ func (client AppsClient) GetHybridConnection(ctx context.Context, resourceGroupN
 	result, err = client.GetHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetHybridConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10903,6 +11012,7 @@ func (client AppsClient) GetHybridConnectionSlot(ctx context.Context, resourceGr
 	result, err = client.GetHybridConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetHybridConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -10991,6 +11101,7 @@ func (client AppsClient) GetInstanceFunctionSlot(ctx context.Context, resourceGr
 	result, err = client.GetInstanceFunctionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceFunctionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11076,6 +11187,7 @@ func (client AppsClient) GetInstanceInfo(ctx context.Context, resourceGroupName 
 	result, err = client.GetInstanceInfoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceInfo", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11161,6 +11273,7 @@ func (client AppsClient) GetInstanceInfoSlot(ctx context.Context, resourceGroupN
 	result, err = client.GetInstanceInfoSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceInfoSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11247,6 +11360,7 @@ func (client AppsClient) GetInstanceMSDeployLog(ctx context.Context, resourceGro
 	result, err = client.GetInstanceMSDeployLogResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceMSDeployLog", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11333,6 +11447,7 @@ func (client AppsClient) GetInstanceMSDeployLogSlot(ctx context.Context, resourc
 	result, err = client.GetInstanceMSDeployLogSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceMSDeployLogSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11419,6 +11534,7 @@ func (client AppsClient) GetInstanceMsDeployStatus(ctx context.Context, resource
 	result, err = client.GetInstanceMsDeployStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceMsDeployStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11505,6 +11621,7 @@ func (client AppsClient) GetInstanceMsDeployStatusSlot(ctx context.Context, reso
 	result, err = client.GetInstanceMsDeployStatusSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceMsDeployStatusSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11594,6 +11711,7 @@ func (client AppsClient) GetInstanceProcess(ctx context.Context, resourceGroupNa
 	result, err = client.GetInstanceProcessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceProcess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11683,6 +11801,7 @@ func (client AppsClient) GetInstanceProcessDump(ctx context.Context, resourceGro
 	result, err = client.GetInstanceProcessDumpResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceProcessDump", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11773,6 +11892,7 @@ func (client AppsClient) GetInstanceProcessDumpSlot(ctx context.Context, resourc
 	result, err = client.GetInstanceProcessDumpSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceProcessDumpSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11863,6 +11983,7 @@ func (client AppsClient) GetInstanceProcessModule(ctx context.Context, resourceG
 	result, err = client.GetInstanceProcessModuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceProcessModule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -11956,6 +12077,7 @@ func (client AppsClient) GetInstanceProcessModuleSlot(ctx context.Context, resou
 	result, err = client.GetInstanceProcessModuleSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceProcessModuleSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12049,6 +12171,7 @@ func (client AppsClient) GetInstanceProcessSlot(ctx context.Context, resourceGro
 	result, err = client.GetInstanceProcessSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetInstanceProcessSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12136,6 +12259,7 @@ func (client AppsClient) GetMigrateMySQLStatus(ctx context.Context, resourceGrou
 	result, err = client.GetMigrateMySQLStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetMigrateMySQLStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12221,6 +12345,7 @@ func (client AppsClient) GetMigrateMySQLStatusSlot(ctx context.Context, resource
 	result, err = client.GetMigrateMySQLStatusSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetMigrateMySQLStatusSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12305,6 +12430,7 @@ func (client AppsClient) GetMSDeployLog(ctx context.Context, resourceGroupName s
 	result, err = client.GetMSDeployLogResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetMSDeployLog", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12389,6 +12515,7 @@ func (client AppsClient) GetMSDeployLogSlot(ctx context.Context, resourceGroupNa
 	result, err = client.GetMSDeployLogSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetMSDeployLogSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12473,6 +12600,7 @@ func (client AppsClient) GetMSDeployStatus(ctx context.Context, resourceGroupNam
 	result, err = client.GetMSDeployStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetMSDeployStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12557,6 +12685,7 @@ func (client AppsClient) GetMSDeployStatusSlot(ctx context.Context, resourceGrou
 	result, err = client.GetMSDeployStatusSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetMSDeployStatusSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12643,6 +12772,7 @@ func (client AppsClient) GetNetworkTraceOperation(ctx context.Context, resourceG
 	result, err = client.GetNetworkTraceOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTraceOperation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12731,6 +12861,7 @@ func (client AppsClient) GetNetworkTraceOperationSlot(ctx context.Context, resou
 	result, err = client.GetNetworkTraceOperationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTraceOperationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12820,6 +12951,7 @@ func (client AppsClient) GetNetworkTraceOperationSlotV2(ctx context.Context, res
 	result, err = client.GetNetworkTraceOperationSlotV2Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTraceOperationSlotV2", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12907,6 +13039,7 @@ func (client AppsClient) GetNetworkTraceOperationV2(ctx context.Context, resourc
 	result, err = client.GetNetworkTraceOperationV2Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTraceOperationV2", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -12993,6 +13126,7 @@ func (client AppsClient) GetNetworkTraces(ctx context.Context, resourceGroupName
 	result, err = client.GetNetworkTracesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTraces", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13081,6 +13215,7 @@ func (client AppsClient) GetNetworkTracesSlot(ctx context.Context, resourceGroup
 	result, err = client.GetNetworkTracesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTracesSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13170,6 +13305,7 @@ func (client AppsClient) GetNetworkTracesSlotV2(ctx context.Context, resourceGro
 	result, err = client.GetNetworkTracesSlotV2Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTracesSlotV2", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13257,6 +13393,7 @@ func (client AppsClient) GetNetworkTracesV2(ctx context.Context, resourceGroupNa
 	result, err = client.GetNetworkTracesV2Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetNetworkTracesV2", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13342,6 +13479,7 @@ func (client AppsClient) GetPremierAddOn(ctx context.Context, resourceGroupName 
 	result, err = client.GetPremierAddOnResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPremierAddOn", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13429,6 +13567,7 @@ func (client AppsClient) GetPremierAddOnSlot(ctx context.Context, resourceGroupN
 	result, err = client.GetPremierAddOnSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPremierAddOnSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13515,6 +13654,7 @@ func (client AppsClient) GetPrivateAccess(ctx context.Context, resourceGroupName
 	result, err = client.GetPrivateAccessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13600,6 +13740,7 @@ func (client AppsClient) GetPrivateAccessSlot(ctx context.Context, resourceGroup
 	result, err = client.GetPrivateAccessSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccessSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13684,6 +13825,7 @@ func (client AppsClient) GetPrivateEndpointConnection(ctx context.Context, resou
 	result, err = client.GetPrivateEndpointConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13768,6 +13910,7 @@ func (client AppsClient) GetPrivateLinkResources(ctx context.Context, resourceGr
 	result, err = client.GetPrivateLinkResourcesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13852,6 +13995,7 @@ func (client AppsClient) GetProcess(ctx context.Context, resourceGroupName strin
 	result, err = client.GetProcessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetProcess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -13938,6 +14082,7 @@ func (client AppsClient) GetProcessDump(ctx context.Context, resourceGroupName s
 	result, err = client.GetProcessDumpResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetProcessDump", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14025,6 +14170,7 @@ func (client AppsClient) GetProcessDumpSlot(ctx context.Context, resourceGroupNa
 	result, err = client.GetProcessDumpSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetProcessDumpSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14111,6 +14257,7 @@ func (client AppsClient) GetProcessModule(ctx context.Context, resourceGroupName
 	result, err = client.GetProcessModuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetProcessModule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14201,6 +14348,7 @@ func (client AppsClient) GetProcessModuleSlot(ctx context.Context, resourceGroup
 	result, err = client.GetProcessModuleSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetProcessModuleSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14290,6 +14438,7 @@ func (client AppsClient) GetProcessSlot(ctx context.Context, resourceGroupName s
 	result, err = client.GetProcessSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetProcessSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14376,6 +14525,7 @@ func (client AppsClient) GetPublicCertificate(ctx context.Context, resourceGroup
 	result, err = client.GetPublicCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPublicCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14464,6 +14614,7 @@ func (client AppsClient) GetPublicCertificateSlot(ctx context.Context, resourceG
 	result, err = client.GetPublicCertificateSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPublicCertificateSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14550,6 +14701,7 @@ func (client AppsClient) GetRelayServiceConnection(ctx context.Context, resource
 	result, err = client.GetRelayServiceConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetRelayServiceConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14637,6 +14789,7 @@ func (client AppsClient) GetRelayServiceConnectionSlot(ctx context.Context, reso
 	result, err = client.GetRelayServiceConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetRelayServiceConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14722,6 +14875,7 @@ func (client AppsClient) GetScmAllowed(ctx context.Context, resourceGroupName st
 	result, err = client.GetScmAllowedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetScmAllowed", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14806,6 +14960,7 @@ func (client AppsClient) GetSiteExtension(ctx context.Context, resourceGroupName
 	result, err = client.GetSiteExtensionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSiteExtension", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14892,6 +15047,7 @@ func (client AppsClient) GetSiteExtensionSlot(ctx context.Context, resourceGroup
 	result, err = client.GetSiteExtensionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSiteExtensionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -14977,6 +15133,7 @@ func (client AppsClient) GetSitePhpErrorLogFlag(ctx context.Context, resourceGro
 	result, err = client.GetSitePhpErrorLogFlagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSitePhpErrorLogFlag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15061,6 +15218,7 @@ func (client AppsClient) GetSitePhpErrorLogFlagSlot(ctx context.Context, resourc
 	result, err = client.GetSitePhpErrorLogFlagSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSitePhpErrorLogFlagSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15146,6 +15304,7 @@ func (client AppsClient) GetSlot(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15230,6 +15389,7 @@ func (client AppsClient) GetSourceControl(ctx context.Context, resourceGroupName
 	result, err = client.GetSourceControlResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSourceControl", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15315,6 +15475,7 @@ func (client AppsClient) GetSourceControlSlot(ctx context.Context, resourceGroup
 	result, err = client.GetSourceControlSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSourceControlSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15399,6 +15560,7 @@ func (client AppsClient) GetSwiftVirtualNetworkConnection(ctx context.Context, r
 	result, err = client.GetSwiftVirtualNetworkConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSwiftVirtualNetworkConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15484,6 +15646,7 @@ func (client AppsClient) GetSwiftVirtualNetworkConnectionSlot(ctx context.Contex
 	result, err = client.GetSwiftVirtualNetworkConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetSwiftVirtualNetworkConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15569,6 +15732,7 @@ func (client AppsClient) GetTriggeredWebJob(ctx context.Context, resourceGroupNa
 	result, err = client.GetTriggeredWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetTriggeredWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15656,6 +15820,7 @@ func (client AppsClient) GetTriggeredWebJobHistory(ctx context.Context, resource
 	result, err = client.GetTriggeredWebJobHistoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetTriggeredWebJobHistory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15745,6 +15910,7 @@ func (client AppsClient) GetTriggeredWebJobHistorySlot(ctx context.Context, reso
 	result, err = client.GetTriggeredWebJobHistorySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetTriggeredWebJobHistorySlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15833,6 +15999,7 @@ func (client AppsClient) GetTriggeredWebJobSlot(ctx context.Context, resourceGro
 	result, err = client.GetTriggeredWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetTriggeredWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -15919,6 +16086,7 @@ func (client AppsClient) GetVnetConnection(ctx context.Context, resourceGroupNam
 	result, err = client.GetVnetConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetVnetConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16005,6 +16173,7 @@ func (client AppsClient) GetVnetConnectionGateway(ctx context.Context, resourceG
 	result, err = client.GetVnetConnectionGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetVnetConnectionGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16094,6 +16263,7 @@ func (client AppsClient) GetVnetConnectionGatewaySlot(ctx context.Context, resou
 	result, err = client.GetVnetConnectionGatewaySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetVnetConnectionGatewaySlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16183,6 +16353,7 @@ func (client AppsClient) GetVnetConnectionSlot(ctx context.Context, resourceGrou
 	result, err = client.GetVnetConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetVnetConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16269,6 +16440,7 @@ func (client AppsClient) GetWebJob(ctx context.Context, resourceGroupName string
 	result, err = client.GetWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16356,6 +16528,7 @@ func (client AppsClient) GetWebJobSlot(ctx context.Context, resourceGroupName st
 	result, err = client.GetWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16441,6 +16614,7 @@ func (client AppsClient) GetWebSiteContainerLogs(ctx context.Context, resourceGr
 	result, err = client.GetWebSiteContainerLogsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogs", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16524,6 +16698,7 @@ func (client AppsClient) GetWebSiteContainerLogsSlot(ctx context.Context, resour
 	result, err = client.GetWebSiteContainerLogsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16779,6 +16954,7 @@ func (client AppsClient) IsCloneable(ctx context.Context, resourceGroupName stri
 	result, err = client.IsCloneableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "IsCloneable", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16863,6 +17039,7 @@ func (client AppsClient) IsCloneableSlot(ctx context.Context, resourceGroupName 
 	result, err = client.IsCloneableSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "IsCloneableSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -16937,6 +17114,7 @@ func (client AppsClient) List(ctx context.Context) (result AppCollectionPage, er
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -16999,6 +17177,7 @@ func (client AppsClient) listNextResults(ctx context.Context, lastResults AppCol
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -17058,6 +17237,7 @@ func (client AppsClient) ListApplicationSettings(ctx context.Context, resourceGr
 	result, err = client.ListApplicationSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListApplicationSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -17143,6 +17323,7 @@ func (client AppsClient) ListApplicationSettingsSlot(ctx context.Context, resour
 	result, err = client.ListApplicationSettingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListApplicationSettingsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -17227,6 +17408,7 @@ func (client AppsClient) ListAzureStorageAccounts(ctx context.Context, resourceG
 	result, err = client.ListAzureStorageAccountsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListAzureStorageAccounts", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -17312,6 +17494,7 @@ func (client AppsClient) ListAzureStorageAccountsSlot(ctx context.Context, resou
 	result, err = client.ListAzureStorageAccountsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListAzureStorageAccountsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -17397,6 +17580,7 @@ func (client AppsClient) ListBackups(ctx context.Context, resourceGroupName stri
 	result.bic, err = client.ListBackupsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListBackups", resp, "Failure responding to request")
+		return
 	}
 	if result.bic.hasNextLink() && result.bic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -17461,6 +17645,7 @@ func (client AppsClient) listBackupsNextResults(ctx context.Context, lastResults
 	result, err = client.ListBackupsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listBackupsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -17523,6 +17708,7 @@ func (client AppsClient) ListBackupsSlot(ctx context.Context, resourceGroupName 
 	result.bic, err = client.ListBackupsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListBackupsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.bic.hasNextLink() && result.bic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -17588,6 +17774,7 @@ func (client AppsClient) listBackupsSlotNextResults(ctx context.Context, lastRes
 	result, err = client.ListBackupsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listBackupsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -17660,6 +17847,7 @@ func (client AppsClient) ListBackupStatusSecrets(ctx context.Context, resourceGr
 	result, err = client.ListBackupStatusSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListBackupStatusSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -17760,6 +17948,7 @@ func (client AppsClient) ListBackupStatusSecretsSlot(ctx context.Context, resour
 	result, err = client.ListBackupStatusSecretsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListBackupStatusSecretsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -17849,6 +18038,7 @@ func (client AppsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.ac, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -17915,6 +18105,7 @@ func (client AppsClient) listByResourceGroupNextResults(ctx context.Context, las
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -17975,6 +18166,7 @@ func (client AppsClient) ListConfigurations(ctx context.Context, resourceGroupNa
 	result.scrc, err = client.ListConfigurationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListConfigurations", resp, "Failure responding to request")
+		return
 	}
 	if result.scrc.hasNextLink() && result.scrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -18039,6 +18231,7 @@ func (client AppsClient) listConfigurationsNextResults(ctx context.Context, last
 	result, err = client.ListConfigurationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listConfigurationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -18100,6 +18293,7 @@ func (client AppsClient) ListConfigurationSnapshotInfo(ctx context.Context, reso
 	result.scsic, err = client.ListConfigurationSnapshotInfoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListConfigurationSnapshotInfo", resp, "Failure responding to request")
+		return
 	}
 	if result.scsic.hasNextLink() && result.scsic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -18164,6 +18358,7 @@ func (client AppsClient) listConfigurationSnapshotInfoNextResults(ctx context.Co
 	result, err = client.ListConfigurationSnapshotInfoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listConfigurationSnapshotInfoNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -18227,6 +18422,7 @@ func (client AppsClient) ListConfigurationSnapshotInfoSlot(ctx context.Context, 
 	result.scsic, err = client.ListConfigurationSnapshotInfoSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListConfigurationSnapshotInfoSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.scsic.hasNextLink() && result.scsic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -18292,6 +18488,7 @@ func (client AppsClient) listConfigurationSnapshotInfoSlotNextResults(ctx contex
 	result, err = client.ListConfigurationSnapshotInfoSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listConfigurationSnapshotInfoSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -18354,6 +18551,7 @@ func (client AppsClient) ListConfigurationsSlot(ctx context.Context, resourceGro
 	result.scrc, err = client.ListConfigurationsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListConfigurationsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.scrc.hasNextLink() && result.scrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -18419,6 +18617,7 @@ func (client AppsClient) listConfigurationsSlotNextResults(ctx context.Context, 
 	result, err = client.ListConfigurationsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listConfigurationsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -18478,6 +18677,7 @@ func (client AppsClient) ListConnectionStrings(ctx context.Context, resourceGrou
 	result, err = client.ListConnectionStringsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListConnectionStrings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -18563,6 +18763,7 @@ func (client AppsClient) ListConnectionStringsSlot(ctx context.Context, resource
 	result, err = client.ListConnectionStringsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListConnectionStringsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -18648,6 +18849,7 @@ func (client AppsClient) ListContinuousWebJobs(ctx context.Context, resourceGrou
 	result.cwjc, err = client.ListContinuousWebJobsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListContinuousWebJobs", resp, "Failure responding to request")
+		return
 	}
 	if result.cwjc.hasNextLink() && result.cwjc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -18712,6 +18914,7 @@ func (client AppsClient) listContinuousWebJobsNextResults(ctx context.Context, l
 	result, err = client.ListContinuousWebJobsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listContinuousWebJobsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -18774,6 +18977,7 @@ func (client AppsClient) ListContinuousWebJobsSlot(ctx context.Context, resource
 	result.cwjc, err = client.ListContinuousWebJobsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListContinuousWebJobsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.cwjc.hasNextLink() && result.cwjc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -18839,6 +19043,7 @@ func (client AppsClient) listContinuousWebJobsSlotNextResults(ctx context.Contex
 	result, err = client.ListContinuousWebJobsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listContinuousWebJobsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -18900,6 +19105,7 @@ func (client AppsClient) ListDeploymentLog(ctx context.Context, resourceGroupNam
 	result, err = client.ListDeploymentLogResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListDeploymentLog", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -18988,6 +19194,7 @@ func (client AppsClient) ListDeploymentLogSlot(ctx context.Context, resourceGrou
 	result, err = client.ListDeploymentLogSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListDeploymentLogSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -19074,6 +19281,7 @@ func (client AppsClient) ListDeployments(ctx context.Context, resourceGroupName 
 	result.dc, err = client.ListDeploymentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListDeployments", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -19138,6 +19346,7 @@ func (client AppsClient) listDeploymentsNextResults(ctx context.Context, lastRes
 	result, err = client.ListDeploymentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listDeploymentsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -19200,6 +19409,7 @@ func (client AppsClient) ListDeploymentsSlot(ctx context.Context, resourceGroupN
 	result.dc, err = client.ListDeploymentsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListDeploymentsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -19265,6 +19475,7 @@ func (client AppsClient) listDeploymentsSlotNextResults(ctx context.Context, las
 	result, err = client.ListDeploymentsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listDeploymentsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -19325,6 +19536,7 @@ func (client AppsClient) ListDomainOwnershipIdentifiers(ctx context.Context, res
 	result.ic, err = client.ListDomainOwnershipIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListDomainOwnershipIdentifiers", resp, "Failure responding to request")
+		return
 	}
 	if result.ic.hasNextLink() && result.ic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -19389,6 +19601,7 @@ func (client AppsClient) listDomainOwnershipIdentifiersNextResults(ctx context.C
 	result, err = client.ListDomainOwnershipIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listDomainOwnershipIdentifiersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -19451,6 +19664,7 @@ func (client AppsClient) ListDomainOwnershipIdentifiersSlot(ctx context.Context,
 	result.ic, err = client.ListDomainOwnershipIdentifiersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListDomainOwnershipIdentifiersSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.ic.hasNextLink() && result.ic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -19516,6 +19730,7 @@ func (client AppsClient) listDomainOwnershipIdentifiersSlotNextResults(ctx conte
 	result, err = client.ListDomainOwnershipIdentifiersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listDomainOwnershipIdentifiersSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -19576,6 +19791,7 @@ func (client AppsClient) ListFunctionKeys(ctx context.Context, resourceGroupName
 	result, err = client.ListFunctionKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListFunctionKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -19662,6 +19878,7 @@ func (client AppsClient) ListFunctionKeysSlot(ctx context.Context, resourceGroup
 	result, err = client.ListFunctionKeysSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListFunctionKeysSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -19748,6 +19965,7 @@ func (client AppsClient) ListFunctions(ctx context.Context, resourceGroupName st
 	result.fec, err = client.ListFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListFunctions", resp, "Failure responding to request")
+		return
 	}
 	if result.fec.hasNextLink() && result.fec.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -19812,6 +20030,7 @@ func (client AppsClient) listFunctionsNextResults(ctx context.Context, lastResul
 	result, err = client.ListFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listFunctionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -19872,6 +20091,7 @@ func (client AppsClient) ListFunctionSecrets(ctx context.Context, resourceGroupN
 	result, err = client.ListFunctionSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListFunctionSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -19958,6 +20178,7 @@ func (client AppsClient) ListFunctionSecretsSlot(ctx context.Context, resourceGr
 	result, err = client.ListFunctionSecretsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListFunctionSecretsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -20043,6 +20264,7 @@ func (client AppsClient) ListHostKeys(ctx context.Context, resourceGroupName str
 	result, err = client.ListHostKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListHostKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -20127,6 +20349,7 @@ func (client AppsClient) ListHostKeysSlot(ctx context.Context, resourceGroupName
 	result, err = client.ListHostKeysSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListHostKeysSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -20212,6 +20435,7 @@ func (client AppsClient) ListHostNameBindings(ctx context.Context, resourceGroup
 	result.hnbc, err = client.ListHostNameBindingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListHostNameBindings", resp, "Failure responding to request")
+		return
 	}
 	if result.hnbc.hasNextLink() && result.hnbc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -20276,6 +20500,7 @@ func (client AppsClient) listHostNameBindingsNextResults(ctx context.Context, la
 	result, err = client.ListHostNameBindingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listHostNameBindingsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -20338,6 +20563,7 @@ func (client AppsClient) ListHostNameBindingsSlot(ctx context.Context, resourceG
 	result.hnbc, err = client.ListHostNameBindingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListHostNameBindingsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.hnbc.hasNextLink() && result.hnbc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -20403,6 +20629,7 @@ func (client AppsClient) listHostNameBindingsSlotNextResults(ctx context.Context
 	result, err = client.ListHostNameBindingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listHostNameBindingsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -20462,6 +20689,7 @@ func (client AppsClient) ListHybridConnections(ctx context.Context, resourceGrou
 	result, err = client.ListHybridConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListHybridConnections", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -20546,6 +20774,7 @@ func (client AppsClient) ListHybridConnectionsSlot(ctx context.Context, resource
 	result, err = client.ListHybridConnectionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListHybridConnectionsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -20632,6 +20861,7 @@ func (client AppsClient) ListInstanceFunctionsSlot(ctx context.Context, resource
 	result.fec, err = client.ListInstanceFunctionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceFunctionsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.fec.hasNextLink() && result.fec.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -20697,6 +20927,7 @@ func (client AppsClient) listInstanceFunctionsSlotNextResults(ctx context.Contex
 	result, err = client.ListInstanceFunctionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceFunctionsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -20757,6 +20988,7 @@ func (client AppsClient) ListInstanceIdentifiers(ctx context.Context, resourceGr
 	result.aisc, err = client.ListInstanceIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceIdentifiers", resp, "Failure responding to request")
+		return
 	}
 	if result.aisc.hasNextLink() && result.aisc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -20821,6 +21053,7 @@ func (client AppsClient) listInstanceIdentifiersNextResults(ctx context.Context,
 	result, err = client.ListInstanceIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceIdentifiersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -20882,6 +21115,7 @@ func (client AppsClient) ListInstanceIdentifiersSlot(ctx context.Context, resour
 	result.aisc, err = client.ListInstanceIdentifiersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceIdentifiersSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.aisc.hasNextLink() && result.aisc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -20947,6 +21181,7 @@ func (client AppsClient) listInstanceIdentifiersSlotNextResults(ctx context.Cont
 	result, err = client.ListInstanceIdentifiersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceIdentifiersSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21010,6 +21245,7 @@ func (client AppsClient) ListInstanceProcesses(ctx context.Context, resourceGrou
 	result.pic, err = client.ListInstanceProcessesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceProcesses", resp, "Failure responding to request")
+		return
 	}
 	if result.pic.hasNextLink() && result.pic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -21075,6 +21311,7 @@ func (client AppsClient) listInstanceProcessesNextResults(ctx context.Context, l
 	result, err = client.ListInstanceProcessesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceProcessesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21140,6 +21377,7 @@ func (client AppsClient) ListInstanceProcessesSlot(ctx context.Context, resource
 	result.pic, err = client.ListInstanceProcessesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceProcessesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.pic.hasNextLink() && result.pic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -21206,6 +21444,7 @@ func (client AppsClient) listInstanceProcessesSlotNextResults(ctx context.Contex
 	result, err = client.ListInstanceProcessesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceProcessesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21270,6 +21509,7 @@ func (client AppsClient) ListInstanceProcessModules(ctx context.Context, resourc
 	result.pmic, err = client.ListInstanceProcessModulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceProcessModules", resp, "Failure responding to request")
+		return
 	}
 	if result.pmic.hasNextLink() && result.pmic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -21336,6 +21576,7 @@ func (client AppsClient) listInstanceProcessModulesNextResults(ctx context.Conte
 	result, err = client.ListInstanceProcessModulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceProcessModulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21402,6 +21643,7 @@ func (client AppsClient) ListInstanceProcessModulesSlot(ctx context.Context, res
 	result.pmic, err = client.ListInstanceProcessModulesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceProcessModulesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.pmic.hasNextLink() && result.pmic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -21469,6 +21711,7 @@ func (client AppsClient) listInstanceProcessModulesSlotNextResults(ctx context.C
 	result, err = client.ListInstanceProcessModulesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceProcessModulesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21533,6 +21776,7 @@ func (client AppsClient) ListInstanceProcessThreads(ctx context.Context, resourc
 	result.ptic, err = client.ListInstanceProcessThreadsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceProcessThreads", resp, "Failure responding to request")
+		return
 	}
 	if result.ptic.hasNextLink() && result.ptic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -21599,6 +21843,7 @@ func (client AppsClient) listInstanceProcessThreadsNextResults(ctx context.Conte
 	result, err = client.ListInstanceProcessThreadsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceProcessThreadsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21665,6 +21910,7 @@ func (client AppsClient) ListInstanceProcessThreadsSlot(ctx context.Context, res
 	result.ptic, err = client.ListInstanceProcessThreadsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListInstanceProcessThreadsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.ptic.hasNextLink() && result.ptic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -21732,6 +21978,7 @@ func (client AppsClient) listInstanceProcessThreadsSlotNextResults(ctx context.C
 	result, err = client.ListInstanceProcessThreadsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listInstanceProcessThreadsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -21791,6 +22038,7 @@ func (client AppsClient) ListMetadata(ctx context.Context, resourceGroupName str
 	result, err = client.ListMetadataResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListMetadata", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -21876,6 +22124,7 @@ func (client AppsClient) ListMetadataSlot(ctx context.Context, resourceGroupName
 	result, err = client.ListMetadataSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListMetadataSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -21961,6 +22210,7 @@ func (client AppsClient) ListNetworkFeatures(ctx context.Context, resourceGroupN
 	result, err = client.ListNetworkFeaturesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListNetworkFeatures", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -22049,6 +22299,7 @@ func (client AppsClient) ListNetworkFeaturesSlot(ctx context.Context, resourceGr
 	result, err = client.ListNetworkFeaturesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListNetworkFeaturesSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -22138,6 +22389,7 @@ func (client AppsClient) ListPerfMonCounters(ctx context.Context, resourceGroupN
 	result.pmcc, err = client.ListPerfMonCountersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPerfMonCounters", resp, "Failure responding to request")
+		return
 	}
 	if result.pmcc.hasNextLink() && result.pmcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -22205,6 +22457,7 @@ func (client AppsClient) listPerfMonCountersNextResults(ctx context.Context, las
 	result, err = client.ListPerfMonCountersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listPerfMonCountersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -22269,6 +22522,7 @@ func (client AppsClient) ListPerfMonCountersSlot(ctx context.Context, resourceGr
 	result.pmcc, err = client.ListPerfMonCountersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPerfMonCountersSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.pmcc.hasNextLink() && result.pmcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -22337,6 +22591,7 @@ func (client AppsClient) listPerfMonCountersSlotNextResults(ctx context.Context,
 	result, err = client.ListPerfMonCountersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listPerfMonCountersSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -22396,6 +22651,7 @@ func (client AppsClient) ListPremierAddOns(ctx context.Context, resourceGroupNam
 	result, err = client.ListPremierAddOnsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPremierAddOns", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -22481,6 +22737,7 @@ func (client AppsClient) ListPremierAddOnsSlot(ctx context.Context, resourceGrou
 	result, err = client.ListPremierAddOnsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPremierAddOnsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -22567,6 +22824,7 @@ func (client AppsClient) ListProcesses(ctx context.Context, resourceGroupName st
 	result.pic, err = client.ListProcessesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListProcesses", resp, "Failure responding to request")
+		return
 	}
 	if result.pic.hasNextLink() && result.pic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -22631,6 +22889,7 @@ func (client AppsClient) listProcessesNextResults(ctx context.Context, lastResul
 	result, err = client.ListProcessesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listProcessesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -22694,6 +22953,7 @@ func (client AppsClient) ListProcessesSlot(ctx context.Context, resourceGroupNam
 	result.pic, err = client.ListProcessesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListProcessesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.pic.hasNextLink() && result.pic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -22759,6 +23019,7 @@ func (client AppsClient) listProcessesSlotNextResults(ctx context.Context, lastR
 	result, err = client.ListProcessesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listProcessesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -22821,6 +23082,7 @@ func (client AppsClient) ListProcessModules(ctx context.Context, resourceGroupNa
 	result.pmic, err = client.ListProcessModulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListProcessModules", resp, "Failure responding to request")
+		return
 	}
 	if result.pmic.hasNextLink() && result.pmic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -22886,6 +23148,7 @@ func (client AppsClient) listProcessModulesNextResults(ctx context.Context, last
 	result, err = client.ListProcessModulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listProcessModulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -22950,6 +23213,7 @@ func (client AppsClient) ListProcessModulesSlot(ctx context.Context, resourceGro
 	result.pmic, err = client.ListProcessModulesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListProcessModulesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.pmic.hasNextLink() && result.pmic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -23016,6 +23280,7 @@ func (client AppsClient) listProcessModulesSlotNextResults(ctx context.Context, 
 	result, err = client.ListProcessModulesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listProcessModulesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -23078,6 +23343,7 @@ func (client AppsClient) ListProcessThreads(ctx context.Context, resourceGroupNa
 	result.ptic, err = client.ListProcessThreadsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListProcessThreads", resp, "Failure responding to request")
+		return
 	}
 	if result.ptic.hasNextLink() && result.ptic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -23143,6 +23409,7 @@ func (client AppsClient) listProcessThreadsNextResults(ctx context.Context, last
 	result, err = client.ListProcessThreadsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listProcessThreadsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -23207,6 +23474,7 @@ func (client AppsClient) ListProcessThreadsSlot(ctx context.Context, resourceGro
 	result.ptic, err = client.ListProcessThreadsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListProcessThreadsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.ptic.hasNextLink() && result.ptic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -23273,6 +23541,7 @@ func (client AppsClient) listProcessThreadsSlotNextResults(ctx context.Context, 
 	result, err = client.ListProcessThreadsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listProcessThreadsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -23333,6 +23602,7 @@ func (client AppsClient) ListPublicCertificates(ctx context.Context, resourceGro
 	result.pcc, err = client.ListPublicCertificatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPublicCertificates", resp, "Failure responding to request")
+		return
 	}
 	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -23397,6 +23667,7 @@ func (client AppsClient) listPublicCertificatesNextResults(ctx context.Context, 
 	result, err = client.ListPublicCertificatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listPublicCertificatesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -23459,6 +23730,7 @@ func (client AppsClient) ListPublicCertificatesSlot(ctx context.Context, resourc
 	result.pcc, err = client.ListPublicCertificatesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPublicCertificatesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -23524,6 +23796,7 @@ func (client AppsClient) listPublicCertificatesSlotNextResults(ctx context.Conte
 	result, err = client.ListPublicCertificatesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listPublicCertificatesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -23755,6 +24028,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecrets(ctx context.Context
 	result, err = client.ListPublishingProfileXMLWithSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPublishingProfileXMLWithSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -23844,6 +24118,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsSlot(ctx context.Con
 	result, err = client.ListPublishingProfileXMLWithSecretsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListPublishingProfileXMLWithSecretsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -23930,6 +24205,7 @@ func (client AppsClient) ListRelayServiceConnections(ctx context.Context, resour
 	result, err = client.ListRelayServiceConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListRelayServiceConnections", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -24016,6 +24292,7 @@ func (client AppsClient) ListRelayServiceConnectionsSlot(ctx context.Context, re
 	result, err = client.ListRelayServiceConnectionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListRelayServiceConnectionsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -24101,6 +24378,7 @@ func (client AppsClient) ListSiteBackups(ctx context.Context, resourceGroupName 
 	result.bic, err = client.ListSiteBackupsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSiteBackups", resp, "Failure responding to request")
+		return
 	}
 	if result.bic.hasNextLink() && result.bic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -24165,6 +24443,7 @@ func (client AppsClient) listSiteBackupsNextResults(ctx context.Context, lastRes
 	result, err = client.ListSiteBackupsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSiteBackupsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -24227,6 +24506,7 @@ func (client AppsClient) ListSiteBackupsSlot(ctx context.Context, resourceGroupN
 	result.bic, err = client.ListSiteBackupsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSiteBackupsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.bic.hasNextLink() && result.bic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -24292,6 +24572,7 @@ func (client AppsClient) listSiteBackupsSlotNextResults(ctx context.Context, las
 	result, err = client.ListSiteBackupsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSiteBackupsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -24352,6 +24633,7 @@ func (client AppsClient) ListSiteExtensions(ctx context.Context, resourceGroupNa
 	result.seic, err = client.ListSiteExtensionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSiteExtensions", resp, "Failure responding to request")
+		return
 	}
 	if result.seic.hasNextLink() && result.seic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -24416,6 +24698,7 @@ func (client AppsClient) listSiteExtensionsNextResults(ctx context.Context, last
 	result, err = client.ListSiteExtensionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSiteExtensionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -24477,6 +24760,7 @@ func (client AppsClient) ListSiteExtensionsSlot(ctx context.Context, resourceGro
 	result.seic, err = client.ListSiteExtensionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSiteExtensionsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.seic.hasNextLink() && result.seic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -24542,6 +24826,7 @@ func (client AppsClient) listSiteExtensionsSlotNextResults(ctx context.Context, 
 	result, err = client.ListSiteExtensionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSiteExtensionsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -24601,6 +24886,7 @@ func (client AppsClient) ListSitePushSettings(ctx context.Context, resourceGroup
 	result, err = client.ListSitePushSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSitePushSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -24685,6 +24971,7 @@ func (client AppsClient) ListSitePushSettingsSlot(ctx context.Context, resourceG
 	result, err = client.ListSitePushSettingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSitePushSettingsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -24770,6 +25057,7 @@ func (client AppsClient) ListSlotConfigurationNames(ctx context.Context, resourc
 	result, err = client.ListSlotConfigurationNamesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSlotConfigurationNames", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -24859,6 +25147,7 @@ func (client AppsClient) ListSlotDifferencesFromProduction(ctx context.Context, 
 	result.sdc, err = client.ListSlotDifferencesFromProductionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSlotDifferencesFromProduction", resp, "Failure responding to request")
+		return
 	}
 	if result.sdc.hasNextLink() && result.sdc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -24925,6 +25214,7 @@ func (client AppsClient) listSlotDifferencesFromProductionNextResults(ctx contex
 	result, err = client.ListSlotDifferencesFromProductionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSlotDifferencesFromProductionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -24990,6 +25280,7 @@ func (client AppsClient) ListSlotDifferencesSlot(ctx context.Context, resourceGr
 	result.sdc, err = client.ListSlotDifferencesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSlotDifferencesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.sdc.hasNextLink() && result.sdc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -25057,6 +25348,7 @@ func (client AppsClient) listSlotDifferencesSlotNextResults(ctx context.Context,
 	result, err = client.ListSlotDifferencesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSlotDifferencesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -25117,6 +25409,7 @@ func (client AppsClient) ListSlots(ctx context.Context, resourceGroupName string
 	result.ac, err = client.ListSlotsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSlots", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -25181,6 +25474,7 @@ func (client AppsClient) listSlotsNextResults(ctx context.Context, lastResults A
 	result, err = client.ListSlotsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSlotsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -25241,6 +25535,7 @@ func (client AppsClient) ListSnapshots(ctx context.Context, resourceGroupName st
 	result.sc, err = client.ListSnapshotsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSnapshots", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -25305,6 +25600,7 @@ func (client AppsClient) listSnapshotsNextResults(ctx context.Context, lastResul
 	result, err = client.ListSnapshotsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSnapshotsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -25365,6 +25661,7 @@ func (client AppsClient) ListSnapshotsFromDRSecondary(ctx context.Context, resou
 	result.sc, err = client.ListSnapshotsFromDRSecondaryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSnapshotsFromDRSecondary", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -25429,6 +25726,7 @@ func (client AppsClient) listSnapshotsFromDRSecondaryNextResults(ctx context.Con
 	result, err = client.ListSnapshotsFromDRSecondaryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSnapshotsFromDRSecondaryNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -25490,6 +25788,7 @@ func (client AppsClient) ListSnapshotsFromDRSecondarySlot(ctx context.Context, r
 	result.sc, err = client.ListSnapshotsFromDRSecondarySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSnapshotsFromDRSecondarySlot", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -25555,6 +25854,7 @@ func (client AppsClient) listSnapshotsFromDRSecondarySlotNextResults(ctx context
 	result, err = client.ListSnapshotsFromDRSecondarySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSnapshotsFromDRSecondarySlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -25616,6 +25916,7 @@ func (client AppsClient) ListSnapshotsSlot(ctx context.Context, resourceGroupNam
 	result.sc, err = client.ListSnapshotsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSnapshotsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -25681,6 +25982,7 @@ func (client AppsClient) listSnapshotsSlotNextResults(ctx context.Context, lastR
 	result, err = client.ListSnapshotsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listSnapshotsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -25740,6 +26042,7 @@ func (client AppsClient) ListSyncFunctionTriggers(ctx context.Context, resourceG
 	result, err = client.ListSyncFunctionTriggersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSyncFunctionTriggers", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -25824,6 +26127,7 @@ func (client AppsClient) ListSyncFunctionTriggersSlot(ctx context.Context, resou
 	result, err = client.ListSyncFunctionTriggersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSyncFunctionTriggersSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -25908,6 +26212,7 @@ func (client AppsClient) ListSyncStatus(ctx context.Context, resourceGroupName s
 	result, err = client.ListSyncStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSyncStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -25991,6 +26296,7 @@ func (client AppsClient) ListSyncStatusSlot(ctx context.Context, resourceGroupNa
 	result, err = client.ListSyncStatusSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListSyncStatusSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -26076,6 +26382,7 @@ func (client AppsClient) ListTriggeredWebJobHistory(ctx context.Context, resourc
 	result.tjhc, err = client.ListTriggeredWebJobHistoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListTriggeredWebJobHistory", resp, "Failure responding to request")
+		return
 	}
 	if result.tjhc.hasNextLink() && result.tjhc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -26141,6 +26448,7 @@ func (client AppsClient) listTriggeredWebJobHistoryNextResults(ctx context.Conte
 	result, err = client.ListTriggeredWebJobHistoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listTriggeredWebJobHistoryNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -26203,6 +26511,7 @@ func (client AppsClient) ListTriggeredWebJobHistorySlot(ctx context.Context, res
 	result.tjhc, err = client.ListTriggeredWebJobHistorySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListTriggeredWebJobHistorySlot", resp, "Failure responding to request")
+		return
 	}
 	if result.tjhc.hasNextLink() && result.tjhc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -26269,6 +26578,7 @@ func (client AppsClient) listTriggeredWebJobHistorySlotNextResults(ctx context.C
 	result, err = client.ListTriggeredWebJobHistorySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listTriggeredWebJobHistorySlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -26329,6 +26639,7 @@ func (client AppsClient) ListTriggeredWebJobs(ctx context.Context, resourceGroup
 	result.twjc, err = client.ListTriggeredWebJobsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListTriggeredWebJobs", resp, "Failure responding to request")
+		return
 	}
 	if result.twjc.hasNextLink() && result.twjc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -26393,6 +26704,7 @@ func (client AppsClient) listTriggeredWebJobsNextResults(ctx context.Context, la
 	result, err = client.ListTriggeredWebJobsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listTriggeredWebJobsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -26455,6 +26767,7 @@ func (client AppsClient) ListTriggeredWebJobsSlot(ctx context.Context, resourceG
 	result.twjc, err = client.ListTriggeredWebJobsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListTriggeredWebJobsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.twjc.hasNextLink() && result.twjc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -26520,6 +26833,7 @@ func (client AppsClient) listTriggeredWebJobsSlotNextResults(ctx context.Context
 	result, err = client.ListTriggeredWebJobsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listTriggeredWebJobsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -26583,6 +26897,7 @@ func (client AppsClient) ListUsages(ctx context.Context, resourceGroupName strin
 	result.cuqc, err = client.ListUsagesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListUsages", resp, "Failure responding to request")
+		return
 	}
 	if result.cuqc.hasNextLink() && result.cuqc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -26650,6 +26965,7 @@ func (client AppsClient) listUsagesNextResults(ctx context.Context, lastResults 
 	result, err = client.ListUsagesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listUsagesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -26715,6 +27031,7 @@ func (client AppsClient) ListUsagesSlot(ctx context.Context, resourceGroupName s
 	result.cuqc, err = client.ListUsagesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListUsagesSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.cuqc.hasNextLink() && result.cuqc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -26783,6 +27100,7 @@ func (client AppsClient) listUsagesSlotNextResults(ctx context.Context, lastResu
 	result, err = client.ListUsagesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listUsagesSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -26842,6 +27160,7 @@ func (client AppsClient) ListVnetConnections(ctx context.Context, resourceGroupN
 	result, err = client.ListVnetConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListVnetConnections", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -26927,6 +27246,7 @@ func (client AppsClient) ListVnetConnectionsSlot(ctx context.Context, resourceGr
 	result, err = client.ListVnetConnectionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListVnetConnectionsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27012,6 +27332,7 @@ func (client AppsClient) ListWebJobs(ctx context.Context, resourceGroupName stri
 	result.jc, err = client.ListWebJobsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListWebJobs", resp, "Failure responding to request")
+		return
 	}
 	if result.jc.hasNextLink() && result.jc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -27076,6 +27397,7 @@ func (client AppsClient) listWebJobsNextResults(ctx context.Context, lastResults
 	result, err = client.ListWebJobsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listWebJobsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -27138,6 +27460,7 @@ func (client AppsClient) ListWebJobsSlot(ctx context.Context, resourceGroupName 
 	result.jc, err = client.ListWebJobsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ListWebJobsSlot", resp, "Failure responding to request")
+		return
 	}
 	if result.jc.hasNextLink() && result.jc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -27203,6 +27526,7 @@ func (client AppsClient) listWebJobsSlotNextResults(ctx context.Context, lastRes
 	result, err = client.ListWebJobsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "listWebJobsSlotNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -27446,6 +27770,7 @@ func (client AppsClient) PutPrivateAccessVnet(ctx context.Context, resourceGroup
 	result, err = client.PutPrivateAccessVnetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27534,6 +27859,7 @@ func (client AppsClient) PutPrivateAccessVnetSlot(ctx context.Context, resourceG
 	result, err = client.PutPrivateAccessVnetSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnetSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27621,6 +27947,7 @@ func (client AppsClient) RecoverSiteConfigurationSnapshot(ctx context.Context, r
 	result, err = client.RecoverSiteConfigurationSnapshotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "RecoverSiteConfigurationSnapshot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27707,6 +28034,7 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSlot(ctx context.Contex
 	result, err = client.RecoverSiteConfigurationSnapshotSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "RecoverSiteConfigurationSnapshotSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27792,6 +28120,7 @@ func (client AppsClient) ResetProductionSlotConfig(ctx context.Context, resource
 	result, err = client.ResetProductionSlotConfigResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ResetProductionSlotConfig", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27877,6 +28206,7 @@ func (client AppsClient) ResetSlotConfigurationSlot(ctx context.Context, resourc
 	result, err = client.ResetSlotConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "ResetSlotConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -27964,6 +28294,7 @@ func (client AppsClient) Restart(ctx context.Context, resourceGroupName string, 
 	result, err = client.RestartResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Restart", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -28057,6 +28388,7 @@ func (client AppsClient) RestartSlot(ctx context.Context, resourceGroupName stri
 	result, err = client.RestartSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestartSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -28869,6 +29201,7 @@ func (client AppsClient) RunTriggeredWebJob(ctx context.Context, resourceGroupNa
 	result, err = client.RunTriggeredWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "RunTriggeredWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -28954,6 +29287,7 @@ func (client AppsClient) RunTriggeredWebJobSlot(ctx context.Context, resourceGro
 	result, err = client.RunTriggeredWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "RunTriggeredWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29038,6 +29372,7 @@ func (client AppsClient) Start(ctx context.Context, resourceGroupName string, na
 	result, err = client.StartResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Start", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29121,6 +29456,7 @@ func (client AppsClient) StartContinuousWebJob(ctx context.Context, resourceGrou
 	result, err = client.StartContinuousWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StartContinuousWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29207,6 +29543,7 @@ func (client AppsClient) StartContinuousWebJobSlot(ctx context.Context, resource
 	result, err = client.StartContinuousWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StartContinuousWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29484,6 +29821,7 @@ func (client AppsClient) StartSlot(ctx context.Context, resourceGroupName string
 	result, err = client.StartSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StartSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29570,6 +29908,7 @@ func (client AppsClient) StartWebSiteNetworkTrace(ctx context.Context, resourceG
 	result, err = client.StartWebSiteNetworkTraceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StartWebSiteNetworkTrace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29858,6 +30197,7 @@ func (client AppsClient) StartWebSiteNetworkTraceSlot(ctx context.Context, resou
 	result, err = client.StartWebSiteNetworkTraceSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StartWebSiteNetworkTraceSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -29951,6 +30291,7 @@ func (client AppsClient) Stop(ctx context.Context, resourceGroupName string, nam
 	result, err = client.StopResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Stop", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30034,6 +30375,7 @@ func (client AppsClient) StopContinuousWebJob(ctx context.Context, resourceGroup
 	result, err = client.StopContinuousWebJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopContinuousWebJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30120,6 +30462,7 @@ func (client AppsClient) StopContinuousWebJobSlot(ctx context.Context, resourceG
 	result, err = client.StopContinuousWebJobSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopContinuousWebJobSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30204,6 +30547,7 @@ func (client AppsClient) StopNetworkTrace(ctx context.Context, resourceGroupName
 	result, err = client.StopNetworkTraceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopNetworkTrace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30287,6 +30631,7 @@ func (client AppsClient) StopNetworkTraceSlot(ctx context.Context, resourceGroup
 	result, err = client.StopNetworkTraceSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopNetworkTraceSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30371,6 +30716,7 @@ func (client AppsClient) StopSlot(ctx context.Context, resourceGroupName string,
 	result, err = client.StopSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30454,6 +30800,7 @@ func (client AppsClient) StopWebSiteNetworkTrace(ctx context.Context, resourceGr
 	result, err = client.StopWebSiteNetworkTraceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopWebSiteNetworkTrace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30537,6 +30884,7 @@ func (client AppsClient) StopWebSiteNetworkTraceSlot(ctx context.Context, resour
 	result, err = client.StopWebSiteNetworkTraceSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "StopWebSiteNetworkTraceSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30798,6 +31146,7 @@ func (client AppsClient) SyncFunctions(ctx context.Context, resourceGroupName st
 	result, err = client.SyncFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "SyncFunctions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30881,6 +31230,7 @@ func (client AppsClient) SyncFunctionsSlot(ctx context.Context, resourceGroupNam
 	result, err = client.SyncFunctionsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "SyncFunctionsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -30964,6 +31314,7 @@ func (client AppsClient) SyncFunctionTriggers(ctx context.Context, resourceGroup
 	result, err = client.SyncFunctionTriggersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "SyncFunctionTriggers", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31047,6 +31398,7 @@ func (client AppsClient) SyncFunctionTriggersSlot(ctx context.Context, resourceG
 	result, err = client.SyncFunctionTriggersSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "SyncFunctionTriggersSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31130,6 +31482,7 @@ func (client AppsClient) SyncRepository(ctx context.Context, resourceGroupName s
 	result, err = client.SyncRepositoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "SyncRepository", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31213,6 +31566,7 @@ func (client AppsClient) SyncRepositorySlot(ctx context.Context, resourceGroupNa
 	result, err = client.SyncRepositorySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "SyncRepositorySlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31299,6 +31653,7 @@ func (client AppsClient) Update(ctx context.Context, resourceGroupName string, n
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31385,6 +31740,7 @@ func (client AppsClient) UpdateApplicationSettings(ctx context.Context, resource
 	result, err = client.UpdateApplicationSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateApplicationSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31473,6 +31829,7 @@ func (client AppsClient) UpdateApplicationSettingsSlot(ctx context.Context, reso
 	result, err = client.UpdateApplicationSettingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateApplicationSettingsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31560,6 +31917,7 @@ func (client AppsClient) UpdateAuthSettings(ctx context.Context, resourceGroupNa
 	result, err = client.UpdateAuthSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateAuthSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31647,6 +32005,7 @@ func (client AppsClient) UpdateAuthSettingsSlot(ctx context.Context, resourceGro
 	result, err = client.UpdateAuthSettingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateAuthSettingsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31735,6 +32094,7 @@ func (client AppsClient) UpdateAuthSettingsV2(ctx context.Context, resourceGroup
 	result, err = client.UpdateAuthSettingsV2Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateAuthSettingsV2", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31823,6 +32183,7 @@ func (client AppsClient) UpdateAuthSettingsV2Slot(ctx context.Context, resourceG
 	result, err = client.UpdateAuthSettingsV2SlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateAuthSettingsV2Slot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31910,6 +32271,7 @@ func (client AppsClient) UpdateAzureStorageAccounts(ctx context.Context, resourc
 	result, err = client.UpdateAzureStorageAccountsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateAzureStorageAccounts", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -31998,6 +32360,7 @@ func (client AppsClient) UpdateAzureStorageAccountsSlot(ctx context.Context, res
 	result, err = client.UpdateAzureStorageAccountsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateAzureStorageAccountsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32094,6 +32457,7 @@ func (client AppsClient) UpdateBackupConfiguration(ctx context.Context, resource
 	result, err = client.UpdateBackupConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateBackupConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32191,6 +32555,7 @@ func (client AppsClient) UpdateBackupConfigurationSlot(ctx context.Context, reso
 	result, err = client.UpdateBackupConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateBackupConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32278,6 +32643,7 @@ func (client AppsClient) UpdateConfiguration(ctx context.Context, resourceGroupN
 	result, err = client.UpdateConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32366,6 +32732,7 @@ func (client AppsClient) UpdateConfigurationSlot(ctx context.Context, resourceGr
 	result, err = client.UpdateConfigurationSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateConfigurationSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32453,6 +32820,7 @@ func (client AppsClient) UpdateConnectionStrings(ctx context.Context, resourceGr
 	result, err = client.UpdateConnectionStringsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateConnectionStrings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32541,6 +32909,7 @@ func (client AppsClient) UpdateConnectionStringsSlot(ctx context.Context, resour
 	result, err = client.UpdateConnectionStringsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateConnectionStringsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32644,6 +33013,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfig(ctx context.Context, resourc
 	result, err = client.UpdateDiagnosticLogsConfigResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateDiagnosticLogsConfig", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32748,6 +33118,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlot(ctx context.Context, res
 	result, err = client.UpdateDiagnosticLogsConfigSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateDiagnosticLogsConfigSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32837,6 +33208,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifier(ctx context.Context, re
 	result, err = client.UpdateDomainOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateDomainOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -32928,6 +33300,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlot(ctx context.Context
 	result, err = client.UpdateDomainOwnershipIdentifierSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateDomainOwnershipIdentifierSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33018,6 +33391,7 @@ func (client AppsClient) UpdateFtpAllowed(ctx context.Context, resourceGroupName
 	result, err = client.UpdateFtpAllowedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateFtpAllowed", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33106,6 +33480,7 @@ func (client AppsClient) UpdateHybridConnection(ctx context.Context, resourceGro
 	result, err = client.UpdateHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateHybridConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33197,6 +33572,7 @@ func (client AppsClient) UpdateHybridConnectionSlot(ctx context.Context, resourc
 	result, err = client.UpdateHybridConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateHybridConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33286,6 +33662,7 @@ func (client AppsClient) UpdateMetadata(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateMetadataResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateMetadata", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33374,6 +33751,7 @@ func (client AppsClient) UpdateMetadataSlot(ctx context.Context, resourceGroupNa
 	result, err = client.UpdateMetadataSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateMetadataSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33462,6 +33840,7 @@ func (client AppsClient) UpdatePremierAddOn(ctx context.Context, resourceGroupNa
 	result, err = client.UpdatePremierAddOnResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdatePremierAddOn", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33552,6 +33931,7 @@ func (client AppsClient) UpdatePremierAddOnSlot(ctx context.Context, resourceGro
 	result, err = client.UpdatePremierAddOnSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdatePremierAddOnSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33642,6 +34022,7 @@ func (client AppsClient) UpdateRelayServiceConnection(ctx context.Context, resou
 	result, err = client.UpdateRelayServiceConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateRelayServiceConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33733,6 +34114,7 @@ func (client AppsClient) UpdateRelayServiceConnectionSlot(ctx context.Context, r
 	result, err = client.UpdateRelayServiceConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateRelayServiceConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33823,6 +34205,7 @@ func (client AppsClient) UpdateScmAllowed(ctx context.Context, resourceGroupName
 	result, err = client.UpdateScmAllowedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateScmAllowed", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -33912,6 +34295,7 @@ func (client AppsClient) UpdateSitePushSettings(ctx context.Context, resourceGro
 	result, err = client.UpdateSitePushSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSitePushSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34002,6 +34386,7 @@ func (client AppsClient) UpdateSitePushSettingsSlot(ctx context.Context, resourc
 	result, err = client.UpdateSitePushSettingsSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSitePushSettingsSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34093,6 +34478,7 @@ func (client AppsClient) UpdateSlot(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34181,6 +34567,7 @@ func (client AppsClient) UpdateSlotConfigurationNames(ctx context.Context, resou
 	result, err = client.UpdateSlotConfigurationNamesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSlotConfigurationNames", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34267,6 +34654,7 @@ func (client AppsClient) UpdateSourceControl(ctx context.Context, resourceGroupN
 	result, err = client.UpdateSourceControlResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSourceControl", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34355,6 +34743,7 @@ func (client AppsClient) UpdateSourceControlSlot(ctx context.Context, resourceGr
 	result, err = client.UpdateSourceControlSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSourceControlSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34445,6 +34834,7 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnection(ctx context.Context
 	result, err = client.UpdateSwiftVirtualNetworkConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSwiftVirtualNetworkConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34536,6 +34926,7 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnectionSlot(ctx context.Con
 	result, err = client.UpdateSwiftVirtualNetworkConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSwiftVirtualNetworkConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34625,6 +35016,7 @@ func (client AppsClient) UpdateVnetConnection(ctx context.Context, resourceGroup
 	result, err = client.UpdateVnetConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateVnetConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34715,6 +35107,7 @@ func (client AppsClient) UpdateVnetConnectionGateway(ctx context.Context, resour
 	result, err = client.UpdateVnetConnectionGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateVnetConnectionGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34808,6 +35201,7 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlot(ctx context.Context, re
 	result, err = client.UpdateVnetConnectionGatewaySlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateVnetConnectionGatewaySlot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -34901,6 +35295,7 @@ func (client AppsClient) UpdateVnetConnectionSlot(ctx context.Context, resourceG
 	result, err = client.UpdateVnetConnectionSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateVnetConnectionSlot", resp, "Failure responding to request")
+		return
 	}
 
 	return

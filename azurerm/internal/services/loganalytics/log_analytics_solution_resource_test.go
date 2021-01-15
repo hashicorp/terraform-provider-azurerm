@@ -1,129 +1,89 @@
 package loganalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+type LogAnalyticsSolutionResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.containerMonitoring(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSolution_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.containerMonitoring(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_solution"),
 		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
+func TestAccLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_solution"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.security(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["solutions"]
 
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSolution_security(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMLogAnalyticsSolutionDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.SolutionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_solution" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Log Analytics solution still exists:\n%#v", resp)
-		}
+	resp, err := clients.LogAnalytics.SolutionsClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Log Analytics Solution (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.SolutionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: %q", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Log Analytics Solutions Client: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Solutions %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMLogAnalyticsSolution_containerMonitoring(data acceptance.TestData) string {
+func (LogAnalyticsSolutionResource) containerMonitoring(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -160,8 +120,7 @@ resource "azurerm_log_analytics_solution" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsSolution_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsSolution_containerMonitoring(data)
+func (r LogAnalyticsSolutionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,10 +136,10 @@ resource "azurerm_log_analytics_solution" "import" {
     product   = "OMSGallery/ContainerInsights"
   }
 }
-`, template)
+`, r.containerMonitoring(data))
 }
 
-func testAccAzureRMLogAnalyticsSolution_security(data acceptance.TestData) string {
+func (LogAnalyticsSolutionResource) security(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

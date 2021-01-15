@@ -1,12 +1,14 @@
 package keyvault
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,14 +21,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultKey() *schema.Resource {
+func resourceKeyVaultKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultKeyCreate,
-		Read:   resourceArmKeyVaultKeyRead,
-		Update: resourceArmKeyVaultKeyUpdate,
-		Delete: resourceArmKeyVaultKeyDelete,
+		Create: resourceKeyVaultKeyCreate,
+		Read:   resourceKeyVaultKeyRead,
+		Update: resourceKeyVaultKeyUpdate,
+		Delete: resourceKeyVaultKeyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -152,7 +154,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -255,10 +257,10 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*read.Key.Kid)
 
-	return resourceArmKeyVaultKeyRead(d, meta)
+	return resourceKeyVaultKeyRead(d, meta)
 }
 
-func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -314,10 +316,10 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	return resourceArmKeyVaultKeyRead(d, meta)
+	return resourceKeyVaultKeyRead(d, meta)
 }
 
-func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -400,7 +402,7 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -429,8 +431,45 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
-	return err
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeKey{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var _ deleteAndPurgeNestedItem = deleteAndPurgeKey{}
+
+type deleteAndPurgeKey struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetKey(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedKey(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }
 
 func expandKeyVaultKeyOptions(d *schema.ResourceData) *[]keyvault.JSONWebKeyOperation {

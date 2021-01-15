@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceAzureFileStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceAzureFileStorageDelete,
+		Create: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceAzureFileStorageRead,
+		Update: resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceAzureFileStorageDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -56,6 +56,12 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"file_share": {
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -117,7 +123,7 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,8 +150,9 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 			Value: utils.String(d.Get("connection_string").(string)),
 			Type:  datafactory.TypeSecureString,
 		},
-		Host:   d.Get("host").(string),
-		UserID: d.Get("connection_string").(string),
+		FileShare: d.Get("file_share").(string),
+		Host:      d.Get("host").(string),
+		UserID:    d.Get("connection_string").(string),
 	}
 
 	password := d.Get("password").(string)
@@ -198,10 +205,10 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
+	return resourceDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,10 +259,16 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceD
 		}
 	}
 
+	if props := fileStorage.AzureFileStorageLinkedServiceTypeProperties; props != nil {
+		if props.FileShare != nil {
+			d.Set("file_share", props.FileShare)
+		}
+	}
+
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFileStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

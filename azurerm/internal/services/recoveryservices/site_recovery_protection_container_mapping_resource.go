@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryProtectionContainerMapping() *schema.Resource {
+func resourceSiteRecoveryProtectionContainerMapping() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryContainerMappingCreate,
-		Read:   resourceArmSiteRecoveryContainerMappingRead,
+		Create: resourceSiteRecoveryContainerMappingCreate,
+		Read:   resourceSiteRecoveryContainerMappingRead,
 		Update: nil,
-		Delete: resourceArmSiteRecoveryServicesContainerMappingDelete,
+		Delete: resourceSiteRecoveryServicesContainerMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceArmSiteRecoveryProtectionContainerMapping() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("recovery_fabric_name").(string)
@@ -125,10 +125,10 @@ func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta 
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryContainerMappingRead(d, meta)
+	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }
 
-func resourceArmSiteRecoveryContainerMappingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func resourceArmSiteRecoveryContainerMappingRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

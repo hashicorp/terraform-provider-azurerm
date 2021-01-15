@@ -32,11 +32,11 @@ import (
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 
 // AzureAsyncOperationResult the response body contains the status of the specified asynchronous operation,
-// indicating whether it has succeeded, is in progress, or has failed. Note that this status is distinct from
-// the HTTP status code returned for the Get Operation Status operation itself. If the asynchronous operation
-// succeeded, the response body includes the HTTP status code for the successful request. If the asynchronous
-// operation failed, the response body includes the HTTP status code for the failed request and error
-// information regarding the failure.
+// indicating whether it has succeeded, is in progress, or has failed. Note that this status is distinct
+// from the HTTP status code returned for the Get Operation Status operation itself. If the asynchronous
+// operation succeeded, the response body includes the HTTP status code for the successful request. If the
+// asynchronous operation failed, the response body includes the HTTP status code for the failed request
+// and error information regarding the failure.
 type AzureAsyncOperationResult struct {
 	// Status - Status of the Azure async operation. Possible values are: 'InProgress', 'Succeeded', and 'Failed'. Possible values include: 'InProgress', 'Succeeded', 'Failed'
 	Status NetworkOperationStatus `json:"status,omitempty"`
@@ -432,8 +432,8 @@ type ErrorDetails struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// ErrorResponse error response indicates Front Door service is not able to process the incoming request. The
-// reason is provided in the error message.
+// ErrorResponse error response indicates Front Door service is not able to process the incoming request.
+// The reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - READ-ONLY; Error code.
 	Code *string `json:"code,omitempty"`
@@ -542,8 +542,8 @@ func (e *Experiment) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ExperimentList defines a list of Experiments. It contains a list of Experiment objects and a URL link to get
-// the next set of results.
+// ExperimentList defines a list of Experiments. It contains a list of Experiment objects and a URL link to
+// get the next set of results.
 type ExperimentList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of Experiments within a resource group.
@@ -704,8 +704,11 @@ func (page ExperimentListPage) Values() []Experiment {
 }
 
 // Creates a new instance of the ExperimentListPage type.
-func NewExperimentListPage(getNextPage func(context.Context, ExperimentList) (ExperimentList, error)) ExperimentListPage {
-	return ExperimentListPage{fn: getNextPage}
+func NewExperimentListPage(cur ExperimentList, getNextPage func(context.Context, ExperimentList) (ExperimentList, error)) ExperimentListPage {
+	return ExperimentListPage{
+		fn: getNextPage,
+		el: cur,
+	}
 }
 
 // ExperimentProperties defines the properties of an experiment
@@ -747,8 +750,8 @@ func (ep ExperimentProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ExperimentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ExperimentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ExperimentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -945,8 +948,8 @@ func (fc ForwardingConfiguration) AsBasicRouteConfiguration() (BasicRouteConfigu
 	return &fc, true
 }
 
-// FrontDoor front Door represents a collection of backend endpoints to route traffic to along with rules that
-// specify how traffic is sent there.
+// FrontDoor front Door represents a collection of backend endpoints to route traffic to along with rules
+// that specify how traffic is sent there.
 type FrontDoor struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the Front Door Load Balancer
@@ -1272,8 +1275,8 @@ func (future *FrontendEndpointsEnableHTTPSFuture) Result(client FrontendEndpoint
 	return
 }
 
-// FrontendEndpointsListResult result of the request to list frontend endpoints. It contains a list of Frontend
-// endpoint objects and a URL link to get the next set of results.
+// FrontendEndpointsListResult result of the request to list frontend endpoints. It contains a list of
+// Frontend endpoint objects and a URL link to get the next set of results.
 type FrontendEndpointsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of Frontend endpoints within a Front Door.
@@ -1434,8 +1437,11 @@ func (page FrontendEndpointsListResultPage) Values() []FrontendEndpoint {
 }
 
 // Creates a new instance of the FrontendEndpointsListResultPage type.
-func NewFrontendEndpointsListResultPage(getNextPage func(context.Context, FrontendEndpointsListResult) (FrontendEndpointsListResult, error)) FrontendEndpointsListResultPage {
-	return FrontendEndpointsListResultPage{fn: getNextPage}
+func NewFrontendEndpointsListResultPage(cur FrontendEndpointsListResult, getNextPage func(context.Context, FrontendEndpointsListResult) (FrontendEndpointsListResult, error)) FrontendEndpointsListResultPage {
+	return FrontendEndpointsListResultPage{
+		fn:   getNextPage,
+		felr: cur,
+	}
 }
 
 // FrontendEndpointUpdateParameters frontend endpoint used in routing rule
@@ -1450,8 +1456,8 @@ type FrontendEndpointUpdateParameters struct {
 	WebApplicationFirewallPolicyLink *FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink `json:"webApplicationFirewallPolicyLink,omitempty"`
 }
 
-// FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink defines the Web Application Firewall policy
-// for each host (if applicable)
+// FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink defines the Web Application Firewall
+// policy for each host (if applicable)
 type FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink struct {
 	// ID - Resource ID.
 	ID *string `json:"id,omitempty"`
@@ -1563,8 +1569,8 @@ func (hpsm *HealthProbeSettingsModel) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// HealthProbeSettingsProperties the JSON object that contains the properties required to create a health probe
-// settings.
+// HealthProbeSettingsProperties the JSON object that contains the properties required to create a health
+// probe settings.
 type HealthProbeSettingsProperties struct {
 	// ResourceState - Resource status. Possible values include: 'ResourceStateCreating', 'ResourceStateEnabling', 'ResourceStateEnabled', 'ResourceStateDisabling', 'ResourceStateDisabled', 'ResourceStateDeleting'
 	ResourceState ResourceState `json:"resourceState,omitempty"`
@@ -1928,12 +1934,15 @@ func (page ListResultPage) Values() []FrontDoor {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
-// LoadBalancingSettingsListResult result of the request to list load balancing settings. It contains a list of
-// load balancing settings objects and a URL link to get the next set of results.
+// LoadBalancingSettingsListResult result of the request to list load balancing settings. It contains a
+// list of load balancing settings objects and a URL link to get the next set of results.
 type LoadBalancingSettingsListResult struct {
 	// Value - READ-ONLY; List of Backend Pools within a Front Door.
 	Value *[]LoadBalancingSettingsModel `json:"value,omitempty"`
@@ -2379,8 +2388,11 @@ func (page ManagedRuleSetDefinitionListPage) Values() []ManagedRuleSetDefinition
 }
 
 // Creates a new instance of the ManagedRuleSetDefinitionListPage type.
-func NewManagedRuleSetDefinitionListPage(getNextPage func(context.Context, ManagedRuleSetDefinitionList) (ManagedRuleSetDefinitionList, error)) ManagedRuleSetDefinitionListPage {
-	return ManagedRuleSetDefinitionListPage{fn: getNextPage}
+func NewManagedRuleSetDefinitionListPage(cur ManagedRuleSetDefinitionList, getNextPage func(context.Context, ManagedRuleSetDefinitionList) (ManagedRuleSetDefinitionList, error)) ManagedRuleSetDefinitionListPage {
+	return ManagedRuleSetDefinitionListPage{
+		fn:    getNextPage,
+		mrsdl: cur,
+	}
 }
 
 // ManagedRuleSetDefinitionProperties properties for a managed rule set definition.
@@ -2419,8 +2431,8 @@ type MatchCondition struct {
 	Transforms *[]TransformType `json:"transforms,omitempty"`
 }
 
-// NetworkExperimentProfilesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// NetworkExperimentProfilesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type NetworkExperimentProfilesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -2529,7 +2541,8 @@ func (future *PoliciesCreateOrUpdateFuture) Result(client PoliciesClient) (wafp 
 	return
 }
 
-// PoliciesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// PoliciesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type PoliciesDeleteFuture struct {
 	azure.Future
 }
@@ -2826,8 +2839,11 @@ func (page PreconfiguredEndpointListPage) Values() []PreconfiguredEndpoint {
 }
 
 // Creates a new instance of the PreconfiguredEndpointListPage type.
-func NewPreconfiguredEndpointListPage(getNextPage func(context.Context, PreconfiguredEndpointList) (PreconfiguredEndpointList, error)) PreconfiguredEndpointListPage {
-	return PreconfiguredEndpointListPage{fn: getNextPage}
+func NewPreconfiguredEndpointListPage(cur PreconfiguredEndpointList, getNextPage func(context.Context, PreconfiguredEndpointList) (PreconfiguredEndpointList, error)) PreconfiguredEndpointListPage {
+	return PreconfiguredEndpointListPage{
+		fn:  getNextPage,
+		pel: cur,
+	}
 }
 
 // PreconfiguredEndpointProperties defines the properties of a preconfigured endpoint
@@ -2957,8 +2973,8 @@ func (p *Profile) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ProfileList defines a list of Profiles. It contains a list of Profile objects and a URL link to get the next
-// set of results.
+// ProfileList defines a list of Profiles. It contains a list of Profile objects and a URL link to get the
+// next set of results.
 type ProfileList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of Profiles within a resource group.
@@ -3119,8 +3135,11 @@ func (page ProfileListPage) Values() []Profile {
 }
 
 // Creates a new instance of the ProfileListPage type.
-func NewProfileListPage(getNextPage func(context.Context, ProfileList) (ProfileList, error)) ProfileListPage {
-	return ProfileListPage{fn: getNextPage}
+func NewProfileListPage(cur ProfileList, getNextPage func(context.Context, ProfileList) (ProfileList, error)) ProfileListPage {
+	return ProfileListPage{
+		fn: getNextPage,
+		pl: cur,
+	}
 }
 
 // ProfileProperties defines the properties of an experiment
@@ -3435,8 +3454,8 @@ func (rc RouteConfiguration) AsBasicRouteConfiguration() (BasicRouteConfiguratio
 	return &rc, true
 }
 
-// RoutingRule a routing rule represents a specification for traffic to treat and where to send it, along with
-// health probe information.
+// RoutingRule a routing rule represents a specification for traffic to treat and where to send it, along
+// with health probe information.
 type RoutingRule struct {
 	// RoutingRuleProperties - Properties of the Front Door Routing Rule
 	*RoutingRuleProperties `json:"properties,omitempty"`
@@ -3998,8 +4017,11 @@ func (page RulesEngineListResultPage) Values() []RulesEngine {
 }
 
 // Creates a new instance of the RulesEngineListResultPage type.
-func NewRulesEngineListResultPage(getNextPage func(context.Context, RulesEngineListResult) (RulesEngineListResult, error)) RulesEngineListResultPage {
-	return RulesEngineListResultPage{fn: getNextPage}
+func NewRulesEngineListResultPage(cur RulesEngineListResult, getNextPage func(context.Context, RulesEngineListResult) (RulesEngineListResult, error)) RulesEngineListResultPage {
+	return RulesEngineListResultPage{
+		fn:   getNextPage,
+		relr: cur,
+	}
 }
 
 // RulesEngineMatchCondition define a match condition
@@ -4027,9 +4049,9 @@ type RulesEngineProperties struct {
 	Rules *[]RulesEngineRule `json:"rules,omitempty"`
 }
 
-// RulesEngineRule contains a list of match conditions, and an action on how to modify the request/response. If
-// multiple rules match, the actions from one rule that conflict with a previous rule overwrite for a singular
-// action, or append in the case of headers manipulation.
+// RulesEngineRule contains a list of match conditions, and an action on how to modify the
+// request/response. If multiple rules match, the actions from one rule that conflict with a previous rule
+// overwrite for a singular action, or append in the case of headers manipulation.
 type RulesEngineRule struct {
 	// Name - A name to refer to this specific rule.
 	Name *string `json:"name,omitempty"`
@@ -4043,8 +4065,8 @@ type RulesEngineRule struct {
 	MatchProcessingBehavior MatchProcessingBehavior `json:"matchProcessingBehavior,omitempty"`
 }
 
-// RulesEnginesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// RulesEnginesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type RulesEnginesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -4564,8 +4586,11 @@ func (page WebApplicationFirewallPolicyListPage) Values() []WebApplicationFirewa
 }
 
 // Creates a new instance of the WebApplicationFirewallPolicyListPage type.
-func NewWebApplicationFirewallPolicyListPage(getNextPage func(context.Context, WebApplicationFirewallPolicyList) (WebApplicationFirewallPolicyList, error)) WebApplicationFirewallPolicyListPage {
-	return WebApplicationFirewallPolicyListPage{fn: getNextPage}
+func NewWebApplicationFirewallPolicyListPage(cur WebApplicationFirewallPolicyList, getNextPage func(context.Context, WebApplicationFirewallPolicyList) (WebApplicationFirewallPolicyList, error)) WebApplicationFirewallPolicyListPage {
+	return WebApplicationFirewallPolicyListPage{
+		fn:    getNextPage,
+		wafpl: cur,
+	}
 }
 
 // WebApplicationFirewallPolicyProperties defines web application firewall policy properties.

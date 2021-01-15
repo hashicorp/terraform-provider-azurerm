@@ -1,136 +1,88 @@
 package mysql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMySQLServerKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
+type MySQLServerKeyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServerKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerKeyExists(data.ResourceName),
-				),
-			},
+func TestAccMySQLServerKey_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
+	r := MySQLServerKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMySQLServerKey_updateKey(t *testing.T) {
+func TestAccMySQLServerKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
+	r := MySQLServerKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServerKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMySQLServerKey_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMySQLServerKey_requiresImport(t *testing.T) {
+func TestAccMySQLServerKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
+	r := MySQLServerKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServerKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMMySQLServerKey_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMMySQLServerKeyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServerKeysClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mysql_server_key" {
-			continue
-		}
-
-		id, err := parse.KeyID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("retrieving MySQL Server Key: %+v", err)
-			}
-			return nil
-		}
-
-		return fmt.Errorf("MySQL Server Key still exists:\n%#v", resp)
+func (t MySQLServerKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.KeyID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMMySQLServerKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServerKeysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.KeyID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Server Key %q (Resource Group %q / Server %q) does not exist", id.Name, id.ResourceGroup, id.ServerName)
-			}
-			return fmt.Errorf("Bad: Get on MySQLServerKeysClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.MySQL.ServerKeysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading MySQL Server Key (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMySQLServerKey_template(data acceptance.TestData) string {
+func (MySQLServerKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -204,8 +156,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServerKey_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMySQLServerKey_template(data)
+func (r MySQLServerKeyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -213,11 +164,10 @@ resource "azurerm_mysql_server_key" "test" {
   server_id        = azurerm_mysql_server.test.id
   key_vault_key_id = azurerm_key_vault_key.first.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMMySQLServerKey_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMySQLServerKey_basic(data)
+func (r MySQLServerKeyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -225,11 +175,10 @@ resource "azurerm_mysql_server_key" "import" {
   server_id        = azurerm_mysql_server_key.test.server_id
   key_vault_key_id = azurerm_mysql_server_key.test.key_vault_key_id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMMySQLServerKey_updated(data acceptance.TestData) string {
-	template := testAccAzureRMMySQLServerKey_template(data)
+func (r MySQLServerKeyResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_key_vault_key" "second" {
@@ -247,5 +196,5 @@ resource "azurerm_mysql_server_key" "test" {
   server_id        = azurerm_mysql_server.test.id
   key_vault_key_id = azurerm_key_vault_key.second.id
 }
-`, template)
+`, r.template(data))
 }

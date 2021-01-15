@@ -14,7 +14,7 @@ import (
 
 func dataSourceAppServicePlan() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAppServicePlanRead,
+		Read: AppServicePlanDataSourceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -91,7 +91,7 @@ func dataSourceAppServicePlan() *schema.Resource {
 	}
 }
 
-func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
+func AppServicePlanDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,36 +1,39 @@
 package recoveryservices_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+type SiteRecoveryReplicatedVmResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryReplicatedVmDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryReplicatedVmExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMSiteRecoveryReplicatedVm_basic(data acceptance.TestData) string {
+func (SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -242,62 +245,22 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		state, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroupName := state.Primary.Attributes["resource_group_name"]
-		vaultName := state.Primary.Attributes["recovery_vault_name"]
-		fabricName := state.Primary.Attributes["source_recovery_fabric_name"]
-		protectionContainerName := state.Primary.Attributes["source_recovery_protection_container_name"]
-		replicationName := state.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-
-		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on replicationVmClient: %+v", err)
-		}
-
-		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: fabric: %q does not exist", fabricName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMSiteRecoveryReplicatedVmDestroy(s *terraform.State) error {
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_site_recovery_replicated_vm" {
-			continue
-		}
-
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		fabricName := rs.Primary.Attributes["source_recovery_fabric_name"]
-		protectionContainerName := rs.Primary.Attributes["source_recovery_protection_container_name"]
-		replicationName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-
-		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Replicated VM still exists:\n%#v", resp.Properties)
-		}
+func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resGroup := id.ResourceGroup
+	vaultName := id.Path["vaults"]
+	fabricName := id.Path["replicationFabrics"]
+	protectionContainerName := id.Path["replicationProtectionContainers"]
+	name := id.Path["replicationProtectedItems"]
+
+	resp, err := clients.RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName).Get(ctx, fabricName, protectionContainerName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading site recovery replicated vm (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }

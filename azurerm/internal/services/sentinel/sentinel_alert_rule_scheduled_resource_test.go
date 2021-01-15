@@ -92,20 +92,35 @@ func TestAccSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleScheduled_withAlertRuleTemplateGuid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.alertRuleTemplateGuid(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.SentinelAlertRuleID(state.ID)
+	id, err := parse.AlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q: %v", id, err)
 	}
 
 	rule, ok := resp.Value.(securityinsight.ScheduledAlertRule)
 	if !ok {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q (Resource Group %q) is not of ScheduledAlertRule kind", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("the Alert Rule %q is not a Scheduled Alert Rule", id)
 	}
 
 	return utils.Bool(rule.ID != nil), nil
@@ -142,18 +157,28 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   tactics                    = ["Collection", "CommandAndControl"]
   severity                   = "Low"
   enabled                    = false
-  query                      = <<QUERY
+  incident_configuration {
+    create_incident = true
+    grouping {
+      enabled                 = true
+      lookback_duration       = "P7D"
+      reopen_closed_incidents = true
+      entity_matching_method  = "Custom"
+      group_by                = ["Account", "Host"]
+    }
+  }
+  query                = <<QUERY
 AzureActivity |
   where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(3d), now(), 1d) by Caller
 QUERY
-  query_frequency            = "PT20M"
-  query_period               = "PT40M"
-  trigger_operator           = "Equal"
-  trigger_threshold          = 5
-  suppression_enabled        = true
-  suppression_duration       = "PT40M"
+  query_frequency      = "PT20M"
+  query_period         = "PT40M"
+  trigger_operator     = "Equal"
+  trigger_threshold    = 5
+  suppression_enabled  = true
+  suppression_duration = "PT40M"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -170,6 +195,26 @@ resource "azurerm_sentinel_alert_rule_scheduled" "import" {
   query                      = azurerm_sentinel_alert_rule_scheduled.test.query
 }
 `, r.basic(data))
+}
+
+func (r SentinelAlertRuleScheduledResource) alertRuleTemplateGuid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "Some Rule"
+  severity                   = "Low"
+  alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (SentinelAlertRuleScheduledResource) template(data acceptance.TestData) string {

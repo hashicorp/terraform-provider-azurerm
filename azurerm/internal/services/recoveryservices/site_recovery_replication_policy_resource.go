@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryReplicationPolicy() *schema.Resource {
+func resourceSiteRecoveryReplicationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryReplicationPolicyCreate,
-		Read:   resourceArmSiteRecoveryReplicationPolicyRead,
-		Update: resourceArmSiteRecoveryReplicationPolicyUpdate,
-		Delete: resourceArmSiteRecoveryReplicationPolicyDelete,
+		Create: resourceSiteRecoveryReplicationPolicyCreate,
+		Read:   resourceSiteRecoveryReplicationPolicyRead,
+		Update: resourceSiteRecoveryReplicationPolicyUpdate,
+		Delete: resourceSiteRecoveryReplicationPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceArmSiteRecoveryReplicationPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
@@ -111,10 +111,10 @@ func resourceArmSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryReplicationPolicyRead(d, meta)
+	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceArmSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
@@ -150,10 +150,10 @@ func resourceArmSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryReplicationPolicyRead(d, meta)
+	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceArmSiteRecoveryReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func resourceArmSiteRecoveryReplicationPolicyRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

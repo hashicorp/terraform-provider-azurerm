@@ -29,15 +29,15 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality"
 
-// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
 	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -52,8 +52,8 @@ type CheckNameAvailabilityRequest struct {
 // CheckNameAvailabilityResponse check Name Availability Response
 type CheckNameAvailabilityResponse struct {
 	autorest.Response `json:"-"`
-	// NameAvailable - if name Available. Possible values include: 'True', 'False'
-	NameAvailable NameAvailability `json:"nameAvailable,omitempty"`
+	// NameAvailable - if name Available
+	NameAvailable *bool `json:"nameAvailable,omitempty"`
 	// Reason - Resource Name To Verify. Possible values include: 'Invalid', 'AlreadyExists'
 	Reason NameUnavailableReason `json:"reason,omitempty"`
 	// Message - detail message
@@ -72,12 +72,33 @@ type ErrorResponse struct {
 	Details *string `json:"details,omitempty"`
 }
 
+// Identity identity for the resource.
+type Identity struct {
+	// PrincipalID - READ-ONLY; The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'SystemAssigned'
+	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	return json.Marshal(objectMap)
+}
+
 // Operation REST API operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+	// IsDataAction - Whether or not this is a data plane operation
+	IsDataAction *bool `json:"isDataAction,omitempty"`
 }
 
 // OperationDisplay the object that represents the operation.
@@ -92,8 +113,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationList result of the request to list Resource Provider operations. It contains a list of operations
-// and a URL link to get the next set of results.
+// OperationList result of the request to list Resource Provider operations. It contains a list of
+// operations and a URL link to get the next set of results.
 type OperationList struct {
 	autorest.Response `json:"-"`
 	// Value - List of operations supported by the Resource Provider.
@@ -245,29 +266,159 @@ func (page OperationListPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListPage type.
-func NewOperationListPage(getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
-	return OperationListPage{fn: getNextPage}
+func NewOperationListPage(cur OperationList, getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
+	return OperationListPage{
+		fn: getNextPage,
+		ol: cur,
+	}
 }
 
-// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
-// required location and tags
+// Plan plan for the resource.
+type Plan struct {
+	// Name - A user defined name of the 3rd Party Artifact that is being procured.
+	Name *string `json:"name,omitempty"`
+	// Publisher - The publisher of the 3rd Party Artifact that is being bought. E.g. NewRelic
+	Publisher *string `json:"publisher,omitempty"`
+	// Product - The 3rd Party artifact that is being procured. E.g. NewRelic. Product maps to the OfferID specified for the artifact at the time of Data Market onboarding.
+	Product *string `json:"product,omitempty"`
+	// PromotionCode - A publisher provided promotion code as provisioned in Data Market for the said product/artifact.
+	PromotionCode *string `json:"promotionCode,omitempty"`
+	// Version - The version of the desired product/artifact.
+	Version *string `json:"version,omitempty"`
+}
+
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
 type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
-// Resource ...
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// ResourceModelWithAllowedPropertySet the resource model definition containing the full set of allowed
+// properties for a resource. Except properties bag, there cannot be a top level property outside of this
+// set.
+type ResourceModelWithAllowedPropertySet struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ManagedBy - The  fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	ManagedBy *string `json:"managedBy,omitempty"`
+	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
+	Kind *string `json:"kind,omitempty"`
+	// Etag - READ-ONLY; The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.
+	Etag *string `json:"etag,omitempty"`
+	// Tags - Resource tags.
+	Tags     map[string]*string                           `json:"tags"`
+	Identity *ResourceModelWithAllowedPropertySetIdentity `json:"identity,omitempty"`
+	Sku      *ResourceModelWithAllowedPropertySetSku      `json:"sku,omitempty"`
+	Plan     *ResourceModelWithAllowedPropertySetPlan     `json:"plan,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceModelWithAllowedPropertySet.
+func (rmwaps ResourceModelWithAllowedPropertySet) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rmwaps.Location != nil {
+		objectMap["location"] = rmwaps.Location
+	}
+	if rmwaps.ManagedBy != nil {
+		objectMap["managedBy"] = rmwaps.ManagedBy
+	}
+	if rmwaps.Kind != nil {
+		objectMap["kind"] = rmwaps.Kind
+	}
+	if rmwaps.Tags != nil {
+		objectMap["tags"] = rmwaps.Tags
+	}
+	if rmwaps.Identity != nil {
+		objectMap["identity"] = rmwaps.Identity
+	}
+	if rmwaps.Sku != nil {
+		objectMap["sku"] = rmwaps.Sku
+	}
+	if rmwaps.Plan != nil {
+		objectMap["plan"] = rmwaps.Plan
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceModelWithAllowedPropertySetIdentity ...
+type ResourceModelWithAllowedPropertySetIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'SystemAssigned'
+	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceModelWithAllowedPropertySetIdentity.
+func (rmwaps ResourceModelWithAllowedPropertySetIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rmwaps.Type != "" {
+		objectMap["type"] = rmwaps.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceModelWithAllowedPropertySetPlan ...
+type ResourceModelWithAllowedPropertySetPlan struct {
+	// Name - A user defined name of the 3rd Party Artifact that is being procured.
+	Name *string `json:"name,omitempty"`
+	// Publisher - The publisher of the 3rd Party Artifact that is being bought. E.g. NewRelic
+	Publisher *string `json:"publisher,omitempty"`
+	// Product - The 3rd Party artifact that is being procured. E.g. NewRelic. Product maps to the OfferID specified for the artifact at the time of Data Market onboarding.
+	Product *string `json:"product,omitempty"`
+	// PromotionCode - A publisher provided promotion code as provisioned in Data Market for the said product/artifact.
+	PromotionCode *string `json:"promotionCode,omitempty"`
+	// Version - The version of the desired product/artifact.
+	Version *string `json:"version,omitempty"`
+}
+
+// ResourceModelWithAllowedPropertySetSku ...
+type ResourceModelWithAllowedPropertySetSku struct {
+	// Name - The name of the SKU. Ex - P3. It is typically a letter+number code
+	Name *string `json:"name,omitempty"`
+	// Tier - This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT. Possible values include: 'Free', 'Basic', 'Standard', 'Premium'
+	Tier SkuTier `json:"tier,omitempty"`
+	// Size - The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.
+	Size *string `json:"size,omitempty"`
+	// Family - If the service has different generations of hardware, for the same SKU, then that can be captured here.
+	Family *string `json:"family,omitempty"`
+	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	Capacity *int32 `json:"capacity,omitempty"`
+}
+
+// Sku the resource model definition representing SKU
+type Sku struct {
+	// Name - The name of the SKU. Ex - P3. It is typically a letter+number code
+	Name *string `json:"name,omitempty"`
+	// Tier - This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT. Possible values include: 'Free', 'Basic', 'Standard', 'Premium'
+	Tier SkuTier `json:"tier,omitempty"`
+	// Size - The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.
+	Size *string `json:"size,omitempty"`
+	// Family - If the service has different generations of hardware, for the same SKU, then that can be captured here.
+	Family *string `json:"family,omitempty"`
+	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	Capacity *int32 `json:"capacity,omitempty"`
 }
 
 // SpatialAnchorsAccount spatialAnchorsAccount Response.
@@ -275,15 +426,17 @@ type SpatialAnchorsAccount struct {
 	autorest.Response `json:"-"`
 	// SpatialAnchorsAccountProperties - Property bag.
 	*SpatialAnchorsAccountProperties `json:"properties,omitempty"`
+	// Identity - The identity associated with this account
+	Identity *Identity `json:"identity,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -292,6 +445,9 @@ func (saa SpatialAnchorsAccount) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if saa.SpatialAnchorsAccountProperties != nil {
 		objectMap["properties"] = saa.SpatialAnchorsAccountProperties
+	}
+	if saa.Identity != nil {
+		objectMap["identity"] = saa.Identity
 	}
 	if saa.Tags != nil {
 		objectMap["tags"] = saa.Tags
@@ -319,6 +475,15 @@ func (saa *SpatialAnchorsAccount) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				saa.SpatialAnchorsAccountProperties = &spatialAnchorsAccountProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity Identity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				saa.Identity = &identity
 			}
 		case "tags":
 			if v != nil {
@@ -386,8 +551,8 @@ type SpatialAnchorsAccountKeys struct {
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
 }
 
-// SpatialAnchorsAccountList result of the request to get resource collection. It contains a list of resources
-// and a URL link to get the next set of results.
+// SpatialAnchorsAccountList result of the request to get resource collection. It contains a list of
+// resources and a URL link to get the next set of results.
 type SpatialAnchorsAccountList struct {
 	autorest.Response `json:"-"`
 	// Value - List of resources supported by the Resource Provider.
@@ -539,8 +704,11 @@ func (page SpatialAnchorsAccountListPage) Values() []SpatialAnchorsAccount {
 }
 
 // Creates a new instance of the SpatialAnchorsAccountListPage type.
-func NewSpatialAnchorsAccountListPage(getNextPage func(context.Context, SpatialAnchorsAccountList) (SpatialAnchorsAccountList, error)) SpatialAnchorsAccountListPage {
-	return SpatialAnchorsAccountListPage{fn: getNextPage}
+func NewSpatialAnchorsAccountListPage(cur SpatialAnchorsAccountList, getNextPage func(context.Context, SpatialAnchorsAccountList) (SpatialAnchorsAccountList, error)) SpatialAnchorsAccountListPage {
+	return SpatialAnchorsAccountListPage{
+		fn:   getNextPage,
+		saal: cur,
+	}
 }
 
 // SpatialAnchorsAccountProperties spatial Anchors Account Customize Properties
@@ -551,17 +719,18 @@ type SpatialAnchorsAccountProperties struct {
 	AccountDomain *string `json:"accountDomain,omitempty"`
 }
 
-// TrackedResource the resource model definition for a ARM tracked top level resource
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
 type TrackedResource struct {
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 

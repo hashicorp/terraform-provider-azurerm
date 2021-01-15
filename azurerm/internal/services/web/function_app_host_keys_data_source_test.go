@@ -11,14 +11,13 @@ import (
 
 type FunctionAppHostKeysDataSource struct{}
 
-func TestAccDataSourceAzureRMFunctionAppHostKeys_basic(t *testing.T) {
+func TestAccFunctionAppHostKeysDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app_host_keys", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: FunctionAppHostKeysDataSource{}.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("default_function_key").Exists(),
 			),

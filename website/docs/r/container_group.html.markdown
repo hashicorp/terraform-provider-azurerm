@@ -188,6 +188,8 @@ A `volume` block supports:
 
 * `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
 
+* `empty_dir` - (Optional) Boolean as to whether the mounted volume should be an empty directory. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `storage_account_name` - (Optional) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
 
 * `storage_account_key` - (Optional) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.

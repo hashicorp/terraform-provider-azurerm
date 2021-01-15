@@ -75,6 +75,7 @@ func (client DataSetsClient) Create(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,6 +235,7 @@ func (client DataSetsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +318,7 @@ func (client DataSetsClient) ListByShare(ctx context.Context, resourceGroupName 
 	result.dsl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "ListByShare", resp, "Failure responding to request")
+		return
 	}
 	if result.dsl.hasNextLink() && result.dsl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -390,6 +393,7 @@ func (client DataSetsClient) listByShareNextResults(ctx context.Context, lastRes
 	result, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "listByShareNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

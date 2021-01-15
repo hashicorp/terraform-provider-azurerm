@@ -82,6 +82,7 @@ func (client AgentRegistrationInformationClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AgentRegistrationInformationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -166,6 +167,7 @@ func (client AgentRegistrationInformationClient) RegenerateKey(ctx context.Conte
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AgentRegistrationInformationClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return

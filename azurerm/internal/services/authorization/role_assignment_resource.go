@@ -150,33 +150,16 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
-	// TODO: we should switch this to use the timeout
-	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
+	if err := resource.Retry(d.Timeout(schema.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
+
 	read, err := roleAssignmentsClient.Get(ctx, scope, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Role Assignment ID for %q (Scope %q)", name, scope)
-	}
-
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{
-			"pending",
-		},
-		Target: []string{
-			"ready",
-		},
-		Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *read.ID),
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   d.Timeout(schema.TimeoutCreate),
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -254,12 +237,33 @@ func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name strin
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return resource.RetryableError(err)
-			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+			} else if utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
 				// When waiting for service principal to become available
 				return resource.RetryableError(err)
 			}
 
 			return resource.NonRetryableError(err)
+		}
+
+		if resp.ID == nil {
+			return resource.NonRetryableError(fmt.Errorf("creation of Role Assignment %q did not return an id value", name))
+		}
+
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{
+				"pending",
+			},
+			Target: []string{
+				"ready",
+			},
+			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *resp.ID),
+			MinTimeout:                5 * time.Second,
+			ContinuousTargetOccurence: 5,
+			Timeout:                   d.Timeout(schema.TimeoutCreate),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return resource.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err))
 		}
 
 		return nil
