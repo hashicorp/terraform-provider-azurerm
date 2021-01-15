@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkSecurityRule() *schema.Resource {
+func resourceNetworkSecurityRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityRuleCreateUpdate,
-		Read:   resourceArmNetworkSecurityRuleRead,
-		Update: resourceArmNetworkSecurityRuleCreateUpdate,
-		Delete: resourceArmNetworkSecurityRuleDelete,
+		Create: resourceNetworkSecurityRuleCreateUpdate,
+		Read:   resourceNetworkSecurityRuleRead,
+		Update: resourceNetworkSecurityRuleCreateUpdate,
+		Delete: resourceNetworkSecurityRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -169,7 +169,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,10 +305,10 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmNetworkSecurityRuleRead(d, meta)
+	return resourceNetworkSecurityRuleRead(d, meta)
 }
 
-func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,7 +361,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

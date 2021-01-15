@@ -6,79 +6,71 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
+type NetworkSecurityGroupDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMNetworkSecurityGroupBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccDataSourceNetworkSecurityGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
+func TestAccDataSourceNetworkSecurityGroup_rules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.name", "test123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.priority", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.direction", "Inbound"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.access", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.protocol", "Tcp"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.source_port_range", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.destination_port_range", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.source_address_prefix", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.0.destination_address_prefix", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.withRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_rule.0.name").HasValue("test123"),
+				check.That(data.ResourceName).Key("security_rule.0.priority").HasValue("100"),
+				check.That(data.ResourceName).Key("security_rule.0.direction").HasValue("Inbound"),
+				check.That(data.ResourceName).Key("security_rule.0.access").HasValue("Allow"),
+				check.That(data.ResourceName).Key("security_rule.0.protocol").HasValue("Tcp"),
+				check.That(data.ResourceName).Key("security_rule.0.source_port_range").HasValue("*"),
+				check.That(data.ResourceName).Key("security_rule.0.destination_port_range").HasValue("*"),
+				check.That(data.ResourceName).Key("security_rule.0.source_address_prefix").HasValue("*"),
+				check.That(data.ResourceName).Key("security_rule.0.destination_address_prefix").HasValue("*"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
+func TestAccDataSourceNetworkSecurityGroup_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMNetworkSecurityGroupTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMNetworkSecurityGroupBasic(data acceptance.TestData) string {
+func (NetworkSecurityGroupDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -102,7 +94,7 @@ data "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data acceptance.TestData) string {
+func (NetworkSecurityGroupDataSource) withRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -138,7 +130,7 @@ data "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMNetworkSecurityGroupTags(data acceptance.TestData) string {
+func (NetworkSecurityGroupDataSource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
