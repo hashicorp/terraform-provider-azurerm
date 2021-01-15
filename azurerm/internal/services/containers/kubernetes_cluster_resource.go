@@ -215,6 +215,88 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"pod_identity_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"user_assigned_identities": {
+							Type:     schema.TypeList,
+							Optional: true,
+							// AKS limitation
+							MaxItems: 50,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"namespace": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"identity": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"resource_id": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: azure.ValidateResourceID,
+												},
+												"client_id": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.IsUUID,
+												},
+												"object_id": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.IsUUID,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"user_assigned_identity_exceptions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							// AKS limitation
+							MaxItems: 50,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"namespace": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"pod_labels": {
+										Type:     schema.TypeMap,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"linux_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -690,6 +772,9 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
+	podIdentityProfileRaw := d.Get("pod_identity_profile").([]interface{})
+	podIdentityProfile := expandManagedClusterPodIdentityProfile(podIdentityProfileRaw)
+
 	linuxProfileRaw := d.Get("linux_profile").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 
@@ -767,6 +852,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			LinuxProfile:           linuxProfile,
 			WindowsProfile:         windowsProfile,
 			NetworkProfile:         networkProfile,
+			PodIdentityProfile:     podIdentityProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
 		},
 		Tags: tags.Expand(t),
@@ -966,6 +1052,14 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
 		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	}
+
+	if d.HasChange("pod_identity_profile") {
+		updateCluster = true
+		podIdentityProfileRaw := d.Get("pod_identity_profile").([]interface{})
+
+		podIdentityProfile := expandManagedClusterPodIdentityProfile(podIdentityProfileRaw)
+		existing.ManagedClusterProperties.PodIdentityProfile = podIdentityProfile
 	}
 
 	if d.HasChange("linux_profile") {
@@ -1219,6 +1313,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
 
+		podIdentityProfile := flattenManagedClusterPodIdentityProfile(props.PodIdentityProfile)
+		if err := d.Set("pod_identity_profile", podIdentityProfile); err != nil {
+			return fmt.Errorf("setting `pod_identity_profile`: %+v", err)
+		}
+
 		linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("setting `linux_profile`: %+v", err)
@@ -1325,6 +1424,77 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 	return nil, []interface{}{}
 }
 
+func expandManagedClusterPodIdentityProfile(input []interface{}) *containerservice.ManagedClusterPodIdentityProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	enabled := config["enabled"].(bool)
+
+	podIdentities := make([]containerservice.ManagedClusterPodIdentity, 0)
+	podIdentityExceptions := make([]containerservice.ManagedClusterPodIdentityException, 0)
+
+	userAssignedIdentities := config["user_assigned_identities"].([]interface{})
+	userAssignedIdentityExceptions := config["user_assigned_identity_exceptions"].([]interface{})
+
+	// user_assigned_identities
+	for _, userAssignedIdentity := range userAssignedIdentities {
+		data := userAssignedIdentity.(map[string]interface{})
+
+		name := data["name"].(string)
+		namespace := data["namespace"].(string)
+
+		identityParams := data["identity"].([]interface{})
+
+		resourceID := ""
+		clientID := ""
+		objectID := ""
+
+		if identity, ok := identityParams[0].(map[string]interface{}); ok {
+			resourceID = identity["resource_id"].(string)
+			clientID = identity["client_id"].(string)
+			objectID = identity["object_id"].(string)
+		}
+
+		podIdentity := containerservice.ManagedClusterPodIdentity{
+			Name:      utils.String(name),
+			Namespace: utils.String(namespace),
+			Identity: &containerservice.UserAssignedIdentity{
+				ResourceID: &resourceID,
+				ClientID:   &clientID,
+				ObjectID:   &objectID,
+			},
+		}
+
+		podIdentities = append(podIdentities, podIdentity)
+	}
+
+	// user_assigned_identity_exceptions
+	for _, userAssignedIdentityException := range userAssignedIdentityExceptions {
+		data := userAssignedIdentityException.(map[string]interface{})
+
+		name := data["name"].(string)
+		namespace := data["namespace"].(string)
+		podLabelsRaw := data["pod_labels"].(map[string]interface{})
+
+		podIdentityException := containerservice.ManagedClusterPodIdentityException{
+			Name:      utils.String(name),
+			Namespace: utils.String(namespace),
+			PodLabels: utils.ExpandMapStringPtrString(podLabelsRaw),
+		}
+
+		podIdentityExceptions = append(podIdentityExceptions, podIdentityException)
+	}
+
+	return &containerservice.ManagedClusterPodIdentityProfile{
+		Enabled:                        &enabled,
+		UserAssignedIdentities:         &podIdentities,
+		UserAssignedIdentityExceptions: &podIdentityExceptions,
+	}
+}
+
 func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.LinuxProfile {
 	if len(input) == 0 {
 		return nil
@@ -1387,6 +1557,77 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 	}
 
 	return kubeletIdentity, nil
+}
+
+func flattenManagedClusterPodIdentityProfile(profile *containerservice.ManagedClusterPodIdentityProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	podIdentityEnabled := false
+
+	if enabled := profile.Enabled; enabled != nil {
+		podIdentityEnabled = *enabled
+	}
+
+	podIdentities := make([]interface{}, 0)
+
+	if userAssignedIdentities := profile.UserAssignedIdentities; userAssignedIdentities != nil {
+		for _, userAssignedIdentity := range *userAssignedIdentities {
+			podIdentity := map[string]interface{}{
+				"name":      userAssignedIdentity.Name,
+				"namespace": userAssignedIdentity.Namespace,
+			}
+
+			identities := make([]interface{}, 0)
+
+			if v := userAssignedIdentity.Identity; v != nil {
+				identity := make(map[string]interface{})
+
+				identity["resource_id"] = v.ResourceID
+				identity["client_id"] = v.ClientID
+				identity["object_id"] = v.ObjectID
+
+				identities = append(identities, identity)
+			}
+
+			podIdentity["identity"] = identities
+
+			podIdentities = append(podIdentities, podIdentity)
+		}
+	}
+
+	podIdentityExceptions := make([]interface{}, 0)
+
+	if userAssignedIdentityExceptions := profile.UserAssignedIdentityExceptions; userAssignedIdentityExceptions != nil {
+		for _, userAssignedIdentityException := range *userAssignedIdentityExceptions {
+			var podLabels map[string]string
+
+			if userAssignedIdentityException.PodLabels != nil {
+				podLabels = make(map[string]string)
+
+				for k, v := range userAssignedIdentityException.PodLabels {
+					podLabels[k] = *v
+				}
+			}
+
+			podIdentityException := map[string]interface{}{
+				"name":       userAssignedIdentityException.Name,
+				"namespace":  userAssignedIdentityException.Namespace,
+				"pod_labels": podLabels,
+			}
+
+			podIdentityExceptions = append(podIdentityExceptions, podIdentityException)
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":                           podIdentityEnabled,
+			"user_assigned_identities":          podIdentities,
+			"user_assigned_identity_exceptions": podIdentityExceptions,
+		},
+	}
 }
 
 func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
