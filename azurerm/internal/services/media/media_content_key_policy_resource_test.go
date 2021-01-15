@@ -17,13 +17,13 @@ import (
 type MediaContentKeyPolicyResource struct {
 }
 
-func TestAccMediaContentKeyPolicy_clearKeyWithTokenRestriction(t *testing.T) {
+func TestAccMediaContentKeyPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
 	r := MediaContentKeyPolicyResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.clearKeyWithTokenRestriction(data),
+			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.#").HasValue("1"),
@@ -39,7 +39,7 @@ func TestAccMediaContentKeyPolicy_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.clearKeyWithTokenRestriction(data),
+			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.#").HasValue("1"),
@@ -49,46 +49,16 @@ func TestAccMediaContentKeyPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMediaContentKeyPolicy_multipleOptions(t *testing.T) {
+func TestAccMediaContentKeyPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
 	r := MediaContentKeyPolicyResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.multipleOptions(data),
+			Config: r.complete(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
-				check.That(data.ResourceName).Key("policy_option.#").HasValue("2"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccMediaContentKeyPolicy_fairPlaywithOpenRestriction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
-	r := MediaContentKeyPolicyResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.fairPlaywithOpenRestriction(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccMediaContentKeyPolicy_playReadywithOpenRestriction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
-	r := MediaContentKeyPolicyResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.playReadywithOpenRestriction(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
+				check.That(data.ResourceName).Key("policy_option.#").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -109,7 +79,7 @@ func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(resp.ContentKeyPolicyProperties != nil), nil
 }
 
-func (r MediaContentKeyPolicyResource) clearKeyWithTokenRestriction(data acceptance.TestData) string {
+func (r MediaContentKeyPolicyResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -134,7 +104,7 @@ resource "azurerm_media_content_key_policy" "test" {
 }
 
 func (r MediaContentKeyPolicyResource) requiresImport(data acceptance.TestData) string {
-	template := r.clearKeyWithTokenRestriction(data)
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +127,7 @@ resource "azurerm_media_content_key_policy" "import" {
 `, template)
 }
 
-func (r MediaContentKeyPolicyResource) multipleOptions(data acceptance.TestData) string {
+func (r MediaContentKeyPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -167,36 +137,7 @@ resource "azurerm_media_content_key_policy" "test" {
   media_services_account_name = azurerm_media_services_account.test.name
   description                 = "My Policy Description"
   policy_option {
-    name                            = "ClearKeyOption"
-    clear_key_configuration_enabled = true
-    token_restriction {
-      issuer                      = "urn:issuer"
-      audience                    = "urn:audience"
-      token_type                  = "Swt"
-      primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
-    }
-  }
-  policy_option {
-    name                            = "widevineoption"
-    widevine_configuration_template = "{\"allowed_track_types\":\"SD_HD\",\"content_key_specs\":[{\"track_type\":\"SD\",\"security_level\":1,\"required_output_protection\":{\"hdcp\":\"HDCP_V2\"}}],\"policy_overrides\":{\"can_play\":true,\"can_persist\":true,\"can_renew\":false}}"
-    open_restriction_enabled        = true
-  }
-
-}
-`, r.template(data))
-}
-
-func (r MediaContentKeyPolicyResource) fairPlaywithOpenRestriction(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_media_content_key_policy" "test" {
-  name                        = "Policy-1"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  description                 = "My Policy Description"
-  policy_option {
-    name = "fairplayOption"
+    name = "fairPlay"
     fairplay_configuration {
       ask                       = "myKeyForFairPlay"
       pfx                       = "MIIG7gIBAzCCBqoGCSqGSIb3DQEHAaCCBpsEggaXMIIGkzCCA7wGCSqGSIb3DQEHAaCCA60EggOpMIIDpTCCA6EGCyqGSIb3DQEMCgECoIICtjCCArIwHAYKKoZIhvcNAQwBAzAOBAiV65vFfxLDVgICB9AEggKQx2dxWefICYodVhRLSQVMJRYy5QkM1VySPAXGP744JHrb+s0Y8i/6a+a5itZGlXw3kvxyflHtSsuuBCaYJ1WOCp9jspixJEliFHXTcel96AgZlT5tB7vC6pdZnz8rb+lyxFs99x2CW52EsadoDlRsYrmkmKdnB0cx2JHJbLeXuKV/fjuRJSqCFcDa6Nre8AlBX0zKGIYGLJ1Cfpora4kNTXxu0AwEowzGmoCxqrpKbO1QDi1hZ1qHrtZ1ienAKfiTXaGH4AMQzyut0AaymxalrRbXibJYuefLRvXqx0oLZKVLAX8fR1gnac6Mrr7GkdHaKCsk4eOi98acR7bjiyRRVYYS4B6Y0tCeRJNe6zeYVmLdtatuOlOEVDT6AKrJJMFMyITVS+2D771ge6m37FbJ36K3/eT/HRq1YDsxfD/BY+X7eMIwQrVnD5nK7avXfbIni57n5oWLkE9Vco8uBlMdrx4xHt9vpe42Pz2Yh2O4WtvxcgxrAknvPpV1ZsAJCfvm9TTcg8qZpjyePn3B9TvFVSXMJHn/rzu6OJAgFgVFAe1tPGLh1XBxAvwpB8EqcycIIUUFUBy4HgYCicjI2jp6s8Kk293Uc/TA2623LrWgP/Xm5hVB7lP1k6W9LDivOlAA96D0Cbk08Yv6arkCYj7ONFO8VZbO0zKAAOLHMw/ZQRIutGLrDlqgTDeRXRuReX7TNjDBxp2rzJBY0uU5g9BMFxQrbQwEx9HsnO4dVFG4KLbHmYWhlwS2V2uZtY6D6elOXY3SX50RwhC4+0trUMi/ODtOxAc+lMQk2FNDcNeKIX5wHwFRS+sFBu5Um4Jfj6Ua4w1izmu2KiPfDd3vJsm5Dgcci3fPfdSfpIq4uR6d3JQxgdcwEwYJKoZIhvcNAQkVMQYEBAEAAAAwWwYJKoZIhvcNAQkUMU4eTAB7ADcAMQAxADAANABBADgARgAtADQAQgBFADAALQA0AEEAMgA4AC0AOAAyADIANQAtAEYANwBBADcAMwBGAEMAQQAwAEMARABEAH0wYwYJKwYBBAGCNxEBMVYeVABNAGkAYwByAG8AcwBvAGYAdAAgAEIAYQBzAGUAIABDAHIAeQBwAHQAbwBnAHIAYQBwAGgAaQBjACAAUAByAG8AdgBpAGQAZQByACAAdgAxAC4AMDCCAs8GCSqGSIb3DQEHBqCCAsAwggK8AgEAMIICtQYJKoZIhvcNAQcBMBwGCiqGSIb3DQEMAQMwDgQISS7mG/riQJkCAgfQgIICiPSGg5axP4JM+GmiVEqOHTVAPw2AM8OPnn1q0mIw54oC2WOJw3FFThYHmxTQzQ1feVmnkVCv++eFp+BYTcWTa+ehl/3/Nvr5uLTzDxmCShacKwoWXOKtSLh6mmgydvMqSf6xv1bPsloodtrRxhprI2lBNBW2uw8az9eLdvURYmhjGPf9klEy/6OCA5jDT5XZMunwiQT5mYNMF7wAQ5PCz2dJQqm1n72A6nUHPkHEusN7iH/+mv5d3iaKxn7/ShxLKHfjMd+r/gv27ylshVHiN4mVStAg+MiLrVvr5VH46p6oosImvS3ZO4D5wTmh/6wtus803qN4QB/Y9n4rqEJ4Dn619h+6O7FChzWkx7kvYIzIxvfnj1PCFTEjUwc7jbuF013W/z9zQi2YEq9AzxMcGro0zjdt2sf30zXSfaRNt0UHHRDkLo7yFUJG5Ka1uWU8paLuXUUiiMUf24Bsfdg2A2n+3Qa7g25OvAM1QTpMwmMWL9sY2hxVUGIKVrnj8c4EKuGJjVDXrze5g9O/LfZr5VSjGu5KsN0eYI3mcePF7XM0azMtTNQYVRmeWxYW+XvK5MaoLEkrFG8C5+JccIlN588jowVIPqP321S/EyFiAmrRdAWkqrc9KH+/eINCFqjut2YPkCaTM9mnJAAqWgggUWkrOKT/ByS6IAQwyEBNFbY0TWyxKt6vZL1EW/6HgZCsxeYycNhnPr2qJNZZMNzmdMRp2GRLcfBH8KFw1rAyua0VJoTLHb23ZAsEY74BrEEiK9e/oOjXkHzQjlmrfQ9rSN2eQpRrn0W8I229WmBO2suG+AQ3aY8kDtBMkjmJno7txUh1K5D6tJTO7MQp343A2AhyJkhYA7NPnDA7MB8wBwYFKw4DAhoEFPO82HDlCzlshWlnMoQPStm62TMEBBQsPmvwbZ5OlwC9+NDF1AC+t67WTgICB9A="
@@ -207,34 +148,6 @@ resource "azurerm_media_content_key_policy" "test" {
     }
     open_restriction_enabled = true
   }
-  policy_option {
-    name = "fairplayOption2"
-    fairplay_configuration {
-      ask          = "myKeyForFairPlay"
-      pfx          = "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"
-      pfx_password = "password"
-      offline_rental_configuration {
-        playback_duration_seconds = 600
-        storage_duration_seconds  = 600
-      }
-      rental_and_lease_key_type = "DualExpiry"
-    }
-    open_restriction_enabled = true
-  }
-
-}
-`, r.template(data))
-}
-
-func (r MediaContentKeyPolicyResource) playReadywithOpenRestriction(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_media_content_key_policy" "test" {
-  name                        = "Policy-1"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  description                 = "My Policy Description"
   policy_option {
     name = "playReady"
     playready_configuration_license {
@@ -257,7 +170,35 @@ resource "azurerm_media_content_key_policy" "test" {
     }
     open_restriction_enabled = true
   }
-
+  policy_option {
+    name                            = "clearKey"
+    clear_key_configuration_enabled = true
+    token_restriction {
+      issuer                      = "urn:issuer"
+      audience                    = "urn:audience"
+      token_type                  = "Swt"
+      primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
+    }
+  }
+  policy_option {
+    name = "widevine"
+    widevine_configuration_template = jsonencode({
+      "allowed_track_types" : "SD_HD",
+      "content_key_specs" : [{
+        "track_type" : "SD",
+        "security_level" : 1,
+        "required_output_protection" : {
+          "hdcp" : "HDCP_V2"
+        },
+      }],
+      "policy_overrides" : {
+        "can_play" : true,
+        "can_persist" : true,
+        "can_renew" : false,
+      },
+    })
+    open_restriction_enabled = true
+  }
 }
 `, r.template(data))
 }
