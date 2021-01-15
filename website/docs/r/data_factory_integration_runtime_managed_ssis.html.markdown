@@ -1,14 +1,14 @@
 ---
 subcategory: "Data Factory"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_integration_runtime_managed"
+page_title: "Azure Resource Manager: azurerm_data_factory_integration_runtime_managed_ssis"
 description: |-
-  Manages an Azure Data Factory Managed Integration Runtime.
+  Manages an Azure Data Factory Managed Integration Runtime (SSIS).
 ---
 
-# azurerm_data_factory_integration_runtime_managed
+# azurerm_data_factory_integration_runtime_managed_ssis
 
-Manages an Azure Data Factory Managed Integration Runtime.
+Manages an Azure Data Factory Managed Integration Runtime (SSIS).
 
 ## Example Usage
 
@@ -24,7 +24,7 @@ resource "azurerm_data_factory" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_data_factory_integration_runtime_managed" "example" {
+resource "azurerm_data_factory_integration_runtime_managed_ssis" "example" {
   name                = "example"
   data_factory_name   = azurerm_data_factory.example.name
   resource_group_name = azurerm_resource_group.example.name
@@ -112,5 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Integration Managed Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_integration_runtime_managed.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
+terraform import azurerm_data_factory_integration_runtime_managed_ssis.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
 ```

@@ -18,7 +18,7 @@ type IntegrationRuntimeManagedResource struct {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -33,7 +33,7 @@ func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -51,7 +51,7 @@ func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -71,7 +71,7 @@ func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -105,7 +105,7 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_integration_runtime_managed" "test" {
+resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -151,7 +151,7 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_integration_runtime_managed" "test" {
+resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -193,7 +193,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "my-s3cret-p4ssword!"
 }
 
-resource "azurerm_data_factory_integration_runtime_managed" "test" {
+resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -263,7 +263,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   }
 }
 
-resource "azurerm_data_factory_integration_runtime_managed" "test" {
+resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name

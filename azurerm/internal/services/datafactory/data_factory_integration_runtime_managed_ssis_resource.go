@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
+func resourceDataFactoryIntegrationRuntimeManagedSsis() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeManagedCreateUpdate,
-		Read:   resourceDataFactoryIntegrationRuntimeManagedRead,
-		Update: resourceDataFactoryIntegrationRuntimeManagedCreateUpdate,
-		Delete: resourceDataFactoryIntegrationRuntimeManagedDelete,
+		Create: resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate,
+		Read:   resourceDataFactoryIntegrationRuntimeManagedSsisRead,
+		Update: resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate,
+		Delete: resourceDataFactoryIntegrationRuntimeManagedSsisDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -200,7 +200,7 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +218,7 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resource
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_managed", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_managed_ssis", *existing.ID)
 		}
 	}
 
@@ -254,10 +254,10 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resource
 
 	d.SetId(*resp.ID)
 
-	return resourceDataFactoryIntegrationRuntimeManagedRead(d, meta)
+	return resourceDataFactoryIntegrationRuntimeManagedSsisRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -331,7 +331,7 @@ func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedSsisDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
