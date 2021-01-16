@@ -222,29 +222,29 @@ func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *cli
 
 const testAccServiceBusSubscription_tfTemplate = `
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-    name                = "acctestservicebusnamespace-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Standard"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-    name                = "acctestservicebustopic-%d"
-    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestservicebustopic-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-    name                = "acctestservicebussubscription-%d"
-    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-    topic_name          = "${azurerm_servicebus_topic.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    max_delivery_count  = 10
+  name                = "acctestservicebussubscription-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  topic_name          = "${azurerm_servicebus_topic.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  max_delivery_count  = 10
 	%s
 }
 `
@@ -285,11 +285,13 @@ func (ServiceBusSubscriptionResource) updateRequiresSession(data acceptance.Test
 func (ServiceBusSubscriptionResource) updateForwardTo(data acceptance.TestData) string {
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
+
 resource "azurerm_servicebus_topic" "forward_to" {
-    name = "acctestservicebustopic-forward_to-%d"
-    namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestservicebustopic-forward_to-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
+
 
 `
 	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
@@ -299,11 +301,13 @@ resource "azurerm_servicebus_topic" "forward_to" {
 func (ServiceBusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data acceptance.TestData) string {
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
+
 resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
-    name = "acctestservicebustopic-forward_dl_messages_to-%d"
-    namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestservicebustopic-forward_dl_messages_to-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
+
 
 `
 	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
