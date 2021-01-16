@@ -135,7 +135,7 @@ A `fairplay_configuration` block supports the following:
 
 * `pfx_password` - (Optional) The password encrypting FairPlay certificate in PKCS 12 (pfx) format.
 
-* `rental_and_lease_key_type` - (Optional) The rental and lease key type. Supported values are `DualExpiry`, `PersistentLimited`, `PersistentUnlimited`, `Undefined` or `Unknown`.
+* `rental_and_lease_key_type` - (Optional) The rental and lease key type. Supported values are `DualExpiry`, `PersistentLimited`, `PersistentUnlimited` or `Undefined`.
 
 * `rental_duration_seconds` - (Optional) The rental duration. Must be greater than 0.
 
@@ -153,7 +153,7 @@ A `play_right` block supports the following:
 
 * `agc_and_color_stripe_restriction` - (Optional) Configures Automatic Gain Control (AGC) and Color Stripe in the license. Must be between 0 and 3 inclusive.
 
-* `allow_passing_video_content_to_unknown_output` - (Optional) Configures Unknown output handling settings of the license. Supported values are `Allowed`, `AllowedWithVideoConstriction`, `NotAllowed` or `Unknown`.
+* `allow_passing_video_content_to_unknown_output` - (Optional) Configures Unknown output handling settings of the license. Supported values are `Allowed`, `AllowedWithVideoConstriction` or `NotAllowed`.
 
 * `analog_video_opl` - (Optional) Specifies the output protection level for compressed digital audio. Supported values are 100, 150 or 200.
 
@@ -187,13 +187,13 @@ A `playready_configuration_license` block supports the following:
 -> **NOTE:** You can only specify one content key location. For example if you specify content_key_location_from_header_enabled in true, you shouldn't specify content_key_location_from_key_id and vice versa.
 
 
-* `content_type` - (Optional) The PlayReady content type. Supported values are `UltraVioletDownload`, `UltraVioletStreaming`, `Unknown` or `Unspecified`.
+* `content_type` - (Optional) The PlayReady content type. Supported values are `UltraVioletDownload`, `UltraVioletStreaming` or `Unspecified`.
 
 * `expiration_date` - (Optional) The expiration date of license.
 
 * `grace_period` - (Optional) The grace period of license.
 
-* `license_type` - (Optional) The license type. Supported values are `NonPersistent`, `Persistent` or `Unknown`.
+* `license_type` - (Optional) The license type. Supported values are `NonPersistent` or `Persistent`.
 
 * `play_right` - (Optional) A `play_right` block as defined above.
 
@@ -249,7 +249,7 @@ A `token_restriction` block supports the following:
 
 * `required_claim` - (Optional) One or more `required_claim` blocks as defined above.
 
-* `token_type` - (Optional) The type of token. Supported values are Jwt, Swt or Unknown.
+* `token_type` - (Optional) The type of token. Supported values are `Jwt` or `Swt`.
 
 -> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide primary_rsa_token_key_exponent and primary_rsa_token_key_modulus, if you want to use symmetric you need to provide primary_symmetric_token_key and for x509 you must provide primary_x509_token_key_raw. For more information about Token access please refer to https://docs.microsoft.com/en-us/azure/media-services/latest/content-protection-overview#controlling-content-access 
 
