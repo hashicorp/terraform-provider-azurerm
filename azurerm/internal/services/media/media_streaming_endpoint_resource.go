@@ -435,6 +435,16 @@ func resourceMediaStreamingEndpointDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
+	// Stop Streaming Endpoint before we attempt to delete it.
+	stopFuture, err := client.Stop(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("could not stop %s for delete: %+v", id, err)
+	}
+
+	if err = stopFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for stopping %s: %+v", id, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error deleting Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
