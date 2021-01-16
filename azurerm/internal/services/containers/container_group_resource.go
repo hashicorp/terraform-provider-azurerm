@@ -31,6 +31,7 @@ func resourceArmContainerGroup() *schema.Resource {
 		Create: resourceArmContainerGroupCreate,
 		Read:   resourceArmContainerGroupRead,
 		Delete: resourceArmContainerGroupDelete,
+		Update: resourceArmContainerGroupUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -155,7 +156,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				},
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 
 			"restart_policy": {
 				Type:             schema.TypeString,
@@ -581,6 +582,39 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read container group %s (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
+
+	return resourceArmContainerGroupRead(d, meta)
+}
+
+func resourceArmContainerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Containers.GroupsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	resGroup := d.Get("resource_group_name").(string)
+	name := d.Get("name").(string)
+
+	t := d.Get("tags").(map[string]interface{})
+
+	parameters := containerinstance.Resource{
+		Tags: tags.Expand(t),
+	}
+
+	_, err := client.Update(ctx, resGroup, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
