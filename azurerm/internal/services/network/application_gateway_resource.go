@@ -21,7 +21,7 @@ import (
 )
 
 // See https://github.com/Azure/azure-sdk-for-go/blob/master/services/network/mgmt/2018-04-01/network/models.go
-func possibleArmApplicationGatewaySslCipherSuiteValues() []string {
+func possibleApplicationGatewaySslCipherSuiteValues() []string {
 	cipherSuites := make([]string, 0)
 	for _, cipherSuite := range network.PossibleApplicationGatewaySslCipherSuiteValues() {
 		cipherSuites = append(cipherSuites, string(cipherSuite))
@@ -38,12 +38,12 @@ func base64EncodedStateFunc(v interface{}) string {
 	}
 }
 
-func resourceArmApplicationGateway() *schema.Resource {
+func resourceApplicationGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationGatewayCreateUpdate,
-		Read:   resourceArmApplicationGatewayRead,
-		Update: resourceArmApplicationGatewayCreateUpdate,
-		Delete: resourceArmApplicationGatewayDelete,
+		Create: resourceApplicationGatewayCreateUpdate,
+		Read:   resourceApplicationGatewayRead,
+		Update: resourceApplicationGatewayCreateUpdate,
+		Delete: resourceApplicationGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -779,7 +779,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.StringInSlice(possibleArmApplicationGatewaySslCipherSuiteValues(), false),
+								ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
 							},
 						},
 
@@ -1316,7 +1316,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
 	client := armClient.Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -1498,10 +1498,10 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmApplicationGatewayRead(d, meta)
+	return resourceApplicationGatewayRead(d, meta)
 }
 
-func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1647,7 +1647,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, applicationGateway.Tags)
 }
 
-func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

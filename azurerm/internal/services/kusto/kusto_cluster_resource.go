@@ -385,7 +385,11 @@ func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenIdentity(clusterResponse.Identity)); err != nil {
+	identity, err := flattenIdentity(clusterResponse.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 

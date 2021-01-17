@@ -6,34 +6,32 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func testAccDataSourceAzureRMExpressRoute_basicMetered(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
+type ExpressRouteCircuitDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMExpressRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "service_provider_properties.0.service_provider_name", "Equinix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_provider_properties.0.peering_location", "Silicon Valley"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_provider_properties.0.bandwidth_in_mbps", "50"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "MeteredData"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_provider_provisioning_state", "NotProvisioned"),
-				),
-			},
+func testAccDataSourceExpressRoute_basicMetered(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_provider_properties.0.service_provider_name").HasValue("Equinix"),
+				check.That(data.ResourceName).Key("service_provider_properties.0.peering_location").HasValue("Silicon Valley"),
+				check.That(data.ResourceName).Key("service_provider_properties.0.bandwidth_in_mbps").HasValue("50"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku.0.family").HasValue("MeteredData"),
+				check.That(data.ResourceName).Key("service_provider_provisioning_state").HasValue("NotProvisioned"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMExpressRoute_basic(data acceptance.TestData) string {
-	config := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data)
-
+func (ExpressRouteCircuitDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -41,5 +39,5 @@ data "azurerm_express_route_circuit" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = azurerm_express_route_circuit.test.name
 }
-`, config)
+`, ExpressRouteCircuitResource{}.basicMeteredConfig(data))
 }
