@@ -118,7 +118,7 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 	})
 }
 
-func (SubnetDataSource) basic(data acceptance.TestData) string {
+func (r SubnetDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ data "azurerm_subnet" "test" {
   virtual_network_name = azurerm_subnet.test.virtual_network_name
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, SubnetResource{}.template(data))
+`, r.template(data))
 }
 
 func (SubnetDataSource) basic_addressPrefixes(data acceptance.TestData) string {
@@ -166,7 +166,7 @@ data "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (SubnetDataSource) networkSecurityGroupDependencies(data acceptance.TestData) string {
+func (r SubnetDataSource) networkSecurityGroupDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -199,7 +199,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   subnet_id                 = azurerm_subnet.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-`, SubnetResource{}.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SubnetDataSource) networkSecurityGroup(data acceptance.TestData) string {
@@ -214,7 +214,7 @@ data "azurerm_subnet" "test" {
 `, r.networkSecurityGroupDependencies(data))
 }
 
-func (SubnetDataSource) routeTableDependencies(data acceptance.TestData) string {
+func (r SubnetDataSource) routeTableDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -242,7 +242,7 @@ resource "azurerm_subnet_route_table_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   route_table_id = azurerm_route_table.test.id
 }
-`, SubnetResource{}.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SubnetDataSource) routeTable(data acceptance.TestData) string {
