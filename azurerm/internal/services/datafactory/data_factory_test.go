@@ -2,7 +2,7 @@ package datafactory
 
 import "testing"
 
-func TestAzureRmDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
+func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 	cases := []struct {
 		Old    string
 		New    string
@@ -39,7 +39,7 @@ func TestAzureRmDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 	}
 }
 
-func TestAzureRmDataFactoryDeserializePipelineActivities(t *testing.T) {
+func TestDataFactoryDeserializePipelineActivities(t *testing.T) {
 	cases := []struct {
 		Json                string
 		ExpectActivityCount int

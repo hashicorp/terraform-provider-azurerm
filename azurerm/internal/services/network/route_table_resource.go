@@ -21,12 +21,12 @@ import (
 
 var routeTableResourceName = "azurerm_route_table"
 
-func resourceArmRouteTable() *schema.Resource {
+func resourceRouteTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteTableCreateUpdate,
-		Read:   resourceArmRouteTableRead,
-		Update: resourceArmRouteTableCreateUpdate,
-		Delete: resourceArmRouteTableDelete,
+		Create: resourceRouteTableCreateUpdate,
+		Read:   resourceRouteTableRead,
+		Update: resourceRouteTableCreateUpdate,
+		Delete: resourceRouteTableDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := ParseRouteTableID(id)
@@ -111,7 +111,7 @@ func resourceArmRouteTable() *schema.Resource {
 	}
 }
 
-func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,10 +166,10 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmRouteTableRead(d, meta)
+	return resourceRouteTableRead(d, meta)
 }
 
-func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

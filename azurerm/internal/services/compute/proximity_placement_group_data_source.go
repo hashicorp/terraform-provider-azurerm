@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmProximityPlacementGroup() *schema.Resource {
+func dataSourceProximityPlacementGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmProximityPlacementGroupRead,
+		Read: dataSourceProximityPlacementGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -37,7 +37,7 @@ func dataSourceArmProximityPlacementGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

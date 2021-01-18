@@ -87,6 +87,7 @@ func (client BaseClient) CheckDNSNameAvailability(ctx context.Context, location 
 	result, err = client.CheckDNSNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "CheckDNSNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -241,6 +242,7 @@ func (client BaseClient) DisconnectActiveSessions(ctx context.Context, resourceG
 	result.bsdr, err = client.DisconnectActiveSessionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "DisconnectActiveSessions", resp, "Failure responding to request")
+		return
 	}
 	if result.bsdr.hasNextLink() && result.bsdr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -307,6 +309,7 @@ func (client BaseClient) disconnectActiveSessionsNextResults(ctx context.Context
 	result, err = client.DisconnectActiveSessionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "disconnectActiveSessionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -555,6 +558,7 @@ func (client BaseClient) GetBastionShareableLink(ctx context.Context, resourceGr
 	result.bsllr, err = client.GetBastionShareableLinkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "GetBastionShareableLink", resp, "Failure responding to request")
+		return
 	}
 	if result.bsllr.hasNextLink() && result.bsllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -621,6 +625,7 @@ func (client BaseClient) getBastionShareableLinkNextResults(ctx context.Context,
 	result, err = client.GetBastionShareableLinkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "getBastionShareableLinkNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -791,6 +796,7 @@ func (client BaseClient) SupportedSecurityProviders(ctx context.Context, resourc
 	result, err = client.SupportedSecurityProvidersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "SupportedSecurityProviders", resp, "Failure responding to request")
+		return
 	}
 
 	return

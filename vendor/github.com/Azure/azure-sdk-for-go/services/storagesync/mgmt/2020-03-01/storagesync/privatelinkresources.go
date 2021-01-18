@@ -84,6 +84,7 @@ func (client PrivateLinkResourcesClient) ListByStorageSyncService(ctx context.Co
 	result, err = client.ListByStorageSyncServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.PrivateLinkResourcesClient", "ListByStorageSyncService", resp, "Failure responding to request")
+		return
 	}
 
 	return

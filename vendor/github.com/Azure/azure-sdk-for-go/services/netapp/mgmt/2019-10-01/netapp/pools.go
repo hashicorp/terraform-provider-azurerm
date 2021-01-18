@@ -270,6 +270,7 @@ func (client PoolsClient) Get(ctx context.Context, resourceGroupName string, acc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -354,6 +355,7 @@ func (client PoolsClient) List(ctx context.Context, resourceGroupName string, ac
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -439,6 +441,7 @@ func (client PoolsClient) Update(ctx context.Context, body CapacityPoolPatch, re
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.PoolsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

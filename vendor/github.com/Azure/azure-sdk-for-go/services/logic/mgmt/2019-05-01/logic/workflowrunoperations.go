@@ -75,6 +75,7 @@ func (client WorkflowRunOperationsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunOperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

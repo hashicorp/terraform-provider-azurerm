@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmProximityPlacementGroup() *schema.Resource {
+func resourceProximityPlacementGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmProximityPlacementGroupCreateUpdate,
-		Read:   resourceArmProximityPlacementGroupRead,
-		Update: resourceArmProximityPlacementGroupCreateUpdate,
-		Delete: resourceArmProximityPlacementGroupDelete,
+		Create: resourceProximityPlacementGroupCreateUpdate,
+		Read:   resourceProximityPlacementGroupRead,
+		Update: resourceProximityPlacementGroupCreateUpdate,
+		Delete: resourceProximityPlacementGroupDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -51,7 +51,7 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 	}
 }
 
-func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -87,10 +87,10 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*resp.ID)
 
-	return resourceArmProximityPlacementGroupRead(d, meta)
+	return resourceProximityPlacementGroupRead(d, meta)
 }
 
-func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +120,7 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -42,8 +42,8 @@ func NewConnectorsClientWithBaseURI(baseURI string, subscriptionID string, ascLo
 	return ConnectorsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
-// CreateOrUpdate create a cloud account connector or update an existing one. Connect to your AWS cloud account using
-// either account credentials or role-based authentication.
+// CreateOrUpdate create a cloud account connector or update an existing one. Connect to your cloud account. For AWS,
+// use either account credentials or role-based authentication. For GCP, use account organization credentials.
 // Parameters:
 // connectorName - name of the cloud account connector
 // connectorSetting - settings for the cloud account connector
@@ -80,6 +80,7 @@ func (client ConnectorsClient) CreateOrUpdate(ctx context.Context, connectorName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ConnectorsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client ConnectorsClient) Delete(ctx context.Context, connectorName string)
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ConnectorsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,6 +241,7 @@ func (client ConnectorsClient) Get(ctx context.Context, connectorName string) (r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ConnectorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -317,9 +320,11 @@ func (client ConnectorsClient) List(ctx context.Context) (result ConnectorSettin
 	result.csl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ConnectorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.csl.hasNextLink() && result.csl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

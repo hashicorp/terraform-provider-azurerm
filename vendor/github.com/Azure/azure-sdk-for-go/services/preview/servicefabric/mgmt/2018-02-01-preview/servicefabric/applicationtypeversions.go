@@ -244,6 +244,7 @@ func (client ApplicationTypeVersionsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +324,7 @@ func (client ApplicationTypeVersionsClient) List(ctx context.Context, resourceGr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypeVersionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

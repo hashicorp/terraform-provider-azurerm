@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
+	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -60,7 +60,7 @@ func resourceAppConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(appconfiguration.SystemAssigned),
+								string(appconfiguration.IdentityTypeSystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -438,7 +438,7 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
 	if len(identities) == 0 {
 		return &appconfiguration.ResourceIdentity{
-			Type: appconfiguration.None,
+			Type: appconfiguration.IdentityTypeNone,
 		}
 	}
 	identity := identities[0].(map[string]interface{})
@@ -449,7 +449,7 @@ func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.
 }
 
 func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
-	if identity == nil || identity.Type == appconfiguration.None {
+	if identity == nil || identity.Type == appconfiguration.IdentityTypeNone {
 		return []interface{}{}
 	}
 

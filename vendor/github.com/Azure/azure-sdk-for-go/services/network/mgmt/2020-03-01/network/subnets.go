@@ -231,6 +231,7 @@ func (client SubnetsClient) Get(ctx context.Context, resourceGroupName string, v
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SubnetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -311,6 +312,7 @@ func (client SubnetsClient) List(ctx context.Context, resourceGroupName string, 
 	result.slr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SubnetsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -375,6 +377,7 @@ func (client SubnetsClient) listNextResults(ctx context.Context, lastResults Sub
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SubnetsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -91,6 +91,7 @@ func (client CasesAggregationsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesAggregationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

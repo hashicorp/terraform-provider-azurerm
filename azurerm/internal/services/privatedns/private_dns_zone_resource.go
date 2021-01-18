@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateDnsZone() *schema.Resource {
+func resourcePrivateDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateDnsZoneCreateUpdate,
-		Read:   resourceArmPrivateDnsZoneRead,
-		Update: resourceArmPrivateDnsZoneCreateUpdate,
-		Delete: resourceArmPrivateDnsZoneDelete,
+		Create: resourcePrivateDnsZoneCreateUpdate,
+		Read:   resourcePrivateDnsZoneRead,
+		Update: resourcePrivateDnsZoneCreateUpdate,
+		Delete: resourcePrivateDnsZoneDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.PrivateDnsZoneID(id)
 			return err
@@ -147,7 +147,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -189,7 +189,7 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecordRaw := v.([]interface{})[0].(map[string]interface{})
-		soaRecord := expandArmPrivateDNSZoneSOARecord(soaRecordRaw)
+		soaRecord := expandPrivateDNSZoneSOARecord(soaRecordRaw)
 		rsParameters := privatedns.RecordSet{
 			RecordSetProperties: &privatedns.RecordSetProperties{
 				TTL:       utils.Int64(int64(soaRecordRaw["ttl"].(int))),
@@ -209,10 +209,10 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(resourceId.ID())
-	return resourceArmPrivateDnsZoneRead(d, meta)
+	return resourcePrivateDnsZoneRead(d, meta)
 }
 
-func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -247,14 +247,14 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
 	}
 
-	if err := d.Set("soa_record", flattenArmPrivateDNSZoneSOARecord(&recordSetResp)); err != nil {
+	if err := d.Set("soa_record", flattenPrivateDNSZoneSOARecord(&recordSetResp)); err != nil {
 		return fmt.Errorf("setting `soa_record`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -283,7 +283,7 @@ func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandArmPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.SoaRecord {
+func expandPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.SoaRecord {
 	return &privatedns.SoaRecord{
 		Email:       utils.String(input["email"].(string)),
 		ExpireTime:  utils.Int64(int64(input["expire_time"].(int))),
@@ -293,7 +293,7 @@ func expandArmPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.
 	}
 }
 
-func flattenArmPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
+func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

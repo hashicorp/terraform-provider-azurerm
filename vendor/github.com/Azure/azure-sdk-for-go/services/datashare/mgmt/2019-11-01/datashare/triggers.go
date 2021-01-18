@@ -235,6 +235,7 @@ func (client TriggersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,6 +316,7 @@ func (client TriggersClient) ListByShareSubscription(ctx context.Context, resour
 	result.tl, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "ListByShareSubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -383,6 +385,7 @@ func (client TriggersClient) listByShareSubscriptionNextResults(ctx context.Cont
 	result, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "listByShareSubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -70,6 +70,7 @@ func (client ResourceProviderCommonClient) GetSubscriptionQuota(ctx context.Cont
 	result, err = client.GetSubscriptionQuotaResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.ResourceProviderCommonClient", "GetSubscriptionQuota", resp, "Failure responding to request")
+		return
 	}
 
 	return

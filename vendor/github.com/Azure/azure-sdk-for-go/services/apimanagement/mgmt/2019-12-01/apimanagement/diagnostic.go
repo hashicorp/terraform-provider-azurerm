@@ -74,8 +74,8 @@ func (client DiagnosticClient) CreateOrUpdate(ctx context.Context, resourceGroup
 				Chain: []validation.Constraint{{Target: "parameters.DiagnosticContractProperties.LoggerID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.DiagnosticContractProperties.Sampling", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.DiagnosticContractProperties.Sampling.Percentage", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.DiagnosticContractProperties.Sampling.Percentage", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-								{Target: "parameters.DiagnosticContractProperties.Sampling.Percentage", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
+							Chain: []validation.Constraint{{Target: "parameters.DiagnosticContractProperties.Sampling.Percentage", Name: validation.InclusiveMaximum, Rule: float64(100), Chain: nil},
+								{Target: "parameters.DiagnosticContractProperties.Sampling.Percentage", Name: validation.InclusiveMinimum, Rule: float64(0), Chain: nil},
 							}},
 						}},
 					{Target: "parameters.DiagnosticContractProperties.Frontend", Name: validation.Null, Rule: false,
@@ -126,6 +126,7 @@ func (client DiagnosticClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -223,6 +224,7 @@ func (client DiagnosticClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +314,7 @@ func (client DiagnosticClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -401,6 +404,7 @@ func (client DiagnosticClient) GetEntityTag(ctx context.Context, resourceGroupNa
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -496,6 +500,7 @@ func (client DiagnosticClient) ListByService(ctx context.Context, resourceGroupN
 	result.dc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -569,6 +574,7 @@ func (client DiagnosticClient) listByServiceNextResults(ctx context.Context, las
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -636,6 +642,7 @@ func (client DiagnosticClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

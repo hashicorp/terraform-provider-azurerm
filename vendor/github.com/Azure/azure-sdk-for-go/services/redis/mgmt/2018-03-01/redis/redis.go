@@ -80,6 +80,7 @@ func (client Client) CheckNameAvailability(ctx context.Context, parameters Check
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -406,6 +407,7 @@ func (client Client) ForceReboot(ctx context.Context, resourceGroupName string, 
 	result, err = client.ForceRebootResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "ForceReboot", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -483,6 +485,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, name str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -639,6 +642,7 @@ func (client Client) List(ctx context.Context) (result ListResultPage, err error
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -701,6 +705,7 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -752,6 +757,7 @@ func (client Client) ListByResourceGroup(ctx context.Context, resourceGroupName 
 	result.lr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -815,6 +821,7 @@ func (client Client) listByResourceGroupNextResults(ctx context.Context, lastRes
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -866,6 +873,7 @@ func (client Client) ListKeys(ctx context.Context, resourceGroupName string, nam
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -942,6 +950,7 @@ func (client Client) ListUpgradeNotifications(ctx context.Context, resourceGroup
 	result, err = client.ListUpgradeNotificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "ListUpgradeNotifications", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1019,6 +1028,7 @@ func (client Client) RegenerateKey(ctx context.Context, resourceGroupName string
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1097,6 +1107,7 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, name 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

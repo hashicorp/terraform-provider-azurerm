@@ -83,6 +83,7 @@ func (client FieldsClient) ListByType(ctx context.Context, resourceGroupName str
 	result, err = client.ListByTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.FieldsClient", "ListByType", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -13,11 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementGroupUser() *schema.Resource {
+func resourceApiManagementGroupUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementGroupUserCreate,
-		Read:   resourceArmApiManagementGroupUserRead,
-		Delete: resourceArmApiManagementGroupUserDelete,
+		Create: resourceApiManagementGroupUserCreate,
+		Read:   resourceApiManagementGroupUserRead,
+		Delete: resourceApiManagementGroupUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceArmApiManagementGroupUser() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,10 +73,10 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementGroupUserRead(d, meta)
+	return resourceApiManagementGroupUserRead(d, meta)
 }
 
-func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,7 +109,7 @@ func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

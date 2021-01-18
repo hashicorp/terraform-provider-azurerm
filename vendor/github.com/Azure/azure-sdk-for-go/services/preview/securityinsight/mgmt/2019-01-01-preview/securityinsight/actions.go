@@ -91,6 +91,7 @@ func (client ActionsClient) ListByAlertRule(ctx context.Context, resourceGroupNa
 	result.al, err = client.ListByAlertRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "ListByAlertRule", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -157,6 +158,7 @@ func (client ActionsClient) listByAlertRuleNextResults(ctx context.Context, last
 	result, err = client.ListByAlertRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "listByAlertRuleNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

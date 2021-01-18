@@ -260,6 +260,7 @@ func (client EndpointsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -345,6 +346,7 @@ func (client EndpointsClient) ListByProfile(ctx context.Context, resourceGroupNa
 	result.elr, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ListByProfile", resp, "Failure responding to request")
+		return
 	}
 	if result.elr.hasNextLink() && result.elr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -409,6 +411,7 @@ func (client EndpointsClient) listByProfileNextResults(ctx context.Context, last
 	result, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "listByProfileNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -470,6 +473,7 @@ func (client EndpointsClient) ListResourceUsage(ctx context.Context, resourceGro
 	result.rulr, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ListResourceUsage", resp, "Failure responding to request")
+		return
 	}
 	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -535,6 +539,7 @@ func (client EndpointsClient) listResourceUsageNextResults(ctx context.Context, 
 	result, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "listResourceUsageNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1039,6 +1044,7 @@ func (client EndpointsClient) ValidateCustomDomain(ctx context.Context, resource
 	result, err = client.ValidateCustomDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ValidateCustomDomain", resp, "Failure responding to request")
+		return
 	}
 
 	return

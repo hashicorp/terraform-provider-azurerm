@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,63 +9,67 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkWatcher(t *testing.T) {
+type NetworkWatcherResource struct {
+}
+
+func TestAccNetworkWatcher(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one per region at once
 	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":          testAccAzureRMNetworkWatcher_basic,
-			"requiresImport": testAccAzureRMNetworkWatcher_requiresImport,
-			"complete":       testAccAzureRMNetworkWatcher_complete,
-			"update":         testAccAzureRMNetworkWatcher_update,
-			"disappears":     testAccAzureRMNetworkWatcher_disappears,
+			"basic":          testAccNetworkWatcher_basic,
+			"requiresImport": testAccNetworkWatcher_requiresImport,
+			"complete":       testAccNetworkWatcher_complete,
+			"update":         testAccNetworkWatcher_update,
+			"disappears":     testAccNetworkWatcher_disappears,
 		},
 		"DataSource": {
-			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
+			"basic": testAccDataSourceNetworkWatcher_basic,
 		},
 		"PacketCaptureOld": {
-			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
-			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccAzureRMPacketCapture_withFilters,
-			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
+			"localDisk":                  testAccPacketCapture_localDisk,
+			"storageAccount":             testAccPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccPacketCapture_withFilters,
+			"requiresImport":             testAccPacketCapture_requiresImport,
 		},
 		"ConnectionMonitor": {
-			"addressBasic":                   testAccAzureRMNetworkConnectionMonitor_addressBasic,
-			"addressComplete":                testAccAzureRMNetworkConnectionMonitor_addressComplete,
-			"addressUpdate":                  testAccAzureRMNetworkConnectionMonitor_addressUpdate,
-			"vmBasic":                        testAccAzureRMNetworkConnectionMonitor_vmBasic,
-			"vmComplete":                     testAccAzureRMNetworkConnectionMonitor_vmComplete,
-			"vmUpdate":                       testAccAzureRMNetworkConnectionMonitor_vmUpdate,
-			"destinationUpdate":              testAccAzureRMNetworkConnectionMonitor_destinationUpdate,
-			"missingDestinationInvalid":      testAccAzureRMNetworkConnectionMonitor_missingDestination,
-			"bothDestinationsInvalid":        testAccAzureRMNetworkConnectionMonitor_conflictingDestinations,
-			"requiresImport":                 testAccAzureRMNetworkConnectionMonitor_requiresImport,
-			"httpConfiguration":              testAccAzureRMNetworkConnectionMonitor_httpConfiguration,
-			"icmpConfiguration":              testAccAzureRMNetworkConnectionMonitor_icmpConfiguration,
-			"bothAddressAndVirtualMachineId": testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineId,
+			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
+			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
+			"addressUpdate":                  testAccNetworkConnectionMonitor_addressUpdate,
+			"vmBasic":                        testAccNetworkConnectionMonitor_vmBasic,
+			"vmComplete":                     testAccNetworkConnectionMonitor_vmComplete,
+			"vmUpdate":                       testAccNetworkConnectionMonitor_vmUpdate,
+			"destinationUpdate":              testAccNetworkConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid":      testAccNetworkConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":        testAccNetworkConnectionMonitor_conflictingDestinations,
+			"requiresImport":                 testAccNetworkConnectionMonitor_requiresImport,
+			"httpConfiguration":              testAccNetworkConnectionMonitor_httpConfiguration,
+			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
+			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
 		},
 		"PacketCapture": {
-			"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,
-			"storageAccount":             testAccAzureRMNetworkPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
-			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
+			"localDisk":                  testAccNetworkPacketCapture_localDisk,
+			"storageAccount":             testAccNetworkPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccNetworkPacketCapture_withFilters,
+			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
 		},
 		"FlowLog": {
-			"basic":                testAccAzureRMNetworkWatcherFlowLog_basic,
-			"disabled":             testAccAzureRMNetworkWatcherFlowLog_disabled,
-			"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
-			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
-			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
-			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
-			"version":              testAccAzureRMNetworkWatcherFlowLog_version,
+			"basic":                testAccNetworkWatcherFlowLog_basic,
+			"disabled":             testAccNetworkWatcherFlowLog_disabled,
+			"reenabled":            testAccNetworkWatcherFlowLog_reenabled,
+			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
+			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
+			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
+			"version":              testAccNetworkWatcherFlowLog_version,
 		},
 	}
 
@@ -81,139 +86,103 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 	}
 }
 
-func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
+func testAccNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
+	r := NetworkWatcherResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcher_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
+	r := NetworkWatcherResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImportConfig(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_watcher"),
 		},
 	})
 }
 
-func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
+func testAccNetworkWatcher_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkWatcher_requiresImportConfig(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_watcher"),
-			},
+	r := NetworkWatcherResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcher_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
+	r := NetworkWatcherResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
+func testAccNetworkWatcher_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_completeConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkWatcherResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkWatcherDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func testAccAzureRMNetworkWatcher_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkWatcher_completeConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(data.ResourceName),
-					testCheckAzureRMNetworkWatcherDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.NetworkWatcherID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if id.ResourceGroup == "" {
-			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", id.Name)
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Watcher %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on watcherClient: %+v", err)
-		}
-
-		return nil
+func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NetworkWatcherID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Network.WatcherClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Watcher (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -246,32 +215,7 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_watcher" {
-			continue
-		}
-
-		id, err := parse.NetworkWatcherID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Network Watcher still exists:\n%#v", resp)
-			}
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMNetworkWatcher_basicConfig(data acceptance.TestData) string {
+func (NetworkWatcherResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -290,8 +234,7 @@ resource "azurerm_network_watcher" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkWatcher_requiresImportConfig(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkWatcher_basicConfig(data)
+func (r NetworkWatcherResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -300,10 +243,10 @@ resource "azurerm_network_watcher" "import" {
   location            = azurerm_network_watcher.test.location
   resource_group_name = azurerm_network_watcher.test.resource_group_name
 }
-`, template)
+`, r.basicConfig(data))
 }
 
-func testAccAzureRMNetworkWatcher_completeConfig(data acceptance.TestData) string {
+func (NetworkWatcherResource) completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

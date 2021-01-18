@@ -73,6 +73,7 @@ func (client JobsGroupClient) Export(ctx context.Context, vaultName string, reso
 	result, err = client.ExportResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobsGroupClient", "Export", resp, "Failure responding to request")
+		return
 	}
 
 	return
