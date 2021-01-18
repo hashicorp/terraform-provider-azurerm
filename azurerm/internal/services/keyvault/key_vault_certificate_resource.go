@@ -830,7 +830,10 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 		}
 
 		certProps["key_usage"] = usages
-		certProps["subject"] = *props.Subject
+		certProps["subject"] = ""
+		if props.Subject != nil {
+			certProps["subject"] = *props.Subject
+		}
 		certProps["validity_in_months"] = int(*props.ValidityInMonths)
 		if props.Ekus != nil {
 			certProps["extended_key_usage"] = props.Ekus
