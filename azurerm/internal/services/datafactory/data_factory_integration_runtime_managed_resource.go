@@ -235,13 +235,15 @@ func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, 
 
 func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	coreCount := int32(d.Get("core_count").(int))
+	timeToLive := int32(d.Get("time_to_live").(int))
 
 	return &datafactory.IntegrationRuntimeComputeProperties{
 		Location: &location,
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
 			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
-			CoreCount:   d.Get("core_count").(*int32),
-			TimeToLive:  d.Get("time_to_live").(*int32),
+			CoreCount:   &coreCount,
+			TimeToLive:  &timeToLive,
 		},
 	}
 }
