@@ -1,271 +1,200 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+type VirtualNetworkGatewayConnectionResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sitetosite(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sitetosite(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway_connection"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualNetworkGatewayConnection_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway_connection"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sitetositeWithoutSharedKey(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
+	r := VirtualNetworkGatewayConnectionResource{}
 
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(data1, data2.RandomInteger, sharedKey),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data1.ResourceName),
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data2.ResourceName),
-					resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
-				),
-			},
+	data1.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data1.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
+				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ipsecpolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_trafficSelectorPolicy(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_trafficSelectorPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_trafficselectorpolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.local_address_cidrs.0", "10.66.18.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.local_address_cidrs.1", "10.66.17.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.remote_address_cidrs.0", "10.1.1.0/24"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.trafficselectorpolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_selector_policy.0.local_address_cidrs.0").HasValue("10.66.18.0/24"),
+				check.That(data.ResourceName).Key("traffic_selector_policy.0.local_address_cidrs.1").HasValue("10.66.17.0/24"),
+				check.That(data.ResourceName).Key("traffic_selector_policy.0.remote_address_cidrs.0").HasValue("10.1.1.0/24"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_connectionprotocol(t *testing.T) {
 	expectedConnectionProtocol := "IKEv1"
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_protocol", expectedConnectionProtocol),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.connectionprotocol(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_protocol").HasValue(expectedConnectionProtocol),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
+	r := VirtualNetworkGatewayConnectionResource{}
 
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(data1, data2.RandomInteger, firstSharedKey),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data1.ResourceName),
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data2.ResourceName),
-					resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", firstSharedKey),
-					resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", firstSharedKey),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(data1, data2.RandomInteger, secondSharedKey),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data1.ResourceName),
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data2.ResourceName),
-					resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", secondSharedKey),
-					resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", secondSharedKey),
-				),
-			},
+	data1.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vnettovnet(data1, data2.RandomInteger, firstSharedKey),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data1.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", firstSharedKey),
+				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", firstSharedKey),
+			),
+		},
+		{
+			Config: r.vnettovnet(data1, data2.RandomInteger, secondSharedKey),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data1.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", secondSharedKey),
+				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", secondSharedKey),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabledUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.useLocalAzureIpAddressEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.useLocalAzureIpAddressEnabledUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayConnectionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t VirtualNetworkGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	gatewayName := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		connectionName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, connectionName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on vnetGatewayConnectionsClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Virtual Network Gateway Connection %q (resource group: %q) does not exist", connectionName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayConnectionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_network_gateway_connection" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Virtual Network Gateway Connection still exists: %#v", resp.VirtualNetworkGatewayConnectionPropertiesFormat)
-		}
+	resp, err := clients.Network.VnetGatewayConnectionsClient.Get(ctx, resourceGroup, gatewayName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Virtual Network Gateway Connection (%s): %+v", state.ID, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) sitetosite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -337,7 +266,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) sitetositeWithoutSharedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -407,8 +336,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(data)
+func (r VirtualNetworkGatewayConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -421,10 +349,10 @@ resource "azurerm_virtual_network_gateway_connection" "import" {
   local_network_gateway_id   = azurerm_virtual_network_gateway_connection.test.local_network_gateway_id
   shared_key                 = azurerm_virtual_network_gateway_connection.test.shared_key
 }
-`, template)
+`, r.sitetosite(data))
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
+func (VirtualNetworkGatewayConnectionResource) vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
 variable "random1" {
   default = "%d"
@@ -550,7 +478,7 @@ resource "azurerm_virtual_network_gateway_connection" "test_2" {
 `, data.RandomInteger, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) ipsecpolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -636,7 +564,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) connectionprotocol(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -721,7 +649,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_trafficselectorpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) trafficselectorpolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -813,7 +741,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) useLocalAzureIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -883,7 +811,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabledUpdate(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) useLocalAzureIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

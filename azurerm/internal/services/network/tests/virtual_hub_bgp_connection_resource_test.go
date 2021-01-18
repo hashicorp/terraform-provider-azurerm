@@ -1,115 +1,73 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualHubBgpConnection_basic(t *testing.T) {
+type VirtualHubBGPConnectionResource struct {
+}
+
+func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 	if true {
 		t.Skip("Skipping due to API issue preventing deletion")
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubBgpConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubBgpConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubBgpConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualHubBGPConnectionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubBgpConnection_requiresImport(t *testing.T) {
+func TestAccVirtualHubBgpConnection_requiresImport(t *testing.T) {
 	if true {
 		t.Skip("Skipping due to API issue preventing deletion")
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubBgpConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubBgpConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubBgpConnectionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMVirtualHubBgpConnection_requiresImport),
+	r := VirtualHubBGPConnectionResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMVirtualHubBgpConnectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubBgpConnectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("virtualHubBgpConnection not found: %s", resourceName)
-		}
-
-		id, err := parse.BgpConnectionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Network VirtualHubBgpConnection %q does not exist", id.Name)
-			}
-
-			return fmt.Errorf("bad: Get on Network.VirtualHubBgpConnectionClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualHubBgpConnectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubBgpConnectionClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_hub_bgp_connection" {
-			continue
-		}
-
-		id, err := parse.BgpConnectionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Network.VirtualHubBgpConnectionClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t VirtualHubBGPConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.BgpConnectionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.VirtualHubBgpConnectionClient.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Virtual Hub BGP Connectionn (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualHubBgpConnection_template(data acceptance.TestData) string {
+func (VirtualHubBGPConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -159,8 +117,7 @@ resource "azurerm_virtual_hub_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubBgpConnection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubBgpConnection_template(data)
+func (r VirtualHubBGPConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,11 +129,10 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
 
   depends_on = [azurerm_virtual_hub_ip.test]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubBgpConnection_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMVirtualHubBgpConnection_basic(data)
+func (r VirtualHubBGPConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -186,5 +142,5 @@ resource "azurerm_virtual_hub_bgp_connection" "import" {
   peer_asn       = azurerm_virtual_hub_bgp_connection.test.peer_asn
   peer_ip        = azurerm_virtual_hub_bgp_connection.test.peer_ip
 }
-`, config)
+`, r.basic(data))
 }

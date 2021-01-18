@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,146 +9,113 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
+type SubnetRouteTableAssociationResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+func TestAccSubnetRouteTableAssociation_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
+	r := SubnetRouteTableAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional since this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSubnetRouteTableAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnetRouteTableAssociation_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
+	r := SubnetRouteTableAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		// intentional since this is a Virtual Resource
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_subnet_route_table_association"),
 		},
 	})
 }
 
-func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
+func TestAccSubnetRouteTableAssociation_updateSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
+	r := SubnetRouteTableAssociationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional since this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSubnetRouteTableAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMSubnetRouteTableAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_subnet_route_table_association"),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateSubnet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnetRouteTableAssociation_deleted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
+	r := SubnetRouteTableAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		// intentional since this is a Virtual Resource
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckSubnetRouteTableAssociationDisappears(data.ResourceName),
+				testCheckSubnetHasNoRouteTable(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMSubnetRouteTableAssociation_updateSubnet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional since this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSubnetRouteTableAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSubnetRouteTableAssociation_updateSubnet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional since this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSubnetRouteTableAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
-					testCheckAzureRMSubnetRouteTableAssociationDisappears(data.ResourceName),
-					testCheckAzureRMSubnetHasNoRouteTable(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-
-		resourceGroupName := parsedId.ResourceGroup
-		virtualNetworkName := parsedId.Path["virtualNetworks"]
-		subnetName := parsedId.Path["subnets"]
-
-		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Subnet %q (Virtual Network %q / Resource Group: %q) does not exist", subnetName, virtualNetworkName, resourceGroupName)
-			}
-
-			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
-		}
-
-		props := resp.SubnetPropertiesFormat
-		if props == nil {
-			return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroupName)
-		}
-
-		if props.RouteTable == nil || props.RouteTable.ID == nil {
-			return fmt.Errorf("No Route Table association exists for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroupName)
-		}
-
-		return nil
+func (t SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	virtualNetworkName := id.Path["virtualNetworks"]
+	subnetName := id.Path["subnets"]
+
+	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Subnet Route Table Association (%s): %+v", id, err)
+	}
+
+	props := resp.SubnetPropertiesFormat
+	if props == nil || props.RouteTable == nil {
+		return nil, fmt.Errorf("properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroup)
+	}
+
+	return utils.Bool(props.RouteTable.ID != nil), nil
 }
 
-func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckSubnetRouteTableAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -189,7 +157,7 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 	}
 }
 
-func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestCheckFunc {
+func testCheckSubnetHasNoRouteTable(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -232,8 +200,7 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 	}
 }
 
-func testAccAzureRMSubnetRouteTableAssociation_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSubnetRouteTableAssociation_template(data)
+func (r SubnetRouteTableAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -248,11 +215,10 @@ resource "azurerm_subnet_route_table_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   route_table_id = azurerm_route_table.test.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMSubnetRouteTableAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSubnetRouteTableAssociation_basic(data)
+func (r SubnetRouteTableAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -260,11 +226,10 @@ resource "azurerm_subnet_route_table_association" "import" {
   subnet_id      = azurerm_subnet_route_table_association.test.subnet_id
   route_table_id = azurerm_subnet_route_table_association.test.route_table_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMSubnetRouteTableAssociation_updateSubnet(data acceptance.TestData) string {
-	template := testAccAzureRMSubnetRouteTableAssociation_template(data)
+func (r SubnetRouteTableAssociationResource) updateSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_subnet" "test" {
@@ -280,10 +245,10 @@ resource "azurerm_subnet_route_table_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   route_table_id = azurerm_route_table.test.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMSubnetRouteTableAssociation_template(data acceptance.TestData) string {
+func (SubnetRouteTableAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

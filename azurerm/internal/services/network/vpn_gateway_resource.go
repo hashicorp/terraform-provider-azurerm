@@ -25,12 +25,12 @@ import (
 
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
-func resourceArmVPNGateway() *schema.Resource {
+func resourceVPNGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVPNGatewayCreate,
-		Read:   resourceArmVPNGatewayRead,
-		Update: resourceArmVPNGatewayUpdate,
-		Delete: resourceArmVPNGatewayDelete,
+		Create: resourceVPNGatewayCreate,
+		Read:   resourceVPNGatewayRead,
+		Update: resourceVPNGatewayUpdate,
+		Delete: resourceVPNGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -180,7 +180,7 @@ func resourceArmVPNGateway() *schema.Resource {
 	}
 }
 
-func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,10 +258,10 @@ func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVPNGatewayRead(d, meta)
+	return resourceVPNGatewayRead(d, meta)
 }
 
-func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,10 +309,10 @@ func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	return resourceArmVPNGatewayRead(d, meta)
+	return resourceVPNGatewayRead(d, meta)
 }
 
-func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -360,7 +360,7 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

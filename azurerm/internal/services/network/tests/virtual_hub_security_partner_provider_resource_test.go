@@ -1,149 +1,100 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualHubSecurityPartnerProvider_basic(t *testing.T) {
+type VirtualHubSecurityPartnerProviderResource struct {
+}
+
+func TestAccVirtualHubSecurityPartnerProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_security_partner_provider", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubSecurityPartnerProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubSecurityPartnerProvider_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubSecurityPartnerProviderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualHubSecurityPartnerProviderResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubSecurityPartnerProvider_requiresImport(t *testing.T) {
+func TestAccVirtualHubSecurityPartnerProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_security_partner_provider", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubSecurityPartnerProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubSecurityPartnerProvider_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubSecurityPartnerProviderExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMVirtualHubSecurityPartnerProvider_requiresImport),
+	r := VirtualHubSecurityPartnerProviderResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMVirtualHubSecurityPartnerProvider_complete(t *testing.T) {
+func TestAccVirtualHubSecurityPartnerProvider_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_security_partner_provider", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubSecurityPartnerProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubSecurityPartnerProvider_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubSecurityPartnerProviderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualHubSecurityPartnerProviderResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubSecurityPartnerProvider_update(t *testing.T) {
+func TestAccVirtualHubSecurityPartnerProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_security_partner_provider", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubSecurityPartnerProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubSecurityPartnerProvider_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubSecurityPartnerProviderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHubSecurityPartnerProvider_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubSecurityPartnerProviderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := VirtualHubSecurityPartnerProviderResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMVirtualHubSecurityPartnerProviderExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityPartnerProviderClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Security Partner Provider not found: %s", resourceName)
-		}
-
-		id, err := parse.SecurityPartnerProviderID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Security Partner Provider %q does not exist", id.Name)
-			}
-			return fmt.Errorf("bad: Get on Network.VirtualHubSecurityPartnerProviderClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualHubSecurityPartnerProviderDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityPartnerProviderClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_hub_security_partner_provider" {
-			continue
-		}
-
-		id, err := parse.SecurityPartnerProviderID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Network.SecurityPartnerProviderClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t VirtualHubSecurityPartnerProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SecurityPartnerProviderID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.SecurityPartnerProviderClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Security Partner Provider (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualHubSecurityPartnerProvider_template(data acceptance.TestData) string {
+func (VirtualHubSecurityPartnerProviderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -177,8 +128,7 @@ resource "azurerm_vpn_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubSecurityPartnerProvider_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubSecurityPartnerProvider_template(data)
+func (r VirtualHubSecurityPartnerProviderResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -190,11 +140,10 @@ resource "azurerm_virtual_hub_security_partner_provider" "test" {
 
   depends_on = [azurerm_vpn_gateway.test]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubSecurityPartnerProvider_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMVirtualHubSecurityPartnerProvider_basic(data)
+func (r VirtualHubSecurityPartnerProviderResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,11 +153,10 @@ resource "azurerm_virtual_hub_security_partner_provider" "import" {
   location               = azurerm_virtual_hub_security_partner_provider.test.location
   security_provider_name = azurerm_virtual_hub_security_partner_provider.test.security_provider_name
 }
-`, config)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualHubSecurityPartnerProvider_complete(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubSecurityPartnerProvider_template(data)
+func (r VirtualHubSecurityPartnerProviderResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -225,5 +173,5 @@ resource "azurerm_virtual_hub_security_partner_provider" "test" {
 
   depends_on = [azurerm_vpn_gateway.test]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

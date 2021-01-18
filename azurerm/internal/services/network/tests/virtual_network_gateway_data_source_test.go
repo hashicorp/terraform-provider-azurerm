@@ -8,25 +8,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+type VirtualNetworkGatewayDataSource struct {
+}
+
 func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceVirtualNetworkGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("data.azurerm_virtual_network_gateway.test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check:  resource.ComposeTestCheckFunc(),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceVirtualNetworkGateway_basic(data acceptance.TestData) string {
+func (VirtualNetworkGatewayDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

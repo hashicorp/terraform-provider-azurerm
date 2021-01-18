@@ -1,369 +1,275 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+type VirtualNetworkGatewayResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
-				),
-			},
-			data.ImportStep(),
+func TestAccVirtualNetworkGateway_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetworkGateway_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
+func TestAccVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualNetworkGateway_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.lowerCaseSubnetName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetworkGateway_vpnGw1(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vpnGw1(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
+func TestAccVirtualNetworkGateway_activeActive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.activeActive(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
+func TestAccVirtualNetworkGateway_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_vpnGw1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "Standard"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_activeActive(t *testing.T) {
+func TestAccVirtualNetworkGateway_vpnGw2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_activeActive(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "VpnGw2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("VpnGw2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
+func TestAccVirtualNetworkGateway_vpnGw3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_sku(data, "Standard"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "VpnGw3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("VpnGw3"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
+func TestAccVirtualNetworkGateway_generation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_sku(data, "VpnGw2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "VpnGw2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.generation(data, "Generation2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("generation").HasValue("Generation2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
+func TestAccVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_sku(data, "VpnGw3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "VpnGw3"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vpnClientConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.radius_server_address").HasValue("1.2.3.4"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_generation(t *testing.T) {
+func TestAccVirtualNetworkGateway_vpnClientConfigAzureAdAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_generation(data, "Generation2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "generation", "Generation2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vpnClientConfigAzureAdAuth(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_tenant").HasValue(fmt.Sprintf("https://login.microsoftonline.com/%s/", data.RandomString)),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_audience").HasValue("41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s/", data.RandomString)),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
+func TestAccVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.radius_server_address", "1.2.3.4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vpnClientConfigOpenVPN(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(t *testing.T) {
+func TestAccVirtualNetworkGateway_enableBgp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_tenant", fmt.Sprintf("https://login.microsoftonline.com/%s/", data.Client().TenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_audience", "41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_issuer", fmt.Sprintf("https://sts.windows.net/%s/", data.Client().TenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.enableBgp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_bgp").HasValue("true"),
+				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
+func TestAccVirtualNetworkGateway_expressRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.expressRoute(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("type").HasValue("ExpressRoute"),
+				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
+func TestAccVirtualNetworkGateway_privateIpAddressEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_enableBgp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_bgp", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateIpAddressEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.privateIpAddressEnabledUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+func (t VirtualNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	gatewayName := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_expressRoute(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "type", "ExpressRoute"),
-					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabledUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		gatewayName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, gatewayName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on vnetGatewayClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Virtual Network Gateway %q (resource group: %q) does not exist", gatewayName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_network_gateway" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Virtual Network Gateway still exists:\n%#v", resp.VirtualNetworkGatewayPropertiesFormat)
-		}
+	resp, err := clients.Network.VnetGatewayClient.Get(ctx, resourceGroup, gatewayName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Virtual Network Gateway (%s): %+v", state.ID, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualNetworkGateway_basic(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -413,8 +319,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualNetworkGateway_basic(data)
+func (r VirtualNetworkGatewayResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -432,10 +337,10 @@ resource "azurerm_virtual_network_gateway" "import" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) lowerCaseSubnetName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -485,7 +390,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_vpnGw1(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) vpnGw1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -535,7 +440,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_activeActive(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) activeActive(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -613,7 +518,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_vpnClientConfig(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) vpnClientConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -672,7 +577,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) vpnClientConfigAzureAdAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -731,7 +636,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }
 
-func testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) vpnClientConfigOpenVPN(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -787,7 +692,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_sku(data acceptance.TestData, sku string) string {
+func (VirtualNetworkGatewayResource) sku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -837,7 +742,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, sku)
 }
 
-func testAccAzureRMVirtualNetworkGateway_enableBgp(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) enableBgp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -888,7 +793,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_expressRoute(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) expressRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -938,7 +843,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_generation(data acceptance.TestData, generation string) string {
+func (VirtualNetworkGatewayResource) generation(data acceptance.TestData, generation string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -989,7 +894,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, generation)
 }
 
-func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) privateIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1044,7 +949,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabledUpdate(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) privateIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

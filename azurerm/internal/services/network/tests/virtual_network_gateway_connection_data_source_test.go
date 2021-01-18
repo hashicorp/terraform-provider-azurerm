@@ -5,89 +5,76 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
+type VirtualNetworkGatewayConnectionDataSource struct {
+}
+
+func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(data.ResourceName, "type", string(network.IPsec)),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.sitetosite(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
+				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_2")
+	r := VirtualNetworkGatewayConnectionDataSource{}
 
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(data1, data2.RandomInteger, sharedKey),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data1.ResourceName),
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data2.ResourceName),
-					resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(data1.ResourceName, "type", string(network.Vnet2Vnet)),
-					resource.TestCheckResourceAttr(data2.ResourceName, "type", string(network.Vnet2Vnet)),
-				),
-			},
+	data1.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
+				resource.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
+				resource.TestCheckResourceAttr(data1.ResourceName, "type", string(network.Vnet2Vnet)),
+				resource.TestCheckResourceAttr(data2.ResourceName, "type", string(network.Vnet2Vnet)),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "shared_key", sharedKey),
-					resource.TestCheckResourceAttr(data.ResourceName, "type", string(network.IPsec)),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_weight", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.dh_group", string(network.DHGroup14)),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.ike_encryption", string(network.AES256)),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.ike_integrity", string(network.IkeIntegritySHA256)),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.ipsec_encryption", string(network.IpsecEncryptionAES256)),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.ipsec_integrity", string(network.IpsecIntegritySHA256)),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.pfs_group", string(network.PfsGroupPFS2048)),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.sa_datasize", "102400000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipsec_policy.0.sa_lifetime", "27000"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.ipsecpolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
+				check.That(data.ResourceName).Key("type").HasValue(string(network.IPsec)),
+				check.That(data.ResourceName).Key("routing_weight").HasValue("20"),
+				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DHGroup14)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.AES256)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(network.IkeIntegritySHA256)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(network.IpsecEncryptionAES256)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(network.IpsecIntegritySHA256)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.pfs_group").HasValue(string(network.PfsGroupPFS2048)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.sa_datasize").HasValue("102400000"),
+				check.That(data.ResourceName).Key("ipsec_policy.0.sa_lifetime").HasValue("27000"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionDataSource) sitetosite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -160,7 +147,7 @@ data "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
+func (VirtualNetworkGatewayConnectionDataSource) vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
 variable "random1" {
   default = "%d"
@@ -296,7 +283,7 @@ data "azurerm_virtual_network_gateway_connection" "test_2" {
 `, data.RandomInteger, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionDataSource) ipsecpolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
