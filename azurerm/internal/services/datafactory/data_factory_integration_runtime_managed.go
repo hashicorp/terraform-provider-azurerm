@@ -75,15 +75,15 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  8,
-				ValidateFunc: validation.StringInSlice([]int{
+				ValidateFunc: validation.IntInSlice([]int{
 					8, 16, 32, 48, 80, 144, 272,
-				}, false),
+				}),
 			},
 
 			"time_to_live": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0
+				Default:  0,
 			},
 		},
 	}
