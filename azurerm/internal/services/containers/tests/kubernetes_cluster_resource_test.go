@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	olderKubernetesVersion   = "1.16.15"
-	currentKubernetesVersion = "1.17.11"
+	olderKubernetesVersion   = "1.18.14"
+	currentKubernetesVersion = "1.19.6"
 )
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
