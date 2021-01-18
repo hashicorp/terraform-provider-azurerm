@@ -882,7 +882,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-        %s
+    %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
