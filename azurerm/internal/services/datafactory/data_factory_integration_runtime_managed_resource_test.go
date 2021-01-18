@@ -73,7 +73,7 @@ func TestAccDataFactoryIntegrationRuntimeManaged_timeToLive(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.coreCount(data),
+			Config: r.timeToLive(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("time_to_live").HasValue("10"),
