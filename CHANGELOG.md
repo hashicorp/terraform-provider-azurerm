@@ -17,6 +17,7 @@ BUG FIXES:
 
 * `azurerm_backup_protected_file_share` - updating to account for a breaking API change [GH-9015]
 * `azurerm_key_vault_certificate` - fixing a crash when `subject` within the `certificate_policy` block was nil [GH-10200]
+* `azurerm_user_assigned_identity` - adding a state migration to update the ID format [GH-10196]
 
 ## 2.43.0 (January 14, 2021)
 
