@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
@@ -87,6 +86,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
@@ -110,7 +110,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
-		avs.Registration{},
 		azurestackhci.Registration{},
 		batch.Registration{},
 		blueprints.Registration{},
@@ -186,6 +185,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		synapse.Registration{},
 		iottimeseriesinsights.Registration{},
 		trafficmanager.Registration{},
+		vmware.Registration{},
 		web.Registration{},
 	}
 }

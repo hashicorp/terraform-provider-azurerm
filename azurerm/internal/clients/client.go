@@ -15,7 +15,6 @@ import (
 	attestation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
-	avs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/client"
 	azureStackHCI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci/client"
 	batch "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
 	blueprints "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/client"
@@ -92,6 +91,7 @@ import (
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
 	synapse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
+	vmware "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
 
@@ -111,7 +111,6 @@ type Client struct {
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
-	Avs                   *avs.Client
 	AzureStackHCI         *azureStackHCI.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
@@ -187,6 +186,7 @@ type Client struct {
 	Sql                   *sql.Client
 	Synapse               *synapse.Client
 	TrafficManager        *trafficManager.Client
+	Vmware                *vmware.Client
 	Web                   *web.Client
 }
 
@@ -209,7 +209,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Attestation = attestation.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
-	client.Avs = avs.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	client.Batch = batch.NewClient(o)
 	client.Blueprints = blueprints.NewClient(o)
@@ -285,6 +284,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
+	client.Vmware = vmware.NewClient(o)
 	client.Web = web.NewClient(o)
 
 	return nil
