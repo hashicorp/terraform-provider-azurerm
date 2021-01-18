@@ -19,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -603,8 +604,10 @@ func resourceArmContainerGroupUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id, err := parse.ContainerGroupID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -612,8 +615,8 @@ func resourceArmContainerGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.Update(ctx, resGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmContainerGroupRead(d, meta)
