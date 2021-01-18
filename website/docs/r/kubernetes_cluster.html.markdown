@@ -114,6 +114,14 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
+* `pod_identity_profile` - (Optional) A `pod_identity_profile` block as defined below
+
+~> **NOTE:** AD Pod Identity is in Public Preview on an opt-in basis. To use it, enable the feature `EnablePodIdentityPreview` on namespace `Microsoft.ContainerService`. For more information, please check the [ad-pod-identity documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity)
+
+-> **NOTE:** AD Pod Identity cannot be enabled on cluster creation (updates only).
+
+-> **NOTE:** Ad Pod Identity cannot be enabled when using `kubenet`. Only Azure CNI is supported.
+
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -391,6 +399,48 @@ A `windows_profile` block supports the following:
 
 * `admin_password` - (Required) The Admin Password for Windows VMs.
 
+---
+
+A `pod_identity_profile` block supports the following:
+
+* `enabled` - (Required) Enable the Pod Identity extension.
+
+* `user_assigned_identities` - (Optional) An `user_assigned_identities` block as defined below.
+
+* `user_assigned_identity_exceptions` - (Optional) An `user_assigned_identity_exceptions` block as defined below.
+
+
+---
+
+An `user_assigned_identities` block supports the following:
+
+* `name` - (Required) The pod identity name.
+
+* `namespace` - (Required) The pod identity namespace.
+
+* `identity` - (Required) An `identity` block as defined below.
+
+-> **NOTE:** The `identity` block inside `pod_identity_profile` does not have the same format as the top level `identity` block
+
+---
+
+An `identity` block (inside `pod_identity_profile`) supports the following:
+
+* `resource_id` - (Required) The managed identity resource ID.
+
+* `client_id` - (Required) The managed identity client ID.
+
+* `object_id` - (Required) The managed identity object ID.
+
+---
+
+An `user_assigned_identity_exceptions` block supports the following:
+
+* `name` - (Required) The pod identity exception name.
+
+* `namespace` - (Required) The pod identity exception namespace.
+
+* `pod_labels` - (Required) A map of Kubernetes pod labels.
 
 ## Attributes Reference
 

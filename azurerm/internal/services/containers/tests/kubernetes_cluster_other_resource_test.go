@@ -13,6 +13,7 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"basicAvailabilitySet":     testAccAzureRMKubernetesCluster_basicAvailabilitySet,
 	"basicVMSS":                testAccAzureRMKubernetesCluster_basicVMSS,
 	"requiresImport":           testAccAzureRMKubernetesCluster_requiresImport,
+	"podIdentityProfile":       testAccAzureRMKubernetesCluster_podIdentityProfile,
 	"linuxProfile":             testAccAzureRMKubernetesCluster_linuxProfile,
 	"nodeLabels":               testAccAzureRMKubernetesCluster_nodeLabels,
 	"nodeResourceGroup":        testAccAzureRMKubernetesCluster_nodeResourceGroup,
@@ -155,6 +156,53 @@ func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 			{
 				Config:      testAccAzureRMKubernetesCluster_requiresImportConfig(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_cluster"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_podIdentityProfile(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_podIdentityProfile(t)
+}
+
+func testAccAzureRMKubernetesCluster_podIdentityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	clientData := data.Client()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_podIdentityProfileConfig(data, clientData.TenantID),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKubernetesCluster_podIdentityProfileConfigUpdate(data, clientData.TenantID),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.enabled", "true"),
+
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identities.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identities.0.name", "my-identity"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identities.0.namespace", "default"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "pod_identity_profile.0.user_assigned_identities.0.identity.0.resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "pod_identity_profile.0.user_assigned_identities.0.identity.0.client_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "pod_identity_profile.0.user_assigned_identities.0.identity.0.object_id"),
+
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identity_exceptions.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identity_exceptions.0.name", "my-exception"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identity_exceptions.0.namespace", "default"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "pod_identity_profile.0.user_assigned_identity_exceptions.0.pod_labels.myPod"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pod_identity_profile.0.user_assigned_identity_exceptions.0.pod_labels.myPod", "isAwesome"),
+				),
 			},
 		},
 	})
@@ -716,6 +764,147 @@ resource "azurerm_kubernetes_cluster" "import" {
   }
 }
 `, template)
+}
+
+func testAccAzureRMKubernetesCluster_podIdentityProfileConfig(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctestaks%d"
+}
+
+resource "azurerm_role_assignment" "test" {
+  depends_on = [
+    azurerm_user_assigned_identity.test,
+    azurerm_kubernetes_cluster.test
+  ]
+
+  scope                = azurerm_user_assigned_identity.test.id
+  role_definition_name = "Managed Identity Operator"
+  principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  depends_on = [azurerm_user_assigned_identity.test]
+
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  # cannot use kubenet
+  network_profile {
+    network_plugin = "azure"
+  }
+
+  role_based_access_control {
+    enabled = true
+
+    azure_active_directory {
+      tenant_id = "%s"
+      managed   = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
+}
+
+func testAccAzureRMKubernetesCluster_podIdentityProfileConfigUpdate(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctestaks%d"
+}
+
+resource "azurerm_role_assignment" "test" {
+  depends_on = [
+    azurerm_user_assigned_identity.test,
+    azurerm_kubernetes_cluster.test
+  ]
+
+  scope                = azurerm_user_assigned_identity.test.id
+  role_definition_name = "Managed Identity Operator"
+  principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  depends_on = [azurerm_user_assigned_identity.test]
+
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  pod_identity_profile {
+    enabled = true
+    user_assigned_identities {
+      name      = "my-identity"
+      namespace = "default"
+      identity {
+        resource_id = azurerm_user_assigned_identity.test.id
+        client_id   = azurerm_user_assigned_identity.test.client_id
+        object_id   = azurerm_user_assigned_identity.test.principal_id
+      }
+    }
+
+    user_assigned_identity_exceptions {
+      name      = "my-exception"
+      namespace = "default"
+      pod_labels = {
+        "myPod" = "isAwesome"
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  # cannot use kubenet
+  network_profile {
+    network_plugin = "azure"
+  }
+
+  role_based_access_control {
+    enabled = true
+
+    azure_active_directory {
+      tenant_id = "%s"
+      managed   = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
 func testAccAzureRMKubernetesCluster_linuxProfileConfig(data acceptance.TestData) string {
