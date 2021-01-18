@@ -227,7 +227,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate(d *schema.Reso
 		Description: &description,
 		Type:        datafactory.TypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
-			ComputeProperties: expandDataFactoryIntegrationRuntimeManagedComputeProperties(d),
+			ComputeProperties: expandDataFactoryIntegrationRuntimeManagedSsisComputeProperties(d),
 			SsisProperties:    expandDataFactoryIntegrationRuntimeManagedSsisProperties(d),
 		},
 	}
@@ -354,7 +354,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisDelete(d *schema.ResourceDa
 	return nil
 }
 
-func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
+func expandDataFactoryIntegrationRuntimeManagedSsisComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	computeProperties := datafactory.IntegrationRuntimeComputeProperties{
 		Location:                     &location,
