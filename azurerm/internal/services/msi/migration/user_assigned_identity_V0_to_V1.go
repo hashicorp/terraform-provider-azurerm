@@ -50,7 +50,16 @@ func userAssignedIdentityV0Schema() *schema.Resource {
 }
 
 func userAssignedIdentityUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	oldId := rawState["id"].(string)
+	id, err := parse.UserAssignedIdentityID(oldId)
+	if err != nil {
+		return rawState, err
+	}
+	
+	newId := id.ID()
+	log.Printf("Updating `id` from %q to %q", oldId, newId)
+	rawState["id"] = newId
+	return rawState, nil
 
 	log.Printf("[DEBUG] Migrating IDs to correct casing for User Assigned Idenitity")
 	name := rawState["name"].(string)
