@@ -457,6 +457,7 @@ func resourceKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 			},
 
 			"role_based_access_control": {
