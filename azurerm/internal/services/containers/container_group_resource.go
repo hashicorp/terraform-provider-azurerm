@@ -612,21 +612,9 @@ func resourceArmContainerGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
-	_, err := client.Update(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.Update(ctx, resGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
-
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read container group %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceArmContainerGroupRead(d, meta)
 }
