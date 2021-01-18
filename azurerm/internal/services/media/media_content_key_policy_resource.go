@@ -460,9 +460,7 @@ func resourceMediaContentKeyPolicyRead(d *schema.ResourceData, meta interface{})
 			return err
 		}
 
-		if err := d.Set("policy_option", options); err != nil {
-			return fmt.Errorf("setting `policy_option`: %+v", err)
-		}
+		d.Set("policy_option", options)
 	}
 
 	return nil
