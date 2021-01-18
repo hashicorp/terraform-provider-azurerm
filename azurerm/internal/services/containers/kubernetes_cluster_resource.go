@@ -819,7 +819,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
 		if parameters.Identity == nil || parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned {
-			return fmt.Errorf("system assigned identity not supported for custom private dns zone")
+			return fmt.Errorf("a user assigned identity must be used when using a private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
