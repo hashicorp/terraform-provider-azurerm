@@ -156,7 +156,7 @@ func dataSourceVmwarePrivateCloudRead(d *schema.ResourceData, meta interface{}) 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID("")
+	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID()
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {

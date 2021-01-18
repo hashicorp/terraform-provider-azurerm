@@ -201,7 +201,7 @@ func resourceVmwarePrivateCloudCreate(d *schema.ResourceData, meta interface{}) 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID("")
+	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID()
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
