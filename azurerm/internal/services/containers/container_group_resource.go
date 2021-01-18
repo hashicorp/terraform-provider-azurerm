@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -1558,7 +1557,7 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {

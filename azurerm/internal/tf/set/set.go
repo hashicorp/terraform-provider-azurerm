@@ -5,16 +5,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func HashInt(v interface{}) int {
-	return hashcode.String(strconv.Itoa(v.(int)))
+	return schema.HashString(strconv.Itoa(v.(int)))
 }
 
 func HashStringIgnoreCase(v interface{}) int {
-	return hashcode.String(strings.ToLower(v.(string)))
+	return schema.HashString(strings.ToLower(v.(string)))
 }
 
 func FromStringSlice(slice []string) *schema.Set {
@@ -27,7 +26,7 @@ func FromStringSlice(slice []string) *schema.Set {
 
 // HashIPv6Address normalizes an IPv6 address and returns a hash for it
 func HashIPv6Address(ipv6 interface{}) int {
-	return hashcode.String(normalizeIPv6Address(ipv6))
+	return schema.HashString(normalizeIPv6Address(ipv6))
 }
 
 // NormalizeIPv6Address returns the normalized notation of an IPv6
