@@ -8,6 +8,7 @@ IMPROVEMENTS:
 * dependencies: updating `containerservice` to API version `2020-12-01` [GH-10171]
 * dependencies: updating `msi` to API version `2018-11-30` [GH-10174]
 * Data Source: `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
+* `azurerm_api_management` - support additional TLS ciphers within the `security` block [GH-9276]
 * `azurerm_kubernetes_cluster` - the field `type` within the `identity` block can now be set to `UserAssigned` [GH-8737]
 * `azurerm_kubernetes_cluster` - support for the field `new_pod_scale_up_delay` within the `auto_scaler_profile` block [GH-9291]
 * `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
