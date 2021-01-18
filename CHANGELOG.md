@@ -1,10 +1,10 @@
 ## 2.44.0 (Unreleased)
 
-* dependencies: updating github.com/Azure/go-autorest to `v0.11.16` [GH-10164]
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.11.16` [GH-10164]
 * dependencies: updating `appconfiguration` to API version `2020-06-01` [GH-10176]
-* dependencies: updating `containerservice` to API version `2020-12-01` [GH-1017610171
-* dependencies: updating `msi` to API version `2018-11-30` [GH-10171]
 * dependencies: updating `appplatform` to API version `2020-07-01` [GH-10175]
+* dependencies: updating `containerservice` to API version `2020-12-01` [GH-10171]
+* dependencies: updating `msi` to API version `2018-11-30` [GH-10174]
 
 BUG FIXES:
 
