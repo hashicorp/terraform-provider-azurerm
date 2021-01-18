@@ -20,16 +20,15 @@ func TestAccDataSourceAppServiceEnvironment_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("front_end_scale_factor").Exists(),
 				check.That(data.ResourceName).Key("pricing_tier").Exists(),
-				check.That(data.ResourceName).Key("internal_ip_address").Exists(),
 				check.That(data.ResourceName).Key("service_ip_address").Exists(),
-				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
 			),
 		},
 	})
 }
 
 func (d AppServiceEnvironmentDataSource) basic(data acceptance.TestData) string {
-	config := AppServiceEnvironmentResource{}.basic(data)
+	config := AppServiceEnvironmentResource{}.clusterSettings(data)
 	return fmt.Sprintf(`
 %s
 
