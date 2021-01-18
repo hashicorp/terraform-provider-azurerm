@@ -8,7 +8,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 )
 
@@ -55,17 +54,9 @@ func userAssignedIdentityUpgradeV0ToV1(rawState map[string]interface{}, meta int
 	if err != nil {
 		return rawState, err
 	}
-	
+
 	newId := id.ID()
 	log.Printf("Updating `id` from %q to %q", oldId, newId)
 	rawState["id"] = newId
-	return rawState, nil
-
-	log.Printf("[DEBUG] Migrating IDs to correct casing for User Assigned Idenitity")
-	name := rawState["name"].(string)
-	resourceGroup := rawState["resource_group_name"].(string)
-	id := parse.NewUserAssignedIdentityID(subscriptionId, resourceGroup, name)
-
-	rawState["id"] = id.ID()
 	return rawState, nil
 }
