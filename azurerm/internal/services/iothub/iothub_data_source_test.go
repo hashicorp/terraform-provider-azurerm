@@ -39,8 +39,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
