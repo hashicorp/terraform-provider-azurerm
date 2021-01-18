@@ -27,14 +27,15 @@ func NewLogAnalyticsDataSourceWindowsEventID(subscriptionId, resourceGroup, work
 
 func (id LogAnalyticsDataSourceWindowsEventId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Data Source Name %q", id.DataSourceName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Data Source Windows Event", segmentsStr)
 }
 
-func (id LogAnalyticsDataSourceWindowsEventId) ID(_ string) string {
+func (id LogAnalyticsDataSourceWindowsEventId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataSources/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataSourceName)
 }

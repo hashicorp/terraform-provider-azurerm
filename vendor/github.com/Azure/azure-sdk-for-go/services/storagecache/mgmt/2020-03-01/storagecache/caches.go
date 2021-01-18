@@ -115,6 +115,7 @@ func (client CachesClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 	cache.ID = nil
 	cache.Name = nil
 	cache.Type = nil
+	cache.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -145,7 +146,7 @@ func (client CachesClient) CreateOrUpdateSender(req *http.Request) (future Cache
 func (client CachesClient) CreateOrUpdateResponder(resp *http.Response) (result Cache, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -355,6 +356,7 @@ func (client CachesClient) Get(ctx context.Context, resourceGroupName string, ca
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,6 +430,7 @@ func (client CachesClient) List(ctx context.Context) (result CachesListResultPag
 	result.clr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -490,6 +493,7 @@ func (client CachesClient) listNextResults(ctx context.Context, lastResults Cach
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -541,6 +545,7 @@ func (client CachesClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.clr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -604,6 +609,7 @@ func (client CachesClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -828,6 +834,7 @@ func (client CachesClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -849,6 +856,7 @@ func (client CachesClient) UpdatePreparer(ctx context.Context, resourceGroupName
 	cache.ID = nil
 	cache.Name = nil
 	cache.Type = nil
+	cache.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

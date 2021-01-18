@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestAzureRMRedisFirewallRuleName_validation(t *testing.T) {
+func TestRedisFirewallRuleName_validation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int

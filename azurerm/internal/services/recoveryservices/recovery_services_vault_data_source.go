@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmRecoveryServicesVault() *schema.Resource {
+func dataSourceRecoveryServicesVault() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmRecoveryServicesVaultRead,
+		Read: dataSourceRecoveryServicesVaultRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -41,7 +41,7 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 	}
 }
 
-func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -48,7 +48,7 @@ func NewAuthorizationsClientWithBaseURI(baseURI string, subscriptionID string) A
 // privateCloudName - the name of the private cloud.
 // authorizationName - name of the ExpressRoute Circuit Authorization in the private cloud
 // authorization - an ExpressRoute Circuit Authorization
-func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization interface{}) (result AuthorizationsCreateOrUpdateFuture, err error) {
+func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization ExpressRouteAuthorization) (result AuthorizationsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AuthorizationsClient.CreateOrUpdate")
 		defer func() {
@@ -85,7 +85,7 @@ func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceG
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client AuthorizationsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization interface{}) (*http.Request, error) {
+func (client AuthorizationsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization ExpressRouteAuthorization) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"authorizationName": autorest.Encode("path", authorizationName),
 		"privateCloudName":  autorest.Encode("path", privateCloudName),
@@ -98,6 +98,7 @@ func (client AuthorizationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
+	authorization.ExpressRouteAuthorizationProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -260,6 +261,7 @@ func (client AuthorizationsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +349,7 @@ func (client AuthorizationsClient) List(ctx context.Context, resourceGroupName s
 	result.eral, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.eral.hasNextLink() && result.eral.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -411,6 +414,7 @@ func (client AuthorizationsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

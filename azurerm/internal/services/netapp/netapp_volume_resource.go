@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppVolume() *schema.Resource {
+func resourceNetAppVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppVolumeCreateUpdate,
-		Read:   resourceArmNetAppVolumeRead,
-		Update: resourceArmNetAppVolumeCreateUpdate,
-		Delete: resourceArmNetAppVolumeDelete,
+		Create: resourceNetAppVolumeCreateUpdate,
+		Read:   resourceNetAppVolumeRead,
+		Update: resourceNetAppVolumeCreateUpdate,
+		Delete: resourceNetAppVolumeDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -198,7 +198,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 			SubnetID:       utils.String(subnetId),
 			ProtocolTypes:  utils.ExpandStringSlice(protocols),
 			UsageThreshold: utils.Int64(storageQuotaInGB),
-			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
+			ExportPolicy:   expandNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -262,10 +262,10 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppVolumeRead(d, meta)
+	return resourceNetAppVolumeRead(d, meta)
 }
 
-func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,10 +300,10 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
-		if err := d.Set("export_policy_rule", flattenArmNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
+		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("Error setting `export_policy_rule`: %+v", err)
 		}
-		if err := d.Set("mount_ip_addresses", flattenArmNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
+		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
 	}
@@ -311,7 +311,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,7 +361,7 @@ func netappVolumeDeleteStateRefreshFunc(ctx context.Context, client *netapp.Volu
 	}
 }
 
-func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePropertiesExportPolicy {
+func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePropertiesExportPolicy {
 	results := make([]netapp.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
@@ -418,7 +418,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 	}
 }
 
-func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPolicy) []interface{} {
+func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.Rules == nil {
 		return results
@@ -482,7 +482,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 	return results
 }
 
-func flattenArmNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) []interface{} {
+func flattenNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

@@ -86,6 +86,7 @@ func (client WebhookClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client WebhookClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -256,6 +258,7 @@ func (client WebhookClient) GenerateURI(ctx context.Context, resourceGroupName s
 	result, err = client.GenerateURIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "GenerateURI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -340,6 +343,7 @@ func (client WebhookClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -426,6 +430,7 @@ func (client WebhookClient) ListByAutomationAccount(ctx context.Context, resourc
 	result.wlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -493,6 +498,7 @@ func (client WebhookClient) listByAutomationAccountNextResults(ctx context.Conte
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -554,6 +560,7 @@ func (client WebhookClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

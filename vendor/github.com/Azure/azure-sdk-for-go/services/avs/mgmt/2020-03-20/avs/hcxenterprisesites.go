@@ -49,7 +49,7 @@ func NewHcxEnterpriseSitesClientWithBaseURI(baseURI string, subscriptionID strin
 // privateCloudName - the name of the private cloud.
 // hcxEnterpriseSiteName - name of the HCX Enterprise Site in the private cloud
 // hcxEnterpriseSite - the HCX Enterprise Site
-func (client HcxEnterpriseSitesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateCloudName string, hcxEnterpriseSiteName string, hcxEnterpriseSite interface{}) (result HcxEnterpriseSite, err error) {
+func (client HcxEnterpriseSitesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateCloudName string, hcxEnterpriseSiteName string, hcxEnterpriseSite HcxEnterpriseSite) (result HcxEnterpriseSite, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/HcxEnterpriseSitesClient.CreateOrUpdate")
 		defer func() {
@@ -86,13 +86,14 @@ func (client HcxEnterpriseSitesClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client HcxEnterpriseSitesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateCloudName string, hcxEnterpriseSiteName string, hcxEnterpriseSite interface{}) (*http.Request, error) {
+func (client HcxEnterpriseSitesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateCloudName string, hcxEnterpriseSiteName string, hcxEnterpriseSite HcxEnterpriseSite) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"hcxEnterpriseSiteName": autorest.Encode("path", hcxEnterpriseSiteName),
 		"privateCloudName":      autorest.Encode("path", privateCloudName),
@@ -105,6 +106,7 @@ func (client HcxEnterpriseSitesClient) CreateOrUpdatePreparer(ctx context.Contex
 		"api-version": APIVersion,
 	}
 
+	hcxEnterpriseSite.HcxEnterpriseSiteProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -175,6 +177,7 @@ func (client HcxEnterpriseSitesClient) Delete(ctx context.Context, resourceGroup
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +264,7 @@ func (client HcxEnterpriseSitesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,6 +352,7 @@ func (client HcxEnterpriseSitesClient) List(ctx context.Context, resourceGroupNa
 	result.hesl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.hesl.hasNextLink() && result.hesl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -412,6 +417,7 @@ func (client HcxEnterpriseSitesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

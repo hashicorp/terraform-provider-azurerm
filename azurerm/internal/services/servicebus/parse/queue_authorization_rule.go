@@ -29,15 +29,16 @@ func NewQueueAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, q
 
 func (id QueueAuthorizationRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
-		fmt.Sprintf("Queue Name %q", id.QueueName),
 		fmt.Sprintf("Authorization Rule Name %q", id.AuthorizationRuleName),
+		fmt.Sprintf("Queue Name %q", id.QueueName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Queue Authorization Rule", segmentsStr)
 }
 
-func (id QueueAuthorizationRuleId) ID(_ string) string {
+func (id QueueAuthorizationRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/queues/%s/authorizationRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
 }

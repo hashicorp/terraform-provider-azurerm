@@ -6,49 +6,46 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
+type NatGatewayDataSource struct {
+}
+
+func TestAccDataSourceatGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nat_gateway", "test")
+	r := NatGatewayDataSource{}
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNatGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
+func TestAccDataSourceatGateway_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nat_gateway", "test")
+	r := NatGatewayDataSource{}
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNatGateway_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "10"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceNatGateway_basic(data acceptance.TestData) string {
-	config := testAccAzureRMNatGateway_basic(data)
+func (NatGatewayDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -56,11 +53,10 @@ data "azurerm_nat_gateway" "test" {
   resource_group_name = azurerm_nat_gateway.test.resource_group_name
   name                = azurerm_nat_gateway.test.name
 }
-`, config)
+`, NatGatewayResource{}.basic(data))
 }
 
-func testAccDataSourceNatGateway_complete(data acceptance.TestData) string {
-	config := testAccAzureRMNatGateway_complete(data)
+func (NatGatewayDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -68,5 +64,5 @@ data "azurerm_nat_gateway" "test" {
   resource_group_name = azurerm_nat_gateway.test.resource_group_name
   name                = azurerm_nat_gateway.test.name
 }
-`, config)
+`, NatGatewayResource{}.complete(data))
 }

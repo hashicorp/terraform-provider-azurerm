@@ -1,139 +1,99 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNatGateway_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
+type NatGatewayResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNatGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccNatGateway_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
+	r := NatGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNatGateway_complete(t *testing.T) {
+func TestAccNatGateway_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
+	r := NatGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNatGateway_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNatGateway_update(t *testing.T) {
+func TestAccNatGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
+	r := NatGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNatGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMNatGateway_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Nat Gateway not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Nat Gateway %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on network.NatGatewayClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNatGatewayDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_nat_gateway" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.NatGatewayClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t NatGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NatGatewayID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.NatGatewayClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading NAT Gateway (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
 // Using alt location because the resource currently in private preview and is only available in eastus2.
-func testAccAzureRMNatGateway_basic(data acceptance.TestData) string {
+func (NatGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,7 +113,7 @@ resource "azurerm_nat_gateway" "test" {
 }
 
 // Using alt location because the resource currently in private preview and is only available in eastus2.
-func testAccAzureRMNatGateway_complete(data acceptance.TestData) string {
+func (NatGatewayResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

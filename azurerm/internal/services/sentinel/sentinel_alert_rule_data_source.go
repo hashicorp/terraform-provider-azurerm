@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -13,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSentinelAlertRule() *schema.Resource {
+func dataSourceSentinelAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSentinelAlertRuleRead,
+		Read: dataSourceSentinelAlertRuleRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -37,7 +39,7 @@ func dataSourceArmSentinelAlertRule() *schema.Resource {
 	}
 }
 
-func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -47,21 +49,18 @@ func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 
 	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Sentinel Alert Rule %q (Resource Group %q / Workspace: %q) was not found", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName)
+			return fmt.Errorf("Sentinel Alert Rule %q was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Sentinel Alert Rule %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
+		return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 	}
 
-	id := alertRuleID(resp.Value)
-	if id == nil || *id == "" {
-		return fmt.Errorf("nil or empty ID of Sentinel Alert Rule %q (Resource Group %q / Workspace: %q)", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName)
-	}
-	d.SetId(*id)
+	d.SetId(id.ID())
 
 	return nil
 }

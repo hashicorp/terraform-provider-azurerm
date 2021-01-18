@@ -72,6 +72,7 @@ func (client DomainsClient) CheckAvailability(ctx context.Context, identifier Na
 	result, err = client.CheckAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CheckAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -302,6 +303,7 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifier(ctx context.Contex
 	result, err = client.CreateOrUpdateOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdateOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -390,6 +392,7 @@ func (client DomainsClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -476,6 +479,7 @@ func (client DomainsClient) DeleteOwnershipIdentifier(ctx context.Context, resou
 	result, err = client.DeleteOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "DeleteOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -559,6 +563,7 @@ func (client DomainsClient) Get(ctx context.Context, resourceGroupName string, d
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -631,6 +636,7 @@ func (client DomainsClient) GetControlCenterSsoRequest(ctx context.Context) (res
 	result, err = client.GetControlCenterSsoRequestResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "GetControlCenterSsoRequest", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -713,6 +719,7 @@ func (client DomainsClient) GetOwnershipIdentifier(ctx context.Context, resource
 	result, err = client.GetOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "GetOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -787,6 +794,7 @@ func (client DomainsClient) List(ctx context.Context) (result DomainCollectionPa
 	result.dc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -849,6 +857,7 @@ func (client DomainsClient) listNextResults(ctx context.Context, lastResults Dom
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -908,6 +917,7 @@ func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.dc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -971,6 +981,7 @@ func (client DomainsClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1031,6 +1042,7 @@ func (client DomainsClient) ListOwnershipIdentifiers(ctx context.Context, resour
 	result.doic, err = client.ListOwnershipIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListOwnershipIdentifiers", resp, "Failure responding to request")
+		return
 	}
 	if result.doic.hasNextLink() && result.doic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1095,6 +1107,7 @@ func (client DomainsClient) listOwnershipIdentifiersNextResults(ctx context.Cont
 	result, err = client.ListOwnershipIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listOwnershipIdentifiersNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1146,6 +1159,7 @@ func (client DomainsClient) ListRecommendations(ctx context.Context, parameters 
 	result.nic, err = client.ListRecommendationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListRecommendations", resp, "Failure responding to request")
+		return
 	}
 	if result.nic.hasNextLink() && result.nic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1210,6 +1224,7 @@ func (client DomainsClient) listRecommendationsNextResults(ctx context.Context, 
 	result, err = client.ListRecommendationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listRecommendationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1269,6 +1284,7 @@ func (client DomainsClient) Renew(ctx context.Context, resourceGroupName string,
 	result, err = client.RenewResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Renew", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1354,6 +1370,7 @@ func (client DomainsClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1442,6 +1459,7 @@ func (client DomainsClient) UpdateOwnershipIdentifier(ctx context.Context, resou
 	result, err = client.UpdateOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "UpdateOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -267,6 +267,7 @@ func (client BigDataPoolsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -354,9 +355,11 @@ func (client BigDataPoolsClient) ListByWorkspace(ctx context.Context, resourceGr
 	result.bdprilr, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.bdprilr.hasNextLink() && result.bdprilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -481,6 +484,7 @@ func (client BigDataPoolsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

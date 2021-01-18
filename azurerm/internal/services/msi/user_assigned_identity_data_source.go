@@ -66,11 +66,11 @@ func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.IdentityProperties; props != nil {
+	if props := resp.UserAssignedIdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
 		}

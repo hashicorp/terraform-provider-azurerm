@@ -1,10 +1,12 @@
 package kusto_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -13,160 +15,121 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccAzureRMKustoClusterCustomerManagedKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+type KustoClusterCustomerManagedKeyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_version"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Delete the encryption settings resource and verify it is gone
-				Config: testAccAzureRMKustoClusterCustomerManagedKey_template(data),
-				Check: resource.ComposeTestCheckFunc(
-					// Then ensure the encryption settings on the Kusto cluster
-					// have been reverted to their default state
-					testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey("azurerm_kusto_cluster.test"),
-				),
-			},
+func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("key_name").Exists(),
+				check.That(data.ResourceName).Key("key_version").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Delete the encryption settings resource and verify it is gone
+			Config: r.template(data),
+			Check: resource.ComposeTestCheckFunc(
+				// Then ensure the encryption settings on the Kusto cluster
+				// have been reverted to their default state
+				data.CheckWithClient(r.clusterIsNotUsingCustomerManagedKey),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
+func TestAccKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_version"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMKustoClusterCustomerManagedKey_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("key_name").Exists(),
+				check.That(data.ResourceName).Key("key_version").Exists(),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
+func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_version"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKustoClusterCustomerManagedKey_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("key_name").Exists(),
+				check.That(data.ResourceName).Key("key_version").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Kusto Cluster %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on kustoClustersClient: %+v", err)
-		}
-
-		if props := resp.ClusterProperties; props != nil {
-			if encryption := props.KeyVaultProperties; encryption == nil {
-				return fmt.Errorf("Kusto Cluster encryption properties not found: %s", resourceName)
-			}
-		}
-
-		return nil
+func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ClusterID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Kusto Cluster %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on kustoClustersClient: %+v", err)
-		}
-
-		if props := resp.ClusterProperties; props != nil {
-			if encryption := props.KeyVaultProperties; encryption != nil {
-				return fmt.Errorf("Kusto Cluster encryption properties still found: %s", resourceName)
-			}
-		}
-
-		return nil
+	resp, err := clients.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
+
+	if resp.ClusterProperties == nil || resp.ClusterProperties.KeyVaultProperties == nil {
+		return nil, fmt.Errorf("properties nil for %s", id.String())
+	}
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMKustoClusterCustomerManagedKey_basic(data acceptance.TestData) string {
-	template := testAccAzureRMKustoClusterCustomerManagedKey_template(data)
+func (r KustoClusterCustomerManagedKeyResource) clusterIsNotUsingCustomerManagedKey(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.ClusterID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	if resp.ClusterProperties == nil {
+		return fmt.Errorf("properties nil for %s", id.String())
+	}
+
+	if resp.ClusterProperties.KeyVaultProperties != nil {
+		return fmt.Errorf("keyVaultProperties was non-nil")
+	}
+
+	return nil
+}
+
+func (KustoClusterCustomerManagedKeyResource) basic(data acceptance.TestData) string {
+	template := KustoClusterCustomerManagedKeyResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -179,8 +142,8 @@ resource "azurerm_kusto_cluster_customer_managed_key" "test" {
 `, template)
 }
 
-func testAccAzureRMKustoClusterCustomerManagedKey_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKustoClusterCustomerManagedKey_basic(data)
+func (KustoClusterCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
+	template := KustoClusterCustomerManagedKeyResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -193,8 +156,8 @@ resource "azurerm_kusto_cluster_customer_managed_key" "import" {
 `, template)
 }
 
-func testAccAzureRMKustoClusterCustomerManagedKey_updated(data acceptance.TestData) string {
-	template := testAccAzureRMKustoClusterCustomerManagedKey_template(data)
+func (KustoClusterCustomerManagedKeyResource) updated(data acceptance.TestData) string {
+	template := KustoClusterCustomerManagedKeyResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -220,7 +183,7 @@ resource "azurerm_kusto_cluster_customer_managed_key" "test" {
 `, template)
 }
 
-func testAccAzureRMKustoClusterCustomerManagedKey_template(data acceptance.TestData) string {
+func (KustoClusterCustomerManagedKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -260,7 +223,14 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["get", "list", "create", "delete", "recover"]
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "list",
+    "purge",
+    "recover",
+  ]
 }
 
 resource "azurerm_key_vault_key" "first" {

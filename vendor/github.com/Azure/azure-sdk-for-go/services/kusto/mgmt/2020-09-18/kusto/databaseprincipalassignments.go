@@ -85,6 +85,7 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx conte
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -332,6 +333,7 @@ func (client DatabasePrincipalAssignmentsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -410,6 +412,7 @@ func (client DatabasePrincipalAssignmentsClient) List(ctx context.Context, resou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

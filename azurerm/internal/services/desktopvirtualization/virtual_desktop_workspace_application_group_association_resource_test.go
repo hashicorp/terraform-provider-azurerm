@@ -108,7 +108,7 @@ func (t VirtualDesktopWorkspaceApplicationGroupAssociationResource) Exists(ctx c
 	}
 
 	for _, app := range *resp.ApplicationGroupReferences {
-		if strings.EqualFold(app, id.ApplicationGroup.ID("")) {
+		if strings.EqualFold(app, id.ApplicationGroup.ID()) {
 			return utils.Bool(true), nil
 		}
 	}

@@ -9,22 +9,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func ResourceArmSecurityCenterSubscriptionPricingV0() *schema.Resource {
+func ResourceSecurityCenterSubscriptionPricingV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"tier": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(security.Free),
-					string(security.Standard),
+					string(security.PricingTierFree),
+					string(security.PricingTierStandard),
 				}, false),
 			},
 		},
 	}
 }
 
-func ResourceArmSecurityCenterSubscriptionPricingUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceSecurityCenterSubscriptionPricingUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[DEBUG] Migrating ResourceType from v0 to v1 format")
 	oldId := rawState["id"].(string)
 	newId := strings.Replace(oldId, "/default", "/VirtualMachines", 1)

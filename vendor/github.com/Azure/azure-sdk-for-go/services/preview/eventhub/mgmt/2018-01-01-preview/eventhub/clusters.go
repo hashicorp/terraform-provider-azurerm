@@ -263,6 +263,7 @@ func (client ClustersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,6 +337,7 @@ func (client ClustersClient) ListAvailableClusterRegion(ctx context.Context) (re
 	result, err = client.ListAvailableClusterRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "ListAvailableClusterRegion", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -416,6 +418,7 @@ func (client ClustersClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.clr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -479,6 +482,7 @@ func (client ClustersClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -540,6 +544,7 @@ func (client ClustersClient) ListNamespaces(ctx context.Context, resourceGroupNa
 	result, err = client.ListNamespacesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "ListNamespaces", resp, "Failure responding to request")
+		return
 	}
 
 	return

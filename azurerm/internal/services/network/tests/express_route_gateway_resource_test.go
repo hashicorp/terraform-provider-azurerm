@@ -1,141 +1,103 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMExpressRouteGateway_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
+type ExpressRouteGatewayResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccExpressRouteGateway_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
+	r := ExpressRouteGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccExpressRouteGateway_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
+	r := ExpressRouteGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_express_route_gateway"),
 		},
 	})
 }
 
-func TestAccAzureRMExpressRouteGateway_requiresImport(t *testing.T) {
+func TestAccExpressRouteGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
+	r := ExpressRouteGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMExpressRouteGateway_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_express_route_gateway"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scale_units").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMExpressRouteGateway_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMExpressRouteGateway_complete(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scale_units", "2"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMExpressRouteGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMExpressRouteGatewayExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("ExpressRoute Gateway not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: ExpressRoute Gateway %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on network.ExpressRouteGatewaysClient: %+v", err)
-		}
-
-		return nil
+func (t ExpressRouteGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resGroup := id.ResourceGroup
+	name := id.Path["expressRouteGateways"]
 
-func testCheckAzureRMExpressRouteGatewayDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteGatewaysClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_express_route_gateway" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.ExpressRouteGatewaysClient: %+v", err)
-			}
-		}
-
-		return nil
+	resp, err := clients.Network.ExpressRouteGatewaysClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Express Route Gateway (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMExpressRouteGateway_basic(data acceptance.TestData) string {
-	template := testAccAzureRMExpressRouteGateway_template(data)
+func (r ExpressRouteGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -146,11 +108,10 @@ resource "azurerm_express_route_gateway" "test" {
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = 1
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteGateway_complete(data acceptance.TestData, scaleUnits int) string {
-	template := testAccAzureRMExpressRouteGateway_template(data)
+func (r ExpressRouteGatewayResource) complete(data acceptance.TestData, scaleUnits int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -165,11 +126,10 @@ resource "azurerm_express_route_gateway" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger, scaleUnits)
+`, r.template(data), data.RandomInteger, scaleUnits)
 }
 
-func testAccAzureRMExpressRouteGateway_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMExpressRouteGateway_basic(data)
+func (r ExpressRouteGatewayResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -180,10 +140,10 @@ resource "azurerm_express_route_gateway" "import" {
   virtual_hub_id      = azurerm_express_route_gateway.test.virtual_hub_id
   scale_units         = azurerm_express_route_gateway.test.scale_units
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMExpressRouteGateway_template(data acceptance.TestData) string {
+func (ExpressRouteGatewayResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

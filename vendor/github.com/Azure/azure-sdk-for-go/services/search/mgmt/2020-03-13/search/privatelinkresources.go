@@ -78,6 +78,7 @@ func (client PrivateLinkResourcesClient) ListSupported(ctx context.Context, reso
 	result, err = client.ListSupportedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateLinkResourcesClient", "ListSupported", resp, "Failure responding to request")
+		return
 	}
 
 	return

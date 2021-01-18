@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusQueue() *schema.Resource {
+func resourceServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusQueueCreateUpdate,
-		Read:   resourceArmServiceBusQueueRead,
-		Update: resourceArmServiceBusQueueCreateUpdate,
-		Delete: resourceArmServiceBusQueueDelete,
+		Create: resourceServiceBusQueueCreateUpdate,
+		Read:   resourceServiceBusQueueRead,
+		Update: resourceServiceBusQueueCreateUpdate,
+		Delete: resourceServiceBusQueueDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.QueueID(id)
@@ -168,7 +168,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -195,7 +195,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID())
 		}
 	}
 
@@ -256,11 +256,11 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusQueueRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusQueueRead(d, meta)
 }
 
-func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,7 +324,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

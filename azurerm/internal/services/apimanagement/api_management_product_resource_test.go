@@ -1,237 +1,179 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+type ApiManagementProductResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProduct_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "approval_required", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "published", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementProduct_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+				check.That(data.ResourceName).Key("terms").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementProduct_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementProduct_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+				check.That(data.ResourceName).Key("terms").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Updated Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("true"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("terms").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+				check.That(data.ResourceName).Key("terms").HasValue(""),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
+func TestAccApiManagementProduct_subscriptionsLimit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProduct_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementProduct_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subscriptionLimits(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementProduct_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue("This is an example description"),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("published").HasValue("true"),
+				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("2"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("terms").HasValue("These are some example terms and conditions"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
+	r := ApiManagementProductResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.approvalRequiredError(data),
+			ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
 		},
 	})
 }
 
-func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t ApiManagementProductResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	productId := id.Path["products"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_product" {
-			continue
-		}
-
-		productId := rs.Primary.Attributes["product_id"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.ProductsClient.Get(ctx, resourceGroup, serviceName, productId)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Product (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProduct_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "approval_required", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "published", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagementProduct_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "approval_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Updated Product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "published", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagementProduct_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "published", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProduct_subscriptionLimits(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "approval_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscriptions_limit", "2"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProduct_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "approval_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is an example description"),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "published", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscriptions_limit", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "terms", "These are some example terms and conditions"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProduct_approvalRequiredError(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductExists(data.ResourceName)),
-				ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMApiManagementProductExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		productId := rs.Primary.Attributes["product_id"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Product %q (API Management Service %q / Resource Group %q) does not exist", productId, serviceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on apiManagement.ProductsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMApiManagementProduct_basic(data acceptance.TestData) string {
+func (ApiManagementProductResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -263,8 +205,7 @@ resource "azurerm_api_management_product" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProduct_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementProduct_basic(data)
+func (r ApiManagementProductResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -277,10 +218,10 @@ resource "azurerm_api_management_product" "import" {
   approval_required     = azurerm_api_management_product.test.approval_required
   published             = azurerm_api_management_product.test.published
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementProduct_updated(data acceptance.TestData) string {
+func (ApiManagementProductResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -314,7 +255,7 @@ resource "azurerm_api_management_product" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProduct_subscriptionLimits(data acceptance.TestData) string {
+func (ApiManagementProductResource) subscriptionLimits(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -348,7 +289,7 @@ resource "azurerm_api_management_product" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProduct_complete(data acceptance.TestData) string {
+func (ApiManagementProductResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -384,7 +325,7 @@ resource "azurerm_api_management_product" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProduct_approvalRequiredError(data acceptance.TestData) string {
+func (ApiManagementProductResource) approvalRequiredError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

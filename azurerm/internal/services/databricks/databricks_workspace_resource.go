@@ -55,7 +55,6 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			"sku": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"standard",
 					"premium",
@@ -122,6 +121,21 @@ func resourceDatabricksWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			if d.HasChange("sku") {
+				sku, changedSKU := d.GetChange("sku")
+
+				if changedSKU == "trial" {
+					log.Printf("[DEBUG] recreate databricks workspace, could't be migrated to %s", changedSKU)
+					d.ForceNew("sku")
+				} else {
+					log.Printf("[DEBUG] databricks workspace can be upgraded from %s to %s", sku, changedSKU)
+				}
+			}
+
+			return nil
 		},
 	}
 }

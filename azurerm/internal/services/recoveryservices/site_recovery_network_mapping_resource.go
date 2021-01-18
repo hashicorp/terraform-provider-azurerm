@@ -16,11 +16,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryNetworkMapping() *schema.Resource {
+func resourceSiteRecoveryNetworkMapping() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryNetworkMappingCreate,
-		Read:   resourceArmSiteRecoveryNetworkMappingRead,
-		Delete: resourceArmSiteRecoveryNetworkMappingDelete,
+		Create: resourceSiteRecoveryNetworkMappingCreate,
+		Read:   resourceSiteRecoveryNetworkMappingRead,
+		Delete: resourceSiteRecoveryNetworkMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceArmSiteRecoveryNetworkMapping() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
@@ -143,10 +143,10 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryNetworkMappingRead(d, meta)
+	return resourceSiteRecoveryNetworkMappingRead(d, meta)
 }
 
-func resourceArmSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -189,7 +189,7 @@ func resourceArmSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmSiteRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

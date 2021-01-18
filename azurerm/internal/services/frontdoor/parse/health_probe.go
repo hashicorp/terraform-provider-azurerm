@@ -27,14 +27,15 @@ func NewHealthProbeID(subscriptionId, resourceGroup, frontDoorName, healthProbeS
 
 func (id HealthProbeId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
 		fmt.Sprintf("Health Probe Setting Name %q", id.HealthProbeSettingName),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Health Probe", segmentsStr)
 }
 
-func (id HealthProbeId) ID(_ string) string {
+func (id HealthProbeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/healthProbeSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.HealthProbeSettingName)
 }

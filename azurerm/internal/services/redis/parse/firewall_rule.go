@@ -27,14 +27,15 @@ func NewFirewallRuleID(subscriptionId, resourceGroup, rediName, name string) Fir
 
 func (id FirewallRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Redi Name %q", id.RediName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Redi Name %q", id.RediName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Firewall Rule", segmentsStr)
 }
 
-func (id FirewallRuleId) ID(_ string) string {
+func (id FirewallRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cache/Redis/%s/firewallRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.RediName, id.Name)
 }

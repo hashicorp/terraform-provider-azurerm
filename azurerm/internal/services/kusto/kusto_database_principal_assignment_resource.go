@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabasePrincipalAssignment() *schema.Resource {
+func resourceKustoDatabasePrincipalAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabasePrincipalAssignmentCreate,
-		Read:   resourceArmKustoDatabasePrincipalAssignmentRead,
-		Delete: resourceArmKustoDatabasePrincipalAssignmentDelete,
+		Create: resourceKustoDatabasePrincipalAssignmentCreate,
+		Read:   resourceKustoDatabasePrincipalAssignmentRead,
+		Delete: resourceKustoDatabasePrincipalAssignmentDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -109,7 +109,7 @@ func resourceArmKustoDatabasePrincipalAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabasePrincipalAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,10 +166,10 @@ func resourceArmKustoDatabasePrincipalAssignmentCreate(d *schema.ResourceData, m
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKustoDatabasePrincipalAssignmentRead(d, meta)
+	return resourceKustoDatabasePrincipalAssignmentRead(d, meta)
 }
 
-func resourceArmKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +226,7 @@ func resourceArmKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmKustoDatabasePrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

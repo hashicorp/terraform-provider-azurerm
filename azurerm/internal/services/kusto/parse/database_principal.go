@@ -31,16 +31,17 @@ func NewDatabasePrincipalID(subscriptionId, resourceGroup, clusterName, database
 
 func (id DatabasePrincipalId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
-		fmt.Sprintf("Database Name %q", id.DatabaseName),
-		fmt.Sprintf("Role Name %q", id.RoleName),
 		fmt.Sprintf("F Q N Name %q", id.FQNName),
+		fmt.Sprintf("Role Name %q", id.RoleName),
+		fmt.Sprintf("Database Name %q", id.DatabaseName),
+		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Database Principal", segmentsStr)
 }
 
-func (id DatabasePrincipalId) ID(_ string) string {
+func (id DatabasePrincipalId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s/Role/%s/FQN/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.RoleName, id.FQNName)
 }

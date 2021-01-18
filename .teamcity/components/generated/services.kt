@@ -29,7 +29,6 @@ var services = mapOf(
         "databasemigration" to "Database Migration",
         "desktopvirtualization" to "Desktop Virtualization",
         "devtestlabs" to "Dev Test",
-        "devspace" to "DevSpaces",
         "digitaltwins" to "Digital Twins",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",

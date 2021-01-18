@@ -6,29 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMApiManagementGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_api_management_group", "test")
+type ApiManagementGroupDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagementGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "external_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
-				),
-			},
+func TestAccDataSourceApiManagementGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_group", "test")
+	r := ApiManagementGroupDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Group"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("external_id").HasValue(""),
+				check.That(data.ResourceName).Key("type").HasValue("custom"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApiManagementGroup_basic(data acceptance.TestData) string {
+func (ApiManagementGroupDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

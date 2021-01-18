@@ -109,7 +109,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
 	}
 
 	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
@@ -150,7 +150,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
 }
 

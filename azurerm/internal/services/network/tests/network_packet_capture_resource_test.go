@@ -1,168 +1,115 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMNetworkPacketCapture_localDisk(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
+type NetworkPacketCaptureResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNetworkPacketCapture_localDiskConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkPacketCaptureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func testAccNetworkPacketCapture_localDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
+	r := NetworkPacketCaptureResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.localDiskConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
+	r := NetworkPacketCaptureResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.localDiskConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.localDiskConfig_requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_packet_capture"),
 		},
 	})
 }
 
-func testAccAzureRMNetworkPacketCapture_requiresImport(t *testing.T) {
+func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
+	r := NetworkPacketCaptureResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNetworkPacketCapture_localDiskConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkPacketCaptureExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAzureRMNetworkPacketCapture_localDiskConfig_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_packet_capture"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageAccountConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkPacketCapture_storageAccount(t *testing.T) {
+func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
+	r := NetworkPacketCaptureResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNetworkPacketCapture_storageAccountConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkPacketCaptureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageAccountAndLocalDiskConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
+func testAccNetworkPacketCapture_withFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
+	r := NetworkPacketCaptureResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNetworkPacketCapture_storageAccountAndLocalDiskConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkPacketCaptureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.localDiskConfigWithFilters(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkPacketCapture_withFilters(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNetworkPacketCapture_localDiskConfigWithFilters(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkPacketCaptureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PacketCapturesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		watcherName := rs.Primary.Attributes["network_watcher_name"]
-		NetworkPacketCaptureName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkPacketCaptureName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on NetworkPacketCapturesClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Packet Capture does not exist: %s", NetworkPacketCaptureName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNetworkPacketCaptureDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PacketCapturesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_packet_capture" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		watcherName := rs.Primary.Attributes["network_watcher_name"]
-		NetworkPacketCaptureName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkPacketCaptureName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Packet Capture still exists:%s", *resp.Name)
-		}
+func (t NetworkPacketCaptureResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.PacketCaptureID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.PacketCapturesClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Packet Capture (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAzureRMNetworkPacketCapture_base(data acceptance.TestData) string {
+func (NetworkPacketCaptureResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -248,8 +195,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMNetworkPacketCapture_localDiskConfig(data acceptance.TestData) string {
-	config := testAzureRMNetworkPacketCapture_base(data)
+func (r NetworkPacketCaptureResource) localDiskConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -265,11 +211,10 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, config, data.RandomInteger)
+`, r.base(data), data.RandomInteger)
 }
 
-func testAzureRMNetworkPacketCapture_localDiskConfig_requiresImport(data acceptance.TestData) string {
-	config := testAzureRMNetworkPacketCapture_localDiskConfig(data)
+func (r NetworkPacketCaptureResource) localDiskConfig_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -285,11 +230,10 @@ resource "azurerm_network_packet_capture" "import" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, config)
+`, r.localDiskConfig(data))
 }
 
-func testAzureRMNetworkPacketCapture_localDiskConfigWithFilters(data acceptance.TestData) string {
-	config := testAzureRMNetworkPacketCapture_base(data)
+func (r NetworkPacketCaptureResource) localDiskConfigWithFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -317,11 +261,10 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, config, data.RandomInteger)
+`, r.base(data), data.RandomInteger)
 }
 
-func testAzureRMNetworkPacketCapture_storageAccountConfig(data acceptance.TestData) string {
-	config := testAzureRMNetworkPacketCapture_base(data)
+func (r NetworkPacketCaptureResource) storageAccountConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -345,11 +288,10 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, config, data.RandomString, data.RandomInteger)
+`, r.base(data), data.RandomString, data.RandomInteger)
 }
 
-func testAzureRMNetworkPacketCapture_storageAccountAndLocalDiskConfig(data acceptance.TestData) string {
-	config := testAzureRMNetworkPacketCapture_base(data)
+func (r NetworkPacketCaptureResource) storageAccountAndLocalDiskConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -374,5 +316,5 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, config, data.RandomString, data.RandomInteger)
+`, r.base(data), data.RandomString, data.RandomInteger)
 }

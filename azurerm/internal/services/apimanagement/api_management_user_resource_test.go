@@ -1,262 +1,202 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementUser_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+type ApiManagementUserResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementUser_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementUser_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementUser_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+			),
+		},
+		{
+			Config: r.updatedBlocked(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance Updated"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test Updated"),
+				check.That(data.ResourceName).Key("state").HasValue("blocked"),
+			),
+		},
+		{
+			Config: r.updatedActive(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementUser_requiresImport(t *testing.T) {
+func TestAccApiManagementUser_password(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementUser_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.password(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"password"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementUser_update(t *testing.T) {
+func TestAccApiManagementUser_invite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementUser_updatedBlocked(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance Updated"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test Updated"),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "blocked"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementUser_updatedActive(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.invited(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMApiManagementUser_password(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_password(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementUser_invite(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_invited(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned
-					"confirmation",
-				},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned
+				"confirmation",
 			},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementUser_signup(t *testing.T) {
+func TestAccApiManagementUser_signup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_signUp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned
-					"confirmation",
-				},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.signUp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned
+				"confirmation",
 			},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementUser_complete(t *testing.T) {
+func TestAccApiManagementUser_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementUserDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementUser_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementUserExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "note", "Used for testing in dimension C-137."),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned
-					"confirmation",
-				},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
+				check.That(data.ResourceName).Key("note").HasValue("Used for testing in dimension C-137."),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned
+				"confirmation",
 			},
 		},
 	})
 }
 
-func testCheckAzureRMApiManagementUserDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.UsersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t ApiManagementUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	userId := id.Path["users"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_user" {
-			continue
-		}
-
-		userId := rs.Primary.Attributes["user_id"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, userId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.UsersClient.Get(ctx, resourceGroup, serviceName, userId)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement User (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMApiManagementUserExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.UsersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		userId := rs.Primary.Attributes["user_id"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, userId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: User %q (API Management Service %q / Resource Group %q) does not exist", userId, serviceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on apiManagement.UsersClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMApiManagementUser_basic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (ApiManagementUserResource) basic(data acceptance.TestData) string {
+	template := ApiManagementUserResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -271,8 +211,7 @@ resource "azurerm_api_management_user" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_basic(data)
+func (r ApiManagementUserResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -285,11 +224,10 @@ resource "azurerm_api_management_user" "import" {
   email               = azurerm_api_management_user.test.email
   state               = azurerm_api_management_user.test.state
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementUser_password(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (r ApiManagementUserResource) password(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -303,11 +241,10 @@ resource "azurerm_api_management_user" "test" {
   state               = "active"
   password            = "3991bb15-282d-4b9b-9de3-3d5fc89eb530"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_updatedActive(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (r ApiManagementUserResource) updatedActive(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -320,11 +257,10 @@ resource "azurerm_api_management_user" "test" {
   email               = "azure-acctest%d@example.com"
   state               = "active"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_updatedBlocked(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (r ApiManagementUserResource) updatedBlocked(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -337,11 +273,10 @@ resource "azurerm_api_management_user" "test" {
   email               = "azure-acctest%d@example.com"
   state               = "blocked"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_invited(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (r ApiManagementUserResource) invited(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -355,11 +290,10 @@ resource "azurerm_api_management_user" "test" {
   state               = "blocked"
   confirmation        = "invite"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_signUp(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (r ApiManagementUserResource) signUp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -373,11 +307,10 @@ resource "azurerm_api_management_user" "test" {
   state               = "blocked"
   confirmation        = "signup"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_complete(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementUser_template(data)
+func (r ApiManagementUserResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -392,10 +325,10 @@ resource "azurerm_api_management_user" "test" {
   confirmation        = "signup"
   note                = "Used for testing in dimension C-137."
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementUser_template(data acceptance.TestData) string {
+func (ApiManagementUserResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -27,14 +27,15 @@ func NewFunctionAppSlotID(subscriptionId, resourceGroup, siteName, slotName stri
 
 func (id FunctionAppSlotId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Site Name %q", id.SiteName),
 		fmt.Sprintf("Slot Name %q", id.SlotName),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Function App Slot", segmentsStr)
 }
 
-func (id FunctionAppSlotId) ID(_ string) string {
+func (id FunctionAppSlotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
 }

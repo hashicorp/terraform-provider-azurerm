@@ -5,56 +5,36 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
+type MsSqlElasticPoolDataSource struct{}
+
+func TestAccDataSourceMsSqlElasticPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "max_size_gb", "50"),
-					resource.TestCheckResourceAttr(data.ResourceName, "per_db_min_capacity", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "per_db_max_capacity", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "false"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: MsSqlElasticPoolDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("server_name").Exists(),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("license_type").HasValue("LicenseIncluded"),
+				check.That(data.ResourceName).Key("max_size_gb").HasValue("50"),
+				check.That(data.ResourceName).Key("per_db_min_capacity").HasValue("0"),
+				check.That(data.ResourceName).Key("per_db_max_capacity").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMsSqlElasticPool_licenseType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
-				),
-			},
-		},
-	})
-}
-
-func testAccDataSourceAzureRMMsSqlElasticPool_basic(data acceptance.TestData) string {
+func (MsSqlElasticPoolDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -62,7 +42,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "%s"
+  location = "%[2]s"
 }
 
 resource "azurerm_sql_server" "test" {

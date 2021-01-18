@@ -25,10 +25,11 @@ func (id SubscriptionTemplateDeploymentId) String() string {
 	segments := []string{
 		fmt.Sprintf("Deployment Name %q", id.DeploymentName),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Subscription Template Deployment", segmentsStr)
 }
 
-func (id SubscriptionTemplateDeploymentId) ID(_ string) string {
+func (id SubscriptionTemplateDeploymentId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Resources/deployments/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.DeploymentName)
 }

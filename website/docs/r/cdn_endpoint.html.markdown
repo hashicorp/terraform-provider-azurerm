@@ -234,7 +234,9 @@ A `cookies_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of values for the cookie.
+* `match_values` - (Optional) List of values for the cookie. This is required if `operator` is not `Any`.
+
+
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -268,7 +270,7 @@ A `post_arg_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -280,7 +282,7 @@ A `query_string_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -292,7 +294,7 @@ A `remote_address_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values. For `GeoMatch` `operator` this should be a list of country codes (e.g. `US` or `DE`). List of IP address if `operator` equals to `IPMatch`.
+* `match_values` - (Optional) List of string values. For `GeoMatch` `operator` this should be a list of country codes (e.g. `US` or `DE`). List of IP address if `operator` equals to `IPMatch`. This is required if `operator` is not `Any`.
 
 ---
 
@@ -302,7 +304,7 @@ A `request_body_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -316,7 +318,7 @@ A `request_header_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of header values.
+* `match_values` - (Optional) List of header values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -348,7 +350,7 @@ A `request_uri_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -360,7 +362,7 @@ A `url_file_extension_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -372,7 +374,7 @@ A `url_file_name_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 
@@ -384,7 +386,7 @@ A `url_path_condition` block supports the following:
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
-* `match_values` - (Required) List of string values.
+* `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
 * `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
 

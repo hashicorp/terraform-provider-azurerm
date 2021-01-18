@@ -1,187 +1,143 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementSubscription_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+type ApiManagementSubscriptionResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementSubscription_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+	r := ApiManagementSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_tracing").HasValue("true"),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementSubscription_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+	r := ApiManagementSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementSubscription_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+	r := ApiManagementSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.update(data, "submitted", true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("state").HasValue("submitted"),
+				check.That(data.ResourceName).Key("allow_tracing").HasValue("true"),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+			),
+		},
+		{
+			Config: r.update(data, "active", true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+			),
+		},
+		{
+			Config: r.update(data, "suspended", true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("state").HasValue("suspended"),
+			),
+		},
+		{
+			Config: r.update(data, "cancelled", true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("state").HasValue("cancelled"),
+			),
+		},
+		{
+			Config: r.update(data, "active", false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementSubscription_requiresImport(t *testing.T) {
+func TestAccApiManagementSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+	r := ApiManagementSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementSubscription_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementSubscription_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementSubscription_update(data, "submitted", "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "submitted"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementSubscription_update(data, "active", "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementSubscription_update(data, "suspended", "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "suspended"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementSubscription_update(data, "cancelled", "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "cancelled"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementSubscription_update(data, "active", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "false"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementSubscription_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementSubscription_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "false"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.SubscriptionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_subscription" {
-			continue
-		}
-
-		subscriptionId := rs.Primary.Attributes["subscription_id"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
+func (t ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SubscriptionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
 
-func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.SubscriptionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		subscriptionId := rs.Primary.Attributes["subscription_id"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Subscription %q (API Management Service %q / Resource Group %q) does not exist", subscriptionId, serviceName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on apiManagement.SubscriptionsClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.SubscriptionsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Subscription (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementSubscription_basic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementSubscription_template(data)
+func (ApiManagementSubscriptionResource) basic(data acceptance.TestData) string {
+	template := ApiManagementSubscriptionResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -195,8 +151,7 @@ resource "azurerm_api_management_subscription" "test" {
 `, template)
 }
 
-func testAccAzureRMApiManagementSubscription_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementSubscription_basic(data)
+func (r ApiManagementSubscriptionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -208,11 +163,10 @@ resource "azurerm_api_management_subscription" "import" {
   product_id          = azurerm_api_management_subscription.test.product_id
   display_name        = azurerm_api_management_subscription.test.display_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementSubscription_update(data acceptance.TestData, state string, allow_tracing string) string {
-	template := testAccAzureRMApiManagementSubscription_template(data)
+func (r ApiManagementSubscriptionResource) update(data acceptance.TestData, state string, allow_tracing bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -223,13 +177,12 @@ resource "azurerm_api_management_subscription" "test" {
   product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "%s"
-  allow_tracing       = "%s"
+  allow_tracing       = %t
 }
-`, template, state, allow_tracing)
+`, r.template(data), state, allow_tracing)
 }
 
-func testAccAzureRMApiManagementSubscription_complete(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementSubscription_template(data)
+func (r ApiManagementSubscriptionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -240,12 +193,12 @@ resource "azurerm_api_management_subscription" "test" {
   product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "active"
-  allow_tracing       = "false"
+  allow_tracing       = false
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMApiManagementSubscription_template(data acceptance.TestData) string {
+func (ApiManagementSubscriptionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

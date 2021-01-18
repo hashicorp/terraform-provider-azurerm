@@ -1,126 +1,86 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementAuthorizationServer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
+type ApiManagementAuthorizationServerResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAuthorizationServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementAuthorizationServer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
+	r := ApiManagementAuthorizationServerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementAuthorizationServer_requiresImport(t *testing.T) {
+func TestAccApiManagementAuthorizationServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
+	r := ApiManagementAuthorizationServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAuthorizationServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementAuthorizationServer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMApiManagementAuthorizationServer_complete(t *testing.T) {
+func TestAccApiManagementAuthorizationServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
+	r := ApiManagementAuthorizationServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAuthorizationServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("client_secret"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("client_secret"),
 	})
 }
 
-func testCheckAzureRMAPIManagementAuthorizationServerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.AuthorizationServersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_authorization_server" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementAuthorizationServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
 
-func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.AuthorizationServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["authorizationServers"]
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Authorization Server %q (API Management Service %q / Resource Group %q) does not exist", name, serviceName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on apiManagementAuthorizationServersClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.AuthorizationServersClient.Get(ctx, resourceGroup, serviceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Authorization Server (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementAuthorizationServer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementAuthorizationServer_template(data)
+func (r ApiManagementAuthorizationServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -141,11 +101,10 @@ resource "azurerm_api_management_authorization_server" "test" {
     "GET",
   ]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementAuthorizationServer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementAuthorizationServer_basic(data)
+func (r ApiManagementAuthorizationServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -163,11 +122,10 @@ resource "azurerm_api_management_authorization_server" "import" {
     "GET",
   ]
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementAuthorizationServer_complete(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementAuthorizationServer_template(data)
+func (r ApiManagementAuthorizationServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -200,10 +158,10 @@ resource "azurerm_api_management_authorization_server" "test" {
   resource_owner_password = "C-193P"
   support_state           = true
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementAuthorizationServer_template(data acceptance.TestData) string {
+func (ApiManagementAuthorizationServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

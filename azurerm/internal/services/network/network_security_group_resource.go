@@ -22,12 +22,12 @@ import (
 
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
-func resourceArmNetworkSecurityGroup() *schema.Resource {
+func resourceNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityGroupCreateUpdate,
-		Read:   resourceArmNetworkSecurityGroupRead,
-		Update: resourceArmNetworkSecurityGroupCreateUpdate,
-		Delete: resourceArmNetworkSecurityGroupDelete,
+		Create: resourceNetworkSecurityGroupCreateUpdate,
+		Read:   resourceNetworkSecurityGroupRead,
+		Update: resourceNetworkSecurityGroupCreateUpdate,
+		Delete: resourceNetworkSecurityGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := ParseNetworkSecurityGroupID(id)
@@ -178,7 +178,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,10 +238,10 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmNetworkSecurityGroupRead(d, meta)
+	return resourceNetworkSecurityGroupRead(d, meta)
 }
 
-func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +276,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

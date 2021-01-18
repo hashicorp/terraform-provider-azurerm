@@ -34,6 +34,7 @@ func TestAccClientConfigDataSource_basic(t *testing.T) {
 
 func (d ClientConfigDataSource) basic() string {
 	return `
-data "azurerm_client_config" "current" { }
+data "azurerm_client_config" "current" {
+}
 `
 }

@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHybridConnection() *schema.Resource {
+func resourceArmRelayHybridConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHybridConnectionCreateUpdate,
-		Read:   resourceArmHybridConnectionRead,
-		Update: resourceArmHybridConnectionCreateUpdate,
-		Delete: resourceArmHybridConnectionDelete,
+		Create: resourceArmRelayHybridConnectionCreateUpdate,
+		Read:   resourceArmRelayHybridConnectionRead,
+		Update: resourceArmRelayHybridConnectionCreateUpdate,
+		Delete: resourceArmRelayHybridConnectionDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.HybridConnectionID(id)
 			return err
@@ -71,7 +71,7 @@ func resourceArmHybridConnection() *schema.Resource {
 	}
 }
 
-func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -89,7 +89,7 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", resourceId.ID())
 		}
 	}
 
@@ -107,11 +107,11 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("creating/updating Hybrid Connection %q (Namespace %q Resource Group %q): %+v", resourceId.Name, resourceId.NamespaceName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmHybridConnectionRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 
-func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +131,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving Hybrid Connection %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.NamespaceName)
+	d.Set("name", id.Name)
 	d.Set("relay_namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
@@ -143,7 +143,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

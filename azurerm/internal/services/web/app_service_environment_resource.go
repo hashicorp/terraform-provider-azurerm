@@ -30,12 +30,12 @@ const (
 	LoadBalancingModeWebPublishing web.LoadBalancingMode = "Web, Publishing"
 )
 
-func resourceArmAppServiceEnvironment() *schema.Resource {
+func resourceAppServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceEnvironmentCreate,
-		Read:   resourceArmAppServiceEnvironmentRead,
-		Update: resourceArmAppServiceEnvironmentUpdate,
-		Delete: resourceArmAppServiceEnvironmentDelete,
+		Create: resourceAppServiceEnvironmentCreate,
+		Read:   resourceAppServiceEnvironmentRead,
+		Update: resourceAppServiceEnvironmentUpdate,
+		Delete: resourceAppServiceEnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceEnvironmentID(id)
 			return err
@@ -135,7 +135,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	networksClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -244,10 +244,10 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceEnvironmentRead(d, meta)
+	return resourceAppServiceEnvironmentRead(d, meta)
 }
 
-func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,10 +305,10 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting for Update of App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
-	return resourceArmAppServiceEnvironmentRead(d, meta)
+	return resourceAppServiceEnvironmentRead(d, meta)
 }
 
-func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,7 +362,7 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, existing.Tags)
 }
 
-func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

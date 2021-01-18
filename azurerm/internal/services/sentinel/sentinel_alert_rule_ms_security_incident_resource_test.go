@@ -1,161 +1,161 @@
 package sentinel_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+type SentinelAlertRuleMsSecurityIncidentResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_update(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccSentinelAlertRuleMsSecurityIncident_withAlertRuleTemplateGuid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Sentinel Alert Rule Ms Security Incident not found: %s", resourceName)
-		}
-
-		id, err := parse.SentinelAlertRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q) does not exist", id.Name, id.ResourceGroup, id.Workspace)
-			}
-			return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
-		}
-
-		return nil
-	}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.alertRuleTemplateGuid(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
-func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccSentinelAlertRuleMsSecurityIncident_withDisplayNameExcludeFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sentinel_alert_rule_ms_security_incident" {
-			continue
-		}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.displayNameExcludeFilter(data, "alert3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.displayNameExcludeFilter(data, "alert4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-		id, err := parse.SentinelAlertRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
-			}
-		}
-
-		return nil
+func (t SentinelAlertRuleMsSecurityIncidentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AlertRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Sentinel Alert Rule Ms Security Incident %q: %v", id, err)
+	}
+
+	rule, ok := resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule)
+	if !ok {
+		return nil, fmt.Errorf("the Alert Rule %q is not a MS Security Incident Alert Rule", id)
+	}
+
+	return utils.Bool(rule.ID != nil), nil
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data)
+func (r SentinelAlertRuleMsSecurityIncidentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -166,11 +166,10 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   display_name               = "some rule"
   severity_filter            = ["High"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data)
+func (r SentinelAlertRuleMsSecurityIncidentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -183,11 +182,10 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   description                = "this is a alert rule"
   display_name_filter        = ["alert"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data)
+func (r SentinelAlertRuleMsSecurityIncidentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -198,10 +196,41 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "import" {
   display_name               = azurerm_sentinel_alert_rule_ms_security_incident.test.display_name
   severity_filter            = azurerm_sentinel_alert_rule_ms_security_incident.test.severity_filter
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data acceptance.TestData) string {
+func (r SentinelAlertRuleMsSecurityIncidentResource) alertRuleTemplateGuid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
+  name                       = "acctest-SentinelAlertRule-MSI-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  product_filter             = "Microsoft Cloud App Security"
+  display_name               = "some rule"
+  severity_filter            = ["High"]
+  alert_rule_template_guid   = "b3cfc7c0-092c-481c-a55b-34a3979758cb"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleMsSecurityIncidentResource) displayNameExcludeFilter(data acceptance.TestData, displayNameExcludeFilter string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
+  name                        = "acctest-SentinelAlertRule-MSI-%d"
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
+  product_filter              = "Microsoft Cloud App Security"
+  display_name                = "some rule"
+  severity_filter             = ["High"]
+  display_name_filter         = ["alert1"]
+  display_name_exclude_filter = ["%s"]
+}
+`, r.template(data), data.RandomInteger, displayNameExcludeFilter)
+}
+
+func (SentinelAlertRuleMsSecurityIncidentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
