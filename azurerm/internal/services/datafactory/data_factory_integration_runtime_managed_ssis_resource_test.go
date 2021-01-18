@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type IntegrationRuntimeManagedResource struct {
+type IntegrationRuntimeManagedSsisResource struct {
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
-	r := IntegrationRuntimeManagedResource{}
+	r := IntegrationRuntimeManagedSsisResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_vnetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
-	r := IntegrationRuntimeManagedResource{}
+	r := IntegrationRuntimeManagedSsisResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -50,9 +50,9 @@ func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_catalogInfo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
-	r := IntegrationRuntimeManagedResource{}
+	r := IntegrationRuntimeManagedSsisResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -70,9 +70,9 @@ func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_customSetupScript(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed_ssis", "test")
-	r := IntegrationRuntimeManagedResource{}
+	r := IntegrationRuntimeManagedSsisResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T)
 	})
 }
 
-func (IntegrationRuntimeManagedResource) basic(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedSsisResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedResource) vnetIntegration(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedSsisResource) vnetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,7 +167,7 @@ resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedResource) catalogInfo(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedSsisResource) catalogInfo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -211,7 +211,7 @@ resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedResource) customSetupScript(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedSsisResource) customSetupScript(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -279,7 +279,7 @@ resource "azurerm_data_factory_integration_runtime_managed_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (t IntegrationRuntimeManagedResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -290,7 +290,7 @@ func (t IntegrationRuntimeManagedResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Integration Runtime Managed (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Data Factory Integration Runtime Managed SSIS (%s): %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
