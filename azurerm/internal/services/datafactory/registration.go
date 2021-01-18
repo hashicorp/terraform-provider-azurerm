@@ -37,6 +37,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_factory_dataset_mysql":                         resourceDataFactoryDatasetMySQL(),
 		"azurerm_data_factory_dataset_postgresql":                    resourceDataFactoryDatasetPostgreSQL(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceDataFactoryDatasetSQLServerTable(),
+		"azurerm_data_factory_integration_runtime_managed":           resourceDataFactoryIntegrationRuntimeManaged(),
 		"azurerm_data_factory_integration_runtime_managed_ssis":      resourceDataFactoryIntegrationRuntimeManagedSsis(),
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceDataFactoryIntegrationRuntimeSelfHosted(),
 		"azurerm_data_factory_linked_service_azure_blob_storage":     resourceDataFactoryLinkedServiceAzureBlobStorage(),
