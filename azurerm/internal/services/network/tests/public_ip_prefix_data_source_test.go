@@ -6,35 +6,36 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMPublicIPPrefix_basic(t *testing.T) {
+type PublicIPPrefixDataSource struct {
+}
+
+func TestAccDataSourcePublicIPPrefix_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixDataSource{}
 	name := fmt.Sprintf("acctestpublicipprefix-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMPublicIPPrefixBasic(name, resourceGroupName, data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "prefix_length", "31"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(name, resourceGroupName, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("prefix_length").HasValue("31"),
+				check.That(data.ResourceName).Key("ip_prefix").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMPublicIPPrefixBasic(name string, resourceGroupName string, data acceptance.TestData) string {
+func (PublicIPPrefixDataSource) basic(name string, resourceGroupName string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

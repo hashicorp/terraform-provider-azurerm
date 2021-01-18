@@ -1,286 +1,235 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+type PrivateLinkServiceResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateLinkService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestPLS-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-				),
-			},
-			data.ImportStep(),
+func TestAccPrivateLinkService_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPLS-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateLinkService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_private_link_service"),
 		},
 	})
 }
 
-func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
+func TestAccPrivateLinkService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateLinkService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMPrivateLinkService_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_private_link_service"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicIp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.primary").HasValue("true"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicIp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
+func TestAccPrivateLinkService_move(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateLinkService_basicIp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateLinkService_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.primary", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateLinkService_basicIp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.moveSetup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.moveAdd(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.18"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.20"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.moveChangeOne(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.18"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.21"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.moveChangeTwo(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.20"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.21"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.moveChangeThree(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.20"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.18"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
+func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateLinkService_moveSetup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateLinkService_moveAdd(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.18"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.20"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateLinkService_moveChangeOne(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.18"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.21"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateLinkService_moveChangeTwo(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.21"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateLinkService_moveChangeThree(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.18"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enable
+			Config: r.enableProxyProtocol(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// Disable
+			Config: r.enableProxyProtocol(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enable
+			Config: r.enableProxyProtocol(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateLinkService_enableProxyProtocol(t *testing.T) {
+func TestAccPrivateLinkService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enable
-				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disable
-				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enable
-				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_approval_subscription_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("visibility_subscription_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("2"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.1.40"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address_version").HasValue("IPv4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.1.41"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address_version").HasValue("IPv4"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateLinkService_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateLinkServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_approval_subscription_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "visibility_subscription_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.40"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.41"),
-					resource.TestCheckResourceAttr(data.ResourceName, "nat_ip_configuration.1.private_ip_address_version", "IPv4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMPrivateLinkServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PrivateLinkServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Private Link Service not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Private Link Service %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on network.PrivateLinkServiceClient: %+v", err)
-		}
-
-		return nil
+func (t PrivateLinkServiceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["privateLinkServices"]
 
-func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PrivateLinkServiceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_private_link_service" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.PrivateLinkServiceClient: %+v", err)
-			}
-		}
-
-		return nil
+	resp, err := clients.Network.PrivateLinkServiceClient.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Private Link Service (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPrivateLinkService_basic(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -308,10 +257,10 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_basicIp(data acceptance.TestData) string {
+func (r PrivateLinkServiceResource) basicIp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -341,11 +290,10 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, testAccAzureRMPrivateLinkService_template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_basic(data)
+func (r PrivateLinkServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -364,11 +312,10 @@ resource "azurerm_private_link_service" "import" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, template, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_enableProxyProtocol(data acceptance.TestData, enabled bool) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) enableProxyProtocol(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -397,11 +344,10 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, template, data.RandomInteger, data.RandomInteger, enabled, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, enabled, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_update(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -461,11 +407,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_moveSetup(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) moveSetup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -501,11 +446,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_moveAdd(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) moveAdd(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -565,11 +509,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_moveChangeOne(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) moveChangeOne(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -629,11 +572,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_moveChangeTwo(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) moveChangeTwo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -693,11 +635,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_moveChangeThree(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) moveChangeThree(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -757,11 +698,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_complete(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateLinkService_template(data)
+func (r PrivateLinkServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -805,10 +745,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateLinkService_template(data acceptance.TestData) string {
+func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
