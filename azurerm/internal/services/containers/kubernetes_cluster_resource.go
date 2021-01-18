@@ -110,6 +110,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"new_pod_scale_up_delay": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
 						"scan_interval": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -1922,6 +1928,11 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
 	}
 
+	newPodScaleUpDelay := ""
+	if profile.NewPodScaleUpDelay != nil {
+		newPodScaleUpDelay = *profile.NewPodScaleUpDelay
+	}
+
 	scaleDownDelayAfterAdd := ""
 	if profile.ScaleDownDelayAfterAdd != nil {
 		scaleDownDelayAfterAdd = *profile.ScaleDownDelayAfterAdd
@@ -1961,6 +1972,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
+			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
 			"scale_down_delay_after_failure":   scaleDownDelayAfterFailure,
@@ -1981,6 +1993,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
+	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
 	scaleDownDelayAfterFailure := config["scale_down_delay_after_failure"].(string)
@@ -1992,6 +2005,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
+		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
 		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
 		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
