@@ -8,7 +8,8 @@
 
 BUG FIXES:
 
-`azurerm_backup_protected_file_share` - address brekaing API change so resource now functions again [GH-9015]
+* `azurerm_backup_protected_file_share` - updating to account for a breaking API change [GH-9015]
+* `azurerm_key_vault_certificate` - fixing a crash when `subject` within the `certificate_policy` block was nil [GH-10200]
 
 ## 2.43.0 (January 14, 2021)
 
