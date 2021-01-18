@@ -62,7 +62,9 @@ resource "azurerm_app_service_environment" "example" {
 
 * `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created.
 
-~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
+~> **NOTE:** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
+
+~> **NOTE:** When using `ASEV3` the Subnet used for the ASE must have a delegation for `"Microsoft.Web/hostingEnvironments"` configured.
 
 * `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
 
@@ -77,6 +79,10 @@ resource "azurerm_app_service_environment" "example" {
 ~> **NOTE:** `allowed_user_ip_cidrs` The addresses that will be used for all outbound traffic from your App Service Environment to the internet to avoid asymmetric routing challenge. If you're routing the traffic on premises, these addresses are your NATs or gateway IPs. If you want to route the App Service Environment outbound traffic through an NVA, the egress address is the public IP of the NVA. Please visit [Create your ASE with the egress addresses](https://docs.microsoft.com/en-us/azure/app-service/environment/forced-tunnel-support#add-your-own-ips-to-the-ase-azure-sql-firewall)
 
 * `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
+
+* `version` - (Optional) The Version of the Application Service Environment. Possible values are `ASEV2` and `ASEV3`. Defaults to `ASEV2`.
+
+~> **NOTE:** When using `ASEV3` values for the properties `allowed_user_ip_cidrs`, and `pricing_tier` are not allowed.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created. 
 

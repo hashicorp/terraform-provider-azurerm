@@ -33,6 +33,23 @@ func TestAccAppServiceEnvironment_basic(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceEnvironment_basicV3(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicV3(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pricing_tier").Exists(),
+				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("15"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
@@ -189,6 +206,19 @@ func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func (r AppServiceEnvironmentResource) basicV3(data acceptance.TestData) string {
+	template := r.templateV3(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%d"
+  subnet_id = azurerm_subnet.ase.id
+  version   = "ASEV3"
+}
+`, template, data.RandomInteger)
 }
 
 func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
@@ -372,6 +402,49 @@ resource "azurerm_subnet" "ase" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "gateway" {
+  name                 = "gatewaysubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentResource) templateV3(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "ase" {
+  name                 = "asesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+
+  delegation {
+    name = "asedelegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/hostingEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 resource "azurerm_subnet" "gateway" {

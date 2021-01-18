@@ -93,17 +93,17 @@ func dataSourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	vipInfo, err := client.GetVipInfo(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(vipInfo.Response) {
-			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving VIP info App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
