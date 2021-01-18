@@ -130,8 +130,8 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	compute_type 				= "ComputeOptimized"
+  location            = azurerm_resource_group.test.location
+  compute_type        = "ComputeOptimized"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -157,8 +157,8 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	core_count 					= 16
+  location            = azurerm_resource_group.test.location
+  core_count          = 16
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -184,8 +184,8 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	time_to_live 				= 10
+  location            = azurerm_resource_group.test.location
+  time_to_live        = 10
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
