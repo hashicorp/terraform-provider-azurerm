@@ -286,9 +286,8 @@ func resourceLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-
-	force := false
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, utils.Bool(force))
+	permanentDelete := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentDelete
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, utils.Bool(permanentDelete))
 	if err != nil {
 		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.WorkspaceName, err)
 	}

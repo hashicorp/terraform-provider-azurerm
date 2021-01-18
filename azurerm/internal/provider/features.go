@@ -26,6 +26,19 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 				},
 			},
 		},
+		"log_analytics_workspace": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"permanent_delete": {
+						Type:     schema.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
 
 		"network": {
 			Type:     schema.TypeList,
@@ -130,6 +143,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["log_analytics_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
+			if v, ok := logAnalyticsWorkspaceRaw["permanent_delete"]; ok {
+				features.LogAnalyticsWorkspace.PermanentDelete = v.(bool)
 			}
 		}
 	}
