@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -454,9 +456,9 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"private_dns_zone_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 			},
 
