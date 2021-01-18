@@ -1,139 +1,115 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkProfile_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
+type NetworkProfileResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkProfile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkProfileExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "container_network_interface_ids.#"),
-				),
-			},
-			data.ImportStep(),
+func TestAccNetworkProfile_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
+	r := NetworkProfileResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_network_interface_ids.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkProfile_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
+	r := NetworkProfileResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_profile"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
+func TestAccNetworkProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
+	r := NetworkProfileResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkProfile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkProfileExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkProfile_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_profile"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
+		},
+		{
+			Config: r.withUpdatedTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkProfile_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
+	r := NetworkProfileResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkProfileDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkProfile_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkProfileExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkProfile_withUpdatedTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkProfileExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkProfile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkProfileExists(data.ResourceName),
-					testCheckAzureRMNetworkProfileDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Profile %q (Resource Group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on netProfileClient: %+v", err)
-		}
-
-		return nil
+func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["networkProfiles"]
+
+	resp, err := clients.Network.ProfileClient.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Profile (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkProfileDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -158,34 +134,7 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMNetworkProfileDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_profile" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Network Profile still exists:\n%#v", resp.ProfilePropertiesFormat)
-	}
-
-	return nil
-}
-
-func testAccAzureRMNetworkProfile_basic(data acceptance.TestData) string {
+func (NetworkProfileResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -236,8 +185,7 @@ resource "azurerm_network_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkProfile_requiresImport(data acceptance.TestData) string {
-	basicConfig := testAccAzureRMNetworkProfile_basic(data)
+func (r NetworkProfileResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -255,10 +203,10 @@ resource "azurerm_network_profile" "import" {
     }
   }
 }
-`, basicConfig)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkProfile_withTags(data acceptance.TestData) string {
+func (NetworkProfileResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -314,7 +262,7 @@ resource "azurerm_network_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkProfile_withUpdatedTags(data acceptance.TestData) string {
+func (NetworkProfileResource) withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

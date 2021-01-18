@@ -102,6 +102,7 @@ func (client GatewayClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,6 +200,7 @@ func (client GatewayClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -290,6 +292,7 @@ func (client GatewayClient) GenerateToken(ctx context.Context, resourceGroupName
 	result, err = client.GenerateTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "GenerateToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -381,6 +384,7 @@ func (client GatewayClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -470,6 +474,7 @@ func (client GatewayClient) GetEntityTag(ctx context.Context, resourceGroupName 
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -562,6 +567,7 @@ func (client GatewayClient) ListByService(ctx context.Context, resourceGroupName
 	result.gc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.gc.hasNextLink() && result.gc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -632,6 +638,7 @@ func (client GatewayClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -696,6 +703,7 @@ func (client GatewayClient) ListKeys(ctx context.Context, resourceGroupName stri
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -785,6 +793,7 @@ func (client GatewayClient) RegenerateKey(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -877,6 +886,7 @@ func (client GatewayClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -92,20 +92,64 @@ func TestAccSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleMsSecurityIncident_withAlertRuleTemplateGuid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.alertRuleTemplateGuid(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleMsSecurityIncident_withDisplayNameExcludeFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+	r := SentinelAlertRuleMsSecurityIncidentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.displayNameExcludeFilter(data, "alert3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.displayNameExcludeFilter(data, "alert4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SentinelAlertRuleMsSecurityIncidentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.SentinelAlertRuleID(state.ID)
+	id, err := parse.AlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Ms Security Incident %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading Sentinel Alert Rule Ms Security Incident %q: %v", id, err)
 	}
 
 	rule, ok := resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule)
 	if !ok {
-		return nil, fmt.Errorf("reading Sentinel Alert Rule Ms Security Incident %q (Resource Group %q) is not of MicrosoftSecurityIncidentCreationAlertRule kind", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("the Alert Rule %q is not a MS Security Incident Alert Rule", id)
 	}
 
 	return utils.Bool(rule.ID != nil), nil
@@ -153,6 +197,37 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "import" {
   severity_filter            = azurerm_sentinel_alert_rule_ms_security_incident.test.severity_filter
 }
 `, r.basic(data))
+}
+
+func (r SentinelAlertRuleMsSecurityIncidentResource) alertRuleTemplateGuid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
+  name                       = "acctest-SentinelAlertRule-MSI-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  product_filter             = "Microsoft Cloud App Security"
+  display_name               = "some rule"
+  severity_filter            = ["High"]
+  alert_rule_template_guid   = "b3cfc7c0-092c-481c-a55b-34a3979758cb"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleMsSecurityIncidentResource) displayNameExcludeFilter(data acceptance.TestData, displayNameExcludeFilter string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
+  name                        = "acctest-SentinelAlertRule-MSI-%d"
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
+  product_filter              = "Microsoft Cloud App Security"
+  display_name                = "some rule"
+  severity_filter             = ["High"]
+  display_name_filter         = ["alert1"]
+  display_name_exclude_filter = ["%s"]
+}
+`, r.template(data), data.RandomInteger, displayNameExcludeFilter)
 }
 
 func (SentinelAlertRuleMsSecurityIncidentResource) template(data acceptance.TestData) string {

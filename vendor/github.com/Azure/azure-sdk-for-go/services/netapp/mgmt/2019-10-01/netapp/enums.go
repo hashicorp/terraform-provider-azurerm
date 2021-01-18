@@ -108,15 +108,11 @@ const (
 	Daily ReplicationSchedule = "daily"
 	// Hourly ...
 	Hourly ReplicationSchedule = "hourly"
-	// Monthly ...
-	Monthly ReplicationSchedule = "monthly"
-	// Weekly ...
-	Weekly ReplicationSchedule = "weekly"
 )
 
 // PossibleReplicationScheduleValues returns an array of possible values for the ReplicationSchedule const type.
 func PossibleReplicationScheduleValues() []ReplicationSchedule {
-	return []ReplicationSchedule{OneZerominutely, Daily, Hourly, Monthly, Weekly}
+	return []ReplicationSchedule{OneZerominutely, Daily, Hourly}
 }
 
 // ServiceLevel enumerates the values for service level.

@@ -53,7 +53,7 @@ func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 }
 
 func (r LoadBalancerRule) basicDataSource(data acceptance.TestData) string {
-	template := r.basic(data, "Basic")
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 

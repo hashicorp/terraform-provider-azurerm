@@ -69,9 +69,10 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 * `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Data Lake Storage Gen2 account. Required if `use_managed_identity` is true.
 
 * `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure Data Lake Storage Gen2 account.  Required if `use_managed_identity` is true.
-## Attributes Reference
 
 * `tenant` - (Required) The tenant id or name in which to authenticate against the Azure Data Lake Storage Gen2 account.
+
+## Attributes Reference
 
 The following attributes are exported:
 

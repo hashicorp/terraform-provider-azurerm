@@ -92,7 +92,7 @@ func (client ManagedInstancesClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +170,7 @@ func (client ManagedInstancesClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -324,6 +324,7 @@ func (client ManagedInstancesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -337,7 +338,7 @@ func (client ManagedInstancesClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -397,6 +398,7 @@ func (client ManagedInstancesClient) List(ctx context.Context) (result ManagedIn
 	result.milr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.milr.hasNextLink() && result.milr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -411,7 +413,7 @@ func (client ManagedInstancesClient) ListPreparer(ctx context.Context) (*http.Re
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -459,6 +461,7 @@ func (client ManagedInstancesClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -512,6 +515,7 @@ func (client ManagedInstancesClient) ListByInstancePool(ctx context.Context, res
 	result.milr, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByInstancePool", resp, "Failure responding to request")
+		return
 	}
 	if result.milr.hasNextLink() && result.milr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -528,7 +532,7 @@ func (client ManagedInstancesClient) ListByInstancePoolPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -576,6 +580,7 @@ func (client ManagedInstancesClient) listByInstancePoolNextResults(ctx context.C
 	result, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByInstancePoolNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -628,6 +633,7 @@ func (client ManagedInstancesClient) ListByResourceGroup(ctx context.Context, re
 	result.milr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.milr.hasNextLink() && result.milr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -643,7 +649,7 @@ func (client ManagedInstancesClient) ListByResourceGroupPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -691,6 +697,7 @@ func (client ManagedInstancesClient) listByResourceGroupNextResults(ctx context.
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -751,7 +758,7 @@ func (client ManagedInstancesClient) UpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

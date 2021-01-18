@@ -6,76 +6,64 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
+type RouteTableDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteTableDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRouteTable_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "0"),
-				),
-			},
+func TestAccDataSourceRouteTable_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
+	r := RouteTableDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("route.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
+func TestAccDataSourceRouteTable_singleRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
+	r := RouteTableDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteTableDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRouteTable_singleRoute(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.0.name", "route1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.0.address_prefix", "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.0.next_hop_type", "VnetLocal"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.singleRoute(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("route.#").HasValue("1"),
+				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
+				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
+				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
+func TestAccDataSourceRouteTable_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
+	r := RouteTableDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteTableDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRouteTable_multipleRoutes(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.0.name", "route1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.0.address_prefix", "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.0.next_hop_type", "VnetLocal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.1.name", "route2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.1.address_prefix", "10.2.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route.1.next_hop_type", "VnetLocal"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("route.#").HasValue("2"),
+				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
+				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
+				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
+				check.That(data.ResourceName).Key("route.1.name").HasValue("route2"),
+				check.That(data.ResourceName).Key("route.1.address_prefix").HasValue("10.2.0.0/16"),
+				check.That(data.ResourceName).Key("route.1.next_hop_type").HasValue("VnetLocal"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMRouteTable_basic(data acceptance.TestData) string {
-	r := testAccAzureRMRouteTable_basic(data)
+func (RouteTableDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -83,11 +71,10 @@ data "azurerm_route_table" "test" {
   name                = azurerm_route_table.test.name
   resource_group_name = azurerm_route_table.test.resource_group_name
 }
-`, r)
+`, RouteTableResource{}.basic(data))
 }
 
-func testAccDataSourceAzureRMRouteTable_singleRoute(data acceptance.TestData) string {
-	r := testAccAzureRMRouteTable_singleRoute(data)
+func (RouteTableDataSource) singleRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -95,11 +82,10 @@ data "azurerm_route_table" "test" {
   name                = azurerm_route_table.test.name
   resource_group_name = azurerm_route_table.test.resource_group_name
 }
-`, r)
+`, RouteTableResource{}.singleRoute(data))
 }
 
-func testAccDataSourceAzureRMRouteTable_multipleRoutes(data acceptance.TestData) string {
-	r := testAccAzureRMRouteTable_multipleRoutes(data)
+func (RouteTableDataSource) multipleRoutes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -107,5 +93,5 @@ data "azurerm_route_table" "test" {
   name                = azurerm_route_table.test.name
   resource_group_name = azurerm_route_table.test.resource_group_name
 }
-`, r)
+`, RouteTableResource{}.multipleRoutes(data))
 }

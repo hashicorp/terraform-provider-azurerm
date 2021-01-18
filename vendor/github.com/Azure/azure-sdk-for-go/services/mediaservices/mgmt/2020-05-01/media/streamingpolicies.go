@@ -119,6 +119,7 @@ func (client StreamingPoliciesClient) Create(ctx context.Context, resourceGroupN
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -198,6 +199,7 @@ func (client StreamingPoliciesClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,6 +276,7 @@ func (client StreamingPoliciesClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -355,6 +358,7 @@ func (client StreamingPoliciesClient) List(ctx context.Context, resourceGroupNam
 	result.spc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.spc.hasNextLink() && result.spc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -428,6 +432,7 @@ func (client StreamingPoliciesClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

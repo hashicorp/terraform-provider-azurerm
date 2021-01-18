@@ -1,153 +1,104 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementApiDiagnostic_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+type ApiManagementApiDiagnosticResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDiagnosticDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApiDiagnostic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiDiagnosticExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementApiDiagnostic_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApiDiagnostic_update(t *testing.T) {
+func TestAccApiManagementApiDiagnostic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDiagnosticDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApiDiagnostic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiDiagnosticExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagementApiDiagnostic_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiDiagnosticExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApiDiagnostic_requiresImport(t *testing.T) {
+func TestAccApiManagementApiDiagnostic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDiagnosticDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApiDiagnostic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiDiagnosticExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementApiDiagnostic_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMApiManagementApiDiagnostic_complete(t *testing.T) {
+func TestAccApiManagementApiDiagnostic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDiagnosticDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApiDiagnostic_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiDiagnosticExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMApiManagementApiDiagnosticDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiDiagnosticClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_api_diagnostic" {
-			continue
-		}
-
-		diagnosticId, err := parse.ApiDiagnosticID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.DiagnosticName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementApiDiagnosticResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ApiDiagnosticID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
 
-func testCheckAzureRMApiManagementApiDiagnosticExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiDiagnosticClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		diagnosticId, err := parse.ApiDiagnosticID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.DiagnosticName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: API Management Diagnostic %q (Resource Group %q / API Management Service %q / API %q) does not exist", diagnosticId.DiagnosticName, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName)
-			}
-			return fmt.Errorf("bad: Get on apiManagementApiDiagnosticClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.ApiDiagnosticClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagementApiDiagnostic (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementApiDiagnostic_template(data acceptance.TestData) string {
+func (ApiManagementApiDiagnosticResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,8 +152,7 @@ resource "azurerm_api_management_api" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMApiManagementApiDiagnostic_basic(data acceptance.TestData) string {
-	config := testAccAzureRMApiManagementApiDiagnostic_template(data)
+func (r ApiManagementApiDiagnosticResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -213,11 +163,10 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   api_name                 = azurerm_api_management_api.test.name
   api_management_logger_id = azurerm_api_management_logger.test.id
 }
-`, config)
+`, r.template(data))
 }
 
-func testAccAzureRMApiManagementApiDiagnostic_update(data acceptance.TestData) string {
-	config := testAccAzureRMApiManagementApiDiagnostic_template(data)
+func (r ApiManagementApiDiagnosticResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -245,11 +194,10 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   api_name                 = azurerm_api_management_api.test.name
   api_management_logger_id = azurerm_api_management_logger.test2.id
 }
-`, config, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiDiagnostic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApiDiagnostic_basic(data)
+func (r ApiManagementApiDiagnosticResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -260,11 +208,10 @@ resource "azurerm_api_management_api_diagnostic" "import" {
   api_name                 = azurerm_api_management_api.test.name
   api_management_logger_id = azurerm_api_management_api_diagnostic.test.api_management_logger_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementApiDiagnostic_complete(data acceptance.TestData) string {
-	config := testAccAzureRMApiManagementApiDiagnostic_template(data)
+func (r ApiManagementApiDiagnosticResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -299,5 +246,5 @@ resource "azurerm_api_management_api_diagnostic" "test" {
     headers_to_log = ["Content-Length"]
   }
 }
-`, config)
+`, r.template(data))
 }

@@ -6,48 +6,46 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
+type ApplicationSecurityGroupDataSource struct {
+}
+
+func TestAccDataSourceApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApplicationSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	r := ApplicationSecurityGroupDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
+func TestAccDataSourceApplicationSecurityGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApplicationSecurityGroup_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
+	r := ApplicationSecurityGroupDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApplicationSecurityGroup_basic(data acceptance.TestData) string {
+func (ApplicationSecurityGroupDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -71,7 +69,7 @@ data "azurerm_application_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceApplicationSecurityGroup_complete(data acceptance.TestData) string {
+func (ApplicationSecurityGroupDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

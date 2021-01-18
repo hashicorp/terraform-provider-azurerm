@@ -62,7 +62,7 @@ func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *client
 		return nil, fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.IdentityProperties != nil), nil
+	return utils.Bool(resp.UserAssignedIdentityProperties != nil), nil
 }
 
 func (r UserAssignedIdentityResource) basic(data acceptance.TestData) string {

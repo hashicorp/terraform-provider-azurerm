@@ -16,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmCosmosDbAccount() *schema.Resource {
+func dataSourceCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmCosmosDbAccountRead,
+		Read: dataSourceCosmosDbAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -224,7 +224,7 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

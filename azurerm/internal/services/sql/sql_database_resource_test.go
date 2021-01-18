@@ -114,8 +114,7 @@ func TestAccSqlDatabase_dataWarehouse(t *testing.T) {
 
 func TestAccSqlDatabase_restorePointInTime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
-	timeToRestore := time.Now().Add(15 * time.Minute)
-	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
+	restorePointInTime := time.Now().Add(15 * time.Minute)
 	r := SqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -127,8 +126,10 @@ func TestAccSqlDatabase_restorePointInTime(t *testing.T) {
 			),
 		},
 		{
-			PreConfig: func() { time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute))) },
-			Config:    r.restorePointInTime(data, formattedTime),
+			// we need to make sure we wait long enough to prevent this:
+			// The source database, 'acctestdb201215000744760737', has not existed long enough to support restores.
+			PreConfig: func() { time.Sleep(restorePointInTime.Sub(time.Now().Add(45 * time.Minute))) },
+			Config:    r.restorePointInTime(data, restorePointInTime),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_sql_database.test_restore").ExistsInAzure(r),
@@ -522,7 +523,7 @@ resource "azurerm_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SqlDatabaseResource) restorePointInTime(data acceptance.TestData, formattedTime string) string {
+func (r SqlDatabaseResource) restorePointInTime(data acceptance.TestData, restorePointInTime time.Time) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -562,7 +563,7 @@ resource "azurerm_sql_database" "test_restore" {
   source_database_id    = azurerm_sql_database.test.id
   restore_point_in_time = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, formattedTime)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, restorePointInTime.UTC().Format(time.RFC3339))
 }
 
 func (r SqlDatabaseResource) elasticPool(data acceptance.TestData) string {

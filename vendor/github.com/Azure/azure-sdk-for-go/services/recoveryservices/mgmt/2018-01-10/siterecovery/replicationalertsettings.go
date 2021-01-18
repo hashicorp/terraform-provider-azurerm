@@ -73,6 +73,7 @@ func (client ReplicationAlertSettingsClient) Create(ctx context.Context, alertSe
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -150,6 +151,7 @@ func (client ReplicationAlertSettingsClient) Get(ctx context.Context, alertSetti
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -224,6 +226,7 @@ func (client ReplicationAlertSettingsClient) List(ctx context.Context) (result A
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -288,6 +291,7 @@ func (client ReplicationAlertSettingsClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

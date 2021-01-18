@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// ConfigurationAssignmentsClient is the azure Maintenance Management Client
+// ConfigurationAssignmentsClient is the maintenance Client
 type ConfigurationAssignmentsClient struct {
 	BaseClient
 }
@@ -77,6 +77,7 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context,
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Co
 	result, err = client.CreateOrUpdateParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "CreateOrUpdateParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -248,6 +250,7 @@ func (client ConfigurationAssignmentsClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -331,6 +334,7 @@ func (client ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, r
 	result, err = client.DeleteParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "DeleteParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -413,6 +417,7 @@ func (client ConfigurationAssignmentsClient) List(ctx context.Context, resourceG
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -494,6 +499,7 @@ func (client ConfigurationAssignmentsClient) ListParent(ctx context.Context, res
 	result, err = client.ListParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ConfigurationAssignmentsClient", "ListParent", resp, "Failure responding to request")
+		return
 	}
 
 	return

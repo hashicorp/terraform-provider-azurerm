@@ -1,162 +1,111 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
+type ApplicationSecurityGroupResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccApplicationSecurityGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
+	r := ApplicationSecurityGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
+func TestAccApplicationSecurityGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
+	r := ApplicationSecurityGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMApplicationSecurityGroup_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_application_security_group"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_application_security_group"),
 		},
 	})
 }
 
-func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
+func TestAccApplicationSecurityGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
+	r := ApplicationSecurityGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationSecurityGroup_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
+func TestAccApplicationSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
+	r := ApplicationSecurityGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationSecurityGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMApplicationSecurityGroup_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t ApplicationSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["applicationSecurityGroups"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_application_security_group" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Application Security Group still exists:\n%#v", resp)
+	resp, err := clients.Network.ApplicationSecurityGroupsClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Application Security Group (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMApplicationSecurityGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Application Security Group: %q", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Application Security Group %q (resource group: %q) was not found: %+v", name, resourceGroup, err)
-			}
-
-			return fmt.Errorf("Bad: Get on applicationSecurityGroupsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMApplicationSecurityGroup_basic(data acceptance.TestData) string {
+func (ApplicationSecurityGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -175,8 +124,7 @@ resource "azurerm_application_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApplicationSecurityGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApplicationSecurityGroup_basic(data)
+func (r ApplicationSecurityGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,10 +133,10 @@ resource "azurerm_application_security_group" "import" {
   location            = azurerm_application_security_group.test.location
   resource_group_name = azurerm_application_security_group.test.resource_group_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApplicationSecurityGroup_complete(data acceptance.TestData) string {
+func (ApplicationSecurityGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

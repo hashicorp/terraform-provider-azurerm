@@ -94,6 +94,7 @@ func (client BackendClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -190,6 +191,7 @@ func (client BackendClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,6 +280,7 @@ func (client BackendClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -366,6 +369,7 @@ func (client BackendClient) GetEntityTag(ctx context.Context, resourceGroupName 
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -463,6 +467,7 @@ func (client BackendClient) ListByService(ctx context.Context, resourceGroupName
 	result.bc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.bc.hasNextLink() && result.bc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -536,6 +541,7 @@ func (client BackendClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -601,6 +607,7 @@ func (client BackendClient) Reconnect(ctx context.Context, resourceGroupName str
 	result, err = client.ReconnectResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Reconnect", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -696,6 +703,7 @@ func (client BackendClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

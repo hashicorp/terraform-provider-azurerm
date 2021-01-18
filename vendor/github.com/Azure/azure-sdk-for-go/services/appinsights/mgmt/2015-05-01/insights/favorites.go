@@ -86,6 +86,7 @@ func (client FavoritesClient) Add(ctx context.Context, resourceGroupName string,
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,6 +179,7 @@ func (client FavoritesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,6 +266,7 @@ func (client FavoritesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -356,6 +359,7 @@ func (client FavoritesClient) List(ctx context.Context, resourceGroupName string
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -457,6 +461,7 @@ func (client FavoritesClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -23,22 +23,22 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_eventhub":                              dataSourceEventHub(),
-		"azurerm_eventhub_authorization_rule":           dataSourceEventHubAuthorizationRule(),
-		"azurerm_eventhub_consumer_group":               dataSourceEventHubConsumerGroup(),
-		"azurerm_eventhub_namespace":                    dataSourceEventHubNamespace(),
-		"azurerm_eventhub_namespace_authorization_rule": dataSourceEventHubNamespaceAuthorizationRule(),
+		"azurerm_eventhub_authorization_rule":           EventHubAuthorizationRuleDataSource(),
+		"azurerm_eventhub_consumer_group":               EventHubConsumerGroupDataSource(),
+		"azurerm_eventhub_namespace":                    EventHubNamespaceDataSource(),
+		"azurerm_eventhub_namespace_authorization_rule": EventHubNamespaceDataSourceAuthorizationRule(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_eventhub_authorization_rule":                 resourceArmEventHubAuthorizationRule(),
-		"azurerm_eventhub_cluster":                            resourceArmEventHubCluster(),
-		"azurerm_eventhub_namespace_authorization_rule":       resourceArmEventHubNamespaceAuthorizationRule(),
-		"azurerm_eventhub_namespace_disaster_recovery_config": resourceArmEventHubNamespaceDisasterRecoveryConfig(),
-		"azurerm_eventhub_namespace":                          resourceArmEventHubNamespace(),
-		"azurerm_eventhub":                                    resourceArmEventHub(),
+		"azurerm_eventhub_authorization_rule":                 resourceEventHubAuthorizationRule(),
+		"azurerm_eventhub_cluster":                            resourceEventHubCluster(),
+		"azurerm_eventhub_namespace_authorization_rule":       resourceEventHubNamespaceAuthorizationRule(),
+		"azurerm_eventhub_namespace_disaster_recovery_config": resourceEventHubNamespaceDisasterRecoveryConfig(),
+		"azurerm_eventhub_namespace":                          resourceEventHubNamespace(),
+		"azurerm_eventhub":                                    resourceEventHub(),
 	}
 }
 

@@ -78,6 +78,7 @@ func (client PricingsClient) Get(ctx context.Context, pricingName string) (resul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.PricingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -155,6 +156,7 @@ func (client PricingsClient) List(ctx context.Context) (result PricingList, err 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.PricingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,6 +236,7 @@ func (client PricingsClient) Update(ctx context.Context, pricingName string, pri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.PricingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

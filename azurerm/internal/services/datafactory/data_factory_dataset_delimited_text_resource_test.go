@@ -1,130 +1,104 @@
 package datafactory_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testCheckAzureRMDataFactoryDatasetDelimitedTextExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryDatasetClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Dataset DelimitedText %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
-		}
-
-		return nil
-	}
+type DatasetDelimitedTextResource struct {
 }
 
-func testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_dataset_delimited_text" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Dataset HTTP still exists:\n%#v", resp.Properties)
-		}
-	}
-
-	return nil
-}
-
-func TestAccAzureRMDataFactoryDatasetDelimitedText_http(t *testing.T) {
+func TestAccDataFactoryDatasetDelimitedText_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryDatasetDelimitedText_http(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetDelimitedTextExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.http(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
+func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryDatasetDelimitedText_http_update1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetDelimitedTextExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDataFactoryDatasetDelimitedText_http_update2(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetDelimitedTextExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.http_update1(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
+				check.That(data.ResourceName).Key("schema_column.#").HasValue("1"),
+				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
+				check.That(data.ResourceName).Key("description").HasValue("test description"),
+				check.That(data.ResourceName).Key("compression_level").HasValue("Optimal"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.http_update2(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
+				check.That(data.ResourceName).Key("schema_column.#").HasValue("2"),
+				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
+				check.That(data.ResourceName).Key("compression_level").HasValue("Fastest"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMDataFactoryDatasetDelimitedText_http(data acceptance.TestData) string {
+func TestAccDataFactoryDatasetDelimitedText_blob(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.blob(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t DatasetDelimitedTextResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	dataFactoryName := id.Path["factories"]
+	name := id.Path["datasets"]
+
+	resp, err := clients.DataFactory.DatasetClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Data Factory Dataset Delimited Text (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (DatasetDelimitedTextResource) http(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -173,7 +147,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetDelimitedText_http_update1(data acceptance.TestData) string {
+func (DatasetDelimitedTextResource) http_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -223,6 +197,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 
   folder = "testFolder"
 
+  compression_level = "Optimal"
+
   parameters = {
     foo = "test1"
     bar = "test2"
@@ -242,7 +218,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetDelimitedText_http_update2(data acceptance.TestData) string {
+func (DatasetDelimitedTextResource) http_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -292,6 +268,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 
   folder = "testFolder"
 
+  compression_level = "Fastest"
+
   parameters = {
     foo  = "test1"
     bar  = "test2"
@@ -317,26 +295,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func TestAccAzureRMDataFactoryDatasetDelimitedText_blob(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryDatasetDelimitedText_blob(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetDelimitedTextExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMDataFactoryDatasetDelimitedText_blob(data acceptance.TestData) string {
+func (DatasetDelimitedTextResource) blob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

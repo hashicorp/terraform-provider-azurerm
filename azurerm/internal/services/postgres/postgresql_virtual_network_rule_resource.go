@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
+func resourcePostgreSQLVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate,
-		Read:   resourceArmPostgreSQLVirtualNetworkRuleRead,
-		Update: resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate,
-		Delete: resourceArmPostgreSQLVirtualNetworkRuleDelete,
+		Create: resourcePostgreSQLVirtualNetworkRuleCreateUpdate,
+		Read:   resourcePostgreSQLVirtualNetworkRuleRead,
+		Update: resourcePostgreSQLVirtualNetworkRuleCreateUpdate,
+		Delete: resourcePostgreSQLVirtualNetworkRuleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.VirtualNetworkRuleID(id)
 			return err
@@ -70,7 +70,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,10 +137,10 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPostgreSQLVirtualNetworkRuleRead(d, meta)
+	return resourcePostgreSQLVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +173,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

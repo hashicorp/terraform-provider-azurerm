@@ -1,6 +1,7 @@
 package monitor_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -8,197 +9,140 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
+type MonitorDiagnosticSettingResource struct {
+}
+
+func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_authorization_rule_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
-				),
-			},
-			data.ImportStep(),
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.eventhub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("eventhub_name").Exists(),
+				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
+				check.That(data.ResourceName).Key("log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
+				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorDiagnosticSetting_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.eventhub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_monitor_diagnostic_setting"),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMMonitorDiagnosticSetting_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_monitor_diagnostic_setting"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logAnalyticsWorkspace(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
+				check.That(data.ResourceName).Key("log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
+				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "log_analytics_workspace_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logAnalyticsWorkspaceDedicated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
+				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_storageAccount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.activityLog(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorDiagnosticSetting_activityLog(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_activityLog(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		actualResourceId := rs.Primary.Attributes["target_resource_id"]
-		targetResourceId := strings.TrimPrefix(actualResourceId, "/")
-
-		resp, err := client.Get(ctx, targetResourceId, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Monitor Diagnostic Setting %q does not exist for Resource ID %s", name, targetResourceId)
-			}
-
-			return fmt.Errorf("Bad: Get on monitorDiagnosticSettingsClient: %+v", err)
-		}
-
-		return nil
+func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := monitor.ParseMonitorDiagnosticId(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	actualResourceId := id.ResourceID
+	targetResourceId := strings.TrimPrefix(actualResourceId, "/")
 
-func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_diagnostic_setting" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		actualResourceId := rs.Primary.Attributes["target_resource_id"]
-		targetResourceId := strings.TrimPrefix(actualResourceId, "/")
-
-		resp, err := client.Get(ctx, targetResourceId, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
+	resp, err := clients.Monitor.DiagnosticSettingsClient.Get(ctx, targetResourceId, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading diagnostic setting (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_eventhub(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -270,8 +214,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorDiagnosticSetting_eventhub(data)
+func (r MonitorDiagnosticSettingResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -298,10 +241,10 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
     }
   }
 }
-`, template)
+`, r.eventhub(data))
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) logAnalyticsWorkspace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -356,7 +299,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -464,7 +407,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_storageAccount(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -519,7 +462,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_activityLog(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) activityLog(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

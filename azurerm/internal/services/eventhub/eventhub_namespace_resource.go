@@ -31,12 +31,12 @@ var (
 	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
 )
 
-func resourceArmEventHubNamespace() *schema.Resource {
+func resourceEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceCreateUpdate,
-		Read:   resourceArmEventHubNamespaceRead,
-		Update: resourceArmEventHubNamespaceCreateUpdate,
-		Delete: resourceArmEventHubNamespaceDelete,
+		Create: resourceEventHubNamespaceCreateUpdate,
+		Read:   resourceEventHubNamespaceRead,
+		Update: resourceEventHubNamespaceCreateUpdate,
+		Delete: resourceEventHubNamespaceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NamespaceID(id)
@@ -151,6 +151,11 @@ func resourceArmEventHubNamespace() *schema.Resource {
 							}, false),
 						},
 
+						"trusted_service_access_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"virtual_network_rule": {
 							Type:       schema.TypeList,
@@ -246,7 +251,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -339,10 +344,10 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmEventHubNamespaceRead(d, meta)
+	return resourceEventHubNamespaceRead(d, meta)
 }
 
-func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -407,7 +412,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -471,6 +476,10 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 
 	ruleset := eventhub.NetworkRuleSetProperties{
 		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
+	}
+
+	if v, ok := block["trusted_service_access_enabled"]; ok {
+		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
 	}
 
 	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
@@ -547,9 +556,10 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []i
 	}
 
 	return []interface{}{map[string]interface{}{
-		"default_action":       string(ruleset.DefaultAction),
-		"virtual_network_rule": vnetBlocks,
-		"ip_rule":              ipBlocks,
+		"default_action":                 string(ruleset.DefaultAction),
+		"virtual_network_rule":           vnetBlocks,
+		"ip_rule":                        ipBlocks,
+		"trusted_service_access_enabled": ruleset.TrustedServiceAccessEnabled,
 	}}
 }
 

@@ -156,6 +156,7 @@ func (client ServerBlobAuditingPoliciesClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,6 +235,7 @@ func (client ServerBlobAuditingPoliciesClient) ListByServer(ctx context.Context,
 	result.sbaplr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.sbaplr.hasNextLink() && result.sbaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -298,6 +300,7 @@ func (client ServerBlobAuditingPoliciesClient) listByServerNextResults(ctx conte
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerBlobAuditingPoliciesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

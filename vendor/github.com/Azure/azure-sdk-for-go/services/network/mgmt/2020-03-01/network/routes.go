@@ -230,6 +230,7 @@ func (client RoutesClient) Get(ctx context.Context, resourceGroupName string, ro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RoutesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -307,6 +308,7 @@ func (client RoutesClient) List(ctx context.Context, resourceGroupName string, r
 	result.rlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RoutesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -371,6 +373,7 @@ func (client RoutesClient) listNextResults(ctx context.Context, lastResults Rout
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.RoutesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

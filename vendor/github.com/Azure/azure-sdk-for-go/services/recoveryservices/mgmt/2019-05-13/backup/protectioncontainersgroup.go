@@ -75,6 +75,7 @@ func (client ProtectionContainersGroupClient) List(ctx context.Context, vaultNam
 	result.pcrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersGroupClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pcrl.hasNextLink() && result.pcrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -142,6 +143,7 @@ func (client ProtectionContainersGroupClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersGroupClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

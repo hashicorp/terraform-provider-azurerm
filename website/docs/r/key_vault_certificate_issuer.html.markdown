@@ -13,15 +13,15 @@ Manages a Key Vault Certificate Issuer.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West US"
-}
-
 data "azurerm_client_config" "current" {}
 
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
 resource "azurerm_key_vault" "example" {
-  name                = "example-key-vault"
+  name                = "examplekeyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "standard"

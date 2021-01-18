@@ -104,7 +104,7 @@ resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "FunctionApp"
+  kind                = "Linux"
   reserved            = true
 
   sku {
@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
-~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "FunctionApp"` and `reserved = true`
+~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
@@ -323,9 +323,11 @@ A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -339,9 +341,11 @@ A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 

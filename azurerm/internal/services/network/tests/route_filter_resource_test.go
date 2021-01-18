@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,183 +9,149 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMRouteFilter_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+type RouteFilterResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRouteFilter_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccRouteFilter_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRouteFilter_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_route_filter"),
 		},
 	})
 }
 
-func TestAccAzureRMRouteFilter_requiresImport(t *testing.T) {
+func TestAccRouteFilter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRouteFilter_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMRouteFilter_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_route_filter"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRouteFilter_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckRouteFilterDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMRouteFilter_complete(t *testing.T) {
+func TestAccRouteFilter_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRouteFilter_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists("azurerm_route_filter.test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
+		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMRouteFilter_disappears(t *testing.T) {
+func TestAccRouteFilter_withRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRouteFilter_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					testCheckAzureRMRouteFilterDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.access").HasValue("Allow"),
+				check.That(data.ResourceName).Key("rule.0.rule_type").HasValue("Community"),
+				check.That(data.ResourceName).Key("rule.0.communities.0").HasValue("12076:53005"),
+				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:53006"),
+			),
+		},
+		{
+			Config: r.withRulesUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.access").HasValue("Allow"),
+				check.That(data.ResourceName).Key("rule.0.rule_type").HasValue("Community"),
+				check.That(data.ResourceName).Key("rule.0.communities.0").HasValue("12076:52005"),
+				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:52006"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMRouteFilter_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRouteFilter_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			{
-				Config: testAccAzureRMRouteFilter_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMRouteFilter_withRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRouteFilter_withRules(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.access", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.rule_type", "Community"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.0", "12076:53005"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.1", "12076:53006"),
-				),
-			},
-			{
-				Config: testAccAzureRMRouteFilter_withRulesUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.access", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.rule_type", "Community"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.0", "12076:52005"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.1", "12076:52006"),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMRouteFilterExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route filter: %q", name)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteFiltersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Route Filter %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on routeFiltersClient: %+v", err)
-		}
-
-		return nil
+func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.RouteFilterID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Network.RouteFiltersClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Route Filter (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMRouteFilterDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckRouteFilterDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -215,34 +182,7 @@ func testCheckAzureRMRouteFilterDisappears(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMRouteFilterDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteFiltersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_route_filter" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Route Filter still exists:\n%#v", resp.RouteFilterPropertiesFormat)
-	}
-
-	return nil
-}
-
-func testAccAzureRMRouteFilter_basic(data acceptance.TestData) string {
+func (RouteFilterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -261,7 +201,7 @@ resource "azurerm_route_filter" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRouteFilter_requiresImport(data acceptance.TestData) string {
+func (r RouteFilterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -270,10 +210,10 @@ resource "azurerm_route_filter" "import" {
   location            = azurerm_route_filter.test.location
   resource_group_name = azurerm_route_filter.test.resource_group_name
 }
-`, testAccAzureRMRouteFilter_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMRouteFilter_complete(data acceptance.TestData) string {
+func (RouteFilterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -293,7 +233,7 @@ resource "azurerm_route_filter" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRouteFilter_withTags(data acceptance.TestData) string {
+func (RouteFilterResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -317,7 +257,7 @@ resource "azurerm_route_filter" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRouteFilter_withTagsUpdate(data acceptance.TestData) string {
+func (RouteFilterResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -340,7 +280,7 @@ resource "azurerm_route_filter" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRouteFilter_withRules(data acceptance.TestData) string {
+func (RouteFilterResource) withRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -366,7 +306,7 @@ resource "azurerm_route_filter" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMRouteFilter_withRulesUpdate(data acceptance.TestData) string {
+func (RouteFilterResource) withRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

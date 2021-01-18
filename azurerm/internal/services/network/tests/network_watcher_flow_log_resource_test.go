@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,353 +9,322 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	azureNetwork "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+type NetworkWatcherFlowLogResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("0"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_disabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.0.days").Exists(),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
+		},
+		// disabled flow logs don't import all values
+	})
+}
+
+func testAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.disabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.0.days").Exists(),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
+		},
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("0"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("0"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.retentionPolicyConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.retentionPolicyConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.retentionPolicyConfigUpdateStorageAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("0"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.TrafficAnalyticsDisabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.TrafficAnalyticsEnabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("traffic_analytics.#").HasValue("1"),
+				check.That(data.ResourceName).Key("traffic_analytics.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("traffic_analytics.0.interval_in_minutes").HasValue("60"),
+				check.That(data.ResourceName).Key("traffic_analytics.0.workspace_id").Exists(),
+				check.That(data.ResourceName).Key("traffic_analytics.0.workspace_region").Exists(),
+				check.That(data.ResourceName).Key("traffic_analytics.0.workspace_resource_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.TrafficAnalyticsUpdateInterval(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("traffic_analytics.#").HasValue("1"),
+				check.That(data.ResourceName).Key("traffic_analytics.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("traffic_analytics.0.interval_in_minutes").HasValue("10"),
+				check.That(data.ResourceName).Key("traffic_analytics.0.workspace_id").Exists(),
+				check.That(data.ResourceName).Key("traffic_analytics.0.workspace_region").Exists(),
+				check.That(data.ResourceName).Key("traffic_analytics.0.workspace_resource_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		// flow log must be disabled before destroy
+		{
+			Config: r.TrafficAnalyticsDisabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_watcher_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
+func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_disabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.days"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-				),
-			},
-			// disabled flow logs don't import all values
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.versionConfig(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.versionConfig(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_disabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.days"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfigUpdateStorageAccount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval_in_minutes", "60"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_region"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_resource_id"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsUpdateInterval(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval_in_minutes", "10"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_region"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_resource_id"),
-				),
-			},
-			data.ImportStep(),
-			// flow log must be disabled before destroy
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetworkWatcherFlowLog_version(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_versionConfig(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_versionConfig(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "2"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		id, err := nw.ParseNetworkWatcherFlowLogID(rs.Primary.Attributes["id"])
-		if err != nil {
-			return err
-		}
-
-		statusParameters := network.FlowLogStatusParameters{
-			TargetResourceID: &id.NetworkSecurityGroupID,
-		}
-		future, err := client.GetFlowLogStatus(ctx, id.ResourceGroup, id.NetworkWatcherName, statusParameters)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
-		}
-
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
-		}
-
-		if _, err := future.Result(*client); err != nil {
-			return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
-		}
-
-		return nil
+func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azureNetwork.ParseNetworkWatcherFlowLogID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	// Get current flow log status
+	statusParameters := network.FlowLogStatusParameters{
+		TargetResourceID: &id.NetworkSecurityGroupID,
+	}
+
+	future, err := clients.Network.WatcherClient.GetFlowLogStatus(ctx, id.ResourceGroup, id.NetworkWatcherName, statusParameters)
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, clients.Network.WatcherClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for retrieval of Flow Log Configuration for target %q: %+v", id, err)
+	}
+
+	fli, err := future.Result(*clients.Network.WatcherClient)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Flow Log Configuration for target %q: %+v", id, err)
+	}
+
+	return utils.Bool(fli.TargetResourceID != nil), nil
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_prerequisites(data acceptance.TestData) string {
+func (NetworkWatcherFlowLogResource) prerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -390,7 +360,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger%1000000)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_basicConfig(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -407,10 +377,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     days    = 0
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data))
+`, r.prerequisites(data))
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) retentionPolicyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -427,10 +397,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     days    = 7
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data))
+`, r.prerequisites(data))
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfigUpdateStorageAccount(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) retentionPolicyConfigUpdateStorageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -458,10 +428,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     days    = 7
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger%1000000+1)
+`, r.prerequisites(data), data.RandomInteger%1000000+1)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_disabledConfig(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) disabledConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -478,10 +448,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     days    = 7
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data))
+`, r.prerequisites(data))
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) TrafficAnalyticsEnabledConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -512,10 +482,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     workspace_resource_id = azurerm_log_analytics_workspace.test.id
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
+`, r.prerequisites(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsUpdateInterval(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) TrafficAnalyticsUpdateInterval(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -547,10 +517,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     interval_in_minutes   = 10
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
+`, r.prerequisites(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) TrafficAnalyticsDisabledConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -581,10 +551,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
     workspace_resource_id = azurerm_log_analytics_workspace.test.id
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
+`, r.prerequisites(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_versionConfig(data acceptance.TestData, version int) string {
+func (r NetworkWatcherFlowLogResource) versionConfig(data acceptance.TestData, version int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -616,5 +586,5 @@ resource "azurerm_network_watcher_flow_log" "test" {
     workspace_resource_id = azurerm_log_analytics_workspace.test.id
   }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger, version)
+`, r.prerequisites(data), data.RandomInteger, version)
 }

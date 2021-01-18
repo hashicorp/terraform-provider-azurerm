@@ -158,6 +158,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +238,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result.mbstrplr, err = client.ListByRestorableDroppedDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "ListByRestorableDroppedDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.mbstrplr.hasNextLink() && result.mbstrplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -302,6 +304,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result, err = client.ListByRestorableDroppedDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "listByRestorableDroppedDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -229,6 +229,7 @@ func (client ApplicationsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -306,9 +307,11 @@ func (client ApplicationsClient) ListByCluster(ctx context.Context, resourceGrou
 	result.alr, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsClient", "ListByCluster", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

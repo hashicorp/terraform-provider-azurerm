@@ -72,6 +72,7 @@ func (client FeatureSupportClient) Validate(ctx context.Context, azureRegion str
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.FeatureSupportClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return

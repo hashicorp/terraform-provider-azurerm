@@ -5,6 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementSubscription() *schema.Resource {
+func resourceApiManagementSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementSubscriptionCreateUpdate,
-		Read:   resourceArmApiManagementSubscriptionRead,
-		Update: resourceArmApiManagementSubscriptionCreateUpdate,
-		Delete: resourceArmApiManagementSubscriptionDelete,
+		Create: resourceApiManagementSubscriptionCreateUpdate,
+		Read:   resourceApiManagementSubscriptionRead,
+		Update: resourceApiManagementSubscriptionCreateUpdate,
+		Delete: resourceApiManagementSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +64,7 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ProductID,
 			},
 
 			"state": {
@@ -100,7 +104,7 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,49 +166,54 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementSubscriptionRead(d, meta)
+	return resourceApiManagementSubscriptionRead(d, meta)
 }
 
-func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	subscriptionId := id.Path["subscriptions"]
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subscription %q was not found in API Management Service %q / Resource Group %q - removing from state!", subscriptionId, serviceName, resourceGroup)
+			log.Printf("[DEBUG] Subscription %q was not found in API Management Service %q / Resource Group %q - removing from state!", id.Name, id.ServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
 	}
 
-	d.Set("subscription_id", subscriptionId)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("subscription_id", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_management_name", id.ServiceName)
 
 	if props := resp.SubscriptionContractProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("state", string(props.State))
-		d.Set("product_id", props.Scope)
+		productId := ""
+		if *props.Scope != "" {
+			parseId, err := parse.ProductID(*props.Scope)
+			if err != nil {
+				return fmt.Errorf("parsing product id %q: %+v", *props.Scope, err)
+			}
+			productId = parseId.ID()
+		}
+		d.Set("product_id", productId)
 		d.Set("user_id", props.OwnerID)
 		d.Set("allow_tracing", props.AllowTracing)
 	}
 
 	// Primary and secondary keys must be got from this additional api
-	keyResp, err := client.ListSecrets(ctx, resourceGroup, serviceName, subscriptionId)
+	keyResp, err := client.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+		return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
 	}
 	d.Set("primary_key", keyResp.PrimaryKey)
 	d.Set("secondary_key", keyResp.SecondaryKey)
@@ -212,22 +221,19 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	subscriptionId := id.Path["subscriptions"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, subscriptionId, ""); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing Subscription %q (API Management Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
 		}
 	}
 
