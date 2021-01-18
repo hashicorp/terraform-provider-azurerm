@@ -80,7 +80,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
@@ -277,9 +277,10 @@ A `http_application_routing` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`.
+* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
 ---
 
