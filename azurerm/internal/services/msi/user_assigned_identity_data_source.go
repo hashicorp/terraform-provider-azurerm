@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
@@ -50,27 +52,25 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 
 func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewUserAssignedIdentityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("User Assigned Identity %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("User Assigned Identity %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on User Assigned Identity %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.IdentityProperties; props != nil {
+	if props := resp.UserAssignedIdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
 		}

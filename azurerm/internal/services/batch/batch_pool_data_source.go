@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBatchPool() *schema.Resource {
+func dataSourceBatchPool() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBatchPoolRead,
+		Read: dataSourceBatchPoolRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -359,7 +359,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 	}
 }
 
-func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -418,7 +418,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if err := d.Set("network_configuration", FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 			return fmt.Errorf("error setting `network_configuration`: %v", err)
 		}
 	}

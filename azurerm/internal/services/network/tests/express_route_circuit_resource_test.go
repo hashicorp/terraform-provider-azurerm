@@ -1,49 +1,56 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
+type ExpressRouteCircuitResource struct {
+}
+
+func TestAccExpressRouteCircuit(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning a couple at a time
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"metered":                      testAccAzureRMExpressRouteCircuit_basicMetered,
-			"unlimited":                    testAccAzureRMExpressRouteCircuit_basicUnlimited,
-			"update":                       testAccAzureRMExpressRouteCircuit_update,
-			"updateTags":                   testAccAzureRMExpressRouteCircuit_updateTags,
-			"tierUpdate":                   testAccAzureRMExpressRouteCircuit_tierUpdate,
-			"premiumMetered":               testAccAzureRMExpressRouteCircuit_premiumMetered,
-			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
-			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
-			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
-			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
-			"bandwidthReduction":           testAccAzureRMExpressRouteCircuit_bandwidthReduction,
+			"metered":                      testAccExpressRouteCircuit_basicMetered,
+			"unlimited":                    testAccExpressRouteCircuit_basicUnlimited,
+			"update":                       testAccExpressRouteCircuit_update,
+			"updateTags":                   testAccExpressRouteCircuit_updateTags,
+			"tierUpdate":                   testAccExpressRouteCircuit_tierUpdate,
+			"premiumMetered":               testAccExpressRouteCircuit_premiumMetered,
+			"premiumUnlimited":             testAccExpressRouteCircuit_premiumUnlimited,
+			"allowClassicOperationsUpdate": testAccExpressRouteCircuit_allowClassicOperationsUpdate,
+			"requiresImport":               testAccExpressRouteCircuit_requiresImport,
+			"data_basic":                   testAccDataSourceExpressRoute_basicMetered,
+			"bandwidthReduction":           testAccExpressRouteCircuit_bandwidthReduction,
 		},
 		"PrivatePeering": {
-			"azurePrivatePeering":           testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
-			"azurePrivatePeeringWithUpdate": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
-			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
+			"azurePrivatePeering":           testAccExpressRouteCircuitPeering_azurePrivatePeering,
+			"azurePrivatePeeringWithUpdate": testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
+			"requiresImport":                testAccExpressRouteCircuitPeering_requiresImport,
 		},
 		"MicrosoftPeering": {
-			"microsoftPeering":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
-			"microsoftPeeringCustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
-			"microsoftPeeringWithRouteFilter": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+			"microsoftPeering":                    testAccExpressRouteCircuitPeering_microsoftPeering,
+			"microsoftPeeringCustomerRouting":     testAccExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
+			"microsoftPeeringWithRouteFilter":     testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+			"microsoftPeeringIpv6":                testAccExpressRouteCircuitPeering_microsoftPeeringIpv6,
+			"microsoftPeeringIpv6CustomerRouting": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
+			"microsoftPeeringIpv6WithRouteFilter": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
 		},
 		"authorization": {
-			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
-			"multiple":       testAccAzureRMExpressRouteCircuitAuthorization_multiple,
-			"requiresImport": testAccAzureRMExpressRouteCircuitAuthorization_requiresImport,
+			"basic":          testAccExpressRouteCircuitAuthorization_basic,
+			"multiple":       testAccExpressRouteCircuitAuthorization_multiple,
+			"requiresImport": testAccExpressRouteCircuitAuthorization_requiresImport,
 		},
 	}
 
@@ -60,305 +67,215 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 	}
 }
 
-func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
+func testAccExpressRouteCircuit_basicMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
+	r := ExpressRouteCircuitResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMeteredConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccExpressRouteCircuit_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMeteredConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImportConfig(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit"),
 		},
 	})
 }
 
-func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
+func testAccExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
+	r := ExpressRouteCircuitResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-				),
-			},
-			{
-				Config:      testAccAzureRMExpressRouteCircuit_requiresImportConfig(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicUnlimitedConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccExpressRouteCircuit_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMeteredConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.family").HasValue("MeteredData"),
+			),
+		},
+		{
+			Config: r.basicUnlimitedConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.family").HasValue("UnlimitedData"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
+func testAccExpressRouteCircuit_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
+	r := ExpressRouteCircuitResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMeteredConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("production"),
+			),
+		},
+		{
+			Config: r.basicMeteredConfigUpdatedTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("test"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
+func testAccExpressRouteCircuit_tierUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
+	r := ExpressRouteCircuitResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "MeteredData"),
-				),
-			},
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "UnlimitedData"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "Standard", "MeteredData"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Standard"),
+			),
+		},
+		{
+			Config: r.sku(data, "Premium", "MeteredData"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMExpressRouteCircuit_updateTags(t *testing.T) {
+func testAccExpressRouteCircuit_premiumMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
+	r := ExpressRouteCircuitResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "production"),
-				),
-			},
-			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfigUpdatedTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists(data.ResourceName, &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "Premium", "MeteredData"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium"),
+				check.That(data.ResourceName).Key("sku.0.family").HasValue("MeteredData"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccExpressRouteCircuit_premiumUnlimited(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "Premium", "UnlimitedData"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium"),
+				check.That(data.ResourceName).Key("sku.0.family").HasValue("UnlimitedData"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.allowClassicOperations(data, "false"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
+			),
+		},
+		{
+			Config: r.allowClassicOperations(data, "true"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("true"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
+func testAccExpressRouteCircuit_bandwidthReduction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
+	r := ExpressRouteCircuitResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Standard", "MeteredData"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Standard"),
-				),
-			},
-			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Premium", "MeteredData"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Premium"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.bandwidthReductionConfig(data, "100"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("100"),
+			),
+		},
+		{
+			Config: r.bandwidthReductionConfig(data, "50"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("50"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Premium", "MeteredData"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "MeteredData"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Premium", "UnlimitedData"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "UnlimitedData"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(data, "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_classic_operations", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(data, "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_classic_operations", "true"),
-				),
-			},
-		},
-	})
-}
-
-func testAccAzureRMExpressRouteCircuit_bandwidthReduction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
-	var erc network.ExpressRouteCircuit
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data, "100"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "bandwidth_in_mbps", "100"),
-				),
-			},
-			{
-				Config: testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data, "50"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
-					resource.TestCheckResourceAttr(data.ResourceName, "bandwidth_in_mbps", "50"),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network.ExpressRouteCircuit) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		expressRouteCircuitName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit: %s", expressRouteCircuitName)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Express Route Circuit %q (resource group: %q) does not exist", expressRouteCircuitName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on expressRouteCircuitClient: %+v", err)
-		}
-
-		*erc = resp
-
-		return nil
+func (t ExpressRouteCircuitResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resGroup := id.ResourceGroup
+	name := id.Path["expressRouteCircuits"]
 
-func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_express_route_circuit" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Express Route Circuit still exists:\n%#v", resp.ExpressRouteCircuitPropertiesFormat)
-		}
+	resp, err := clients.Network.ExpressRouteCircuitsClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Express Route Circuit (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data acceptance.TestData) string {
+func (ExpressRouteCircuitResource) basicMeteredConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -392,7 +309,7 @@ resource "azurerm_express_route_circuit" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuit_basicMeteredConfigUpdatedTags(data acceptance.TestData) string {
+func (ExpressRouteCircuitResource) basicMeteredConfigUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -427,8 +344,7 @@ resource "azurerm_express_route_circuit" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuit_requiresImportConfig(data acceptance.TestData) string {
-	template := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data)
+func (r ExpressRouteCircuitResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -452,10 +368,10 @@ resource "azurerm_express_route_circuit" "import" {
     Purpose     = "AcceptanceTests"
   }
 }
-`, template)
+`, r.basicMeteredConfig(data))
 }
 
-func testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(data acceptance.TestData) string {
+func (ExpressRouteCircuitResource) basicUnlimitedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -489,7 +405,7 @@ resource "azurerm_express_route_circuit" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuit_sku(data acceptance.TestData, tier string, family string) string {
+func (ExpressRouteCircuitResource) sku(data acceptance.TestData, tier string, family string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -523,7 +439,7 @@ resource "azurerm_express_route_circuit" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tier, family)
 }
 
-func testAccAzureRMExpressRouteCircuit_allowClassicOperations(data acceptance.TestData, allowClassicOperations string) string {
+func (ExpressRouteCircuitResource) allowClassicOperations(data acceptance.TestData, allowClassicOperations string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -557,7 +473,7 @@ resource "azurerm_express_route_circuit" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, allowClassicOperations)
 }
 
-func testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data acceptance.TestData, bandwidth string) string {
+func (ExpressRouteCircuitResource) bandwidthReductionConfig(data acceptance.TestData, bandwidth string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

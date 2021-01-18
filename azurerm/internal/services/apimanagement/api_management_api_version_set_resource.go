@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiVersionSet() *schema.Resource {
+func resourceApiManagementApiVersionSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiVersionSetCreateUpdate,
-		Read:   resourceArmApiManagementApiVersionSetRead,
-		Update: resourceArmApiManagementApiVersionSetCreateUpdate,
-		Delete: resourceArmApiManagementApiVersionSetDelete,
+		Create: resourceApiManagementApiVersionSetCreateUpdate,
+		Read:   resourceApiManagementApiVersionSetRead,
+		Update: resourceApiManagementApiVersionSetCreateUpdate,
+		Delete: resourceApiManagementApiVersionSetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,15 +169,15 @@ func resourceArmApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiVersionSetRead(d, meta)
+	return resourceApiManagementApiVersionSetRead(d, meta)
 }
 
-func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.APIVersionSetID(d.Id())
+	id, err := parse.ApiVersionSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -208,12 +208,12 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmApiManagementApiVersionSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.APIVersionSetID(d.Id())
+	id, err := parse.ApiVersionSetID(d.Id())
 	if err != nil {
 		return err
 	}

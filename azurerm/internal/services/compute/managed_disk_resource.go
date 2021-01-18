@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmManagedDisk() *schema.Resource {
+func resourceManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedDiskCreateUpdate,
-		Read:   resourceArmManagedDiskRead,
-		Update: resourceArmManagedDiskUpdate,
-		Delete: resourceArmManagedDiskDelete,
+		Create: resourceManagedDiskCreateUpdate,
+		Read:   resourceManagedDiskRead,
+		Update: resourceManagedDiskUpdate,
+		Delete: resourceManagedDiskDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagedDiskID(id)
@@ -148,7 +148,7 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,10 +286,10 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmManagedDiskRead(d, meta)
+	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -490,10 +490,10 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceArmManagedDiskRead(d, meta)
+	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -503,14 +503,14 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Disk %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Managed Disk %s (resource group %s): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure Managed Disk %s (resource group %s): %s", id.DiskName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -559,7 +559,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -569,13 +569,13 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroup, err)
 	}
 
 	return nil

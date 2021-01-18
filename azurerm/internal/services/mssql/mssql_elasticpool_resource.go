@@ -9,25 +9,29 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlElasticPool() *schema.Resource {
+func resourceMsSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlElasticPoolCreateUpdate,
-		Read:   resourceArmMsSqlElasticPoolRead,
-		Update: resourceArmMsSqlElasticPoolCreateUpdate,
-		Delete: resourceArmMsSqlElasticPoolDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceMsSqlElasticPoolCreateUpdate,
+		Read:   resourceMsSqlElasticPoolRead,
+		Update: resourceMsSqlElasticPoolCreateUpdate,
+		Delete: resourceMsSqlElasticPoolDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ElasticPoolID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -173,7 +177,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +202,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	sku := expandAzureRmMsSqlElasticPoolSku(d)
+	sku := expandMsSqlElasticPoolSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
@@ -208,7 +212,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			LicenseType:         sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
-			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+			PerDatabaseSettings: expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 	}
@@ -241,20 +245,20 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
-	return resourceArmMsSqlElasticPoolRead(d, meta)
+	return resourceMsSqlElasticPoolRead(d, meta)
 }
 
-func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	elasticPool, err := parse.MSSqlElasticPoolID(d.Id())
+	elasticPool, err := parse.ElasticPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
+	resp, err := client.Get(ctx, elasticPool.ResourceGroup, elasticPool.ServerName, elasticPool.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -270,9 +274,9 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("server_name", elasticPool.MsSqlServer)
+	d.Set("server_name", elasticPool.ServerName)
 
-	if err := d.Set("sku", flattenAzureRmMsSqlElasticPoolSku(resp.Sku)); err != nil {
+	if err := d.Set("sku", flattenMsSqlElasticPoolSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
@@ -288,7 +292,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("zone_redundant", properties.ZoneRedundant)
 		d.Set("license_type", string(properties.LicenseType))
 
-		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
+		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
 		}
 	}
@@ -296,28 +300,28 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	elasticPool, err := parse.MSSqlElasticPoolID(d.Id())
+	elasticPool, err := parse.ElasticPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
+	future, err := client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.ServerName, elasticPool.Name)
 	if err != nil {
-		return fmt.Errorf("deleting ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.MsSqlServer, elasticPool.ResourceGroup, err)
+		return fmt.Errorf("deleting ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.ServerName, elasticPool.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.MsSqlServer, elasticPool.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.ServerName, elasticPool.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {
+func expandMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {
 	perDatabaseSettings := d.Get("per_database_settings").([]interface{})
 	perDatabaseSetting := perDatabaseSettings[0].(map[string]interface{})
 
@@ -330,7 +334,7 @@ func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *s
 	}
 }
 
-func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
+func expandMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	skus := d.Get("sku").([]interface{})
 	sku := skus[0].(map[string]interface{})
 
@@ -347,7 +351,7 @@ func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	}
 }
 
-func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
+func flattenMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -373,7 +377,7 @@ func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
 	return []interface{}{values}
 }
 
-func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {
+func flattenMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {
 	perDatabaseSettings := map[string]interface{}{}
 
 	if minCapacity := resp.MinCapacity; minCapacity != nil {

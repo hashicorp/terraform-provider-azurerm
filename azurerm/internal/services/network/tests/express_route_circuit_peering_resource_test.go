@@ -1,209 +1,196 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+type ExpressRouteCircuitPeeringResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "AzurePrivatePeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
-				),
-			},
-			data.ImportStep("shared_key"), // is not returned by the API
+func testAccExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privatePeering(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
+			),
 		},
+		data.ImportStep("shared_key"), // is not returned by the API
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
+func testAccExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privatePeering(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImportConfig),
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
+func testAccExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_msPeering(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "MicrosoftPeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.msPeering(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("peering_type").HasValue("MicrosoftPeering"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting(t *testing.T) {
+func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringCustomerRouting(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "MicrosoftPeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.0.customer_asn", "64511"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.0.routing_registry_name", "ARIN"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.msPeeringIpv6(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate(t *testing.T) {
+func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "AzurePrivatePeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeeringWithCircuitUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "AzurePrivatePeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
-				),
-			},
-			data.ImportStep("shared_key"), // is not returned by the API
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.msPeeringIpv6CustomerRouting(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testing.T) {
+func testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringWithRouteFilter(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "MicrosoftPeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "route_filter_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.msPeeringIpv6WithRouteFilter(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func testAccExpressRouteCircuitPeering_microsoftPeeringCustomerRouting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.msPeeringCustomerRouting(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("peering_type").HasValue("MicrosoftPeering"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.0.customer_asn").HasValue("64511"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.0.routing_registry_name").HasValue("ARIN"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-		peeringType := rs.Primary.Attributes["peering_type"]
-		circuitName := rs.Primary.Attributes["express_route_circuit_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Peering: %s", peeringType)
-		}
+func testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Express Route Circuit Peering %q (Circuit %q / Resource Group %q) does not exist", peeringType, circuitName, resourceGroup)
-			}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privatePeering(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
+			),
+		},
+		{
+			Config: r.privatePeeringWithCircuitUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("shared_key"), // is not returned by the API
+	})
+}
 
-			return fmt.Errorf("Bad: Get on expressRoutePeeringsClient: %+v", err)
-		}
+func testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
 
-		return nil
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.msPeeringWithRouteFilter(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("peering_type").HasValue("MicrosoftPeering"),
+				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("route_filter_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t ExpressRouteCircuitPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	circuitName := id.Path["expressRouteCircuits"]
+	peeringType := id.Path["peerings"]
 
-func testCheckAzureRMExpressRouteCircuitPeeringDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_express_route_circuit_peering" {
-			continue
-		}
-
-		peeringType := rs.Primary.Attributes["peering_type"]
-		circuitName := rs.Primary.Attributes["express_route_circuit_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Express Route Circuit Peering still exists:\n%#v", resp)
-		}
+	resp, err := clients.Network.ExpressRoutePeeringsClient.Get(ctx, resourceGroup, circuitName, peeringType)
+	if err != nil {
+		return nil, fmt.Errorf("reading Express Route Circuit Peering (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_privatePeering(data acceptance.TestData) string {
+func (ExpressRouteCircuitPeeringResource) privatePeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,8 +233,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(data acceptance.TestData) string {
-	template := testAccAzureRMExpressRouteCircuitPeering_privatePeering(data)
+func (r ExpressRouteCircuitPeeringResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -261,10 +247,10 @@ resource "azurerm_express_route_circuit_peering" "import" {
   secondary_peer_address_prefix = azurerm_express_route_circuit_peering.test.secondary_peer_address_prefix
   vlan_id                       = azurerm_express_route_circuit_peering.test.vlan_id
 }
-`, template)
+`, r.privatePeering(data))
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_msPeering(data acceptance.TestData) string {
+func (ExpressRouteCircuitPeeringResource) msPeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -310,7 +296,190 @@ resource "azurerm_express_route_circuit_peering" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_msPeeringCustomerRouting(data acceptance.TestData) string {
+func (ExpressRouteCircuitPeeringResource) msPeeringIpv6(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-expressroute-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Premium"
+    family = "MeteredData"
+  }
+
+  tags = {
+    Env     = "Test"
+    Purpose = "AcceptanceTests"
+  }
+}
+
+resource "azurerm_express_route_circuit_peering" "test" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "192.168.3.0/30"
+  secondary_peer_address_prefix = "192.168.4.0/30"
+  vlan_id                       = 300
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.2.0.0/24"]
+  }
+
+  ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+
+    microsoft_peering {
+      advertised_public_prefixes = ["2002:db01::/126"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ExpressRouteCircuitPeeringResource) msPeeringIpv6CustomerRouting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-expressroute-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Premium"
+    family = "MeteredData"
+  }
+
+  tags = {
+    Env     = "Test"
+    Purpose = "AcceptanceTests"
+  }
+}
+
+resource "azurerm_express_route_circuit_peering" "test" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "192.168.3.0/30"
+  secondary_peer_address_prefix = "192.168.4.0/30"
+  vlan_id                       = 300
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.2.0.0/24"]
+  }
+  ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+
+    microsoft_peering {
+      advertised_public_prefixes = ["2002:db01::/126"]
+      customer_asn               = 64511
+      routing_registry_name      = "ARIN"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ExpressRouteCircuitPeeringResource) msPeeringIpv6WithRouteFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-expressroute-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_filter" "test" {
+  name                = "acctestrf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  rule {
+    name        = "acctestrule%d"
+    access      = "Allow"
+    rule_type   = "Community"
+    communities = ["12076:52005", "12076:52006"]
+  }
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Premium"
+    family = "MeteredData"
+  }
+
+  tags = {
+    Env     = "Test"
+    Purpose = "AcceptanceTests"
+  }
+}
+
+resource "azurerm_express_route_circuit_peering" "test" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "192.168.3.0/30"
+  secondary_peer_address_prefix = "192.168.4.0/30"
+  vlan_id                       = 300
+  route_filter_id               = azurerm_route_filter.test.id
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.2.0.0/24"]
+  }
+
+  ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+    route_filter_id               = azurerm_route_filter.test.id
+
+    microsoft_peering {
+      advertised_public_prefixes = ["2002:db01::/126"]
+      customer_asn               = 64511
+      routing_registry_name      = "ARIN"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (ExpressRouteCircuitPeeringResource) msPeeringCustomerRouting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -359,7 +528,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_privatePeeringWithCircuitUpdate(data acceptance.TestData) string {
+func (ExpressRouteCircuitPeeringResource) privatePeeringWithCircuitUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -402,7 +571,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_msPeeringWithRouteFilter(data acceptance.TestData) string {
+func (ExpressRouteCircuitPeeringResource) msPeeringWithRouteFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

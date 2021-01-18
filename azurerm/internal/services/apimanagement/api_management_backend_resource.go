@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementBackend() *schema.Resource {
+func resourceApiManagementBackend() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementBackendCreateUpdate,
-		Read:   resourceArmApiManagementBackendRead,
-		Update: resourceArmApiManagementBackendCreateUpdate,
-		Delete: resourceArmApiManagementBackendDelete,
+		Create: resourceApiManagementBackendCreateUpdate,
+		Read:   resourceApiManagementBackendRead,
+		Update: resourceApiManagementBackendCreateUpdate,
+		Delete: resourceApiManagementBackendDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -234,7 +234,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -308,10 +308,10 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementBackendRead(d, meta)
+	return resourceApiManagementBackendRead(d, meta)
 }
 
-func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -364,7 +364,7 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

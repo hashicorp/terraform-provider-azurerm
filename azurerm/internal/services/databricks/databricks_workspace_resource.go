@@ -14,18 +14,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
+	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDatabricksWorkspace() *schema.Resource {
+func resourceDatabricksWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDatabricksWorkspaceCreateUpdate,
-		Read:   resourceArmDatabricksWorkspaceRead,
-		Update: resourceArmDatabricksWorkspaceCreateUpdate,
-		Delete: resourceArmDatabricksWorkspaceDelete,
+		Create: resourceDatabricksWorkspaceCreateUpdate,
+		Read:   resourceDatabricksWorkspaceRead,
+		Update: resourceDatabricksWorkspaceCreateUpdate,
+		Delete: resourceDatabricksWorkspaceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +36,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabricksWorkspaceID(id)
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
@@ -54,7 +55,6 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 			"sku": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"standard",
 					"premium",
@@ -122,10 +122,25 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			if d.HasChange("sku") {
+				sku, changedSKU := d.GetChange("sku")
+
+				if changedSKU == "trial" {
+					log.Printf("[DEBUG] recreate databricks workspace, could't be migrated to %s", changedSKU)
+					d.ForceNew("sku")
+				} else {
+					log.Printf("[DEBUG] databricks workspace can be upgraded from %s to %s", sku, changedSKU)
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
-func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,15 +215,15 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmDatabricksWorkspaceRead(d, meta)
+	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
-func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -236,7 +251,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
-		managedResourceGroupID, err := azure.ParseAzureResourceID(*props.ManagedResourceGroupID)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}
@@ -244,7 +259,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
-			return fmt.Errorf("Error setting `custom_parameters`: %+v", err)
+			return fmt.Errorf("setting `custom_parameters`: %+v", err)
 		}
 
 		d.Set("workspace_url", props.WorkspaceURL)
@@ -254,12 +269,12 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}

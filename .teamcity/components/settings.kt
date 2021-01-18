@@ -19,14 +19,20 @@ var runNightly = mapOf(
 
 // specifies a list of services which should be run with a custom test configuration
 var serviceTestConfigurationOverrides = mapOf(
+        // Spring Cloud only allows a max of 10 provisioned
+        "appplatform" to testConfiguration(5, defaultStartHour),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(5, defaultStartHour),
 
         // Data Lake has a low quota
         "datalake" to testConfiguration(2, defaultStartHour),
 
-        //HSM has low quota and potentially slow recycle time
+        // HSM has low quota and potentially slow recycle time
         "hsm" to testConfiguration(1, defaultStartHour),
+
+        // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
+        "loganalytics" to testConfiguration(1, defaultStartHour),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub

@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceKeyVault() *schema.Resource {
+func resourceDataFactoryLinkedServiceKeyVault() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceKeyVaultRead,
-		Update: resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceKeyVaultDelete,
+		Create: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceKeyVaultRead,
+		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,7 +99,7 @@ func resourceArmDataFactoryLinkedServiceKeyVault() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -109,7 +109,7 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	_, err := keyVaultParse.KeyVaultID(keyVaultIdRaw)
+	_, err := keyVaultParse.VaultID(keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -178,10 +178,10 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceKeyVaultRead(d, meta)
+	return resourceDataFactoryLinkedServiceKeyVaultRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -255,7 +255,7 @@ func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

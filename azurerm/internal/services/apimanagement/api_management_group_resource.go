@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementGroup() *schema.Resource {
+func resourceApiManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementGroupCreateUpdate,
-		Read:   resourceArmApiManagementGroupRead,
-		Update: resourceArmApiManagementGroupCreateUpdate,
-		Delete: resourceArmApiManagementGroupDelete,
+		Create: resourceApiManagementGroupCreateUpdate,
+		Read:   resourceApiManagementGroupRead,
+		Update: resourceApiManagementGroupCreateUpdate,
+		Delete: resourceApiManagementGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -70,7 +70,7 @@ func resourceArmApiManagementGroup() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,10 +119,10 @@ func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta inte
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementGroupRead(d, meta)
+	return resourceApiManagementGroupRead(d, meta)
 }
 
-func resourceArmApiManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +160,7 @@ func resourceArmApiManagementGroupRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmApiManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

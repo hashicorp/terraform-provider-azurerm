@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbSQLDatabase() *schema.Resource {
+func resourceCosmosDbSQLDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbSQLDatabaseCreate,
-		Read:   resourceArmCosmosDbSQLDatabaseRead,
-		Update: resourceArmCosmosDbSQLDatabaseUpdate,
-		Delete: resourceArmCosmosDbSQLDatabaseDelete,
+		Create: resourceCosmosDbSQLDatabaseCreate,
+		Read:   resourceCosmosDbSQLDatabaseRead,
+		Update: resourceCosmosDbSQLDatabaseUpdate,
+		Delete: resourceCosmosDbSQLDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -75,7 +75,7 @@ func resourceArmCosmosDbSQLDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +136,10 @@ func resourceArmCosmosDbSQLDatabaseCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbSQLDatabaseRead(d, meta)
+	return resourceCosmosDbSQLDatabaseRead(d, meta)
 }
 
-func resourceArmCosmosDbSQLDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceArmCosmosDbSQLDatabaseUpdate(d *schema.ResourceData, meta interface
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("Error updating Cosmos SQL Database %q (Account: %q) - %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error updating Cosmos SQL Database %q (Account: %q) - %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	db := documentdb.SQLDatabaseCreateUpdateParameters{
@@ -163,34 +163,34 @@ func resourceArmCosmosDbSQLDatabaseUpdate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	future, err := client.CreateUpdateSQLDatabase(ctx, id.ResourceGroup, id.Account, id.Name, db)
+	future, err := client.CreateUpdateSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	if common.HasThroughputChange(d) {
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.UpdateSQLDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name, *throughputParameters)
+		throughputFuture, err := client.UpdateSQLDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos SQL Database %q (Account: %q) %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}
 
-	return resourceArmCosmosDbSQLDatabaseRead(d, meta)
+	return resourceCosmosDbSQLDatabaseRead(d, meta)
 }
 
-func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -201,32 +201,32 @@ func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.GetSQLDatabase(ctx, id.ResourceGroup, id.Account, id.Name)
+	resp, err := client.GetSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos SQL Database %q (Account: %q) - removing from state", id.Name, id.Account)
+			log.Printf("[INFO] Error reading Cosmos SQL Database %q (Account: %q) - removing from state", id.Name, id.DatabaseAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error reading Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.Account)
+	d.Set("account_name", id.DatabaseAccountName)
 	if props := resp.SQLDatabaseGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
 		}
 	}
 
-	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.Account)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.Account, id.ResourceGroup, err)
+		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroup, err)
 	}
 
 	if accResp.ID == nil || *accResp.ID == "" {
-		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.Account, id.ResourceGroup)
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
 	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
@@ -238,10 +238,10 @@ func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}
 		}
 
 		if !serverless {
-			throughputResp, err := client.GetSQLDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
+			throughputResp, err := client.GetSQLDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 			if err != nil {
 				if !utils.ResponseWasNotFound(throughputResp.Response) {
-					return fmt.Errorf("Error reading Throughput on Cosmos SQL Database %q (Account: %q) ID: %v", id.Name, id.Account, err)
+					return fmt.Errorf("Error reading Throughput on Cosmos SQL Database %q (Account: %q) ID: %v", id.Name, id.DatabaseAccountName, err)
 				} else {
 					d.Set("throughput", nil)
 					d.Set("autoscale_settings", nil)
@@ -255,7 +255,7 @@ func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmCosmosDbSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,16 +265,16 @@ func resourceArmCosmosDbSQLDatabaseDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.DeleteSQLDatabase(ctx, id.ResourceGroup, id.Account, id.Name)
+	future, err := client.DeleteSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error deleting Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	return nil

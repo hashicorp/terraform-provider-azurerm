@@ -64,13 +64,23 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_configuration` - (Required) An `ip_configuration` block as documented below.
+* `sku_name` - (Optional) Sku name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
+
+* `sku_tier` - (Optional) Sku tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
+
+* `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
+
+* `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
 
 * `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 
 * `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created.
 
-* `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`
+* `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert`,`Deny` and `""`(empty string). Defaults to `Alert`.
+
+-> **NOTE**: If `virtual_hub_settting` is specified, the `threat_intel_mode` has to be explicitly set as `""`.
+
+* `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
 
 * `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created. Changing this forces a new resource to be created.
 
@@ -108,6 +118,14 @@ A `management_ip_configuration` block supports the following:
 
 -> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
 
+---
+
+A `virtual_hub` block supports the following:
+
+* `virtual_hub_id` - (Required) Specifies the ID of the Virtual Hub where the Firewall resides in.
+
+* `public_ip_count` - (Optional) Specifies the number of public IPs to assign to the Firewall. Defaults to `1`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -116,11 +134,21 @@ The following attributes are exported:
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
+* `virtual_hub` - A `virtual_hub` block as defined below.
+
 ---
 
 A `ip_configuration` block exports the following:
 
 * `private_ip_address` - The Private IP address of the Azure Firewall.
+
+---
+
+A `virtual_hub` block exports the following:
+
+* `private_ip_address` - The private IP address associated with the Firewall.
+
+* `public_ip_addresses` - The list of public IP addresses associated with the Firewall.
 
 ## Timeouts
 

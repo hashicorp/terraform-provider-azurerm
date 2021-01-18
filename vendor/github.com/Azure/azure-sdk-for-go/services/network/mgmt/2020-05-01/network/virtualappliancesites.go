@@ -232,6 +232,7 @@ func (client VirtualApplianceSitesClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSitesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +310,7 @@ func (client VirtualApplianceSitesClient) List(ctx context.Context, resourceGrou
 	result.vaslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSitesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.vaslr.hasNextLink() && result.vaslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -373,6 +375,7 @@ func (client VirtualApplianceSitesClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSitesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

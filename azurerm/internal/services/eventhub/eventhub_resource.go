@@ -3,8 +3,9 @@ package eventhub
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,12 +20,12 @@ import (
 
 var eventHubResourceName = "azurerm_eventhub"
 
-func resourceArmEventHub() *schema.Resource {
+func resourceEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreateUpdate,
-		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreateUpdate,
-		Delete: resourceArmEventHubDelete,
+		Create: resourceEventHubCreateUpdate,
+		Read:   resourceEventHubRead,
+		Update: resourceEventHubCreateUpdate,
+		Delete: resourceEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,13 +58,13 @@ func resourceArmEventHub() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateEventHubPartitionCount,
+				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
 			"message_retention": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: ValidateEventHubMessageRetentionCount,
+				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 			},
 
 			"capture_description": {
@@ -121,7 +122,7 @@ func resourceArmEventHub() *schema.Resource {
 									"archive_name_format": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: ValidateEventHubArchiveNameFormat,
+										ValidateFunc: validate.ValidateEventHubArchiveNameFormat,
 									},
 									"blob_container_name": {
 										Type:     schema.TypeString,
@@ -149,7 +150,7 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,10 +202,10 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventHubRead(d, meta)
+	return resourceEventHubRead(d, meta)
 }
 
-func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,7 +245,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -266,50 +267,6 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(int)
-
-	if !(1024 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32 or between 1 and 1024 if using a dedicated Event Hubs Cluster"))
-	}
-
-	return warnings, errors
-}
-
-func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(int)
-
-	if !(90 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7 or between 1 and 90 if using a dedicated Event Hubs Cluster"))
-	}
-
-	return warnings, errors
-}
-
-func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	requiredComponents := []string{
-		"{Namespace}",
-		"{EventHub}",
-		"{PartitionId}",
-		"{Year}",
-		"{Month}",
-		"{Day}",
-		"{Hour}",
-		"{Minute}",
-		"{Second}",
-	}
-
-	for _, component := range requiredComponents {
-		if !strings.Contains(value, component) {
-			errors = append(errors, fmt.Errorf("%s needs to contain %q", k, component))
-		}
-	}
-
-	return warnings, errors
 }
 
 func expandEventHubCaptureDescription(d *schema.ResourceData) *eventhub.CaptureDescription {

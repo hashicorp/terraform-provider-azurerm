@@ -1,223 +1,197 @@
 package cosmos_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
+type CosmosSqlContainerResource struct {
+}
+
+func TestAccCosmosDbSqlContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
-		Steps: []resource.TestStep{
-			{
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMCosmosDbSqlContainer_complete(t *testing.T) {
+func TestAccCosmosDbSqlContainer_basic_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
-		Steps: []resource.TestStep{
-			{
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+			Config: r.basic_serverless(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
+func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
-		Steps: []resource.TestStep{
-			{
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl", "500"),
-					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "600"),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbSqlContainer_update(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl", "1000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "400"),
-				),
-			},
-			data.ImportStep(),
+			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMCosmosDbSqlContainer_autoscale(t *testing.T) {
+func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
-		Steps: []resource.TestStep{
-			{
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_autoscale(data, 4000),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbSqlContainer_autoscale(data, 5000),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "5000"),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbSqlContainer_autoscale(data, 4000),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
-				),
-			},
-			data.ImportStep(),
+			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_ttl").HasValue("500"),
+				check.That(data.ResourceName).Key("throughput").HasValue("600"),
+			),
 		},
+		data.ImportStep(),
+		{
+
+			Config: r.update(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_ttl").HasValue("1000"),
+				check.That(data.ResourceName).Key("throughput").HasValue("400"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMCosmosDbSqlContainer_indexing_policy(t *testing.T) {
+func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
-		Steps: []resource.TestStep{
-			{
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbSqlContainer_indexing_policy(data, "/includedPath01/*", "/excludedPath01/?"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbSqlContainer_indexing_policy(data, "/includedPath02/*", "/excludedPath02/?"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+			Config: r.autoscale(data, 4000),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
+			),
 		},
+		data.ImportStep(),
+		{
+
+			Config: r.autoscale(data, 5000),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("5000"),
+			),
+		},
+		data.ImportStep(),
+		{
+
+			Config: r.autoscale(data, 4000),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmosdb_sql_container" {
-			continue
-		}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-		name := rs.Primary.Attributes["name"]
-		account := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		database := rs.Primary.Attributes["database_name"]
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 
-		resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos SQL Container %s (account %s) still exists:\n%v", name, account, err)
-			}
-		}
+			Config: r.indexing_policy(data, "/includedPath01/*", "/excludedPath01/?"),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos SQL Container %s (account %s) still exists:\n%#v", name, account, resp)
-		}
+			Config: r.indexing_policy(data, "/includedPath02/*", "/excludedPath02/?"),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbSqlContainer_partition_key_version(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+
+			Config: r.partition_key_version(data, 2),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_key_version").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SqlContainerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		account := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		database := rs.Primary.Attributes["database_name"]
-
-		resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Cosmos Container '%s' (account: '%s') does not exist", name, account)
-		}
-
-		return nil
+	resp, err := clients.Cosmos.SqlClient.GetSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Cosmos SQL Container (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMCosmosDbSqlContainer_basic(data acceptance.TestData) string {
+func (CosmosSqlContainerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -227,10 +201,23 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
 }
-`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlContainer_complete(data acceptance.TestData) string {
+func (CosmosSqlContainerResource) basic_serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+}
+`, CosmosSqlDatabaseResource{}.serverless(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -282,10 +269,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlContainer_update(data acceptance.TestData) string {
+func (CosmosSqlContainerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -338,10 +325,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlContainer_autoscale(data acceptance.TestData, maxThroughput int) string {
+func (CosmosSqlContainerResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_sql_container" "test" {
@@ -354,10 +341,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     max_throughput = %[3]d
   }
 }
-`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger, maxThroughput)
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
 }
 
-func testAccAzureRMCosmosDbSqlContainer_indexing_policy(data acceptance.TestData, includedPath, excludedPath string) string {
+func (CosmosSqlContainerResource) indexing_policy(data acceptance.TestData, includedPath, excludedPath string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -405,5 +392,19 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger, includedPath, excludedPath)
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
+}
+
+func (CosmosSqlContainerResource) partition_key_version(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                  = "acctest-CSQLC-%[2]d"
+  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
+  account_name          = azurerm_cosmosdb_account.test.name
+  database_name         = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path    = "/definition/id"
+  partition_key_version = %[3]d
+}
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, version)
 }

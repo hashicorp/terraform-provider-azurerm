@@ -1,402 +1,339 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
+type NetworkInterfaceResource struct {
+}
+
+func TestAccNetworkInterface_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkInterfaceDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
+func TestAccNetworkInterface_dnsServers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-					testCheckAzureRMNetworkInterfaceDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dnsServers(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dnsServersUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.enableAcceleratedNetworking(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Disabled
+			Config: r.enableAcceleratedNetworking(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.enableAcceleratedNetworking(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_enableIPForwarding(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.enableIPForwarding(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Disabled
+			Config: r.enableIPForwarding(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.enableIPForwarding(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_internalDomainNameLabel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.internalDomainNameLabel(data, "1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.internalDomainNameLabel(data, "2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_ipv6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ipv6(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address_version").HasValue("IPv4"),
+				check.That(data.ResourceName).Key("ip_configuration.1.private_ip_address_version").HasValue("IPv6"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_multipleIPConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleIPConfigurations(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleIPConfigurationsSecondaryAsPrimary(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_publicIP(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.publicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicIPRemoved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicIP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_interface"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterface_dnsServers(t *testing.T) {
+func TestAccNetworkInterface_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_dnsServers(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_dnsServersUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.static(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
+func TestAccNetworkInterface_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testAccAzureRMNetworkInterface_enableAcceleratedNetworking(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disabled
-				Config: testAccAzureRMNetworkInterface_enableAcceleratedNetworking(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testAccAzureRMNetworkInterface_enableAcceleratedNetworking(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.tagsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
+func TestAccNetworkInterface_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testAccAzureRMNetworkInterface_enableIPForwarding(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disabled
-				Config: testAccAzureRMNetworkInterface_enableIPForwarding(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testAccAzureRMNetworkInterface_enableIPForwarding(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multipleIPConfigurations(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterface_internalDomainNameLabel(t *testing.T) {
+func TestAccNetworkInterface_updateMultipleParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_internalDomainNameLabel(data, "1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_internalDomainNameLabel(data, "2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withMultipleParameters(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateMultipleParameters(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterface_ipv6(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_ipv6(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.private_ip_address_version", "IPv4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.1.private_ip_address_version", "IPv6"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_multipleIPConfigurations(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_multipleIPConfigurations(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_publicIP(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_publicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_publicIPRemoved(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_publicIP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkInterface_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_interface"),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_static(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_static(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_tags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_tagsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_multipleIPConfigurations(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_updateMultipleParameters(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_withMultipleParameters(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterface_updateMultipleParameters(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Interface %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on ifaceClient: %+v", err)
-		}
-
-		return nil
+func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	name := id.Path["networkInterfaces"]
+
+	resp, err := clients.Network.InterfacesClient.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Interface (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkInterfaceDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -423,35 +360,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_interface" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Network Interface still exists:\n%#v", resp.InterfacePropertiesFormat)
-	}
-
-	return nil
-}
-
-func testAccAzureRMNetworkInterface_basic(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -466,11 +375,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_withMultipleParameters(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) withMultipleParameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -496,11 +404,10 @@ resource "azurerm_network_interface" "test" {
     env = "Test"
   }
 }
-`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMNetworkInterface_updateMultipleParameters(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) updateMultipleParameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -526,11 +433,10 @@ resource "azurerm_network_interface" "test" {
     env = "Test2"
   }
 }
-`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMNetworkInterface_dnsServers(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) dnsServers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -550,11 +456,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_dnsServersUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) dnsServersUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -574,11 +479,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_enableAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) enableAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -594,11 +498,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger, enabled)
 }
 
-func testAccAzureRMNetworkInterface_enableIPForwarding(data acceptance.TestData, enabled bool) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) enableIPForwarding(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -614,11 +517,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger, enabled)
 }
 
-func testAccAzureRMNetworkInterface_internalDomainNameLabel(data acceptance.TestData, suffix string) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) internalDomainNameLabel(data acceptance.TestData, suffix string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -634,11 +536,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger, suffix, data.RandomString)
+`, r.template(data), data.RandomInteger, suffix, data.RandomString)
 }
 
-func testAccAzureRMNetworkInterface_ipv6(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) ipv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -660,11 +561,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_version    = "IPv6"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_multipleIPConfigurations(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) multipleIPConfigurations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -686,11 +586,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) multipleIPConfigurationsSecondaryAsPrimary(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -712,11 +611,10 @@ resource "azurerm_network_interface" "test" {
     primary                       = true
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_publicIP(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_publicIPTemplate(data)
+func (r NetworkInterfaceResource) publicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -732,11 +630,10 @@ resource "azurerm_network_interface" "test" {
     public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
-`, template, data.RandomInteger)
+`, r.publicIPTemplate(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_publicIPRemoved(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_publicIPTemplate(data)
+func (r NetworkInterfaceResource) publicIPRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -751,11 +648,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template, data.RandomInteger)
+`, r.publicIPTemplate(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_publicIPTemplate(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) publicIPTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -765,11 +661,10 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_basic(data)
+func (r NetworkInterfaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -784,11 +679,10 @@ resource "azurerm_network_interface" "import" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkInterface_static(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) static(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -804,11 +698,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address            = "10.0.2.15"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_tags(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -827,11 +720,10 @@ resource "azurerm_network_interface" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_tagsUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterface_template(data)
+func (r NetworkInterfaceResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -851,10 +743,10 @@ resource "azurerm_network_interface" "test" {
     Elephants = "Five"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterface_template(data acceptance.TestData) string {
+func (NetworkInterfaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

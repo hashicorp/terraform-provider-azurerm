@@ -276,6 +276,7 @@ func (client ServerEndpointsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,6 +365,7 @@ func (client ServerEndpointsClient) ListBySyncGroup(ctx context.Context, resourc
 	result, err = client.ListBySyncGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "ListBySyncGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return

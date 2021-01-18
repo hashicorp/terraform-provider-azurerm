@@ -29,12 +29,12 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_sql_active_directory_administrator": resourceArmSqlAdministrator(),
-		"azurerm_sql_database":                       resourceArmSqlDatabase(),
-		"azurerm_sql_elasticpool":                    resourceArmSqlElasticPool(),
-		"azurerm_sql_failover_group":                 resourceArmSqlFailoverGroup(),
-		"azurerm_sql_firewall_rule":                  resourceArmSqlFirewallRule(),
-		"azurerm_sql_server":                         resourceArmSqlServer(),
-		"azurerm_sql_virtual_network_rule":           resourceArmSqlVirtualNetworkRule(),
+		"azurerm_sql_active_directory_administrator": resourceSqlAdministrator(),
+		"azurerm_sql_database":                       resourceSqlDatabase(),
+		"azurerm_sql_elasticpool":                    resourceSqlElasticPool(),
+		"azurerm_sql_failover_group":                 resourceSqlFailoverGroup(),
+		"azurerm_sql_firewall_rule":                  resourceSqlFirewallRule(),
+		"azurerm_sql_server":                         resourceSqlServer(),
+		"azurerm_sql_virtual_network_rule":           resourceSqlVirtualNetworkRule(),
 	}
 }

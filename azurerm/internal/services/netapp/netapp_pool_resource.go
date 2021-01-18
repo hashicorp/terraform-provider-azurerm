@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppPool() *schema.Resource {
+func resourceNetAppPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppPoolCreateUpdate,
-		Read:   resourceArmNetAppPoolRead,
-		Update: resourceArmNetAppPoolCreateUpdate,
-		Delete: resourceArmNetAppPoolDelete,
+		Create: resourceNetAppPoolCreateUpdate,
+		Read:   resourceNetAppPoolRead,
+		Update: resourceNetAppPoolCreateUpdate,
+		Delete: resourceNetAppPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +35,7 @@ func resourceArmNetAppPool() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.NetAppPoolID(id)
+			_, err := parse.CapacityPoolID(id)
 			return err
 		}),
 
@@ -79,7 +79,7 @@ func resourceArmNetAppPool() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,20 +132,20 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppPoolRead(d, meta)
+	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppPoolID(d.Id())
+	id, err := parse.CapacityPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Pools %q does not exist - removing from state", d.Id())
@@ -157,7 +157,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.NetAppAccountName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -176,17 +176,17 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppPoolID(d.Id())
+	id, err := parse.CapacityPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -203,7 +203,7 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
-		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
+		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.Name),
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 

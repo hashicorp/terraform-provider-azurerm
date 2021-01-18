@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkConnectionMonitor() *schema.Resource {
+func resourceNetworkConnectionMonitor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkConnectionMonitorCreateUpdate,
-		Read:   resourceArmNetworkConnectionMonitorRead,
-		Update: resourceArmNetworkConnectionMonitorCreateUpdate,
-		Delete: resourceArmNetworkConnectionMonitorDelete,
+		Create: resourceNetworkConnectionMonitorCreateUpdate,
+		Read:   resourceNetworkConnectionMonitorRead,
+		Update: resourceNetworkConnectionMonitorCreateUpdate,
+		Delete: resourceNetworkConnectionMonitorDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -436,7 +436,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -467,10 +467,10 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		Location: utils.String(location),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
-			Endpoints:          expandArmNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
-			Outputs:            expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
-			TestConfigurations: expandArmNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
-			TestGroups:         expandArmNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
+			Endpoints:          expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
+			Outputs:            expandNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
+			TestConfigurations: expandNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
+			TestGroups:         expandNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
 		},
 	}
 
@@ -497,27 +497,26 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(*resp.ID)
 
-	return resourceArmNetworkConnectionMonitorRead(d, meta)
+	return resourceNetworkConnectionMonitorRead(d, meta)
 }
 
-func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkConnectionMonitorID(d.Id())
+	id, err := parse.ConnectionMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	if resp.ConnectionMonitorType == network.SingleSourceDestination {
@@ -526,8 +525,8 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", id.Name)
 
-	networkWatcherId := parse.NewNetworkWatcherID(id.ResourceGroup, id.WatcherName)
-	d.Set("network_watcher_id", networkWatcherId.ID(subscriptionId))
+	networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
+	d.Set("network_watcher_id", networkWatcherId.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -536,19 +535,19 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	if props := resp.ConnectionMonitorResultProperties; props != nil {
 		d.Set("notes", props.Notes)
 
-		if err := d.Set("endpoint", flattenArmNetworkConnectionMonitorEndpoint(props.Endpoints)); err != nil {
+		if err := d.Set("endpoint", flattenNetworkConnectionMonitorEndpoint(props.Endpoints)); err != nil {
 			return fmt.Errorf("setting `endpoint`: %+v", err)
 		}
 
-		if err := d.Set("output_workspace_resource_ids", flattenArmNetworkConnectionMonitorOutput(props.Outputs)); err != nil {
+		if err := d.Set("output_workspace_resource_ids", flattenNetworkConnectionMonitorOutput(props.Outputs)); err != nil {
 			return fmt.Errorf("setting `output`: %+v", err)
 		}
 
-		if err := d.Set("test_configuration", flattenArmNetworkConnectionMonitorTestConfiguration(props.TestConfigurations)); err != nil {
+		if err := d.Set("test_configuration", flattenNetworkConnectionMonitorTestConfiguration(props.TestConfigurations)); err != nil {
 			return fmt.Errorf("setting `test_configuration`: %+v", err)
 		}
 
-		if err := d.Set("test_group", flattenArmNetworkConnectionMonitorTestGroup(props.TestGroups)); err != nil {
+		if err := d.Set("test_group", flattenNetworkConnectionMonitorTestGroup(props.TestGroups)); err != nil {
 			return fmt.Errorf("setting `test_group`: %+v", err)
 		}
 	}
@@ -556,31 +555,31 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkConnectionMonitorID(d.Id())
+	id, err := parse.ConnectionMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandArmNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.ConnectionMonitorEndpoint {
+func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.ConnectionMonitorEndpoint {
 	results := make([]network.ConnectionMonitorEndpoint, 0)
 
 	for _, item := range input {
@@ -588,7 +587,7 @@ func expandArmNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.C
 
 		result := network.ConnectionMonitorEndpoint{
 			Name:   utils.String(v["name"].(string)),
-			Filter: expandArmNetworkConnectionMonitorEndpointFilter(v["filter"].([]interface{})),
+			Filter: expandNetworkConnectionMonitorEndpointFilter(v["filter"].([]interface{})),
 		}
 
 		if address := v["address"]; address != "" {
@@ -605,7 +604,7 @@ func expandArmNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.C
 	return &results
 }
 
-func expandArmNetworkConnectionMonitorEndpointFilter(input []interface{}) *network.ConnectionMonitorEndpointFilter {
+func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *network.ConnectionMonitorEndpointFilter {
 	if len(input) == 0 {
 		return nil
 	}
@@ -614,11 +613,11 @@ func expandArmNetworkConnectionMonitorEndpointFilter(input []interface{}) *netwo
 
 	return &network.ConnectionMonitorEndpointFilter{
 		Type:  network.ConnectionMonitorEndpointFilterType(v["type"].(string)),
-		Items: expandArmNetworkConnectionMonitorEndpointFilterItem(v["item"].(*schema.Set).List()),
+		Items: expandNetworkConnectionMonitorEndpointFilterItem(v["item"].(*schema.Set).List()),
 	}
 }
 
-func expandArmNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]network.ConnectionMonitorEndpointFilterItem {
+func expandNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]network.ConnectionMonitorEndpointFilterItem {
 	if len(input) == 0 {
 		return nil
 	}
@@ -642,7 +641,7 @@ func expandArmNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[
 	return &results
 }
 
-func expandArmNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]network.ConnectionMonitorTestConfiguration {
+func expandNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]network.ConnectionMonitorTestConfiguration {
 	results := make([]network.ConnectionMonitorTestConfiguration, 0)
 
 	for _, item := range input {
@@ -650,11 +649,11 @@ func expandArmNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]
 
 		result := network.ConnectionMonitorTestConfiguration{
 			Name:              utils.String(v["name"].(string)),
-			HTTPConfiguration: expandArmNetworkConnectionMonitorHTTPConfiguration(v["http_configuration"].([]interface{})),
-			IcmpConfiguration: expandArmNetworkConnectionMonitorIcmpConfiguration(v["icmp_configuration"].([]interface{})),
+			HTTPConfiguration: expandNetworkConnectionMonitorHTTPConfiguration(v["http_configuration"].([]interface{})),
+			IcmpConfiguration: expandNetworkConnectionMonitorIcmpConfiguration(v["icmp_configuration"].([]interface{})),
 			Protocol:          network.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
-			SuccessThreshold:  expandArmNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
-			TCPConfiguration:  expandArmNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
+			SuccessThreshold:  expandNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
+			TCPConfiguration:  expandNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
 			TestFrequencySec:  utils.Int32(int32(v["test_frequency_in_seconds"].(int))),
 		}
 
@@ -668,7 +667,7 @@ func expandArmNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]
 	return &results
 }
 
-func expandArmNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *network.ConnectionMonitorHTTPConfiguration {
+func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *network.ConnectionMonitorHTTPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -678,7 +677,7 @@ func expandArmNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *ne
 	props := &network.ConnectionMonitorHTTPConfiguration{
 		Method:         network.HTTPConfigurationMethod(v["method"].(string)),
 		PreferHTTPS:    utils.Bool(v["prefer_https"].(bool)),
-		RequestHeaders: expandArmNetworkConnectionMonitorHTTPHeader(v["request_header"].(*schema.Set).List()),
+		RequestHeaders: expandNetworkConnectionMonitorHTTPHeader(v["request_header"].(*schema.Set).List()),
 	}
 
 	if path := v["path"]; path != "" {
@@ -696,7 +695,7 @@ func expandArmNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *ne
 	return props
 }
 
-func expandArmNetworkConnectionMonitorTCPConfiguration(input []interface{}) *network.ConnectionMonitorTCPConfiguration {
+func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *network.ConnectionMonitorTCPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -709,7 +708,7 @@ func expandArmNetworkConnectionMonitorTCPConfiguration(input []interface{}) *net
 	}
 }
 
-func expandArmNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *network.ConnectionMonitorIcmpConfiguration {
+func expandNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *network.ConnectionMonitorIcmpConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -721,7 +720,7 @@ func expandArmNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *ne
 	}
 }
 
-func expandArmNetworkConnectionMonitorSuccessThreshold(input []interface{}) *network.ConnectionMonitorSuccessThreshold {
+func expandNetworkConnectionMonitorSuccessThreshold(input []interface{}) *network.ConnectionMonitorSuccessThreshold {
 	if len(input) == 0 {
 		return nil
 	}
@@ -734,7 +733,7 @@ func expandArmNetworkConnectionMonitorSuccessThreshold(input []interface{}) *net
 	}
 }
 
-func expandArmNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]network.HTTPHeader {
+func expandNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]network.HTTPHeader {
 	if len(input) == 0 {
 		return nil
 	}
@@ -755,7 +754,7 @@ func expandArmNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]network
 	return &results
 }
 
-func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.ConnectionMonitorTestGroup {
+func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.ConnectionMonitorTestGroup {
 	results := make([]network.ConnectionMonitorTestGroup, 0)
 
 	for _, item := range input {
@@ -775,7 +774,7 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.
 	return &results
 }
 
-func expandArmNetworkConnectionMonitorOutput(input []interface{}) *[]network.ConnectionMonitorOutput {
+func expandNetworkConnectionMonitorOutput(input []interface{}) *[]network.ConnectionMonitorOutput {
 	results := make([]network.ConnectionMonitorOutput, 0)
 
 	for _, item := range input {
@@ -792,7 +791,7 @@ func expandArmNetworkConnectionMonitorOutput(input []interface{}) *[]network.Con
 	return &results
 }
 
-func flattenArmNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorEndpoint) []interface{} {
+func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorEndpoint) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -817,7 +816,7 @@ func flattenArmNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonit
 		v := map[string]interface{}{
 			"name":               name,
 			"address":            address,
-			"filter":             flattenArmNetworkConnectionMonitorEndpointFilter(item.Filter),
+			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
 			"virtual_machine_id": resourceId,
 		}
 
@@ -826,7 +825,7 @@ func flattenArmNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonit
 	return results
 }
 
-func flattenArmNetworkConnectionMonitorEndpointFilter(input *network.ConnectionMonitorEndpointFilter) []interface{} {
+func flattenNetworkConnectionMonitorEndpointFilter(input *network.ConnectionMonitorEndpointFilter) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -837,13 +836,13 @@ func flattenArmNetworkConnectionMonitorEndpointFilter(input *network.ConnectionM
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"item": flattenArmNetworkConnectionMonitorEndpointFilterItem(input.Items),
+			"item": flattenNetworkConnectionMonitorEndpointFilterItem(input.Items),
 			"type": t,
 		},
 	}
 }
 
-func flattenArmNetworkConnectionMonitorEndpointFilterItem(input *[]network.ConnectionMonitorEndpointFilterItem) []interface{} {
+func flattenNetworkConnectionMonitorEndpointFilterItem(input *[]network.ConnectionMonitorEndpointFilterItem) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -871,7 +870,7 @@ func flattenArmNetworkConnectionMonitorEndpointFilterItem(input *[]network.Conne
 	return results
 }
 
-func flattenArmNetworkConnectionMonitorTestConfiguration(input *[]network.ConnectionMonitorTestConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorTestConfiguration(input *[]network.ConnectionMonitorTestConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -901,11 +900,11 @@ func flattenArmNetworkConnectionMonitorTestConfiguration(input *[]network.Connec
 		v := map[string]interface{}{
 			"name":                      name,
 			"protocol":                  protocol,
-			"http_configuration":        flattenArmNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
-			"icmp_configuration":        flattenArmNetworkConnectionMonitorIcmpConfiguration(item.IcmpConfiguration),
+			"http_configuration":        flattenNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
+			"icmp_configuration":        flattenNetworkConnectionMonitorIcmpConfiguration(item.IcmpConfiguration),
 			"preferred_ip_version":      preferredIpVersion,
-			"success_threshold":         flattenArmNetworkConnectionMonitorSuccessThreshold(item.SuccessThreshold),
-			"tcp_configuration":         flattenArmNetworkConnectionMonitorTCPConfiguration(item.TCPConfiguration),
+			"success_threshold":         flattenNetworkConnectionMonitorSuccessThreshold(item.SuccessThreshold),
+			"tcp_configuration":         flattenNetworkConnectionMonitorTCPConfiguration(item.TCPConfiguration),
 			"test_frequency_in_seconds": testFrequencySec,
 		}
 
@@ -915,7 +914,7 @@ func flattenArmNetworkConnectionMonitorTestConfiguration(input *[]network.Connec
 	return results
 }
 
-func flattenArmNetworkConnectionMonitorHTTPConfiguration(input *network.ConnectionMonitorHTTPConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorHTTPConfiguration(input *network.ConnectionMonitorHTTPConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -946,13 +945,13 @@ func flattenArmNetworkConnectionMonitorHTTPConfiguration(input *network.Connecti
 			"path":                     p,
 			"port":                     port,
 			"prefer_https":             preferHttps,
-			"request_header":           flattenArmNetworkConnectionMonitorHTTPHeader(input.RequestHeaders),
+			"request_header":           flattenNetworkConnectionMonitorHTTPHeader(input.RequestHeaders),
 			"valid_status_code_ranges": utils.FlattenStringSlice(input.ValidStatusCodeRanges),
 		},
 	}
 }
 
-func flattenArmNetworkConnectionMonitorIcmpConfiguration(input *network.ConnectionMonitorIcmpConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorIcmpConfiguration(input *network.ConnectionMonitorIcmpConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -969,7 +968,7 @@ func flattenArmNetworkConnectionMonitorIcmpConfiguration(input *network.Connecti
 	}
 }
 
-func flattenArmNetworkConnectionMonitorSuccessThreshold(input *network.ConnectionMonitorSuccessThreshold) []interface{} {
+func flattenNetworkConnectionMonitorSuccessThreshold(input *network.ConnectionMonitorSuccessThreshold) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -992,7 +991,7 @@ func flattenArmNetworkConnectionMonitorSuccessThreshold(input *network.Connectio
 	}
 }
 
-func flattenArmNetworkConnectionMonitorTCPConfiguration(input *network.ConnectionMonitorTCPConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorTCPConfiguration(input *network.ConnectionMonitorTCPConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -1015,7 +1014,7 @@ func flattenArmNetworkConnectionMonitorTCPConfiguration(input *network.Connectio
 	}
 }
 
-func flattenArmNetworkConnectionMonitorHTTPHeader(input *[]network.HTTPHeader) []interface{} {
+func flattenNetworkConnectionMonitorHTTPHeader(input *[]network.HTTPHeader) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1043,7 +1042,7 @@ func flattenArmNetworkConnectionMonitorHTTPHeader(input *[]network.HTTPHeader) [
 	return results
 }
 
-func flattenArmNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMonitorTestGroup) []interface{} {
+func flattenNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMonitorTestGroup) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1073,7 +1072,7 @@ func flattenArmNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMoni
 	return results
 }
 
-func flattenArmNetworkConnectionMonitorOutput(input *[]network.ConnectionMonitorOutput) []interface{} {
+func flattenNetworkConnectionMonitorOutput(input *[]network.ConnectionMonitorOutput) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

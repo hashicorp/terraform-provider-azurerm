@@ -92,6 +92,7 @@ func (client TriggerRunsClient) Cancel(ctx context.Context, resourceGroupName st
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -184,6 +185,7 @@ func (client TriggerRunsClient) QueryByFactory(ctx context.Context, resourceGrou
 	result, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "QueryByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,6 +281,7 @@ func (client TriggerRunsClient) Rerun(ctx context.Context, resourceGroupName str
 	result, err = client.RerunResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.TriggerRunsClient", "Rerun", resp, "Failure responding to request")
+		return
 	}
 
 	return

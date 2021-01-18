@@ -1,169 +1,138 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
+type NetworkSecurityRuleResource struct {
+}
+
+func TestAccNetworkSecurityRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkSecurityRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkSecurityRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	r := NetworkSecurityRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_security_rule"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityRule_requiresImport(t *testing.T) {
+func TestAccNetworkSecurityRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	r := NetworkSecurityRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkSecurityRule_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_security_rule"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkSecurityRuleDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
+func TestAccNetworkSecurityRule_addingRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	r := NetworkSecurityRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists(data.ResourceName),
-					testCheckAzureRMNetworkSecurityRuleDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.updateBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+
+		{
+			Config: r.updateExtraRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityRule_updateBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test1"),
-				),
-			},
-
-			{
-				Config: testAccAzureRMNetworkSecurityRule_updateExtraRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
+func TestAccNetworkSecurityRule_augmented(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityRule_augmented(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkSecurityRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.augmented(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
+func TestAccNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NetworkSecurityRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.applicationSecurityGroups(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		sgName := rs.Primary.Attributes["network_security_group_name"]
-		sgrName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for network security rule: %q", sgName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Security Rule %q (resource group: %q) (network security group: %q) does not exist", sgrName, sgName, resourceGroup)
-			}
-			return fmt.Errorf("Error retrieving Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgrName, sgName, resourceGroup, err)
-		}
-
-		return nil
+func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	networkSGName := id.Path["networkSecurityGroups"]
+	sgRuleName := id.Path["securityRules"]
+
+	resp, err := clients.Network.SecurityRuleClient.Get(ctx, resGroup, networkSGName, sgRuleName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Security Rule (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkSecurityRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -191,33 +160,7 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource
 	}
 }
 
-func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_security_rule" {
-			continue
-		}
-
-		sgName := rs.Primary.Attributes["network_security_group_name"]
-		sgrName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Network Security Rule still exists:\n%#v", resp.SecurityRulePropertiesFormat)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMNetworkSecurityRule_basic(data acceptance.TestData) string {
+func (NetworkSecurityRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -250,8 +193,7 @@ resource "azurerm_network_security_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkSecurityRule_basic(data)
+func (r NetworkSecurityRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -268,10 +210,10 @@ resource "azurerm_network_security_rule" "import" {
   source_address_prefix       = azurerm_network_security_rule.test.source_address_prefix
   destination_address_prefix  = azurerm_network_security_rule.test.destination_address_prefix
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkSecurityRule_updateBasic(data acceptance.TestData) string {
+func (NetworkSecurityRuleResource) updateBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -304,7 +246,7 @@ resource "azurerm_network_security_rule" "test1" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityRule_updateExtraRule(data acceptance.TestData) string {
+func (NetworkSecurityRuleResource) updateExtraRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -351,7 +293,7 @@ resource "azurerm_network_security_rule" "test2" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityRule_augmented(data acceptance.TestData) string {
+func (NetworkSecurityRuleResource) augmented(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -384,7 +326,7 @@ resource "azurerm_network_security_rule" "test1" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(data acceptance.TestData) string {
+func (NetworkSecurityRuleResource) applicationSecurityGroups(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -395,14 +337,26 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_application_security_group" "first" {
-  name                = "acctest-first%d"
+resource "azurerm_application_security_group" "source1" {
+  name                = "acctest-source1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_application_security_group" "second" {
-  name                = "acctest-second%d"
+resource "azurerm_application_security_group" "source2" {
+  name                = "acctest-source2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_application_security_group" "destination1" {
+  name                = "acctest-destination1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_application_security_group" "destination2" {
+  name                = "acctest-destination2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -421,10 +375,10 @@ resource "azurerm_network_security_rule" "test1" {
   direction                                  = "Outbound"
   access                                     = "Allow"
   protocol                                   = "Tcp"
-  source_application_security_group_ids      = [azurerm_application_security_group.first.id]
-  destination_application_security_group_ids = [azurerm_application_security_group.second.id]
+  source_application_security_group_ids      = [azurerm_application_security_group.source1.id, azurerm_application_security_group.source2.id]
+  destination_application_security_group_ids = [azurerm_application_security_group.destination1.id, azurerm_application_security_group.destination2.id]
   source_port_ranges                         = ["10000-40000"]
   destination_port_ranges                    = ["80", "443", "8080", "8190"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

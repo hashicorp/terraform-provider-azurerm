@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBlueprintAssignment() *schema.Resource {
+func resourceBlueprintAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBlueprintAssignmentCreateUpdate,
-		Update: resourceArmBlueprintAssignmentCreateUpdate,
-		Read:   resourceArmBlueprintAssignmentRead,
-		Delete: resourceArmBlueprintAssignmentDelete,
+		Create: resourceBlueprintAssignmentCreateUpdate,
+		Update: resourceBlueprintAssignmentCreateUpdate,
+		Read:   resourceBlueprintAssignmentRead,
+		Delete: resourceBlueprintAssignmentDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -61,7 +61,7 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 			"version_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.BlueprintVersionID,
+				ValidateFunc: validate.VersionID,
 			},
 
 			"parameter_values": {
@@ -126,7 +126,7 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,10 +214,10 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*resp.ID)
 
-	return resourceArmBlueprintAssignmentRead(d, meta)
+	return resourceBlueprintAssignmentRead(d, meta)
 }
 
-func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,18 +227,15 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resourceScope := id.Scope
-	assignmentName := id.Name
-
-	resp, err := client.Get(ctx, resourceScope, assignmentName)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] the Blueprint Assignment %q does not exist - removing from state", assignmentName)
+			log.Printf("[INFO] the Blueprint Assignment %q does not exist - removing from state", id.Name)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", assignmentName, err)
+		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.Name, err)
 	}
 
 	if resp.Name != nil {
@@ -254,7 +251,11 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if resp.Identity != nil {
-		d.Set("identity", flattenArmBlueprintAssignmentIdentity(resp.Identity))
+		identity, err := flattenArmBlueprintAssignmentIdentity(resp.Identity)
+		if err != nil {
+			return err
+		}
+		d.Set("identity", identity)
 	}
 
 	if resp.AssignmentProperties != nil {
@@ -298,27 +299,24 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmBlueprintAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	assignmentID, err := parse.AssignmentID(d.Id())
+	id, err := parse.AssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := assignmentID.Name
-	targetScope := assignmentID.Scope
-
 	// We use none here to align the previous behaviour of the blueprint resource
 	// TODO: we could add a features flag for the blueprint to empower terraform when deleting the blueprint to delete all the generated resources as well
-	resp, err := client.Delete(ctx, targetScope, name, blueprint.None)
+	resp, err := client.Delete(ctx, id.Scope, id.Name, blueprint.None)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", name, targetScope, err)
+		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", id.Name, id.Scope, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -330,12 +328,12 @@ func resourceArmBlueprintAssignmentDelete(d *schema.ResourceData, meta interface
 			string(blueprint.Failed),
 		},
 		Target:  []string{"NotFound"},
-		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, targetScope, name),
+		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, id.Scope, id.Name),
 		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Failed waiting for Blueprint Assignment %q (Scope %q): %+v", name, targetScope, err)
+		return fmt.Errorf("Failed waiting for Blueprint Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 
 	return nil

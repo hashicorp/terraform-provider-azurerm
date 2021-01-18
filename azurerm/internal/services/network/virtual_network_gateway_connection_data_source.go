@@ -49,6 +49,11 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
+			"dpd_timeout_seconds": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"enable_bgp": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -86,6 +91,11 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 
 			"peer_virtual_network_gateway_id": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"local_azure_ip_address_enabled": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
@@ -231,6 +241,14 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 
 		if gwc.Peer != nil {
 			d.Set("express_route_circuit_id", gwc.Peer.ID)
+		}
+
+		if gwc.DpdTimeoutSeconds != nil {
+			d.Set("dpd_timeout_seconds", gwc.DpdTimeoutSeconds)
+		}
+
+		if gwc.UseLocalAzureIPAddress != nil {
+			d.Set("local_azure_ip_address_enabled", gwc.UseLocalAzureIPAddress)
 		}
 
 		d.Set("resource_guid", gwc.ResourceGUID)

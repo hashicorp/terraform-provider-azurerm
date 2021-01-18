@@ -1,342 +1,254 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+type NetworkConnectionMonitorResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func testAccNetworkConnectionMonitor_addressBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImportConfig(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_connection_monitor"),
 		},
 	})
 }
 
-func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
+func testAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkConnectionMonitor_requiresImportConfig(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_connection_monitor"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_vmBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicVmConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_vmComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeVmConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicVmConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeVmConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicVmConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicAddressConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkConnectionMonitor_missingDestination(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.missingDestinationConfig(data),
+			ExpectError: regexp.MustCompile("must have at least 2 endpoints"),
 		},
 	})
 }
 
-func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
+func testAccNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.conflictingDestinationsConfig(data),
+			ExpectError: regexp.MustCompile("don't allow creating different endpoints for the same VM"),
 		},
 	})
 }
 
-func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
+func testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withAddressAndVirtualMachineIdConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
+func testAccNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.httpConfigurationConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkConnectionMonitor_vmComplete(t *testing.T) {
+func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+	r := NetworkConnectionMonitorResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.icmpConfigurationConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMNetworkConnectionMonitor_vmUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkConnectionMonitor_missingDestination(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data),
-				ExpectError: regexp.MustCompile("must have at least 2 endpoints"),
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data),
-				ExpectError: regexp.MustCompile("don't allow creating different endpoints for the same VM"),
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineIdConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_httpConfigurationConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkConnectionMonitor_icmpConfigurationConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ConnectionMonitorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.NetworkConnectionMonitorID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on NetworkConnectionMonitorsClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Connection Monitor does not exist: %s", id.Name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ConnectionMonitorsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_network_connection_monitor" {
-			continue
-		}
-
-		id, err := parse.NetworkConnectionMonitorID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Connection Monitor still exists:%s", *resp.Name)
-		}
+func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ConnectionMonitorID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.ConnectionMonitorsClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Network Connection Monitor (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMNetworkConnectionMonitor_baseConfig(data acceptance.TestData) string {
+func (NetworkConnectionMonitorResource) baseConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -422,8 +334,7 @@ resource "azurerm_virtual_machine_extension" "src" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) baseWithDestConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -470,11 +381,10 @@ resource "azurerm_virtual_machine" "dest" {
     disable_password_authentication = false
   }
 }
-`, config, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) basicAddressConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -511,11 +421,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) completeAddressConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -584,11 +493,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data)
+func (r NetworkConnectionMonitorResource) basicVmConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -625,11 +533,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseWithDestConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineIdConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data)
+func (r NetworkConnectionMonitorResource) withAddressAndVirtualMachineIdConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -667,11 +574,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseWithDestConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data)
+func (r NetworkConnectionMonitorResource) completeVmConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -723,11 +629,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseWithDestConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) missingDestinationConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -759,11 +664,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) conflictingDestinationsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -800,11 +704,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_requiresImportConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data)
+func (r NetworkConnectionMonitorResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -841,11 +744,10 @@ resource "azurerm_network_connection_monitor" "import" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config)
+`, r.basicAddressConfig(data))
 }
 
-func testAccAzureRMNetworkConnectionMonitor_httpConfigurationConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) httpConfigurationConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -891,11 +793,10 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_icmpConfigurationConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+func (r NetworkConnectionMonitorResource) icmpConfigurationConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -932,5 +833,5 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger)
+`, r.baseConfig(data), data.RandomInteger)
 }

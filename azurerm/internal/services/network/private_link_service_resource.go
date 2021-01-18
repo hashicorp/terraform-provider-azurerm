@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateLinkService() *schema.Resource {
+func resourcePrivateLinkService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateLinkServiceCreateUpdate,
-		Read:   resourceArmPrivateLinkServiceRead,
-		Update: resourceArmPrivateLinkServiceCreateUpdate,
-		Delete: resourceArmPrivateLinkServiceDelete,
+		Create: resourcePrivateLinkServiceCreateUpdate,
+		Read:   resourcePrivateLinkServiceRead,
+		Update: resourcePrivateLinkServiceCreateUpdate,
+		Delete: resourcePrivateLinkServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -148,7 +148,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,8 +186,8 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
 				Subscriptions: utils.ExpandStringSlice(visibility),
 			},
-			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
-			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
+			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
+			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -198,14 +198,6 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
@@ -228,12 +220,21 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
+	// TODO: switch over to using an ID parser
+	resp, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.SetId(*resp.ID)
 
-	return resourceArmPrivateLinkServiceRead(d, meta)
+	return resourcePrivateLinkServiceRead(d, meta)
 }
 
-func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -279,11 +280,11 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
 
-		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+		if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
 
-		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
 	}
@@ -291,7 +292,7 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -320,7 +321,7 @@ func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
+func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -359,7 +360,7 @@ func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.
 	return &results
 }
 
-func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]network.FrontendIPConfiguration {
+func expandPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]network.FrontendIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -377,7 +378,7 @@ func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]
 	return &results
 }
 
-func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
+func flattenPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -422,7 +423,7 @@ func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkSer
 	return results
 }
 
-func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
+func flattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
 	results := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return results
@@ -441,6 +442,11 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name, "")
 		if err != nil {
+			// the API is eventually consistent during recreates..
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, "Pending", nil
+			}
+
 			return nil, "Error", fmt.Errorf("Error issuing read request in privateLinkServiceWaitForReadyRefreshFunc %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 		if props := res.PrivateLinkServiceProperties; props != nil {

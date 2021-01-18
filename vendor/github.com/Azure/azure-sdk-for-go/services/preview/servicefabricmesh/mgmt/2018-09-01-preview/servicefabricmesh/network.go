@@ -81,6 +81,7 @@ func (client NetworkClient) Create(ctx context.Context, resourceGroupName string
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,6 +159,7 @@ func (client NetworkClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -233,6 +235,7 @@ func (client NetworkClient) Get(ctx context.Context, resourceGroupName string, n
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +312,7 @@ func (client NetworkClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.nrdl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.nrdl.hasNextLink() && result.nrdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -372,6 +376,7 @@ func (client NetworkClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -422,6 +427,7 @@ func (client NetworkClient) ListBySubscription(ctx context.Context) (result Netw
 	result.nrdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.nrdl.hasNextLink() && result.nrdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -484,6 +490,7 @@ func (client NetworkClient) listBySubscriptionNextResults(ctx context.Context, l
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.NetworkClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

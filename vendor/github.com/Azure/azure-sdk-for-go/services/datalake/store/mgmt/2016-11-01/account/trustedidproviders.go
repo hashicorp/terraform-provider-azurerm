@@ -85,6 +85,7 @@ func (client TrustedIDProvidersClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +165,7 @@ func (client TrustedIDProvidersClient) Delete(ctx context.Context, resourceGroup
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -240,6 +242,7 @@ func (client TrustedIDProvidersClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -317,6 +320,7 @@ func (client TrustedIDProvidersClient) ListByAccount(ctx context.Context, resour
 	result.tiplr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.tiplr.hasNextLink() && result.tiplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -381,6 +385,7 @@ func (client TrustedIDProvidersClient) listByAccountNextResults(ctx context.Cont
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -435,6 +440,7 @@ func (client TrustedIDProvidersClient) Update(ctx context.Context, resourceGroup
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

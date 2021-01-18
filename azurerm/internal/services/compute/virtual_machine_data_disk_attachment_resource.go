@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
+func resourceVirtualMachineDataDiskAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineDataDiskAttachmentCreateUpdate,
-		Read:   resourceArmVirtualMachineDataDiskAttachmentRead,
-		Update: resourceArmVirtualMachineDataDiskAttachmentCreateUpdate,
-		Delete: resourceArmVirtualMachineDataDiskAttachmentDelete,
+		Create: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Read:   resourceVirtualMachineDataDiskAttachmentRead,
+		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,10 +188,10 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(resourceId)
-	return resourceArmVirtualMachineDataDiskAttachmentRead(d, meta)
+	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +251,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

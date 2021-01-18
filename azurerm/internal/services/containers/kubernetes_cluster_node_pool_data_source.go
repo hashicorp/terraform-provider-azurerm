@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -110,6 +110,11 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 
 			"os_disk_size_gb": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"os_disk_type": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -244,6 +249,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
+
+		osDiskType := containerservice.Managed
+		if props.OsDiskType != "" {
+			osDiskType = props.OsDiskType
+		}
+		d.Set("os_disk_type", string(osDiskType))
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
