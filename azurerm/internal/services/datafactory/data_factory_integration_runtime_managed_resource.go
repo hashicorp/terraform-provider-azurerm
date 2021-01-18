@@ -191,15 +191,15 @@ func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, me
 
 		if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
 			if computeType := &dataFlowProps.ComputeType; computeType != nil {
-				d.Set("compute_type", computeType)
+				d.Set("computeType", computeType)
 			}
 
 			if coreCount := dataFlowProps.CoreCount; coreCount != nil {
-				d.Set("core_count", coreCount)
+				d.Set("coreCount", coreCount)
 			}
 
 			if timeToLive := dataFlowProps.TimeToLive; timeToLive != nil {
-				d.Set("time_to_live", timeToLive)
+				d.Set("timeToLive", timeToLive)
 			}
 		}
 	}
