@@ -297,7 +297,7 @@ func resourceApiManagementService() *schema.Resource {
 						"enable_triple_des_ciphers": {
 							Type:          schema.TypeBool,
 							Optional:      true,
-							Default:       false,
+							Computed:      true,
 							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
 							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
 						},
@@ -305,7 +305,7 @@ func resourceApiManagementService() *schema.Resource {
 						"triple_des_ciphers_enabled": {
 							Type:          schema.TypeBool,
 							Optional:      true,
-							Default:       false,
+							Computed:      true, // TODO: v3.0 remove Computed and set Default: false
 							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
 						},
 
