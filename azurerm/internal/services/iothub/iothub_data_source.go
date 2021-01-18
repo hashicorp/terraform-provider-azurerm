@@ -55,5 +55,4 @@ func dataSourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
-
 }
