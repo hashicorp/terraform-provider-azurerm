@@ -264,7 +264,7 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	})
 }
 
-func (t ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ApiManagementID(state.ID)
 	if err != nil {
 		return nil, err

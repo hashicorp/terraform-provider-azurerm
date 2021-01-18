@@ -72,7 +72,7 @@ func TestAccApiManagementIdentityProviderGoogle_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ApiManagementIdentityProviderGoogleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementIdentityProviderGoogleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
