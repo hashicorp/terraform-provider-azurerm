@@ -2,6 +2,8 @@ package network_test
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 )
 
 func TestValidatePrivateLinkSubResourceName(t *testing.T) {
@@ -125,7 +127,7 @@ func TestValidatePrivateLinkSubResourceName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		_, errors := ValidatePrivateLinkSubResourceName(v.Input, "private_link_endpoint_subresource")
+		_, errors := network.ValidatePrivateLinkSubResourceName(v.Input, "private_link_endpoint_subresource")
 		isValid := len(errors) == 0
 		if v.Valid != isValid {
 			t.Fatalf("Expected %t but got %t", v.Valid, isValid)
