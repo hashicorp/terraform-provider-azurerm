@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAppServiceCertificateOrder() *schema.Resource {
+func dataSourceAppServiceCertificateOrder() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAppServiceCertificateOrderRead,
+		Read: dataSourceAppServiceCertificateOrderRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -137,7 +137,7 @@ func dataSourceArmAppServiceCertificateOrder() *schema.Resource {
 	}
 }
 
-func dataSourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesOrderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

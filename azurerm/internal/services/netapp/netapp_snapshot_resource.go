@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppSnapshot() *schema.Resource {
+func resourceNetAppSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppSnapshotCreate,
-		Read:   resourceArmNetAppSnapshotRead,
-		Update: resourceArmNetAppSnapshotUpdate,
-		Delete: resourceArmNetAppSnapshotDelete,
+		Create: resourceNetAppSnapshotCreate,
+		Read:   resourceNetAppSnapshotRead,
+		Update: resourceNetAppSnapshotUpdate,
+		Delete: resourceNetAppSnapshotDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -76,7 +76,7 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,10 +123,10 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppSnapshotRead(d, meta)
+	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,10 +184,10 @@ func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 
-	return resourceArmNetAppSnapshotRead(d, meta)
+	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

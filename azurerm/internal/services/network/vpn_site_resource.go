@@ -148,7 +148,6 @@ func resourceArmVpnSite() *schema.Resource {
 
 func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -202,7 +201,7 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 
 	return resourceArmVpnSiteRead(d, meta)
 }

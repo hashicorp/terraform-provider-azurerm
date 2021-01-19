@@ -18,7 +18,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -34,19 +36,22 @@ var armKeyVaultSkuFamily = "A"
 
 var keyVaultResourceName = "azurerm_key_vault"
 
-func resourceArmKeyVault() *schema.Resource {
+func resourceKeyVault() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultCreate,
-		Read:   resourceArmKeyVaultRead,
-		Update: resourceArmKeyVaultUpdate,
-		Delete: resourceArmKeyVaultDelete,
+		Create: resourceKeyVaultCreate,
+		Read:   resourceKeyVaultRead,
+		Update: resourceKeyVaultUpdate,
+		Delete: resourceKeyVaultDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState:  resourceAzureRMKeyVaultMigrateState,
-		SchemaVersion: 1,
+		MigrateState: resourceKeyVaultMigrateState,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.KeyVaultV1ToV2Upgrader(),
+		},
+		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -55,172 +60,181 @@ func resourceArmKeyVault() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.KeyVaultName,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.Standard),
-					string(keyvault.Premium),
-				}, false),
-			},
-
-			"tenant_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
-			"access_policy": {
-				Type:       schema.TypeList,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1024,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"tenant_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"object_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"application_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
-						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
-						"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
-						"storage_permissions":     azure.SchemaKeyVaultStoragePermissions(),
-					},
+		Schema: func() map[string]*schema.Schema {
+			rSchema := map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.KeyVaultName,
 				},
-			},
 
-			"enabled_for_deployment": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+				"location": azure.SchemaLocation(),
 
-			"enabled_for_disk_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+				"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"enabled_for_template_deployment": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+				"sku_name": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(keyvault.Standard),
+						string(keyvault.Premium),
+					}, false),
+				},
 
-			"enable_rbac_authorization": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+				"tenant_id": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
 
-			"network_acls": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"default_action": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.Allow),
-								string(keyvault.Deny),
-							}, false),
-						},
-						"bypass": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.None),
-								string(keyvault.AzureServices),
-							}, false),
-						},
-						"ip_rules": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
-						},
-						"virtual_network_subnet_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      set.HashStringIgnoreCase,
+				"access_policy": {
+					Type:       schema.TypeList,
+					ConfigMode: schema.SchemaConfigModeAttr,
+					Optional:   true,
+					Computed:   true,
+					MaxItems:   1024,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"tenant_id": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.IsUUID,
+							},
+							"object_id": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.IsUUID,
+							},
+							"application_id": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validate.IsUUIDOrEmpty,
+							},
+							"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
+							"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
+							"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
+							"storage_permissions":     azure.SchemaKeyVaultStoragePermissions(),
 						},
 					},
 				},
-			},
 
-			"purge_protection_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+				"enabled_for_deployment": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
 
-			"soft_delete_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+				"enabled_for_disk_encryption": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
 
-			"soft_delete_retention_days": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(7, 90),
-			},
+				"enabled_for_template_deployment": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
 
-			"contact": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"email": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"phone": {
-							Type:     schema.TypeString,
-							Optional: true,
+				"enable_rbac_authorization": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
+
+				"network_acls": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"default_action": {
+								Type:     schema.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(keyvault.Allow),
+									string(keyvault.Deny),
+								}, false),
+							},
+							"bypass": {
+								Type:     schema.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(keyvault.None),
+									string(keyvault.AzureServices),
+								}, false),
+							},
+							"ip_rules": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+								Set:      schema.HashString,
+							},
+							"virtual_network_subnet_ids": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+								Set:      set.HashStringIgnoreCase,
+							},
 						},
 					},
 				},
-			},
 
-			"tags": tags.Schema(),
+				"purge_protection_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
 
-			// Computed
-			"vault_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
+				"soft_delete_retention_days": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Default:      90,
+					ValidateFunc: validation.IntBetween(7, 90),
+				},
+
+				"contact": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"email": {
+								Type:     schema.TypeString,
+								Required: true,
+							},
+							"name": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"phone": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+						},
+					},
+				},
+
+				"tags": tags.Schema(),
+
+				// Computed
+				"vault_uri": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			}
+
+			if !features.ThreePointOh() {
+				rSchema["soft_delete_enabled"] = &schema.Schema{
+					Type:       schema.TypeBool,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: `Azure has removed support for disabling Soft Delete as of 2020-12-15, as such this field is no longer configurable and can be safely removed. This field will be removed in version 3.0 of the Azure Provider.`,
+				}
+			}
+
+			return rSchema
+		}(),
 	}
 }
 
-func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -300,23 +314,21 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
 			EnableRbacAuthorization:      &enableRbacAuthorization,
 			NetworkAcls:                  networkAcls,
+
+			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
+			// This has been confirmed in Azure Public and Azure China - but I couldn't find any more
+			// documentation with further details
+			EnableSoftDelete: utils.Bool(true),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	// This settings can only be set if it is true, if set when value is false API returns errors
-	softDeleteEnabled := d.Get("soft_delete_enabled").(bool)
-	if softDeleteEnabled {
-		parameters.Properties.EnableSoftDelete = utils.Bool(true)
-
-		if softDeleteRetentionInDays := d.Get("soft_delete_retention_days").(int); softDeleteRetentionInDays != 0 {
-			parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(softDeleteRetentionInDays))
-		}
-	} else {
-		parameters.Properties.EnableSoftDelete = utils.Bool(false)
-	}
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
 		parameters.Properties.EnablePurgeProtection = utils.Bool(purgeProtectionEnabled)
+	}
+
+	if v := d.Get("soft_delete_retention_days"); v != 90 {
+		parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(v.(int)))
 	}
 
 	if recoverSoftDeletedKeyVault {
@@ -385,10 +397,10 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceArmKeyVaultRead(d, meta)
+	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -525,28 +537,6 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("soft_delete_enabled") {
-		if update.Properties == nil {
-			update.Properties = &keyvault.VaultPatchProperties{}
-		}
-
-		newValue := d.Get("soft_delete_enabled").(bool)
-
-		// existing.Properties guaranteed non-nil above
-		oldValue := false
-		if existing.Properties.EnableSoftDelete != nil {
-			oldValue = *existing.Properties.EnableSoftDelete
-		}
-
-		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
-		// hence the double-checking here
-		if oldValue && !newValue {
-			return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): once Soft Delete has been Enabled it's not possible to disable it", name, resourceGroup)
-		}
-
-		update.Properties.EnableSoftDelete = utils.Bool(newValue)
-	}
-
 	if d.HasChange("soft_delete_retention_days") {
 		if update.Properties == nil {
 			update.Properties = &keyvault.VaultPatchProperties{}
@@ -561,7 +551,8 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
 		if oldValue != 0 {
-			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once Soft Delete has been Enabled it's not possible to change `soft_delete_retention_days`", name, resourceGroup)
+			// Code="BadRequest" Message="The property \"softDeleteRetentionInDays\" has been set already and it can't be modified."
+			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once `soft_delete_retention_days` has been configured it cannot be modified", name, resourceGroup)
 		}
 
 		update.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(d.Get("soft_delete_retention_days").(int)))
@@ -605,10 +596,10 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	d.Partial(false)
 
-	return resourceArmKeyVaultRead(d, meta)
+	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -643,10 +634,23 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
-		d.Set("soft_delete_enabled", props.EnableSoftDelete)
-		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
+
+		// @tombuildsstuff: the API doesn't return this field if it's not configured
+		// however https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview
+		// defaults this to 90 days, as such we're going to have to assume that for the moment
+		// in lieu of anything being returned
+		softDeleteRetentionDays := 90
+		if props.SoftDeleteRetentionInDays != nil && *props.SoftDeleteRetentionInDays != 0 {
+			softDeleteRetentionDays = int(*props.SoftDeleteRetentionInDays)
+		}
+		d.Set("soft_delete_retention_days", softDeleteRetentionDays)
+
+		// TODO: remove in 3.0
+		if !features.ThreePointOh() {
+			d.Set("soft_delete_enabled", true)
+		}
 
 		skuName := ""
 		if sku := props.Sku; sku != nil {
@@ -660,31 +664,29 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", skuName)
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
-		log.Printf("[STEBUG] - timing before")
-		if resp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI); err != nil {
-			if !utils.ResponseWasForbidden(resp.Response) && !utils.ResponseWasNotFound(resp.Response) {
+		contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
+		if err != nil {
+			if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 			}
-		} else {
-			if err := d.Set("contact", flattenKeyVaultCertificateContactList(resp.ContactList)); err != nil {
-				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-			}
 		}
-		log.Printf("[STEBUG] - timing after")
+		if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
+			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -919,13 +921,13 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	return []interface{}{output}
 }
 
-func flattenKeyVaultCertificateContactList(input *[]KeyVaultMgmt.Contact) []interface{} {
+func flattenKeyVaultCertificateContactList(input KeyVaultMgmt.Contacts) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if input.ContactList == nil {
 		return results
 	}
 
-	for _, contact := range *input {
+	for _, contact := range *input.ContactList {
 		emailAddress := ""
 		if contact.EmailAddress != nil {
 			emailAddress = *contact.EmailAddress

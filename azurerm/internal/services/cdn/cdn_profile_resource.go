@@ -81,7 +81,6 @@ func resourceCdnProfile() *schema.Resource {
 }
 
 func resourceCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +137,7 @@ func resourceCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 
 	return resourceCdnProfileRead(d, meta)
 }

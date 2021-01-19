@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
+func dataSourceMonitorDiagnosticCategories() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMonitorDiagnosticCategoriesRead,
+		Read: dataSourceMonitorDiagnosticCategoriesRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -44,7 +44,7 @@ func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
 	}
 }
 
-func dataSourceArmMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta interface{}) error {
 	categoriesClient := meta.(*clients.Client).Monitor.DiagnosticSettingsCategoryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

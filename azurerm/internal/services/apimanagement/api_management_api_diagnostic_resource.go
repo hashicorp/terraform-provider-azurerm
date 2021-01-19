@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiDiagnostic() *schema.Resource {
+func resourceApiManagementApiDiagnostic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiDiagnosticCreateUpdate,
-		Read:   resourceArmApiManagementApiDiagnosticRead,
-		Update: resourceArmApiManagementApiDiagnosticCreateUpdate,
-		Delete: resourceArmApiManagementApiDiagnosticDelete,
+		Create: resourceApiManagementApiDiagnosticCreateUpdate,
+		Read:   resourceApiManagementApiDiagnosticRead,
+		Update: resourceApiManagementApiDiagnosticCreateUpdate,
+		Delete: resourceApiManagementApiDiagnosticDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ApiDiagnosticID(id)
@@ -95,18 +95,18 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				}, false),
 			},
 
-			"frontend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"frontend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"frontend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"backend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"backend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 		},
 	}
 }
 
-func resourceArmApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
+func resourceApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -132,7 +132,7 @@ func resourceArmApiManagementApiDiagnosticAdditionalContentSchema() *schema.Sche
 	}
 }
 
-func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,10 +228,10 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiDiagnosticRead(d, meta)
+	return resourceApiManagementApiDiagnosticRead(d, meta)
 }
 
-func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -281,7 +281,7 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

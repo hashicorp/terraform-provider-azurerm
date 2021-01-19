@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
+func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
-		Read:   resourceArmIoTTimeSeriesInsightsAccessPolicyRead,
-		Update: resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
-		Delete: resourceArmIoTTimeSeriesInsightsAccessPolicyDelete,
+		Create: resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
+		Read:   resourceIoTTimeSeriesInsightsAccessPolicyRead,
+		Update: resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
+		Delete: resourceIoTTimeSeriesInsightsAccessPolicyDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AccessPolicyID(id)
 			return err
@@ -87,7 +87,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -99,7 +99,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 		return err
 	}
 
-	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name).ID("")
+	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, environmentId.ResourceGroup, environmentId.Name, name)
 		if err != nil {
@@ -126,10 +126,10 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 	}
 
 	d.SetId(resourceId)
-	return resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d, meta)
+	return resourceIoTTimeSeriesInsightsAccessPolicyRead(d, meta)
 }
 
-func resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, me
 		return fmt.Errorf("retrieving IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	environmentId := parse.NewEnvironmentID(id.SubscriptionId, id.ResourceGroup, id.EnvironmentName).ID("")
+	environmentId := parse.NewEnvironmentID(id.SubscriptionId, id.ResourceGroup, id.EnvironmentName).ID()
 
 	d.Set("name", resp.Name)
 	d.Set("time_series_insights_environment_id", environmentId)
@@ -163,7 +163,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmIoTTimeSeriesInsightsAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

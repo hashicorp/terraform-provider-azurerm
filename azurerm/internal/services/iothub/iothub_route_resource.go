@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubRoute() *schema.Resource {
+func resourceIotHubRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubRouteCreateUpdate,
-		Read:   resourceArmIotHubRouteRead,
-		Update: resourceArmIotHubRouteCreateUpdate,
-		Delete: resourceArmIotHubRouteDelete,
+		Create: resourceIotHubRouteCreateUpdate,
+		Read:   resourceIotHubRouteRead,
+		Update: resourceIotHubRouteCreateUpdate,
+		Delete: resourceIotHubRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -90,7 +90,7 @@ func resourceArmIotHubRoute() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,10 +174,10 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubRouteRead(d, meta)
+	return resourceIotHubRouteRead(d, meta)
 }
 
-func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

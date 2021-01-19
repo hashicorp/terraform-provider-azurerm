@@ -566,8 +566,8 @@ type ConnectToSourceNonSQLTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToSourcePostgreSQLSyncTaskInput input for the task that validates connection to PostgreSQL and source
-// server requirements
+// ConnectToSourcePostgreSQLSyncTaskInput input for the task that validates connection to PostgreSQL and
+// source server requirements
 type ConnectToSourcePostgreSQLSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for source PostgreSQL server
 	SourceConnectionInfo *PostgreSQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -588,8 +588,8 @@ type ConnectToSourcePostgreSQLSyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToSourcePostgreSQLSyncTaskProperties properties for the task that validates connection to PostgreSQL
-// server and source server requirements for online migration
+// ConnectToSourcePostgreSQLSyncTaskProperties properties for the task that validates connection to
+// PostgreSQL server and source server requirements for online migration
 type ConnectToSourcePostgreSQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToSourcePostgreSQLSyncTaskInput `json:"input,omitempty"`
@@ -806,8 +806,8 @@ func (ctspsstp *ConnectToSourcePostgreSQLSyncTaskProperties) UnmarshalJSON(body 
 	return nil
 }
 
-// ConnectToSourceSQLServerSyncTaskProperties properties for the task that validates connection to SQL Server
-// and source server requirements for online migration
+// ConnectToSourceSQLServerSyncTaskProperties properties for the task that validates connection to SQL
+// Server and source server requirements for online migration
 type ConnectToSourceSQLServerSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToSourceSQLServerTaskInput `json:"input,omitempty"`
@@ -1144,8 +1144,8 @@ func (ctsssto ConnectToSourceSQLServerTaskOutput) AsBasicConnectToSourceSQLServe
 	return &ctsssto, true
 }
 
-// ConnectToSourceSQLServerTaskOutputAgentJobLevel agentJob level output for the task that validates connection
-// to SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputAgentJobLevel agentJob level output for the task that validates
+// connection to SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputAgentJobLevel struct {
 	// Name - READ-ONLY; AgentJob name
 	Name *string `json:"name,omitempty"`
@@ -1205,8 +1205,8 @@ func (ctssstoajl ConnectToSourceSQLServerTaskOutputAgentJobLevel) AsBasicConnect
 	return &ctssstoajl, true
 }
 
-// ConnectToSourceSQLServerTaskOutputDatabaseLevel database level output for the task that validates connection
-// to SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputDatabaseLevel database level output for the task that validates
+// connection to SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputDatabaseLevel struct {
 	// Name - READ-ONLY; Database name
 	Name *string `json:"name,omitempty"`
@@ -1264,8 +1264,8 @@ func (ctssstodl ConnectToSourceSQLServerTaskOutputDatabaseLevel) AsBasicConnectT
 	return &ctssstodl, true
 }
 
-// ConnectToSourceSQLServerTaskOutputLoginLevel login level output for the task that validates connection to
-// SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputLoginLevel login level output for the task that validates connection
+// to SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputLoginLevel struct {
 	// Name - READ-ONLY; Login name.
 	Name *string `json:"name,omitempty"`
@@ -1323,8 +1323,8 @@ func (ctssstoll ConnectToSourceSQLServerTaskOutputLoginLevel) AsBasicConnectToSo
 	return &ctssstoll, true
 }
 
-// ConnectToSourceSQLServerTaskOutputTaskLevel task level output for the task that validates connection to SQL
-// Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputTaskLevel task level output for the task that validates connection to
+// SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputTaskLevel struct {
 	// Databases - READ-ONLY; Source databases as a map from database name to database id
 	Databases map[string]*string `json:"databases"`
@@ -1384,8 +1384,8 @@ func (ctssstotl ConnectToSourceSQLServerTaskOutputTaskLevel) AsBasicConnectToSou
 	return &ctssstotl, true
 }
 
-// ConnectToSourceSQLServerTaskProperties properties for the task that validates connection to SQL Server and
-// also validates source server requirements
+// ConnectToSourceSQLServerTaskProperties properties for the task that validates connection to SQL Server
+// and also validates source server requirements
 type ConnectToSourceSQLServerTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToSourceSQLServerTaskInput `json:"input,omitempty"`
@@ -1601,8 +1601,8 @@ func (ctssstp *ConnectToSourceSQLServerTaskProperties) UnmarshalJSON(body []byte
 	return nil
 }
 
-// ConnectToTargetAzureDbForMySQLTaskInput input for the task that validates connection to Azure Database for
-// MySQL and target server requirements
+// ConnectToTargetAzureDbForMySQLTaskInput input for the task that validates connection to Azure Database
+// for MySQL and target server requirements
 type ConnectToTargetAzureDbForMySQLTaskInput struct {
 	// SourceConnectionInfo - Connection information for source MySQL server
 	SourceConnectionInfo *MySQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -1610,8 +1610,8 @@ type ConnectToTargetAzureDbForMySQLTaskInput struct {
 	TargetConnectionInfo *MySQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// ConnectToTargetAzureDbForMySQLTaskOutput output for the task that validates connection to Azure Database for
-// MySQL and target server requirements
+// ConnectToTargetAzureDbForMySQLTaskOutput output for the task that validates connection to Azure Database
+// for MySQL and target server requirements
 type ConnectToTargetAzureDbForMySQLTaskOutput struct {
 	// ID - READ-ONLY; Result identifier
 	ID *string `json:"id,omitempty"`
@@ -1867,8 +1867,8 @@ type ConnectToTargetAzureDbForPostgreSQLSyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties properties for the task that validates connection to
-// Azure Database For PostgreSQL server and target server requirements for online migration
+// ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties properties for the task that validates connection
+// to Azure Database For PostgreSQL server and target server requirements for online migration
 type ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetAzureDbForPostgreSQLSyncTaskInput `json:"input,omitempty"`
@@ -2111,8 +2111,8 @@ func (cttsdto ConnectToTargetSQLDbTaskOutput) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ConnectToTargetSQLDbTaskProperties properties for the task that validates connection to SQL DB and target
-// server requirements
+// ConnectToTargetSQLDbTaskProperties properties for the task that validates connection to SQL DB and
+// target server requirements
 type ConnectToTargetSQLDbTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetSQLDbTaskInput `json:"input,omitempty"`
@@ -2329,8 +2329,8 @@ func (cttsdtp *ConnectToTargetSQLDbTaskProperties) UnmarshalJSON(body []byte) er
 	return nil
 }
 
-// ConnectToTargetSQLMISyncTaskInput input for the task that validates connection to Azure SQL Database Managed
-// Instance online scenario.
+// ConnectToTargetSQLMISyncTaskInput input for the task that validates connection to Azure SQL Database
+// Managed Instance online scenario.
 type ConnectToTargetSQLMISyncTaskInput struct {
 	// TargetConnectionInfo - Connection information for Azure SQL Database Managed Instance
 	TargetConnectionInfo *MiSQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
@@ -2574,8 +2574,8 @@ type ConnectToTargetSQLMITaskInput struct {
 	TargetConnectionInfo *SQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// ConnectToTargetSQLMITaskOutput output for the task that validates connection to Azure SQL Database Managed
-// Instance.
+// ConnectToTargetSQLMITaskOutput output for the task that validates connection to Azure SQL Database
+// Managed Instance.
 type ConnectToTargetSQLMITaskOutput struct {
 	// ID - READ-ONLY; Result identifier
 	ID *string `json:"id,omitempty"`
@@ -2591,8 +2591,8 @@ type ConnectToTargetSQLMITaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToTargetSQLMITaskProperties properties for the task that validates connection to Azure SQL Database
-// Managed Instance
+// ConnectToTargetSQLMITaskProperties properties for the task that validates connection to Azure SQL
+// Database Managed Instance
 type ConnectToTargetSQLMITaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetSQLMITaskInput `json:"input,omitempty"`
@@ -2809,8 +2809,8 @@ func (cttsmtp *ConnectToTargetSQLMITaskProperties) UnmarshalJSON(body []byte) er
 	return nil
 }
 
-// ConnectToTargetSQLSQLDbSyncTaskInput input for the task that validates connection to Azure SQL DB and target
-// server requirements
+// ConnectToTargetSQLSQLDbSyncTaskInput input for the task that validates connection to Azure SQL DB and
+// target server requirements
 type ConnectToTargetSQLSQLDbSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for source SQL Server
 	SourceConnectionInfo *SQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -2818,8 +2818,8 @@ type ConnectToTargetSQLSQLDbSyncTaskInput struct {
 	TargetConnectionInfo *SQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// ConnectToTargetSQLSQLDbSyncTaskProperties properties for the task that validates connection to SQL DB and
-// target server requirements for online migration
+// ConnectToTargetSQLSQLDbSyncTaskProperties properties for the task that validates connection to SQL DB
+// and target server requirements for online migration
 type ConnectToTargetSQLSQLDbSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetSQLSQLDbSyncTaskInput `json:"input,omitempty"`
@@ -3523,7 +3523,8 @@ func (gtcstp *GetTdeCertificatesSQLTaskProperties) UnmarshalJSON(body []byte) er
 	return nil
 }
 
-// GetUserTablesSQLSyncTaskInput input for the task that collects user tables for the given list of databases
+// GetUserTablesSQLSyncTaskInput input for the task that collects user tables for the given list of
+// databases
 type GetUserTablesSQLSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for SQL Server
 	SourceConnectionInfo *SQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -3535,7 +3536,8 @@ type GetUserTablesSQLSyncTaskInput struct {
 	SelectedTargetDatabases *[]string `json:"selectedTargetDatabases,omitempty"`
 }
 
-// GetUserTablesSQLSyncTaskOutput output of the task that collects user tables for the given list of databases
+// GetUserTablesSQLSyncTaskOutput output of the task that collects user tables for the given list of
+// databases
 type GetUserTablesSQLSyncTaskOutput struct {
 	// DatabasesToSourceTables - READ-ONLY; Mapping from database name to list of source tables
 	DatabasesToSourceTables map[string][]DatabaseTable `json:"databasesToSourceTables"`
@@ -3553,8 +3555,8 @@ func (gutssto GetUserTablesSQLSyncTaskOutput) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// GetUserTablesSQLSyncTaskProperties properties for the task that collects user tables for the given list of
-// databases
+// GetUserTablesSQLSyncTaskProperties properties for the task that collects user tables for the given list
+// of databases
 type GetUserTablesSQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *GetUserTablesSQLSyncTaskInput `json:"input,omitempty"`
@@ -4075,8 +4077,8 @@ func (mmsccp MigrateMISyncCompleteCommandProperties) AsBasicCommandProperties() 
 	return &mmsccp, true
 }
 
-// MigrateMySQLAzureDbForMySQLSyncDatabaseInput database specific information for MySQL to Azure Database for
-// MySQL migration task inputs
+// MigrateMySQLAzureDbForMySQLSyncDatabaseInput database specific information for MySQL to Azure Database
+// for MySQL migration task inputs
 type MigrateMySQLAzureDbForMySQLSyncDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -4111,8 +4113,8 @@ func (mmsadfmssdi MigrateMySQLAzureDbForMySQLSyncDatabaseInput) MarshalJSON() ([
 	return json.Marshal(objectMap)
 }
 
-// MigrateMySQLAzureDbForMySQLSyncTaskInput input for the task that migrates MySQL databases to Azure Database
-// for MySQL for online migrations
+// MigrateMySQLAzureDbForMySQLSyncTaskInput input for the task that migrates MySQL databases to Azure
+// Database for MySQL for online migrations
 type MigrateMySQLAzureDbForMySQLSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for source MySQL
 	SourceConnectionInfo *MySQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -4585,8 +4587,8 @@ func (mmsadfmsstotl MigrateMySQLAzureDbForMySQLSyncTaskOutputTableLevel) AsBasic
 	return &mmsadfmsstotl, true
 }
 
-// MigrateMySQLAzureDbForMySQLSyncTaskProperties properties for the task that migrates MySQL databases to Azure
-// Database for MySQL for online migrations
+// MigrateMySQLAzureDbForMySQLSyncTaskProperties properties for the task that migrates MySQL databases to
+// Azure Database for MySQL for online migrations
 type MigrateMySQLAzureDbForMySQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *MigrateMySQLAzureDbForMySQLSyncTaskInput `json:"input,omitempty"`
@@ -4802,8 +4804,8 @@ func (mmsadfmsstp *MigrateMySQLAzureDbForMySQLSyncTaskProperties) UnmarshalJSON(
 	return nil
 }
 
-// MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput database specific information for PostgreSQL to Azure
-// Database for PostgreSQL migration task inputs
+// MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput database specific information for PostgreSQL to
+// Azure Database for PostgreSQL migration task inputs
 type MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -4838,8 +4840,8 @@ func (mpsadfpssdi MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput) Marsha
 	return json.Marshal(objectMap)
 }
 
-// MigratePostgreSQLAzureDbForPostgreSQLSyncTaskInput input for the task that migrates PostgreSQL databases to
-// Azure Database for PostgreSQL for online migrations
+// MigratePostgreSQLAzureDbForPostgreSQLSyncTaskInput input for the task that migrates PostgreSQL databases
+// to Azure Database for PostgreSQL for online migrations
 type MigratePostgreSQLAzureDbForPostgreSQLSyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -5560,8 +5562,8 @@ func (msssddi MigrateSQLServerSQLDbDatabaseInput) MarshalJSON() ([]byte, error) 
 	return json.Marshal(objectMap)
 }
 
-// MigrateSQLServerSQLDbSyncDatabaseInput database specific information for SQL to Azure SQL DB sync migration
-// task inputs
+// MigrateSQLServerSQLDbSyncDatabaseInput database specific information for SQL to Azure SQL DB sync
+// migration task inputs
 type MigrateSQLServerSQLDbSyncDatabaseInput struct {
 	// ID - Unique identifier for database
 	ID *string `json:"id,omitempty"`
@@ -5611,8 +5613,8 @@ func (msssdsdi MigrateSQLServerSQLDbSyncDatabaseInput) MarshalJSON() ([]byte, er
 	return json.Marshal(objectMap)
 }
 
-// MigrateSQLServerSQLDbSyncTaskInput input for the task that migrates on-prem SQL Server databases to Azure
-// SQL Database for online migrations
+// MigrateSQLServerSQLDbSyncTaskInput input for the task that migrates on-prem SQL Server databases to
+// Azure SQL Database for online migrations
 type MigrateSQLServerSQLDbSyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLDbSyncDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -6089,8 +6091,8 @@ func (msssdstotl MigrateSQLServerSQLDbSyncTaskOutputTableLevel) AsBasicMigrateSQ
 	return &msssdstotl, true
 }
 
-// MigrateSQLServerSQLDbSyncTaskProperties properties for the task that migrates on-prem SQL Server databases
-// to Azure SQL Database for online migrations
+// MigrateSQLServerSQLDbSyncTaskProperties properties for the task that migrates on-prem SQL Server
+// databases to Azure SQL Database for online migrations
 type MigrateSQLServerSQLDbSyncTaskProperties struct {
 	// Input - Task input
 	Input *MigrateSQLServerSQLDbSyncTaskInput `json:"input,omitempty"`
@@ -6306,8 +6308,8 @@ func (msssdstp *MigrateSQLServerSQLDbSyncTaskProperties) UnmarshalJSON(body []by
 	return nil
 }
 
-// MigrateSQLServerSQLDbTaskInput input for the task that migrates on-prem SQL Server databases to Azure SQL
-// Database
+// MigrateSQLServerSQLDbTaskInput input for the task that migrates on-prem SQL Server databases to Azure
+// SQL Database
 type MigrateSQLServerSQLDbTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLDbDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -6449,7 +6451,8 @@ func (msssdto MigrateSQLServerSQLDbTaskOutput) AsBasicMigrateSQLServerSQLDbTaskO
 	return &msssdto, true
 }
 
-// MigrateSQLServerSQLDbTaskOutputDatabaseLevel database level result for Sql Server to Azure Sql DB migration.
+// MigrateSQLServerSQLDbTaskOutputDatabaseLevel database level result for Sql Server to Azure Sql DB
+// migration.
 type MigrateSQLServerSQLDbTaskOutputDatabaseLevel struct {
 	// DatabaseName - READ-ONLY; Name of the item
 	DatabaseName *string `json:"databaseName,omitempty"`
@@ -6535,8 +6538,8 @@ func (msssdtodl MigrateSQLServerSQLDbTaskOutputDatabaseLevel) AsBasicMigrateSQLS
 	return &msssdtodl, true
 }
 
-// MigrateSQLServerSQLDbTaskOutputDatabaseLevelValidationResult database validation result for Sql Server to
-// Azure Sql DB migration.
+// MigrateSQLServerSQLDbTaskOutputDatabaseLevelValidationResult database validation result for Sql Server
+// to Azure Sql DB migration.
 type MigrateSQLServerSQLDbTaskOutputDatabaseLevelValidationResult struct {
 	// MigrationID - READ-ONLY; Migration Identifier
 	MigrationID *string `json:"migrationId,omitempty"`
@@ -6835,7 +6838,8 @@ func (msssdtotl MigrateSQLServerSQLDbTaskOutputTableLevel) AsBasicMigrateSQLServ
 	return &msssdtotl, true
 }
 
-// MigrateSQLServerSQLDbTaskOutputValidationResult validation result for Sql Server to Azure Sql DB migration.
+// MigrateSQLServerSQLDbTaskOutputValidationResult validation result for Sql Server to Azure Sql DB
+// migration.
 type MigrateSQLServerSQLDbTaskOutputValidationResult struct {
 	// MigrationID - READ-ONLY; Migration Identifier
 	MigrationID *string `json:"migrationId,omitempty"`
@@ -6902,8 +6906,8 @@ func (msssdtovr MigrateSQLServerSQLDbTaskOutputValidationResult) AsBasicMigrateS
 	return &msssdtovr, true
 }
 
-// MigrateSQLServerSQLDbTaskProperties properties for the task that migrates on-prem SQL Server databases to
-// Azure SQL Database
+// MigrateSQLServerSQLDbTaskProperties properties for the task that migrates on-prem SQL Server databases
+// to Azure SQL Database
 type MigrateSQLServerSQLDbTaskProperties struct {
 	// Input - Task input
 	Input *MigrateSQLServerSQLDbTaskInput `json:"input,omitempty"`
@@ -7119,8 +7123,8 @@ func (msssdtp *MigrateSQLServerSQLDbTaskProperties) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// MigrateSQLServerSQLMIDatabaseInput database specific information for SQL to Azure SQL DB Managed Instance
-// migration task inputs
+// MigrateSQLServerSQLMIDatabaseInput database specific information for SQL to Azure SQL DB Managed
+// Instance migration task inputs
 type MigrateSQLServerSQLMIDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -7132,8 +7136,8 @@ type MigrateSQLServerSQLMIDatabaseInput struct {
 	BackupFilePaths *[]string `json:"backupFilePaths,omitempty"`
 }
 
-// MigrateSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL Database
-// Managed Instance online scenario.
+// MigrateSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL
+// Database Managed Instance online scenario.
 type MigrateSQLServerSQLMISyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLMIDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -7422,8 +7426,8 @@ func (msssmstoml MigrateSQLServerSQLMISyncTaskOutputMigrationLevel) AsBasicMigra
 	return &msssmstoml, true
 }
 
-// MigrateSQLServerSQLMISyncTaskProperties properties for task that migrates SQL Server databases to Azure SQL
-// Database Managed Instance sync scenario
+// MigrateSQLServerSQLMISyncTaskProperties properties for task that migrates SQL Server databases to Azure
+// SQL Database Managed Instance sync scenario
 type MigrateSQLServerSQLMISyncTaskProperties struct {
 	// Input - Task input
 	Input *MigrateSQLServerSQLMISyncTaskInput `json:"input,omitempty"`
@@ -8336,7 +8340,8 @@ func (msssmtp *MigrateSQLServerSQLMITaskProperties) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// MigrateSQLServerSQLServerDatabaseInput database specific information for SQL to SQL migration task inputs
+// MigrateSQLServerSQLServerDatabaseInput database specific information for SQL to SQL migration task
+// inputs
 type MigrateSQLServerSQLServerDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -9017,8 +9022,11 @@ func (page ProjectListPage) Values() []Project {
 }
 
 // Creates a new instance of the ProjectListPage type.
-func NewProjectListPage(getNextPage func(context.Context, ProjectList) (ProjectList, error)) ProjectListPage {
-	return ProjectListPage{fn: getNextPage}
+func NewProjectListPage(cur ProjectList, getNextPage func(context.Context, ProjectList) (ProjectList, error)) ProjectListPage {
+	return ProjectListPage{
+		fn: getNextPage,
+		pl: cur,
+	}
 }
 
 // ProjectMetadata common metadata for migration projects
@@ -9764,8 +9772,11 @@ func (page QuotaListPage) Values() []Quota {
 }
 
 // Creates a new instance of the QuotaListPage type.
-func NewQuotaListPage(getNextPage func(context.Context, QuotaList) (QuotaList, error)) QuotaListPage {
-	return QuotaListPage{fn: getNextPage}
+func NewQuotaListPage(cur QuotaList, getNextPage func(context.Context, QuotaList) (QuotaList, error)) QuotaListPage {
+	return QuotaListPage{
+		fn: getNextPage,
+		ql: cur,
+	}
 }
 
 // QuotaName the name of the quota
@@ -10031,8 +10042,11 @@ func (page ResourceSkusResultPage) Values() []ResourceSku {
 }
 
 // Creates a new instance of the ResourceSkusResultPage type.
-func NewResourceSkusResultPage(getNextPage func(context.Context, ResourceSkusResult) (ResourceSkusResult, error)) ResourceSkusResultPage {
-	return ResourceSkusResultPage{fn: getNextPage}
+func NewResourceSkusResultPage(cur ResourceSkusResult, getNextPage func(context.Context, ResourceSkusResult) (ResourceSkusResult, error)) ResourceSkusResultPage {
+	return ResourceSkusResultPage{
+		fn:  getNextPage,
+		rsr: cur,
+	}
 }
 
 // SchemaComparisonValidationResult results for schema comparison between the source and target
@@ -10389,8 +10403,11 @@ func (page ServiceListPage) Values() []Service {
 }
 
 // Creates a new instance of the ServiceListPage type.
-func NewServiceListPage(getNextPage func(context.Context, ServiceList) (ServiceList, error)) ServiceListPage {
-	return ServiceListPage{fn: getNextPage}
+func NewServiceListPage(cur ServiceList, getNextPage func(context.Context, ServiceList) (ServiceList, error)) ServiceListPage {
+	return ServiceListPage{
+		fn: getNextPage,
+		sl: cur,
+	}
 }
 
 // ServiceOperation description of an action supported by the Database Migration Service
@@ -10565,8 +10582,11 @@ func (page ServiceOperationListPage) Values() []ServiceOperation {
 }
 
 // Creates a new instance of the ServiceOperationListPage type.
-func NewServiceOperationListPage(getNextPage func(context.Context, ServiceOperationList) (ServiceOperationList, error)) ServiceOperationListPage {
-	return ServiceOperationListPage{fn: getNextPage}
+func NewServiceOperationListPage(cur ServiceOperationList, getNextPage func(context.Context, ServiceOperationList) (ServiceOperationList, error)) ServiceOperationListPage {
+	return ServiceOperationListPage{
+		fn:  getNextPage,
+		sol: cur,
+	}
 }
 
 // ServiceProperties properties of the Data Migration service instance
@@ -10620,7 +10640,8 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (s Ser
 	return
 }
 
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesDeleteFuture struct {
 	azure.Future
 }
@@ -10808,11 +10829,15 @@ func (page ServiceSkuListPage) Values() []AvailableServiceSku {
 }
 
 // Creates a new instance of the ServiceSkuListPage type.
-func NewServiceSkuListPage(getNextPage func(context.Context, ServiceSkuList) (ServiceSkuList, error)) ServiceSkuListPage {
-	return ServiceSkuListPage{fn: getNextPage}
+func NewServiceSkuListPage(cur ServiceSkuList, getNextPage func(context.Context, ServiceSkuList) (ServiceSkuList, error)) ServiceSkuListPage {
+	return ServiceSkuListPage{
+		fn:  getNextPage,
+		ssl: cur,
+	}
 }
 
-// ServicesStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesStartFuture struct {
 	azure.Future
 }
@@ -10869,7 +10894,8 @@ type ServiceStatusResponse struct {
 	SupportedTaskTypes *[]string `json:"supportedTaskTypes,omitempty"`
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesUpdateFuture struct {
 	azure.Future
 }
@@ -10991,8 +11017,8 @@ type SQLMigrationTaskInput struct {
 	TargetConnectionInfo *SQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// SQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL Database Managed
-// Instance online scenario.
+// SQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL Database
+// Managed Instance online scenario.
 type SQLServerSQLMISyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLMIDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -11180,8 +11206,11 @@ func (page TaskListPage) Values() []ProjectTask {
 }
 
 // Creates a new instance of the TaskListPage type.
-func NewTaskListPage(getNextPage func(context.Context, TaskList) (TaskList, error)) TaskListPage {
-	return TaskListPage{fn: getNextPage}
+func NewTaskListPage(cur TaskList, getNextPage func(context.Context, TaskList) (TaskList, error)) TaskListPage {
+	return TaskListPage{
+		fn: getNextPage,
+		tl: cur,
+	}
 }
 
 // TrackedResource ARM tracked top level resource.
@@ -11210,8 +11239,8 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ValidateMigrationInputSQLServerSQLDbSyncTaskProperties properties for task that validates migration input
-// for SQL to Azure SQL DB sync migrations
+// ValidateMigrationInputSQLServerSQLDbSyncTaskProperties properties for task that validates migration
+// input for SQL to Azure SQL DB sync migrations
 type ValidateMigrationInputSQLServerSQLDbSyncTaskProperties struct {
 	// Input - Task input
 	Input *ValidateSyncMigrationInputSQLServerTaskInput `json:"input,omitempty"`
@@ -11428,8 +11457,8 @@ func (vmisssdstp *ValidateMigrationInputSQLServerSQLDbSyncTaskProperties) Unmars
 	return nil
 }
 
-// ValidateMigrationInputSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure
-// SQL Database Managed Instance online scenario.
+// ValidateMigrationInputSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to
+// Azure SQL Database Managed Instance online scenario.
 type ValidateMigrationInputSQLServerSQLMISyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLMIDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -11445,8 +11474,8 @@ type ValidateMigrationInputSQLServerSQLMISyncTaskInput struct {
 	AzureApp *AzureActiveDirectoryApp `json:"azureApp,omitempty"`
 }
 
-// ValidateMigrationInputSQLServerSQLMISyncTaskOutput output for task that validates migration input for Azure
-// SQL Database Managed Instance online migration
+// ValidateMigrationInputSQLServerSQLMISyncTaskOutput output for task that validates migration input for
+// Azure SQL Database Managed Instance online migration
 type ValidateMigrationInputSQLServerSQLMISyncTaskOutput struct {
 	// ID - READ-ONLY; Database identifier
 	ID *string `json:"id,omitempty"`
@@ -11456,8 +11485,8 @@ type ValidateMigrationInputSQLServerSQLMISyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ValidateMigrationInputSQLServerSQLMISyncTaskProperties properties for task that validates migration input
-// for SQL to Azure SQL Database Managed Instance sync scenario
+// ValidateMigrationInputSQLServerSQLMISyncTaskProperties properties for task that validates migration
+// input for SQL to Azure SQL Database Managed Instance sync scenario
 type ValidateMigrationInputSQLServerSQLMISyncTaskProperties struct {
 	// Input - Task input
 	Input *ValidateMigrationInputSQLServerSQLMISyncTaskInput `json:"input,omitempty"`
@@ -11674,8 +11703,8 @@ func (vmisssmstp *ValidateMigrationInputSQLServerSQLMISyncTaskProperties) Unmars
 	return nil
 }
 
-// ValidateMigrationInputSQLServerSQLMITaskInput input for task that validates migration input for SQL to Azure
-// SQL Managed Instance
+// ValidateMigrationInputSQLServerSQLMITaskInput input for task that validates migration input for SQL to
+// Azure SQL Managed Instance
 type ValidateMigrationInputSQLServerSQLMITaskInput struct {
 	// SourceConnectionInfo - Information for connecting to source
 	SourceConnectionInfo *SQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -11723,8 +11752,8 @@ func (vmisssmto ValidateMigrationInputSQLServerSQLMITaskOutput) MarshalJSON() ([
 	return json.Marshal(objectMap)
 }
 
-// ValidateMigrationInputSQLServerSQLMITaskProperties properties for task that validates migration input for
-// SQL to Azure SQL Database Managed Instance
+// ValidateMigrationInputSQLServerSQLMITaskProperties properties for task that validates migration input
+// for SQL to Azure SQL Database Managed Instance
 type ValidateMigrationInputSQLServerSQLMITaskProperties struct {
 	// Input - Task input
 	Input *ValidateMigrationInputSQLServerSQLMITaskInput `json:"input,omitempty"`
@@ -11952,8 +11981,8 @@ type ValidateSyncMigrationInputSQLServerTaskInput struct {
 	SelectedDatabases *[]MigrateSQLServerSQLDbSyncDatabaseInput `json:"selectedDatabases,omitempty"`
 }
 
-// ValidateSyncMigrationInputSQLServerTaskOutput output for task that validates migration input for SQL sync
-// migrations
+// ValidateSyncMigrationInputSQLServerTaskOutput output for task that validates migration input for SQL
+// sync migrations
 type ValidateSyncMigrationInputSQLServerTaskOutput struct {
 	// ID - READ-ONLY; Database identifier
 	ID *string `json:"id,omitempty"`

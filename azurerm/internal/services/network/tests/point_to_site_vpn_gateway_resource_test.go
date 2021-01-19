@@ -1,153 +1,107 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPointToSiteVPNGateway_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+type PointToSiteVPNGatewayResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPointToSiteVPNGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccPointToSiteVPNGateway_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPointToSiteVPNGateway_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_point_to_site_vpn_gateway"),
 		},
 	})
 }
 
-func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
+func TestAccPointToSiteVPNGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPointToSiteVPNGatewayExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMAzureRMPointToSiteVPNGateway_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_point_to_site_vpn_gateway"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPointToSiteVPNGateway_update(t *testing.T) {
+func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPointToSiteVPNGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPointToSiteVPNGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPointToSiteVPNGateway_tags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPointToSiteVPNGatewayExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("VPN Gateway Server Configuration not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: VPN Gateway %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on network.PointToSiteVpnGatewaysClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPointToSiteVPNGatewayDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_vpn_server_configuration" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.PointToSiteVpnGatewaysClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t PointToSiteVPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := network.ParsePointToSiteVPNGatewayID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.PointToSiteVpnGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Point to Site VPN Gateway (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAzureRMPointToSiteVPNGateway_template(data)
+func (r PointToSiteVPNGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -166,11 +120,10 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMAzureRMPointToSiteVPNGateway_updated(data acceptance.TestData) string {
-	template := testAccAzureRMAzureRMPointToSiteVPNGateway_template(data)
+func (r PointToSiteVPNGatewayResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,11 +157,10 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAzureRMPointToSiteVPNGateway_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data)
+func (r PointToSiteVPNGatewayResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,11 +179,10 @@ resource "azurerm_point_to_site_vpn_gateway" "import" {
     }
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMAzureRMPointToSiteVPNGateway_tags(data acceptance.TestData) string {
-	template := testAccAzureRMAzureRMPointToSiteVPNGateway_template(data)
+func (r PointToSiteVPNGatewayResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -254,10 +205,10 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMAzureRMPointToSiteVPNGateway_template(data acceptance.TestData) string {
+func (PointToSiteVPNGatewayResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

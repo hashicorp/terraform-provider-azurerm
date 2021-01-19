@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRoute() *schema.Resource {
+func resourceRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteCreateUpdate,
-		Read:   resourceArmRouteRead,
-		Update: resourceArmRouteCreateUpdate,
-		Delete: resourceArmRouteDelete,
+		Create: resourceRouteCreateUpdate,
+		Read:   resourceRouteRead,
+		Update: resourceRouteCreateUpdate,
+		Delete: resourceRouteDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -79,7 +79,7 @@ func resourceArmRoute() *schema.Resource {
 	}
 }
 
-func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,10 +137,10 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmRouteRead(d, meta)
+	return resourceRouteRead(d, meta)
 }
 
-func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

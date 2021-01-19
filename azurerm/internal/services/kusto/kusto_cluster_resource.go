@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoCluster() *schema.Resource {
+func resourceKustoCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterCreateUpdate,
-		Read:   resourceArmKustoClusterRead,
-		Update: resourceArmKustoClusterCreateUpdate,
-		Delete: resourceArmKustoClusterDelete,
+		Create: resourceKustoClusterCreateUpdate,
+		Read:   resourceKustoClusterRead,
+		Update: resourceKustoClusterCreateUpdate,
+		Delete: resourceKustoClusterDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -206,7 +206,7 @@ func resourceArmKustoCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -356,10 +356,10 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceArmKustoClusterRead(d, meta)
+	return resourceKustoClusterRead(d, meta)
 }
 
-func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -385,7 +385,11 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenIdentity(clusterResponse.Identity)); err != nil {
+	identity, err := flattenIdentity(clusterResponse.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
@@ -415,7 +419,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, clusterResponse.Tags)
 }
 
-func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

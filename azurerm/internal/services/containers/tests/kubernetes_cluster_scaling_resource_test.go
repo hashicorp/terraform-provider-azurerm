@@ -238,6 +238,7 @@ func testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.max_count", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_auto_scaling", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.max_graceful_termination_sec", "600"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.new_pod_scale_up_delay", "0s"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_add", "10m"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_delete", "10s"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_failure", "3m"),
@@ -330,6 +331,7 @@ func testAccAzureRMKubernetesCluster_autoScalingProfile(t *testing.T) {
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_auto_scaling", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.max_graceful_termination_sec", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.new_pod_scale_up_delay", "10s"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_add", "10m"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_delete", "10s"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_failure", "15m"),
@@ -587,6 +589,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   auto_scaler_profile {
     balance_similar_node_groups      = true
     max_graceful_termination_sec     = 15
+    new_pod_scale_up_delay           = "10s"
     scan_interval                    = "10s"
     scale_down_delay_after_add       = "10m"
     scale_down_delay_after_delete    = "10s"

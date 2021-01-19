@@ -87,6 +87,7 @@ func (client ChannelsClient) Create(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -182,6 +183,7 @@ func (client ChannelsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,6 +276,7 @@ func (client ChannelsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -363,6 +366,7 @@ func (client ChannelsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.crl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.crl.hasNextLink() && result.crl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -427,6 +431,7 @@ func (client ChannelsClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -491,6 +496,7 @@ func (client ChannelsClient) ListWithKeys(ctx context.Context, resourceGroupName
 	result, err = client.ListWithKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "ListWithKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -581,6 +587,7 @@ func (client ChannelsClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

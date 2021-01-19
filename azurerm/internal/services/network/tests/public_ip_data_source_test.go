@@ -6,66 +6,62 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
+type PublicIPDataSource struct {
+}
+
+func TestAccDataSourcePublicIP_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip", "test")
+	r := PublicIPDataSource{}
 
 	name := fmt.Sprintf("acctestpublicip-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMPublicIP_static(name, resourceGroupName, data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(data.ResourceName, "domain_name_label", fmt.Sprintf("acctest-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "30"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.static(name, resourceGroupName, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+				check.That(data.ResourceName).Key("domain_name_label").HasValue(fmt.Sprintf("acctest-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMPublicIP_dynamic(t *testing.T) {
+func TestAccDataSourcePublicIP_dynamic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip", "test")
+	r := PublicIPDataSource{}
 
 	name := fmt.Sprintf("acctestpublicip-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMPublicIP_dynamic(data, "Ipv4"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(data.ResourceName, "domain_name_label", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "fqdn", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_address", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.dynamic(data, "Ipv4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+				check.That(data.ResourceName).Key("domain_name_label").HasValue(""),
+				check.That(data.ResourceName).Key("fqdn").HasValue(""),
+				check.That(data.ResourceName).Key("ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMPublicIP_static(name string, resourceGroupName string, data acceptance.TestData) string {
+func (PublicIPDataSource) static(name string, resourceGroupName string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -96,7 +92,7 @@ data "azurerm_public_ip" "test" {
 `, resourceGroupName, data.Locations.Primary, name, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMPublicIP_dynamic(data acceptance.TestData, ipVersion string) string {
+func (PublicIPDataSource) dynamic(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

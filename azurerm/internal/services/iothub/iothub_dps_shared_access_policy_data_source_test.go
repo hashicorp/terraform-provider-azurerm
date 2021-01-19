@@ -6,31 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps_shared_access_policy", "test")
+type IotHubDpsSharedAccessPolicyDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDpsSharedAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
+func TestAccDataSourceIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps_shared_access_policy", "test")
+	r := IotHubDpsSharedAccessPolicyDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
+func (IotHubDpsSharedAccessPolicyDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

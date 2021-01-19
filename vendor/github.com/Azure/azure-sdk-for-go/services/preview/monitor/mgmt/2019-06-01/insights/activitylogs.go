@@ -88,6 +88,7 @@ func (client ActivityLogsClient) List(ctx context.Context, filter string, select
 	result.edc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.edc.hasNextLink() && result.edc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -154,6 +155,7 @@ func (client ActivityLogsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

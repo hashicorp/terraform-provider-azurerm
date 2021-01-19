@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementNamedValue() *schema.Resource {
+func resourceApiManagementNamedValue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementNamedValueCreateUpdate,
-		Read:   resourceArmApiManagementNamedValueRead,
-		Update: resourceArmApiManagementNamedValueCreateUpdate,
-		Delete: resourceArmApiManagementNamedValueDelete,
+		Create: resourceApiManagementNamedValueCreateUpdate,
+		Read:   resourceApiManagementNamedValueRead,
+		Update: resourceApiManagementNamedValueCreateUpdate,
+		Delete: resourceApiManagementNamedValueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceArmApiManagementNamedValue() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,10 +121,10 @@ func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementNamedValueRead(d, meta)
+	return resourceApiManagementNamedValueRead(d, meta)
 }
 
-func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +165,7 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmApiManagementNamedValueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

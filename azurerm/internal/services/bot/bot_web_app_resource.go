@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotWebApp() *schema.Resource {
+func resourceBotWebApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotWebAppCreate,
-		Read:   resourceArmBotWebAppRead,
-		Update: resourceArmBotWebAppUpdate,
-		Delete: resourceArmBotWebAppDelete,
+		Create: resourceBotWebAppCreate,
+		Read:   resourceBotWebAppRead,
+		Update: resourceBotWebAppUpdate,
+		Delete: resourceBotWebAppDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
@@ -146,7 +146,7 @@ func resourceArmBotWebApp() *schema.Resource {
 	}
 }
 
-func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotWebAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -161,7 +161,7 @@ func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID())
 		}
 	}
 
@@ -195,11 +195,11 @@ func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error 
 
 	// TODO: in 3.0 we should remove the "Default Site" on the Directline resource at this point if we can
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmBotWebAppRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceBotWebAppRead(d, meta)
 }
 
-func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,10 +278,10 @@ func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("updating Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmBotWebAppRead(d, meta)
+	return resourceBotWebAppRead(d, meta)
 }
 
-func resourceArmBotWebAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotWebAppDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

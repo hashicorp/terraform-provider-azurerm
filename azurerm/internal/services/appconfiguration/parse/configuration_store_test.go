@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ConfigurationStoreId{}
 
 func TestConfigurationStoreIDFormatter(t *testing.T) {
-	actual := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "group1", "store1").ID("")
+	actual := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "group1", "store1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppConfiguration/configurationStores/store1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

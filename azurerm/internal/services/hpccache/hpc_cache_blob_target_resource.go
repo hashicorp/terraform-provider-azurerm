@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHPCCacheBlobTarget() *schema.Resource {
+func resourceHPCCacheBlobTarget() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHPCCacheBlobTargetCreateOrUpdate,
-		Update: resourceArmHPCCacheBlobTargetCreateOrUpdate,
-		Read:   resourceArmHPCCacheBlobTargetRead,
-		Delete: resourceArmHPCCacheBlobTargetDelete,
+		Create: resourceHPCCacheBlobTargetCreateOrUpdate,
+		Update: resourceHPCCacheBlobTargetCreateOrUpdate,
+		Read:   resourceHPCCacheBlobTargetRead,
+		Delete: resourceHPCCacheBlobTargetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.StorageTargetID(id)
@@ -71,7 +71,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 	}
 }
 
-func resourceArmHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,10 +134,10 @@ func resourceArmHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmHPCCacheBlobTargetRead(d, meta)
+	return resourceHPCCacheBlobTargetRead(d, meta)
 }
 
-func resourceArmHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceArmHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmHPCCacheBlobTargetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobTargetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

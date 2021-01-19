@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource {
+func resourceNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate,
-		Read:   resourceArmNetworkInterfaceBackendAddressPoolAssociationRead,
-		Delete: resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete,
+		Create: resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
+		Read:   resourceNetworkInterfaceBackendAddressPoolAssociationRead,
+		Delete: resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource
 	}
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,10 +145,10 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
+	return resourceNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +226,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 	return nil
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

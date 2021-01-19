@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = NodePoolId{}
 
 func TestNodePoolIDFormatter(t *testing.T) {
-	actual := NewNodePoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "pool1").ID("")
+	actual := NewNodePoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "pool1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

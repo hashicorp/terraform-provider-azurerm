@@ -278,6 +278,7 @@ func (client TableResourcesClient) GetTable(ctx context.Context, resourceGroupNa
 	result, err = client.GetTableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "GetTable", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,6 +371,7 @@ func (client TableResourcesClient) GetTableThroughput(ctx context.Context, resou
 	result, err = client.GetTableThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "GetTableThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -460,6 +462,7 @@ func (client TableResourcesClient) ListTables(ctx context.Context, resourceGroup
 	result, err = client.ListTablesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "ListTables", resp, "Failure responding to request")
+		return
 	}
 
 	return

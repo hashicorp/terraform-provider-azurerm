@@ -1,145 +1,126 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
+type NetworkInterfaceNetworkSecurityGroupAssociationResource struct {
+}
+
+func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceSecurityGroupAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterfaceSecurityGroupAssociation_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
+	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		// intentional as this is a Virtual Resource
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_interface_security_group_association"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceSecurityGroupAssociation_requiresImport(t *testing.T) {
+func TestAccNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceSecurityGroupAssociationExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkInterfaceSecurityGroupAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_security_group_association"),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkInterfaceSecurityGroupAssociationDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
+func TestAccNetworkInterfaceSecurityGroupAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceSecurityGroupAssociationExists(data.ResourceName),
-					testCheckAzureRMNetworkInterfaceSecurityGroupAssociationDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateNIC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceSecurityGroupAssociation_updateNIC(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceSecurityGroupAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterfaceSecurityGroupAssociation_updateNIC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceSecurityGroupAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetworkInterfaceSecurityGroupAssociationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
-
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-		networkSecurityGroupId := rs.Primary.Attributes["network_security_group_id"]
-
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		found := false
-		if read.InterfacePropertiesFormat != nil {
-			if read.InterfacePropertiesFormat.NetworkSecurityGroup != nil && read.InterfacePropertiesFormat.NetworkSecurityGroup.ID != nil {
-				found = *read.InterfacePropertiesFormat.NetworkSecurityGroup.ID == networkSecurityGroupId
-			}
-		}
-		if !found {
-			return fmt.Errorf("Association between NIC %q and Network Security Group %q was not found!", nicName, networkSecurityGroupId)
-		}
-
-		return nil
+func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	splitId := strings.Split(state.ID, "|")
+	if len(splitId) != 2 {
+		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", state.ID)
 	}
+
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
+	if err != nil {
+		return nil, err
+	}
+
+	name := nicID.Path["networkInterfaces"]
+	resourceGroup := nicID.ResourceGroup
+
+	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
+	}
+
+	found := false
+	if read.InterfacePropertiesFormat != nil {
+		if read.InterfacePropertiesFormat.NetworkSecurityGroup != nil && read.InterfacePropertiesFormat.NetworkSecurityGroup.ID != nil {
+			found = *read.InterfacePropertiesFormat.NetworkSecurityGroup.ID == state.Attributes["network_security_group_id"]
+		}
+	}
+
+	return utils.Bool(found), nil
 }
 
-func testCheckAzureRMNetworkInterfaceSecurityGroupAssociationDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkInterfaceSecurityGroupAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -178,8 +159,7 @@ func testCheckAzureRMNetworkInterfaceSecurityGroupAssociationDisappears(resource
 	}
 }
 
-func testAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceSecurityGroupAssociation_template(data)
+func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -199,11 +179,10 @@ resource "azurerm_network_interface_security_group_association" "test" {
   network_interface_id      = azurerm_network_interface.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterfaceSecurityGroupAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceSecurityGroupAssociation_basic(data)
+func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -211,11 +190,10 @@ resource "azurerm_network_interface_security_group_association" "import" {
   network_interface_id      = azurerm_network_interface_security_group_association.test.network_interface_id
   network_security_group_id = azurerm_network_interface_security_group_association.test.network_security_group_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkInterfaceSecurityGroupAssociation_updateNIC(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceSecurityGroupAssociation_template(data)
+func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) updateNIC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -242,10 +220,10 @@ resource "azurerm_network_interface_security_group_association" "test" {
   network_interface_id      = azurerm_network_interface.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterfaceSecurityGroupAssociation_template(data acceptance.TestData) string {
+func (NetworkInterfaceNetworkSecurityGroupAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

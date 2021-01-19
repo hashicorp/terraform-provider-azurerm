@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ServerExtendedAuditingPolicyId{}
 
 func TestServerExtendedAuditingPolicyIDFormatter(t *testing.T) {
-	actual := NewServerExtendedAuditingPolicyID("12345678-1234-9876-4563-123456789012", "group1", "server1", "default").ID("")
+	actual := NewServerExtendedAuditingPolicyID("12345678-1234-9876-4563-123456789012", "group1", "server1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/extendedAuditingSettings/default"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

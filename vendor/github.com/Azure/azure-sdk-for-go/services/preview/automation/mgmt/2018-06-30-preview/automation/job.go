@@ -86,6 +86,7 @@ func (client JobClient) Create(ctx context.Context, resourceGroupName string, au
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,6 +179,7 @@ func (client JobClient) Get(ctx context.Context, resourceGroupName string, autom
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,6 +270,7 @@ func (client JobClient) GetOutput(ctx context.Context, resourceGroupName string,
 	result, err = client.GetOutputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "GetOutput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -357,6 +360,7 @@ func (client JobClient) GetRunbookContent(ctx context.Context, resourceGroupName
 	result, err = client.GetRunbookContentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "GetRunbookContent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -447,6 +451,7 @@ func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGro
 	result.jlrv, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.jlrv.hasNextLink() && result.jlrv.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -518,6 +523,7 @@ func (client JobClient) listByAutomationAccountNextResults(ctx context.Context, 
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -579,6 +585,7 @@ func (client JobClient) Resume(ctx context.Context, resourceGroupName string, au
 	result, err = client.ResumeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Resume", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -668,6 +675,7 @@ func (client JobClient) Stop(ctx context.Context, resourceGroupName string, auto
 	result, err = client.StopResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Stop", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -757,6 +765,7 @@ func (client JobClient) Suspend(ctx context.Context, resourceGroupName string, a
 	result, err = client.SuspendResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Suspend", resp, "Failure responding to request")
+		return
 	}
 
 	return

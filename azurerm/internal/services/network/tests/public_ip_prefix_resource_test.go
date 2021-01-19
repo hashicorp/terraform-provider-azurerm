@@ -1,47 +1,39 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		publicIpPrefixName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, publicIpPrefixName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on publicIPPrefixClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Public IP Prefix %q (resource group: %q) does not exist", publicIpPrefixName, resourceGroup)
-		}
-
-		return nil
-	}
+type PublicIPPrefixResource struct {
 }
 
-func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.TestCheckFunc {
+func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["publicIPPrefixes"]
+
+	resp, err := clients.Network.PublicIPPrefixesClient.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Public IP Prefix (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func testCheckPublicIPPrefixDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -71,146 +63,101 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMPublicIPPrefixDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_public_ip_prefix" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Public IP Prefix still exists:\n%#v", resp.PublicIPPrefixPropertiesFormat)
-		}
-	}
-
-	return nil
-}
-
-func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
+func TestAccPublicIpPrefix_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPublicIPPrefix_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "prefix_length", "28"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_prefix").Exists(),
+				check.That(data.ResourceName).Key("prefix_length").HasValue("28"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPublicIpPrefix_prefixLength31(t *testing.T) {
+func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPublicIPPrefix_prefixLength31(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "prefix_length", "31"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.prefixLength31(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_prefix").Exists(),
+				check.That(data.ResourceName).Key("prefix_length").HasValue("31"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPublicIpPrefix_prefixLength24(t *testing.T) {
+func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// NOTE: This test will fail unless the subscription is updated
 	//        to accept a minimum PrefixLength of 24
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPublicIPPrefix_prefixLength24(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "prefix_length", "24"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.prefixLength24(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_prefix").Exists(),
+				check.That(data.ResourceName).Key("prefix_length").HasValue("24"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
+func TestAccPublicIpPrefix_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPublicIPPrefix_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			{
-				Config: testAccAzureRMPublicIPPrefix_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
+		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
+func TestAccPublicIpPrefix_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPublicIPPrefix_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
-					testCheckAzureRMPublicIPPrefixDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckPublicIPPrefixDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func testAccAzureRMPublicIPPrefix_basic(data acceptance.TestData) string {
+func (PublicIPPrefixResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,7 +176,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPublicIPPrefix_withTags(data acceptance.TestData) string {
+func (PublicIPPrefixResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -253,7 +200,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPublicIPPrefix_withTagsUpdate(data acceptance.TestData) string {
+func (PublicIPPrefixResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -276,7 +223,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPublicIPPrefix_prefixLength31(data acceptance.TestData) string {
+func (PublicIPPrefixResource) prefixLength31(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -297,7 +244,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPublicIPPrefix_prefixLength24(data acceptance.TestData) string {
+func (PublicIPPrefixResource) prefixLength24(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

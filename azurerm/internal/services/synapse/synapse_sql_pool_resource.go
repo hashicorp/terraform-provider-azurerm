@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -220,11 +219,7 @@ func resourceSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 		v := restore[0].(map[string]interface{})
 		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string))
-		restorePointInTime, err := time.Parse(time.RFC3339, v["point_in_time"].(string))
-		if err != nil {
-			return err
-		}
-		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
+		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = utils.String(v["point_in_time"].(string))
 		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
 
@@ -349,7 +344,7 @@ func resourceSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 
 	d.Set("name", id.Name)
 	d.Set("synapse_workspace_id", workspaceId)
@@ -411,5 +406,5 @@ func constructSourceDatabaseId(id string) string {
 	if err != nil {
 		return id
 	}
-	return mssqlParse.NewDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID("")
+	return mssqlParse.NewDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID()
 }

@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLighthouseDefinition() *schema.Resource {
+func resourceLighthouseDefinition() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLighthouseDefinitionCreateUpdate,
-		Read:   resourceArmLighthouseDefinitionRead,
-		Update: resourceArmLighthouseDefinitionCreateUpdate,
-		Delete: resourceArmLighthouseDefinitionDelete,
+		Create: resourceLighthouseDefinitionCreateUpdate,
+		Read:   resourceLighthouseDefinitionRead,
+		Update: resourceLighthouseDefinitionCreateUpdate,
+		Delete: resourceLighthouseDefinitionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -93,7 +93,7 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 	}
 }
 
-func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,10 +152,10 @@ func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmLighthouseDefinitionRead(d, meta)
+	return resourceLighthouseDefinitionRead(d, meta)
 }
 
-func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +191,7 @@ func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

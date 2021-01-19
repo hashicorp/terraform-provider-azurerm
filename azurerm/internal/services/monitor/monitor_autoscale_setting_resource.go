@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorAutoScaleSetting() *schema.Resource {
+func resourceMonitorAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Read:   resourceArmMonitorAutoScaleSettingRead,
-		Update: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Delete: resourceArmMonitorAutoScaleSettingDelete,
+		Create: resourceMonitorAutoScaleSettingCreateUpdate,
+		Read:   resourceMonitorAutoScaleSettingRead,
+		Update: resourceMonitorAutoScaleSettingCreateUpdate,
+		Delete: resourceMonitorAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -393,7 +393,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -455,10 +455,10 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorAutoScaleSettingRead(d, meta)
+	return resourceMonitorAutoScaleSettingRead(d, meta)
 }
 
-func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -508,7 +508,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, tagMap)
 }
 
-func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

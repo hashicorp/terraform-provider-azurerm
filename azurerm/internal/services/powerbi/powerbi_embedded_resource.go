@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPowerBIEmbedded() *schema.Resource {
+func resourcePowerBIEmbedded() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPowerBIEmbeddedCreate,
-		Read:   resourceArmPowerBIEmbeddedRead,
-		Update: resourceArmPowerBIEmbeddedUpdate,
-		Delete: resourceArmPowerBIEmbeddedDelete,
+		Create: resourcePowerBIEmbeddedCreate,
+		Read:   resourcePowerBIEmbeddedRead,
+		Update: resourcePowerBIEmbeddedUpdate,
+		Delete: resourcePowerBIEmbeddedDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -78,7 +78,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 	}
 }
 
-func resourceArmPowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,10 +131,10 @@ func resourceArmPowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmPowerBIEmbeddedRead(d, meta)
+	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourceArmPowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceArmPowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,10 +205,10 @@ func resourceArmPowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error waiting for update of PowerBI Embedded %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return resourceArmPowerBIEmbeddedRead(d, meta)
+	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourceArmPowerBIEmbeddedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

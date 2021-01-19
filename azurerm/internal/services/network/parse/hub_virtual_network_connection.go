@@ -27,14 +27,15 @@ func NewHubVirtualNetworkConnectionID(subscriptionId, resourceGroup, virtualHubN
 
 func (id HubVirtualNetworkConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Hub Virtual Network Connection", segmentsStr)
 }
 
-func (id HubVirtualNetworkConnectionId) ID(_ string) string {
+func (id HubVirtualNetworkConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/hubVirtualNetworkConnections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
 }

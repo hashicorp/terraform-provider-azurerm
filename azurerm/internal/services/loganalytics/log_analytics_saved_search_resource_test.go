@@ -1,153 +1,102 @@
 package loganalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
+	"strings"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
-func TestAccAzureRMLogAnalyticsSavedSearch_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
+type LogAnalyticsSavedSearchResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSavedSearchDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccLogAnalyticsSavedSearch_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
+	r := LogAnalyticsSavedSearchResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSavedSearch_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
+	r := LogAnalyticsSavedSearchResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSavedSearch_withTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
+	r := LogAnalyticsSavedSearchResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTag(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
+	r := LogAnalyticsSavedSearchResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_saved_search"),
 		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsSavedSearch_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSavedSearchDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMLogAnalyticsSavedSearch_withTag(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSavedSearchDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_withTag(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSavedSearchDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogAnalyticsSavedSearch_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_saved_search"),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMLogAnalyticsSavedSearchDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.SavedSearchesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_saved_search" {
-			continue
-		}
-
-		id, err := parse.LogAnalyticsSavedSearchID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Log Analytics Saved Search still exists:\n%#v", resp)
-		}
+func (t LogAnalyticsSavedSearchResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(state.ID, "/")))
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMLogAnalyticsSavedSearchExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.SavedSearchesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.LogAnalyticsSavedSearchID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Log Analytics Saved Search Client: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("bad: Log Analytics Saved Search %q (Workspace: %q / Resource Group: %q) does not exist", id.Name, id.WorkspaceName, id.ResourceGroup)
-		}
-
-		return nil
+	resp, err := clients.LogAnalytics.SavedSearchesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
+	if err != nil {
+		return nil, fmt.Errorf("readingLog Analytics Linked Service Saved Search (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMLogAnalyticsSavedSearch_basic(data acceptance.TestData) string {
+func (LogAnalyticsSavedSearchResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -176,8 +125,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsSavedSearch_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsSavedSearch_basic(data)
+func (r LogAnalyticsSavedSearchResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -189,10 +137,10 @@ resource "azurerm_log_analytics_saved_search" "import" {
   display_name = azurerm_log_analytics_saved_search.test.display_name
   query        = azurerm_log_analytics_saved_search.test.query
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMLogAnalyticsSavedSearch_complete(data acceptance.TestData) string {
+func (LogAnalyticsSavedSearchResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +172,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsSavedSearch_withTag(data acceptance.TestData) string {
+func (LogAnalyticsSavedSearchResource) withTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
+func resourceIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
-		Read:   resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead,
-		Update: resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
-		Delete: resourceArmIoTTimeSeriesInsightsStandardEnvironmentDelete,
+		Create: resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
+		Read:   resourceIoTTimeSeriesInsightsStandardEnvironmentRead,
+		Update: resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
+		Delete: resourceIoTTimeSeriesInsightsStandardEnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.EnvironmentID(id)
 			return err
@@ -111,7 +111,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 	}
 }
 
-func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,10 +189,10 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.R
 
 	d.SetId(*resource.ID)
 
-	return resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d, meta)
+	return resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d, meta)
 }
 
-func resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,7 +238,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceD
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceArmIoTTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

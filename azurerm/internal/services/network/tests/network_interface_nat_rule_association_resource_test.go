@@ -1,7 +1,9 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -9,148 +11,127 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
+type NetworkInterfaceNATRuleAssociationResource struct {
+}
+
+func TestAccNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceNATRuleAssociationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
+	r := NetworkInterfaceNATRuleAssociationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		// intentional as this is a Virtual Resource
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_network_interface_nat_rule_association"),
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.T) {
+func TestAccNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceNATRuleAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_nat_rule_association"),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckNetworkInterfaceNATRuleAssociationDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
+func TestAccNetworkInterfaceNATRuleAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	r := NetworkInterfaceNATRuleAssociationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
-					testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateNIC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
+func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	splitId := strings.Split(state.ID, "|")
+	if len(splitId) != 2 {
+		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", state.ID)
+	}
 
-func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
+	if err != nil {
+		return nil, err
+	}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
+	ipConfigurationName := nicID.Path["ipConfigurations"]
+	networkInterfaceName := nicID.Path["networkInterfaces"]
+	resourceGroup := nicID.ResourceGroup
+	natRuleId := splitId[1]
 
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
+	read, err := clients.Network.InterfacesClient.Get(ctx, resourceGroup, networkInterfaceName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
+	}
 
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-		natRuleId := rs.Primary.Attributes["nat_rule_id"]
-		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
+	c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	if c == nil {
+		return nil, fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
+	}
+	config := *c
 
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if c == nil {
-			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
-		}
-		config := *c
-
-		found := false
-		if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
-			for _, rule := range *config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules {
-				if *rule.ID == natRuleId {
-					found = true
-					break
-				}
+	found := false
+	if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
+		for _, rule := range *config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules {
+			if *rule.ID == natRuleId {
+				found = true
+				break
 			}
 		}
-
-		if !found {
-			return fmt.Errorf("Association between NIC %q and LB NAT Rule %q was not found!", nicName, natRuleId)
-		}
-
-		return nil
 	}
+
+	return utils.Bool(found), nil
 }
 
-func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckNetworkInterfaceNATRuleAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -205,8 +186,7 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName s
 	}
 }
 
-func testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data)
+func (r NetworkInterfaceNATRuleAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,11 +207,10 @@ resource "azurerm_network_interface_nat_rule_association" "test" {
   ip_configuration_name = "testconfiguration1"
   nat_rule_id           = azurerm_lb_nat_rule.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data)
+func (r NetworkInterfaceNATRuleAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -240,11 +219,10 @@ resource "azurerm_network_interface_nat_rule_association" "import" {
   ip_configuration_name = azurerm_network_interface_nat_rule_association.test.ip_configuration_name
   nat_rule_id           = azurerm_network_interface_nat_rule_association.test.nat_rule_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data)
+func (r NetworkInterfaceNATRuleAssociationResource) updateNIC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -272,10 +250,10 @@ resource "azurerm_network_interface_nat_rule_association" "test" {
   ip_configuration_name = "testconfiguration1"
   nat_rule_id           = azurerm_lb_nat_rule.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data acceptance.TestData) string {
+func (NetworkInterfaceNATRuleAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

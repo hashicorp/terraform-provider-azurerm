@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
+func resourceDataFactoryDatasetPostgreSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetPostgreSQLRead,
-		Update: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetPostgreSQLDelete,
+		Create: resourceDataFactoryDatasetPostgreSQLCreateUpdate,
+		Read:   resourceDataFactoryDatasetPostgreSQLRead,
+		Update: resourceDataFactoryDatasetPostgreSQLCreateUpdate,
+		Delete: resourceDataFactoryDatasetPostgreSQLDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -144,7 +144,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,10 +229,10 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetPostgreSQLRead(d, meta)
+	return resourceDataFactoryDatasetPostgreSQLRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,7 +309,7 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

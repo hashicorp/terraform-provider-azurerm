@@ -1,6 +1,7 @@
 package iothub_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,52 +10,48 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
+type IotHubEndpointServiceBusTopicResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubEndpointServiceBusTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMIotHubEndpointServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccIotHubEndpointServiceBusTopic_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
+	r := IotHubEndpointServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
+	r := IotHubEndpointServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_servicebus_topic"),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointServiceBusTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubEndpointServiceBusTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMIotHubEndpointServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_servicebus_topic"),
-			},
-		},
-	})
-}
-
-func testAccAzureRMIotHubEndpointServiceBusTopic_basic(data acceptance.TestData) string {
+func (IotHubEndpointServiceBusTopicResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -114,8 +111,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubEndpointServiceBusTopic_basic(data)
+func (r IotHubEndpointServiceBusTopicResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -126,91 +122,32 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
 
   connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		parsedIothubId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		iothubName := parsedIothubId.Path["IotHubs"]
-		endpointName := parsedIothubId.Path["Endpoints"]
-		resourceGroup := parsedIothubId.ResourceGroup
-
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
-			}
-
-			return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
-		}
-
-		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
-			return fmt.Errorf("Bad: No endpoint %s defined for IotHub %s", endpointName, iothubName)
-		}
-		endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics
-
-		if endpoints == nil {
-			return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
-		}
-
-		for _, endpoint := range *endpoints {
-			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-				if strings.EqualFold(*existingEndpointName, endpointName) {
-					return nil
-				}
-			}
-		}
-		return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
+func (t IotHubEndpointServiceBusTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	iothubName := id.Path["IotHubs"]
+	endpointName := id.Path["Endpoints"]
 
-func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	iothub, err := clients.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	if err != nil || iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
+		return nil, fmt.Errorf("reading IotHuB Endpoint Service Bus Topics (%s): %+v", id, err)
+	}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_endpoint_servicebus_topic" {
-			continue
-		}
-
-		endpointName := rs.Primary.Attributes["name"]
-		iothubName := rs.Primary.Attributes["iothub_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Get on iothubResourceClient: %+v", err)
-		}
-		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
-			return nil
-		}
-		endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics
-
-		if endpoints == nil {
-			return nil
-		}
-
+	if endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics; endpoints != nil {
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, endpointName) {
-					return fmt.Errorf("Bad: ServiceBus Topic endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+					return utils.Bool(true), nil
 				}
 			}
 		}
 	}
-	return nil
+
+	return utils.Bool(false), nil
 }

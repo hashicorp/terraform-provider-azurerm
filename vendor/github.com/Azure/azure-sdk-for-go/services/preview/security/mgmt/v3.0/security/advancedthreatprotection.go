@@ -73,6 +73,7 @@ func (client AdvancedThreatProtectionClient) Create(ctx context.Context, resourc
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdvancedThreatProtectionClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -148,6 +149,7 @@ func (client AdvancedThreatProtectionClient) Get(ctx context.Context, resourceID
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdvancedThreatProtectionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
