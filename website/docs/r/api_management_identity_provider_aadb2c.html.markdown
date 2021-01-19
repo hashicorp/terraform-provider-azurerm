@@ -3,7 +3,7 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_identity_provider_aadb2c"
 description: |-
-Manages an API Management AADB2C Identity Provider.
+  Manages an API Management AADB2C Identity Provider.
 ---
 
 # azurerm_api_management_identity_provider_aadb2c
