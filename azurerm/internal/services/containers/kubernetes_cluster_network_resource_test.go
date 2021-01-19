@@ -1102,6 +1102,12 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_private_dns_zone.test.id
+  role_definition_name = "Private DNS Zone Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                    = "acctestaks%d"
   location                = azurerm_resource_group.test.location
@@ -1125,7 +1131,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type                      = "UserAssigned"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
