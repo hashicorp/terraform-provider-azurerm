@@ -8,132 +8,117 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualHubConnection_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+type VirtualHubConnectionResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccVirtualHubConnection_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualHubConnection_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub_connection"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_requiresImport(t *testing.T) {
+func TestAccVirtualHubConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualHubConnection_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub_connection"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_complete(t *testing.T) {
+func TestAccVirtualHubConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_update(t *testing.T) {
+func TestAccVirtualHubConnection_enableInternetSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHubConnection_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.enableInternetSecurity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_enableInternetSecurity(t *testing.T) {
+func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHubConnection_enableInternetSecurity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
 	vhubData := data
 	vhubData.ResourceName = "azurerm_virtual_hub.test"
@@ -141,159 +126,126 @@ func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testin
 	vhubName := fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger)
 	vhubConnectionName := fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHubConnection_template(data),
-				Check: resource.ComposeTestCheckFunc(
-					vhubData.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.template(data),
+			Check: resource.ComposeTestCheckFunc(
+				vhubData.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_removeRoutingConfiguration(t *testing.T) {
+func TestAccVirtualHubConnection_removeRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withRoutingConfiguration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_removePropagatedRouteTable(t *testing.T) {
+func TestAccVirtualHubConnection_removePropagatedRouteTable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_withoutPropagatedRouteTable(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withRoutingConfiguration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.withoutPropagatedRouteTable(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_removeVnetStaticRoute(t *testing.T) {
+func TestAccVirtualHubConnection_removeVnetStaticRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_withoutVnetStaticRoute(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withRoutingConfiguration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.withoutVnetStaticRoute(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
+func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_updateRoutingConfiguration(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withRoutingConfiguration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.updateRoutingConfiguration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.HubVirtualNetworkConnectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Virtual Hub Connection not found: %s", resourceName)
-		}
-
-		id, err := parse.HubVirtualNetworkConnectionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Virtual Hub Connection %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on network.HubVirtualNetworkConnectionClient: %+v", err)
-		}
-
-		return nil
+func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.HubVirtualNetworkConnectionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Network.HubVirtualNetworkConnectionClient.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Virtual Hub Network Connection (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName string) acceptance.ClientCheckFunc {
@@ -309,34 +261,7 @@ func checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConn
 	}
 }
 
-func testCheckAzureRMVirtualHubConnectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.HubVirtualNetworkConnectionClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_hub_connection" {
-			continue
-		}
-
-		id, err := parse.HubVirtualNetworkConnectionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.HubVirtualNetworkConnectionClient: %+v", err)
-			}
-		}
-
-		return nil
-	}
-
-	return nil
-}
-
-func testAccAzureRMVirtualHubConnection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -345,11 +270,10 @@ resource "azurerm_virtual_hub_connection" "test" {
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_basic(data)
+func (r VirtualHubConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -358,11 +282,10 @@ resource "azurerm_virtual_hub_connection" "import" {
   virtual_hub_id            = azurerm_virtual_hub_connection.test.virtual_hub_id
   remote_virtual_network_id = azurerm_virtual_hub_connection.test.remote_virtual_network_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualHubConnection_complete(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -404,11 +327,10 @@ resource "azurerm_virtual_hub_connection" "test2" {
   remote_virtual_network_id = azurerm_virtual_network.test2.id
   internet_security_enabled = true
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_enableInternetSecurity(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -418,10 +340,10 @@ resource "azurerm_virtual_hub_connection" "test" {
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = true
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_template(data acceptance.TestData) string {
+func (VirtualHubConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -473,8 +395,7 @@ resource "azurerm_virtual_hub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) withRoutingConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -501,11 +422,10 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_withoutPropagatedRouteTable(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) withoutPropagatedRouteTable(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -522,11 +442,10 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_withoutVnetStaticRoute(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) withoutVnetStaticRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -541,11 +460,10 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubConnection_updateRoutingConfiguration(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubConnection_template(data)
+func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -566,5 +484,5 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

@@ -1,152 +1,108 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualHub_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+type VirtualHubResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccVirtualHub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualHub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub"),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualHub_requiresImport(t *testing.T) {
+func TestAccVirtualHub_routes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualHub_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.route(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.routeUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHub_routes(t *testing.T) {
+func TestAccVirtualHub_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_route(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHub_routeUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVirtualHub_tags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMVirtualHubExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Virtual Hub not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Virtual Hub %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on network.VirtualHubClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVirtualHubDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_hub" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.VirtualHubClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t VirtualHubResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualHubID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.VirtualHubClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Virtual Hub (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVirtualHub_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_template(data)
+func (r VirtualHubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,11 +113,10 @@ resource "azurerm_virtual_hub" "test" {
   virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.1.0/24"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHub_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_basic(data)
+func (r VirtualHubResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,11 +127,10 @@ resource "azurerm_virtual_hub" "import" {
   virtual_wan_id      = azurerm_virtual_hub.test.virtual_wan_id
   address_prefix      = azurerm_virtual_hub.test.address_prefix
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualHub_route(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_template(data)
+func (r VirtualHubResource) route(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -192,11 +146,10 @@ resource "azurerm_virtual_hub" "test" {
     next_hop_ip_address = "12.34.56.78"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHub_routeUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_template(data)
+func (r VirtualHubResource) routeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -212,11 +165,10 @@ resource "azurerm_virtual_hub" "test" {
     next_hop_ip_address = "87.65.43.21"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHub_tags(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_template(data)
+func (r VirtualHubResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -231,10 +183,10 @@ resource "azurerm_virtual_hub" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHub_template(data acceptance.TestData) string {
+func (VirtualHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

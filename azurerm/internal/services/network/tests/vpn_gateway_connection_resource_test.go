@@ -1,189 +1,133 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVpnGatewayConnection_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+type VPNGatewayConnectionResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVpnGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVpnGatewayConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccVpnGatewayConnection_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVpnGatewayConnection_complete(t *testing.T) {
+func TestAccVpnGatewayConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVpnGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVpnGatewayConnection_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVpnGatewayConnection_update(t *testing.T) {
+func TestAccVpnGatewayConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVpnGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVpnGatewayConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVpnGatewayConnection_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVpnGatewayConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVpnGatewayConnection_customRouteTable(t *testing.T) {
+func TestAccVpnGatewayConnection_customRouteTable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVpnGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVpnGatewayConnection_customRouteTable(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVpnGatewayConnection_customRouteTableUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customRouteTable(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.customRouteTableUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMVpnGatewayConnection_requiresImport(t *testing.T) {
+func TestAccVpnGatewayConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVpnGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVpnGatewayConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMVpnGatewayConnection_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMVpnGatewayConnectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnConnectionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Vpn Gateway Connection not found: %s", resourceName)
-		}
-
-		id, err := parse.VpnConnectionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Vpn Gateway Connection %q (Resource Group %q / VPN Gateway %q) does not exist", id.Name, id.ResourceGroup, id.VpnGatewayName)
-			}
-			return fmt.Errorf("Getting on Network.VpnConnetions: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMVpnGatewayConnectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnConnectionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_vpn_gateway_connection" {
-			continue
-		}
-
-		id, err := parse.VpnConnectionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name)
-		if err == nil {
-			return fmt.Errorf("Network.VpnConnetions still exists")
-		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Getting on Network.VpnConnetions: %+v", err)
-		}
-		return nil
+func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VpnConnectionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.VpnConnectionsClient.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading VPN Gateway Connnection (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMVpnGatewayConnection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVpnGatewayConnection_template(data)
+func (r VPNGatewayConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -200,11 +144,10 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVpnGatewayConnection_complete(data acceptance.TestData) string {
-	template := testAccAzureRMVpnGatewayConnection_template(data)
+func (r VPNGatewayConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -221,11 +164,10 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVpnGatewayConnection_customRouteTable(data acceptance.TestData) string {
-	template := testAccAzureRMVpnGatewayConnection_template(data)
+func (r VPNGatewayConnectionResource) customRouteTable(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -269,11 +211,10 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVpnGatewayConnection_customRouteTableUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMVpnGatewayConnection_template(data)
+func (r VPNGatewayConnectionResource) customRouteTableUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -322,11 +263,10 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMVpnGatewayConnection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVpnGatewayConnection_basic(data)
+func (r VPNGatewayConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -343,10 +283,10 @@ resource "azurerm_vpn_gateway_connection" "import" {
     }
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVpnGatewayConnection_template(data acceptance.TestData) string {
+func (VPNGatewayConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

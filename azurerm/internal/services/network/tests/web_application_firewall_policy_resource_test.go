@@ -1,234 +1,196 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+type WebApplicationFirewallResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWebApplicationFirewallPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWebApplicationFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccWebApplicationFirewallPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
+func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWebApplicationFirewallPolicy_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWebApplicationFirewallPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.name", "Rule1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.priority", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.rule_type", "MatchRule"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_variables.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.negation_condition", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_values.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_values.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_values.1", "10.0.0.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.action", "Block"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.name", "Rule2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.priority", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.rule_type", "MatchRule"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_variables.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.negation_condition", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_values.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_variables.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_variables.0.variable_name", "RequestHeaders"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_variables.0.selector", "UserAgent"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.operator", "Contains"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.negation_condition", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "windows"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.action", "Block"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.match_variable", "RequestHeaderNames"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector", "x-shared-secret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector_match_operator", "Equals"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.match_variable", "RequestCookieNames"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector", "too-much-fun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector_match_operator", "EndsWith"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.type", "OWASP"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.version", "3.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name", "REQUEST-920-PROTOCOL-ENFORCEMENT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0", "920300"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1", "920440"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.request_body_check", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.file_upload_limit_in_mb", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.max_request_body_size_in_kb", "128"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.0.name").HasValue("Rule1"),
+				check.That(data.ResourceName).Key("custom_rules.0.priority").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.0.rule_type").HasValue("MatchRule"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_variables.0.variable_name").HasValue("RemoteAddr"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.operator").HasValue("IPMatch"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_values.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_values.0").HasValue("192.168.1.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_values.1").HasValue("10.0.0.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.0.action").HasValue("Block"),
+				check.That(data.ResourceName).Key("custom_rules.1.name").HasValue("Rule2"),
+				check.That(data.ResourceName).Key("custom_rules.1.priority").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.1.rule_type").HasValue("MatchRule"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_variables.0.variable_name").HasValue("RemoteAddr"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.operator").HasValue("IPMatch"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_values.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_values.0").HasValue("192.168.1.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_variables.0.variable_name").HasValue("RequestHeaders"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_variables.0.selector").HasValue("UserAgent"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.operator").HasValue("Contains"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_values.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_values.0").HasValue("windows"),
+				check.That(data.ResourceName).Key("custom_rules.1.action").HasValue("Block"),
+				check.That(data.ResourceName).Key("managed_rules.#").HasValue("1"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.#").HasValue("2"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.match_variable").HasValue("RequestHeaderNames"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.selector").HasValue("x-shared-secret"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.selector_match_operator").HasValue("Equals"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.match_variable").HasValue("RequestCookieNames"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.selector").HasValue("too-much-fun"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.selector_match_operator").HasValue("EndsWith"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.type").HasValue("OWASP"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.version").HasValue("3.1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.#").HasValue("1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name").HasValue("REQUEST-920-PROTOCOL-ENFORCEMENT"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0").HasValue("920300"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1").HasValue("920440"),
+				check.That(data.ResourceName).Key("policy_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
+				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
+func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMWebApplicationFirewallPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWebApplicationFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMWebApplicationFirewallPolicy_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWebApplicationFirewallPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.name", "Rule1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.priority", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.rule_type", "MatchRule"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_variables.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.negation_condition", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_values.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_values.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.match_conditions.0.match_values.1", "10.0.0.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.0.action", "Block"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.name", "Rule2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.priority", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.rule_type", "MatchRule"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_variables.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_variables.0.variable_name", "RemoteAddr"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.operator", "IPMatch"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.negation_condition", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.0.match_values.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_variables.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_variables.0.variable_name", "RequestHeaders"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_variables.0.selector", "UserAgent"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.operator", "Contains"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.negation_condition", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "windows"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.action", "Block"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.match_variable", "RequestHeaderNames"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector", "x-shared-secret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector_match_operator", "Equals"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.match_variable", "RequestCookieNames"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector", "too-much-fun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector_match_operator", "EndsWith"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.type", "OWASP"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.version", "3.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name", "REQUEST-920-PROTOCOL-ENFORCEMENT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0", "920300"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1", "920440"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.request_body_check", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.file_upload_limit_in_mb", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.max_request_body_size_in_kb", "128"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.0.name").HasValue("Rule1"),
+				check.That(data.ResourceName).Key("custom_rules.0.priority").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.0.rule_type").HasValue("MatchRule"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_variables.0.variable_name").HasValue("RemoteAddr"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.operator").HasValue("IPMatch"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_values.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_values.0").HasValue("192.168.1.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.0.match_conditions.0.match_values.1").HasValue("10.0.0.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.0.action").HasValue("Block"),
+				check.That(data.ResourceName).Key("custom_rules.1.name").HasValue("Rule2"),
+				check.That(data.ResourceName).Key("custom_rules.1.priority").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.1.rule_type").HasValue("MatchRule"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_variables.0.variable_name").HasValue("RemoteAddr"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.operator").HasValue("IPMatch"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_values.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.0.match_values.0").HasValue("192.168.1.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_variables.0.variable_name").HasValue("RequestHeaders"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_variables.0.selector").HasValue("UserAgent"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.operator").HasValue("Contains"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_values.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_values.0").HasValue("windows"),
+				check.That(data.ResourceName).Key("custom_rules.1.action").HasValue("Block"),
+				check.That(data.ResourceName).Key("managed_rules.#").HasValue("1"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.#").HasValue("2"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.match_variable").HasValue("RequestHeaderNames"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.selector").HasValue("x-shared-secret"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.selector_match_operator").HasValue("Equals"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.match_variable").HasValue("RequestCookieNames"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.selector").HasValue("too-much-fun"),
+				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.selector_match_operator").HasValue("EndsWith"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.type").HasValue("OWASP"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.version").HasValue("3.1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.#").HasValue("1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name").HasValue("REQUEST-920-PROTOCOL-ENFORCEMENT"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0").HasValue("920300"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1").HasValue("920440"),
+				check.That(data.ResourceName).Key("policy_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
+				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMWebApplicationFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WebApplicationFirewallPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Web Application Firewall Policy not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Web Application Firewall Policy %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on network.WebApplicationFirewallPoliciesClient: %+v", err)
-		}
-
-		return nil
+func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resGroup := id.ResourceGroup
+	name := id.Path["ApplicationGatewayWebApplicationFirewallPolicies"]
 
-func testCheckAzureRMWebApplicationFirewallPolicyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WebApplicationFirewallPoliciesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_web_application_firewall_policy" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.WebApplicationFirewallPoliciesClient: %+v", err)
-			}
-		}
-
-		return nil
+	resp, err := clients.Network.WebApplicationFirewallPoliciesClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Web Application Firewall (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMWebApplicationFirewallPolicy_basic(data acceptance.TestData) string {
+func (WebApplicationFirewallResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -260,7 +222,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMWebApplicationFirewallPolicy_complete(data acceptance.TestData) string {
+func (WebApplicationFirewallResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -7,56 +7,54 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
+type VirtualNetworkDataSource struct {
+}
+
+func TestAccDataSourceVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network", "test")
+	r := VirtualNetworkDataSource{}
 
 	name := fmt.Sprintf("acctestvnet-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceArmVirtualNetwork_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
-					resource.TestCheckResourceAttr(data.ResourceName, "dns_servers.0", "10.0.0.4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "10.0.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnets.0", "subnet1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("dns_servers.0").HasValue("10.0.0.4"),
+				check.That(data.ResourceName).Key("address_space.0").HasValue("10.0.0.0/16"),
+				check.That(data.ResourceName).Key("subnets.0").HasValue("subnet1"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
+func TestAccDataSourceVirtualNetwork_peering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network", "test")
+	r := VirtualNetworkDataSource{}
 
 	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceArmVirtualNetwork_peering(data),
-			},
-			{
-				Config: testAccDataSourceArmVirtualNetwork_peeringWithDataSource(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", virtualNetworkName),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "10.0.1.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "vnet_peerings.%", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.peering(data),
+		},
+		{
+			Config: r.peeringWithDataSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(virtualNetworkName),
+				check.That(data.ResourceName).Key("address_space.0").HasValue("10.0.1.0/24"),
+				check.That(data.ResourceName).Key("vnet_peerings.%").HasValue("1"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceArmVirtualNetwork_basic(data acceptance.TestData) string {
+func (VirtualNetworkDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -87,7 +85,7 @@ data "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceArmVirtualNetwork_peering(data acceptance.TestData) string {
+func (VirtualNetworkDataSource) peering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -121,7 +119,7 @@ resource "azurerm_virtual_network_peering" "test1" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceArmVirtualNetwork_peeringWithDataSource(data acceptance.TestData) string {
+func (VirtualNetworkDataSource) peeringWithDataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
