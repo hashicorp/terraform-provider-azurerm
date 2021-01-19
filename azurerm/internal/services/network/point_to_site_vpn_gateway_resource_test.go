@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -87,7 +89,7 @@ func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 }
 
 func (t PointToSiteVPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := ParsePointToSiteVPNGatewayID(state.ID)
+	id, err := network.ParsePointToSiteVPNGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
