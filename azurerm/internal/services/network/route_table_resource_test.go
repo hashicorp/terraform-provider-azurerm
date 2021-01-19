@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -229,7 +231,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 }
 
 func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := ParseRouteTableID(state.ID)
+	id, err := network.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err
 	}

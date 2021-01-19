@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -175,7 +176,7 @@ func TestAccVPNServerConfiguration_tags(t *testing.T) {
 }
 
 func (t VPNServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := ParseVpnServerConfigurationID(state.ID)
+	id, err := network.ParseVpnServerConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
