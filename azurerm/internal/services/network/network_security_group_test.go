@@ -2,13 +2,15 @@ package network_test
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 )
 
 func TestParseNetworkSecurityGroup(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *NetworkSecurityGroupResourceID
+		Expected *network.NetworkSecurityGroupResourceID
 	}{
 		{
 			Name:     "Empty",
@@ -28,7 +30,7 @@ func TestParseNetworkSecurityGroup(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/networkSecurityGroups/example",
-			Expected: &NetworkSecurityGroupResourceID{
+			Expected: &network.NetworkSecurityGroupResourceID{
 				Name:          "example",
 				ResourceGroup: "foo",
 			},
@@ -38,7 +40,7 @@ func TestParseNetworkSecurityGroup(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseNetworkSecurityGroupID(v.Input)
+		actual, err := network.ParseNetworkSecurityGroupID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

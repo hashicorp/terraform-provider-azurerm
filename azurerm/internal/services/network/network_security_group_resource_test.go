@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -217,7 +219,7 @@ func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
 }
 
 func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := ParseNetworkSecurityGroupID(state.ID)
+	id, err := network.ParseNetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
