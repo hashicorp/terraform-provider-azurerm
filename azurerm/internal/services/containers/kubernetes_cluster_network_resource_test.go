@@ -1126,7 +1126,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
   network_profile {
