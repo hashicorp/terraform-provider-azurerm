@@ -156,7 +156,7 @@ func dataSourceSentinelAlertRuleTemplateRead(d *schema.ResourceData, meta interf
 }
 
 func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *loganalyticsParse.LogAnalyticsWorkspaceId, name string) (res securityinsight.BasicAlertRuleTemplate, err error) {
-	template, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
+	template, err := client.Get(ctx, workspaceID.ResourceGroup, operationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.Ale
 }
 
 func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *loganalyticsParse.LogAnalyticsWorkspaceId, name string) (res securityinsight.BasicAlertRuleTemplate, err error) {
-	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName)
+	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroup, operationalInsightsResourceProvider, workspaceID.WorkspaceName)
 	if err != nil {
 		return nil, err
 	}

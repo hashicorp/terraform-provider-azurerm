@@ -51,7 +51,7 @@ func dataSourceSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) e
 	}
 	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 
-	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
+	resp, err := client.Get(ctx, workspaceID.ResourceGroup, operationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Sentinel Alert Rule %q was not found", id)
