@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - the field `type` within the `identity` block can now be set to `UserAssigned` [GH-8737]
 * `azurerm_kubernetes_cluster` - support for the field `new_pod_scale_up_delay` within the `auto_scaler_profile` block [GH-9291]
 * `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
+* `azurerm_monitor_autoscale_setting` - now supports the `dimensions` property [GH-9795]
 
 BUG FIXES:
 
