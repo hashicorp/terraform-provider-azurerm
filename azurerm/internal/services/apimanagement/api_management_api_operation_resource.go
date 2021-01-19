@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -182,15 +184,15 @@ func resourceApiManagementApiOperationRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiOperationID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiId := id.Path["apis"]
-	operationId := id.Path["operations"]
+	serviceName := id.ServiceName
+	apiId := id.ApiName
+	operationId := id.OperationName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
 	if err != nil {
@@ -238,15 +240,15 @@ func resourceApiManagementApiOperationDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiOperationID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiId := id.Path["apis"]
-	operationId := id.Path["operations"]
+	serviceName := id.ServiceName
+	apiId := id.ApiName
+	operationId := id.OperationName
 
 	resp, err := client.Delete(ctx, resourceGroup, serviceName, apiId, operationId, "")
 	if err != nil {
