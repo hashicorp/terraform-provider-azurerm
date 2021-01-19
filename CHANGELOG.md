@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for the field `new_pod_scale_up_delay` within the `auto_scaler_profile` block [GH-9291]
 * `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
 * `azurerm_monitor_autoscale_setting` - now supports the `dimensions` property [GH-9795]
+* `azurerm_sentinel_alert_rule_scheduled` - now supports the `event_grouping_setting` property [GH-10078]
 
 BUG FIXES:
 
