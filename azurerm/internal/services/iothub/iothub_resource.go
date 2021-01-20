@@ -565,12 +565,23 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
 	if err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	timeout := schema.TimeoutUpdate
+	if d.IsNewResource() {
+		timeout = schema.TimeoutCreate
+	}
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Activating", "Transitioning"},
+		Target:  []string{"Succeeded"},
+		Refresh: iothubStateRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: d.Timeout(timeout),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -694,6 +705,20 @@ func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
+	// when running acctest of `azurerm_iot_security_solution`, we found after delete the iot security solution, the iothub provisionState is `Transitioning`
+	// if we delete directly, the func `client.Delete` will throw error
+	// so first wait for the iotHub state become succeed
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Activating", "Transitioning"},
+		Target:  []string{"Succeeded"},
+		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+		Timeout: d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for ProvisioningState of IotHub %q (Resource Group %q) to become `Succeeded`: %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
@@ -720,6 +745,27 @@ func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourc
 	}
 
 	return nil
+}
+
+func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+
+		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		if res.Properties == nil || res.Properties.ProvisioningState == nil {
+			return res, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		return res, *res.Properties.ProvisioningState, nil
+	}
 }
 
 func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
