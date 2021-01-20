@@ -616,16 +616,13 @@ func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving IotHub Client %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("listing keys for IoTHub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
+	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
+		keyList := keysResp.Response()
+		keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
 
-	keyList := keysResp.Response()
-	keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
-
-	if err := d.Set("shared_access_policy", keys); err != nil {
-		return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
+		if err := d.Set("shared_access_policy", keys); err != nil {
+			return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
+		}
 	}
 
 	if properties := hub.Properties; properties != nil {
