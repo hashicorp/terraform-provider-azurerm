@@ -1,9 +1,9 @@
 package resource_test
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strconv"
 	"testing"
@@ -11,199 +11,161 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+type TemplateDeploymentResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTemplateDeployment_basicMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-				),
-			},
+func TestAccTemplateDeployment_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
+func TestAccTemplateDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTemplateDeployment_basicMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMTemplateDeployment_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccTemplateDeployment_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicSingle(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckTemplateDeploymentDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
+func TestAccTemplateDeployment_nestedTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTemplateDeployment_basicSingle(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-					testCheckAzureRMTemplateDeploymentDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nestedTemplate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
+func TestAccTemplateDeployment_withParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTemplateDeployment_nestedTemplate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withParams(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
+func TestAccTemplateDeployment_withParamsBody(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTemplateDeployment_withParams(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withParamsBody(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
+func TestAccTemplateDeployment_withOutputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testaccAzureRMTemplateDeployment_withParamsBody(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withOutputs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckOutput("tfIntOutput", "-123"),
+				resource.TestCheckOutput("tfStringOutput", "Standard_GRS"),
+
+				// these values *should* be 'true' and 'false' but,
+				// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
+				// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
+				// at a later date these may return the expected 'true' / 'false' and should be changed back
+				resource.TestCheckOutput("tfFalseOutput", "false"),
+				resource.TestCheckOutput("tfTrueOutput", "true"),
+				check.That(data.ResourceName).Key("outputs.stringOutput").HasValue("Standard_GRS"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
+func TestAccTemplateDeployment_withError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	r := TemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTemplateDeployment_withOutputs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists(data.ResourceName),
-					resource.TestCheckOutput("tfIntOutput", "-123"),
-					resource.TestCheckOutput("tfStringOutput", "Standard_GRS"),
-
-					// these values *should* be 'true' and 'false' but,
-					// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
-					// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
-					// at a later date these may return the expected 'true' / 'false' and should be changed back
-					resource.TestCheckOutput("tfFalseOutput", "false"),
-					resource.TestCheckOutput("tfTrueOutput", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "outputs.stringOutput", "Standard_GRS"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.withError(data),
+			ExpectError: regexp.MustCompile("Error waiting for deployment"),
 		},
 	})
 }
 
-func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMTemplateDeployment_withError(data),
-				ExpectError: regexp.MustCompile("Error waiting for deployment"),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on deploymentsClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: TemplateDeployment %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["deployments"]
+	if name == "" {
+		name = id.Path["Deployments"]
+	}
+
+	resp, err := clients.Resource.DeploymentsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Template Deployment (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckTemplateDeploymentDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -254,32 +216,7 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 	}
 }
 
-func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_template_deployment" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Template Deployment still exists:\n%#v", resp.Properties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMTemplateDeployment_basicSingle(data acceptance.TestData) string {
+func (TemplateDeploymentResource) basicSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -327,7 +264,7 @@ DEPLOY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTemplateDeployment_basicMultiple(data acceptance.TestData) string {
+func (TemplateDeploymentResource) basicMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -400,8 +337,8 @@ DEPLOY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMTemplateDeployment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMTemplateDeployment_basicMultiple(data)
+func (TemplateDeploymentResource) requiresImport(data acceptance.TestData) string {
+	template := TemplateDeploymentResource{}.basicMultiple(data)
 	return fmt.Sprintf(`
 %s
 
@@ -415,7 +352,7 @@ resource "azurerm_template_deployment" "import" {
 `, template)
 }
 
-func testAccAzureRMTemplateDeployment_nestedTemplate(data acceptance.TestData) string {
+func (TemplateDeploymentResource) nestedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -479,7 +416,7 @@ DEPLOY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testaccAzureRMTemplateDeployment_withParamsBody(data acceptance.TestData) string {
+func (TemplateDeploymentResource) withParamsBody(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -631,7 +568,7 @@ DEPLOY
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTemplateDeployment_withParams(data acceptance.TestData) string {
+func (TemplateDeploymentResource) withParams(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -734,7 +671,7 @@ DEPLOY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTemplateDeployment_withOutputs(data acceptance.TestData) string {
+func (TemplateDeploymentResource) withOutputs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -864,7 +801,7 @@ DEPLOY
 }
 
 // StorageAccount name is too long, forces error
-func testAccAzureRMTemplateDeployment_withError(data acceptance.TestData) string {
+func (TemplateDeploymentResource) withError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
