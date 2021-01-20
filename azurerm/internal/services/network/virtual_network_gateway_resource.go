@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -838,7 +837,7 @@ func hashVirtualNetworkGatewayRootCert(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["public_cert_data"].(string)))
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
@@ -848,7 +847,7 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string) (string, string, error) {
