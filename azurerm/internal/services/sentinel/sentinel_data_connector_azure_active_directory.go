@@ -3,6 +3,7 @@ package sentinel
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
@@ -159,7 +160,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryRead(d *schema.ResourceDat
 	d.Set("tenant_id", dc.TenantID)
 	if dt := dc.DataTypes; dt != nil {
 		if alert := dt.Alerts; alert != nil {
-			d.Set("alerts_enabled", alert.State == securityinsight.Enabled)
+			d.Set("alerts_enabled", strings.EqualFold(string(alert.State), string(securityinsight.Enabled)))
 		}
 	}
 
