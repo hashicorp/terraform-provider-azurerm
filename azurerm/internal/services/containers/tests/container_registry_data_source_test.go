@@ -6,31 +6,31 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type ContainerRegistryDataSource struct {
+}
 
 func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")
+	r := ContainerRegistryDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMContainerRegistry_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "admin_enabled"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "login_server"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("admin_enabled").Exists(),
+				check.That(data.ResourceName).Key("login_server").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMContainerRegistry_basic(data acceptance.TestData) string {
+func (ContainerRegistryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -38,5 +38,5 @@ data "azurerm_container_registry" "test" {
   name                = azurerm_container_registry.test.name
   resource_group_name = azurerm_container_registry.test.resource_group_name
 }
-`, testAccAzureRMContainerRegistry_basicManaged(data, "Basic"))
+`, ContainerRegistryResource{}.basicManaged(data, "Basic"))
 }

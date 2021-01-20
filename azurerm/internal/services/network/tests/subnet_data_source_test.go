@@ -6,131 +6,119 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type SubnetDataSource struct {
+}
 
 func TestAccDataSourceSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSubnet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "route_table_id", ""),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+				check.That(data.ResourceName).Key("address_prefix").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
+				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSubnet_basic_addressPrefixes(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefixes.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "route_table_id", ""),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic_addressPrefixes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
+				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceSubnet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				// since the network security group association is a separate resource this forces it
-				Config: testAccDataSourceSubnet_networkSecurityGroupDependencies(data),
-			},
-			{
-				Config: testAccDataSourceSubnet_networkSecurityGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefix"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "route_table_id", ""),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			// since the network security group association is a separate resource this forces it
+			Config: r.networkSecurityGroupDependencies(data),
+		},
+		{
+			Config: r.networkSecurityGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+				check.That(data.ResourceName).Key("address_prefix").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceSubnet_routeTable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				// since the route table association is a separate resource this forces it
-				Config: testAccDataSourceSubnet_routeTableDependencies(data),
-			},
-			{
-				Config: testAccDataSourceSubnet_routeTable(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefix"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "route_table_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			// since the route table association is a separate resource this forces it
+			Config: r.routeTableDependencies(data),
+		},
+		{
+			Config: r.routeTable(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+				check.That(data.ResourceName).Key("address_prefix").Exists(),
+				check.That(data.ResourceName).Key("route_table_id").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceSubnet_serviceEndpoint(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "route_table_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_endpoints.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_endpoints.0", "Microsoft.Sql"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_endpoints.1", "Microsoft.Storage"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.serviceEndpoint(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+				check.That(data.ResourceName).Key("address_prefix").Exists(),
+				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
+				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
+				check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
+				check.That(data.ResourceName).Key("service_endpoints.0").HasValue("Microsoft.Sql"),
+				check.That(data.ResourceName).Key("service_endpoints.1").HasValue("Microsoft.Storage"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceSubnet_basic(data acceptance.TestData) string {
-	template := testAccDataSourceSubnet_template(data)
+func (r SubnetDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -146,10 +134,10 @@ data "azurerm_subnet" "test" {
   virtual_network_name = azurerm_subnet.test.virtual_network_name
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccDataSourceSubnet_basic_addressPrefixes(data acceptance.TestData) string {
+func (SubnetDataSource) basic_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,8 +166,7 @@ data "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceSubnet_networkSecurityGroupDependencies(data acceptance.TestData) string {
-	template := testAccDataSourceSubnet_template(data)
+func (r SubnetDataSource) networkSecurityGroupDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -212,11 +199,10 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   subnet_id                 = azurerm_subnet.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccDataSourceSubnet_networkSecurityGroup(data acceptance.TestData) string {
-	template := testAccDataSourceSubnet_networkSecurityGroupDependencies(data)
+func (r SubnetDataSource) networkSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -225,11 +211,10 @@ data "azurerm_subnet" "test" {
   virtual_network_name = azurerm_subnet.test.virtual_network_name
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, template)
+`, r.networkSecurityGroupDependencies(data))
 }
 
-func testAccDataSourceSubnet_routeTableDependencies(data acceptance.TestData) string {
-	template := testAccDataSourceSubnet_template(data)
+func (r SubnetDataSource) routeTableDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -257,11 +242,10 @@ resource "azurerm_subnet_route_table_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   route_table_id = azurerm_route_table.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccDataSourceSubnet_routeTable(data acceptance.TestData) string {
-	template := testAccDataSourceSubnet_routeTableDependencies(data)
+func (r SubnetDataSource) routeTable(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -270,11 +254,10 @@ data "azurerm_subnet" "test" {
   virtual_network_name = azurerm_subnet.test.virtual_network_name
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, template)
+`, r.routeTableDependencies(data))
 }
 
-func testAccDataSourceSubnet_serviceEndpoint(data acceptance.TestData) string {
-	template := testAccAzureRMSubnet_serviceEndpointsUpdated(data)
+func (SubnetDataSource) serviceEndpoint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -283,10 +266,10 @@ data "azurerm_subnet" "test" {
   virtual_network_name = azurerm_subnet.test.virtual_network_name
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, template)
+`, SubnetResource{}.serviceEndpointsUpdated(data))
 }
 
-func testAccDataSourceSubnet_template(data acceptance.TestData) string {
+func (SubnetDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

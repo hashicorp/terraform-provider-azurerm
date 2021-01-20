@@ -1,509 +1,469 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+type ContainerGroupResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_SystemAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "0"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				),
-			},
-			data.ImportStep("identity.0.principal_id"),
+func TestAccContainerGroup_SystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.SystemAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+			),
 		},
+		data.ImportStep("identity.0.principal_id"),
 	})
 }
 
-func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
+func TestAccContainerGroup_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_UserAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.UserAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
+func TestAccContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_MultipleAssignedIdentities(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-				),
-			},
-			data.ImportStep("identity.0.principal_id"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.MultipleAssignedIdentities(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+			),
 		},
+		data.ImportStep("identity.0.principal_id"),
 	})
 }
 
-func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
+func TestAccContainerGroup_imageRegistryCredentials(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_imageRegistryCredentials(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.server", "hub.docker.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.username", "yourusername"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.password", "yourpassword"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.server", "mine.acr.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.username", "acrusername"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.password", "acrpassword"),
-				),
-			},
-			data.ImportStep(
-				"image_registry_credential.0.password",
-				"image_registry_credential.1.password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imageRegistryCredentials(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("image_registry_credential.#").HasValue("2"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.server").HasValue("hub.docker.com"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.username").HasValue("yourusername"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.password").HasValue("yourpassword"),
+				check.That(data.ResourceName).Key("image_registry_credential.1.server").HasValue("mine.acr.io"),
+				check.That(data.ResourceName).Key("image_registry_credential.1.username").HasValue("acrusername"),
+				check.That(data.ResourceName).Key("image_registry_credential.1.password").HasValue("acrpassword"),
+			),
+		},
+		data.ImportStep(
+			"image_registry_credential.0.password",
+			"image_registry_credential.1.password",
+		),
+	})
+}
+
+func TestAccContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.imageRegistryCredentials(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("image_registry_credential.#").HasValue("2"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.server").HasValue("hub.docker.com"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.username").HasValue("yourusername"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.password").HasValue("yourpassword"),
+				check.That(data.ResourceName).Key("image_registry_credential.1.server").HasValue("mine.acr.io"),
+				check.That(data.ResourceName).Key("image_registry_credential.1.username").HasValue("acrusername"),
+				check.That(data.ResourceName).Key("image_registry_credential.1.password").HasValue("acrpassword"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.imageRegistryCredentialsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("image_registry_credential.#").HasValue("1"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.server").HasValue("hub.docker.com"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.username").HasValue("updatedusername"),
+				check.That(data.ResourceName).Key("image_registry_credential.0.password").HasValue("updatedpassword"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
+func TestAccContainerGroup_logTypeUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_imageRegistryCredentials(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.server", "hub.docker.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.username", "yourusername"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.password", "yourpassword"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.server", "mine.acr.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.username", "acrusername"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.password", "acrpassword"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.server", "hub.docker.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.username", "updatedusername"),
-					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.0.password", "updatedpassword"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logTypeUnset(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.#").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.log_type").HasValue(""),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.metadata.%").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_id").Exists(),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_key").Exists(),
+			),
+		},
+		data.ImportStep("diagnostics.0.log_analytics.0.workspace_key"),
+	})
+}
+
+func TestAccContainerGroup_linuxBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(
+			"image_registry_credential.0.password",
+			"image_registry_credential.1.password",
+		),
+	})
+}
+
+func TestAccContainerGroup_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_container_group"),
 		},
 	})
 }
 
-func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
+func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_logTypeUnset(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.0.log_type", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.0.metadata.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics.0.log_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics.0.log_analytics.0.workspace_key"),
-				),
-			},
-			data.ImportStep("diagnostics.0.log_analytics.0.workspace_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_linuxBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-				),
-			},
-			data.ImportStep(
-				"image_registry_credential.0.password",
-				"image_registry_credential.1.password",
+		{
+			Config: r.linuxBasicUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
+func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_linuxBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMContainerGroup_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_container_group"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_linuxBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerGroup_linuxBasicUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_linuxComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.0", "/bin/bash"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.1", "-c"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.2", "ls"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.environment_variables.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.environment_variables.foo", "bar"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.environment_variables.foo1", "bar1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.secure_environment_variables.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.gpu.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.gpu.0.count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.gpu.0.sku", "K80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.volume.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.volume.0.mount_path", "/aci/logs"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.volume.0.name", "logs"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.volume.0.read_only", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "restart_policy", "OnFailure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.0.log_type", "ContainerInsights"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics.0.log_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics.0.log_analytics.0.workspace_key"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.exec.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.exec.0", "cat"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.exec.1", "/tmp/healthy"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.http_get.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.initial_delay_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.period_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.failure_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.success_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.timeout_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.failure_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.0.path", "/"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.0.port", "443"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.0.scheme", "Http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.initial_delay_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.period_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.success_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.timeout_seconds", "1"),
-				),
-			},
-			data.ImportStep(
-				"container.0.volume.0.storage_account_key",
-				"container.0.secure_environment_variables.%",
-				"container.0.secure_environment_variables.secureFoo",
-				"container.0.secure_environment_variables.secureFoo1",
-				"diagnostics.0.log_analytics.0.workspace_key",
+		{
+			Config: r.linuxBasicTagsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.OS").HasValue("Linux"),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
+func TestAccContainerGroup_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_virtualNetwork(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "identity"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_address_type", "Private"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network_profile_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "dns_config.#", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.commands.#").HasValue("3"),
+				check.That(data.ResourceName).Key("container.0.commands.0").HasValue("/bin/bash"),
+				check.That(data.ResourceName).Key("container.0.commands.1").HasValue("-c"),
+				check.That(data.ResourceName).Key("container.0.commands.2").HasValue("ls"),
+				check.That(data.ResourceName).Key("container.0.environment_variables.%").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.environment_variables.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("container.0.environment_variables.foo1").HasValue("bar1"),
+				check.That(data.ResourceName).Key("container.0.secure_environment_variables.%").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo").HasValue("secureBar"),
+				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo1").HasValue("secureBar1"),
+				check.That(data.ResourceName).Key("container.0.gpu.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.gpu.0.count").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.gpu.0.sku").HasValue("K80"),
+				check.That(data.ResourceName).Key("container.0.volume.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.volume.0.mount_path").HasValue("/aci/logs"),
+				check.That(data.ResourceName).Key("container.0.volume.0.name").HasValue("logs"),
+				check.That(data.ResourceName).Key("container.0.volume.0.read_only").HasValue("false"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("restart_policy").HasValue("OnFailure"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.#").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.log_type").HasValue("ContainerInsights"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.metadata.%").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_id").Exists(),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_key").Exists(),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.#").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.0").HasValue("cat"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.1").HasValue("/tmp/healthy"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.http_get.#").HasValue("0"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.initial_delay_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.period_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.failure_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.success_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.timeout_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.failure_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.path").HasValue("/"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.port").HasValue("443"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("Http"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.initial_delay_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.period_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.success_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.timeout_seconds").HasValue("1"),
+			),
 		},
+		data.ImportStep(
+			"container.0.volume.0.storage_account_key",
+			"container.0.secure_environment_variables.%",
+			"container.0.secure_environment_variables.secureFoo",
+			"container.0.secure_environment_variables.secureFoo1",
+			"diagnostics.0.log_analytics.0.workspace_key",
+		),
 	})
 }
 
-func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
+func TestAccContainerGroup_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_windowsBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Windows"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "2"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_windowsComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.0", "cmd.exe"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.1", "echo"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.2", "hi"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.environment_variables.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.environment_variables.foo", "bar"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.environment_variables.foo1", "bar1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.secure_environment_variables.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Windows"),
-					resource.TestCheckResourceAttr(data.ResourceName, "restart_policy", "Never"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.0.log_type", "ContainerInsights"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.0.metadata.%", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics.0.log_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics.0.log_analytics.0.workspace_key"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.exec.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.exec.0", "cat"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.exec.1", "/tmp/healthy"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.http_get.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.initial_delay_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.period_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.failure_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.success_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.readiness_probe.0.timeout_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.failure_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.0.path", "/"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.0.port", "443"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.http_get.0.scheme", "Http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.initial_delay_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.period_seconds", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.success_threshold", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.liveness_probe.0.timeout_seconds", "1"),
-				),
-			},
-			data.ImportStep(
-				"container.0.secure_environment_variables.%",
-				"container.0.secure_environment_variables.secureFoo",
-				"container.0.secure_environment_variables.secureFoo1",
-				"diagnostics.0.log_analytics.0.workspace_key",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.virtualNetwork(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
+				resource.TestCheckNoResourceAttr(data.ResourceName, "identity"),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
+				check.That(data.ResourceName).Key("ip_address_type").HasValue("Private"),
+				check.That(data.ResourceName).Key("network_profile_id").Exists(),
+				check.That(data.ResourceName).Key("dns_config.#").HasValue("1"),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerGroup_withPrivateEmpty(t *testing.T) {
+func TestAccContainerGroup_windowsBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_withPrivateEmpty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"container.0.secure_environment_variables.PRIVATE_VALUE",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Windows"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMContainerGroup_gitRepoVolume(t *testing.T) {
+func TestAccContainerGroup_windowsComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_gitRepoVolume(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.commands.#").HasValue("3"),
+				check.That(data.ResourceName).Key("container.0.commands.0").HasValue("cmd.exe"),
+				check.That(data.ResourceName).Key("container.0.commands.1").HasValue("echo"),
+				check.That(data.ResourceName).Key("container.0.commands.2").HasValue("hi"),
+				check.That(data.ResourceName).Key("container.0.environment_variables.%").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.environment_variables.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("container.0.environment_variables.foo1").HasValue("bar1"),
+				check.That(data.ResourceName).Key("container.0.secure_environment_variables.%").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo").HasValue("secureBar"),
+				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo1").HasValue("secureBar1"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Windows"),
+				check.That(data.ResourceName).Key("restart_policy").HasValue("Never"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.#").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.log_type").HasValue("ContainerInsights"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.metadata.%").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_id").Exists(),
+				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_key").Exists(),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.#").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.0").HasValue("cat"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.1").HasValue("/tmp/healthy"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.http_get.#").HasValue("0"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.initial_delay_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.period_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.failure_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.success_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.readiness_probe.0.timeout_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.failure_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.#").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.path").HasValue("/"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.port").HasValue("443"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("Http"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.initial_delay_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.period_seconds").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.success_threshold").HasValue("1"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.timeout_seconds").HasValue("1"),
+			),
 		},
+		data.ImportStep(
+			"container.0.secure_environment_variables.%",
+			"container.0.secure_environment_variables.secureFoo",
+			"container.0.secure_environment_variables.secureFoo1",
+			"diagnostics.0.log_analytics.0.workspace_key",
+		),
 	})
 }
 
-func TestAccAzureRMContainerGroup_emptyDirVolume(t *testing.T) {
+func TestAccContainerGroup_withPrivateEmpty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_emptyDirVolume(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withPrivateEmpty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(
+			"container.0.secure_environment_variables.PRIVATE_VALUE",
+		),
 	})
 }
 
-func TestAccAzureRMContainerGroup_secretVolume(t *testing.T) {
+func TestAccContainerGroup_gitRepoVolume(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerGroup_secretVolume(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("container.0.volume.0.secret"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.gitRepoVolume(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
+func TestAccContainerGroup_emptyDirVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyDirVolume(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerGroup_secretVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.secretVolume(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container.0.volume.0.secret"),
+	})
+}
+
+func (ContainerGroupResource) SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -543,7 +503,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_UserAssignedIdentity(data acceptance.TestData) string {
+func (ContainerGroupResource) UserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -591,7 +551,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_MultipleAssignedIdentities(data acceptance.TestData) string {
+func (ContainerGroupResource) MultipleAssignedIdentities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -639,7 +599,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_linuxBasic(data acceptance.TestData) string {
+func (ContainerGroupResource) linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -675,8 +635,44 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMContainerGroup_linuxBasic(data)
+func (ContainerGroupResource) linuxBasicTagsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  tags = {
+    environment = "Testing"
+    OS          = "Linux"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ContainerGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -702,10 +698,10 @@ resource "azurerm_container_group" "import" {
     environment = "Testing"
   }
 }
-`, template)
+`, r.linuxBasic(data))
 }
 
-func testAccAzureRMContainerGroup_imageRegistryCredentials(data acceptance.TestData) string {
+func (ContainerGroupResource) imageRegistryCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -760,7 +756,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data acceptance.TestData) string {
+func (ContainerGroupResource) imageRegistryCredentialsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -809,7 +805,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_logTypeUnset(data acceptance.TestData) string {
+func (ContainerGroupResource) logTypeUnset(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -858,7 +854,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_linuxBasicUpdated(data acceptance.TestData) string {
+func (ContainerGroupResource) linuxBasicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -906,7 +902,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_virtualNetwork(data acceptance.TestData) string {
+func (ContainerGroupResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -985,7 +981,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_windowsBasic(data acceptance.TestData) string {
+func (ContainerGroupResource) windowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1027,7 +1023,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_windowsComplete(data acceptance.TestData) string {
+func (ContainerGroupResource) windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1133,7 +1129,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_linuxComplete(data acceptance.TestData) string {
+func (ContainerGroupResource) linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1270,7 +1266,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_gitRepoVolume(data acceptance.TestData) string {
+func (ContainerGroupResource) gitRepoVolume(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1347,7 +1343,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_emptyDirVolume(data acceptance.TestData) string {
+func (ContainerGroupResource) emptyDirVolume(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1419,7 +1415,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerGroup_secretVolume(data acceptance.TestData) string {
+func (ContainerGroupResource) secretVolume(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1465,60 +1461,23 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Container Group %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on containerGroupsClient: %+v", err)
-		}
-		return nil
+func (t ContainerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["containerGroups"]
 
-func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_container_group" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Container Group still exists:\n%#v", resp)
-			}
-
-			return nil
-		}
+	resp, err := clients.Containers.GroupsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Container Group (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMContainerGroup_withPrivateEmpty(data acceptance.TestData) string {
+func (ContainerGroupResource) withPrivateEmpty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

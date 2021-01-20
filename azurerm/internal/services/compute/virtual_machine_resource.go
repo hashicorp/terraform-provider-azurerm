@@ -11,7 +11,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -1901,7 +1900,7 @@ func resourceVirtualMachineStorageOsProfileHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
@@ -1919,7 +1918,7 @@ func resourceVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int 
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
@@ -1929,7 +1928,7 @@ func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
@@ -1950,7 +1949,7 @@ func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {

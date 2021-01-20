@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualNetworkGateway() *schema.Resource {
+func dataSourceVirtualNetworkGateway() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVirtualNetworkGatewayRead,
+		Read: dataSourceVirtualNetworkGatewayRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -230,7 +230,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 	}
 }
 
-func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,21 +276,21 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 			d.Set("sku", string(gw.Sku.Name))
 		}
 
-		if err := d.Set("ip_configuration", flattenArmVirtualNetworkGatewayDataSourceIPConfigurations(gw.IPConfigurations)); err != nil {
+		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayDataSourceIPConfigurations(gw.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(gw.VpnClientConfiguration)
+		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(gw.VpnClientConfiguration)
 		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenArmVirtualNetworkGatewayDataSourceBgpSettings(gw.BgpSettings)
+		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(gw.BgpSettings)
 		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
 
-		if err := d.Set("custom_route", flattenArmVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
+		if err := d.Set("custom_route", flattenVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
 			return fmt.Errorf("setting `custom_route`: %+v", err)
 		}
 	}
@@ -298,7 +298,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenArmVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
 	flat := make([]interface{}, 0)
 
 	if ipConfigs != nil {
@@ -330,7 +330,7 @@ func flattenArmVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]netw
 	return flat
 }
 
-func flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
 	if cfg == nil {
 		return []interface{}{}
 	}
@@ -392,7 +392,7 @@ func flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnCl
 	return []interface{}{flat}
 }
 
-func flattenArmVirtualNetworkGatewayDataSourceBgpSettings(settings *network.BgpSettings) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceBgpSettings(settings *network.BgpSettings) []interface{} {
 	output := make([]interface{}, 0)
 
 	if settings != nil {

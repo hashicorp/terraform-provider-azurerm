@@ -16,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKubernetesCluster() *schema.Resource {
+func dataSourceKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKubernetesClusterRead,
+		Read: dataSourceKubernetesClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -263,6 +263,10 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"user_assigned_identity_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -539,7 +543,7 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -649,7 +653,12 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if err := d.Set("identity", flattenKubernetesClusterDataSourceManagedClusterIdentity(resp.Identity)); err != nil {
+	identity, err := flattenKubernetesClusterDataSourceManagedClusterIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -1092,10 +1101,10 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) ([]interface{}, error) {
 	// if it's none, omit the block
 	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identity := make(map[string]interface{})
@@ -1110,7 +1119,22 @@ func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerse
 		identity["tenant_id"] = *input.TenantID
 	}
 
+	identity["user_assigned_identity_id"] = ""
+	if input.UserAssignedIdentities != nil {
+		keys := []string{}
+		for key := range input.UserAssignedIdentities {
+			keys = append(keys, key)
+		}
+		if len(keys) > 0 {
+			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			if err != nil {
+				return nil, err
+			}
+			identity["user_assigned_identity_id"] = parsedId.ID()
+		}
+	}
+
 	identity["type"] = string(input.Type)
 
-	return []interface{}{identity}
+	return []interface{}{identity}, nil
 }

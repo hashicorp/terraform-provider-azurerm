@@ -1,100 +1,94 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+type PrivateEndpointResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_service_connection.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
+func TestAccPrivateEndpoint_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateEndpoint_updateTag(t *testing.T) {
+func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateEndpoint_withTag(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withTag(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
+func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_requestMessage(data, "CATS: ALL YOUR BASE ARE BELONG TO US."),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_service_connection.0.request_message", "CATS: ALL YOUR BASE ARE BELONG TO US."),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPrivateEndpoint_requestMessage(data, "CAPTAIN: WHAT YOU SAY!!"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_service_connection.0.request_message", "CAPTAIN: WHAT YOU SAY!!"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.requestMessage(data, "CATS: ALL YOUR BASE ARE BELONG TO US."),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CATS: ALL YOUR BASE ARE BELONG TO US."),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.requestMessage(data, "CAPTAIN: WHAT YOU SAY!!"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CAPTAIN: WHAT YOU SAY!!"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -102,180 +96,130 @@ func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
 // tags has been removed, all other attributes are ForceNew.
 // API Issue "Unable to remove Tags from Private Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
 
-func TestAccAzureRMPrivateEndpoint_privateDnsZoneGroup(t *testing.T) {
+func TestAccPrivateEndpoint_privateDnsZoneGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateDnsZoneGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
 		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 	})
 }
 
-func TestAccAzureRMPrivateEndpoint_privateDnsZoneRename(t *testing.T) {
+func TestAccPrivateEndpoint_privateDnsZoneRename(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroupRename(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateDnsZoneGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
 		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+		{
+			Config: r.privateDnsZoneGroupRename(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 	})
 }
 
-func TestAccAzureRMPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
+func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroupUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateDnsZoneGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
 		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+		{
+			Config: r.privateDnsZoneGroupUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("2"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("2"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 	})
 }
 
-func TestAccAzureRMPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
+func TestAccPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroupRemove(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
-			{
-				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.0.private_dns_zone_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_configs.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_dns_zone_group.#", "1"),
-				),
-			},
-			data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateDnsZoneGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
 		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+		{
+			Config: r.privateDnsZoneGroupRemove(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+		{
+			Config: r.privateDnsZoneGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
 	})
 }
 
-func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PrivateEndpointClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Private Endpoint not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Private Endpoint %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on PrivateEndpointClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PrivateEndpointClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_private_endpoint" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on PrivateEndpointClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.PrivateEndpointID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Network.PrivateEndpointClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Private Endpoint (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPrivateEndpointTemplate_template(data acceptance.TestData, seviceCfg string) string {
+func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -336,7 +280,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, seviceCfg)
 }
 
-func testAccAzureRMPrivateEndpoint_serviceAutoApprove(data acceptance.TestData) string {
+func (PrivateEndpointResource) serviceAutoApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_private_link_service" "test" {
@@ -359,7 +303,7 @@ resource "azurerm_private_link_service" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_serviceManualApprove(data acceptance.TestData) string {
+func (PrivateEndpointResource) serviceManualApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_private_link_service" "test" {
@@ -380,7 +324,7 @@ resource "azurerm_private_link_service" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_basic(data acceptance.TestData) string {
+func (r PrivateEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -396,10 +340,10 @@ resource "azurerm_private_endpoint" "test" {
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
-`, testAccAzureRMPrivateEndpointTemplate_template(data, testAccAzureRMPrivateEndpoint_serviceAutoApprove(data)), data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_withTag(data acceptance.TestData) string {
+func (r PrivateEndpointResource) withTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -419,10 +363,10 @@ resource "azurerm_private_endpoint" "test" {
     env = "TEST"
   }
 }
-`, testAccAzureRMPrivateEndpointTemplate_template(data, testAccAzureRMPrivateEndpoint_serviceAutoApprove(data)), data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_requestMessage(data acceptance.TestData, msg string) string {
+func (r PrivateEndpointResource) requestMessage(data acceptance.TestData, msg string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -439,10 +383,10 @@ resource "azurerm_private_endpoint" "test" {
     request_message                = %q
   }
 }
-`, testAccAzureRMPrivateEndpointTemplate_template(data, testAccAzureRMPrivateEndpoint_serviceManualApprove(data)), data.RandomInteger, msg)
+`, r.template(data, r.serviceManualApprove(data)), data.RandomInteger, msg)
 }
 
-func testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data acceptance.TestData) string {
+func (PrivateEndpointResource) privateDnsZoneGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -522,7 +466,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_privateDnsZoneGroupRemove(data acceptance.TestData) string {
+func (PrivateEndpointResource) privateDnsZoneGroupRemove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -597,7 +541,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_privateDnsZoneGroupUpdate(data acceptance.TestData) string {
+func (PrivateEndpointResource) privateDnsZoneGroupUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -682,7 +626,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateEndpoint_privateDnsZoneGroupRename(data acceptance.TestData) string {
+func (PrivateEndpointResource) privateDnsZoneGroupRename(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

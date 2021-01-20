@@ -15,11 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetNatGatewayAssociation() *schema.Resource {
+func resourceSubnetNatGatewayAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetNatGatewayAssociationCreate,
-		Read:   resourceArmSubnetNatGatewayAssociationRead,
-		Delete: resourceArmSubnetNatGatewayAssociationDelete,
+		Create: resourceSubnetNatGatewayAssociationCreate,
+		Read:   resourceSubnetNatGatewayAssociationRead,
+		Delete: resourceSubnetNatGatewayAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -48,7 +48,7 @@ func resourceArmSubnetNatGatewayAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,10 +114,10 @@ func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta i
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmSubnetNatGatewayAssociationRead(d, meta)
+	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
 
-func resourceArmSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceArmSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmSubnetNatGatewayAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

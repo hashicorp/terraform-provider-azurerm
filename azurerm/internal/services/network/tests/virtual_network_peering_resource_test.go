@@ -1,153 +1,129 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
+type VirtualNetworkPeeringResource struct {
+}
+
+func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
-					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
+				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetworkPeering_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	r := VirtualNetworkPeeringResource{}
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccVirtualNetworkPeering_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	r := VirtualNetworkPeeringResource{}
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
+				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				testCheckVirtualNetworkPeeringDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
+func TestAccVirtualNetworkPeering_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
-					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMVirtualNetworkPeering_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
+				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("false"),
+				resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "false"),
+			),
+		},
+
+		{
+			Config: r.basicUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
+				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("true"),
+				resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "true"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
-	secondResourceName := "azurerm_virtual_network_peering.test2"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
-					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
-					testCheckAzureRMVirtualNetworkPeeringDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
-	secondResourceName := "azurerm_virtual_network_peering.test2"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
-					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_forwarded_traffic", "false"),
-					resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "false"),
-				),
-			},
-
-			{
-				Config: testAccAzureRMVirtualNetworkPeering_basicUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
-					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_forwarded_traffic", "true"),
-					resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "true"),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		vnetName := rs.Primary.Attributes["virtual_network_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", name)
-		}
-
-		// Ensure resource group/virtual network peering combination exists in API
-		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on vnetPeeringsClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Network Peering %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	vnetName := id.Path["virtualNetworks"]
+	name := id.Path["virtualNetworkPeerings"]
+
+	resp, err := clients.Network.VnetPeeringsClient.Get(ctx, resGroup, vnetName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Virtual Network Peering (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -179,33 +155,7 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 	}
 }
 
-func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_network_peering" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		vnetName := rs.Primary.Attributes["virtual_network_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Network Peering sitll exists:\n%#v", resp.VirtualNetworkPeeringPropertiesFormat)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMVirtualNetworkPeering_basic(data acceptance.TestData) string {
+func (VirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -248,8 +198,7 @@ resource "azurerm_virtual_network_peering" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetworkPeering_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualNetworkPeering_basic(data)
+func (r VirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -260,10 +209,10 @@ resource "azurerm_virtual_network_peering" "import" {
   remote_virtual_network_id    = azurerm_virtual_network_peering.test1.remote_virtual_network_id
   allow_virtual_network_access = azurerm_virtual_network_peering.test1.allow_virtual_network_access
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMVirtualNetworkPeering_basicUpdate(data acceptance.TestData) string {
+func (VirtualNetworkPeeringResource) basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

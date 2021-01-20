@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -1055,7 +1054,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
@@ -1065,7 +1064,7 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
@@ -1075,7 +1074,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 		buf.WriteString(strings.ToLower(m["id"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func diffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {

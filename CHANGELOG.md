@@ -1,14 +1,26 @@
 ## 2.44.0 (Unreleased)
 
-* dependencies: updating github.com/Azure/go-autorest to `v0.11.16` [GH-10164]
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.11.16` [GH-10164]
 * dependencies: updating `appconfiguration` to API version `2020-06-01` [GH-10176]
-* dependencies: updating `containerservice` to API version `2020-12-01` [GH-1017610171
-* dependencies: updating `msi` to API version `2018-11-30` [GH-10171]
 * dependencies: updating `appplatform` to API version `2020-07-01` [GH-10175]
+* dependencies: updating `containerservice` to API version `2020-12-01` [GH-10171]
+* dependencies: updating `msi` to API version `2018-11-30` [GH-10174]
+* Data Source: `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
+* `azurerm_api_management` - support additional TLS ciphers within the `security` block [GH-9276]
+* `azurerm_container_group` - support for updating `tags` [GH-10210]
+* `azurerm_kubernetes_cluster` - the field `type` within the `identity` block can now be set to `UserAssigned` [GH-8737]
+* `azurerm_kubernetes_cluster` - support for the field `new_pod_scale_up_delay` within the `auto_scaler_profile` block [GH-9291]
+* `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
+* `azurerm_monitor_autoscale_setting` - now supports the `dimensions` property [GH-9795]
+* `azurerm_sentinel_alert_rule_scheduled` - now supports the `event_grouping_setting` property [GH-10078]
 
 BUG FIXES:
 
-`azurerm_backup_protected_file_share` - address brekaing API change so resource now functions again [GH-9015]
+* `azurerm_backup_protected_file_share` - updating to account for a breaking API change [GH-9015]
+* `azurerm_key_vault_certificate` - fixing a crash when `subject` within the `certificate_policy` block was nil [GH-10200]
+* `azurerm_user_assigned_identity` - adding a state migration to update the ID format [GH-10196]
 
 ## 2.43.0 (January 14, 2021)
 

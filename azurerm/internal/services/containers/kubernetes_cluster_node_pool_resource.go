@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKubernetesClusterNodePool() *schema.Resource {
+func resourceKubernetesClusterNodePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterNodePoolCreate,
-		Read:   resourceArmKubernetesClusterNodePoolRead,
-		Update: resourceArmKubernetesClusterNodePoolUpdate,
-		Delete: resourceArmKubernetesClusterNodePoolDelete,
+		Create: resourceKubernetesClusterNodePoolCreate,
+		Read:   resourceKubernetesClusterNodePoolRead,
+		Update: resourceKubernetesClusterNodePoolUpdate,
+		Delete: resourceKubernetesClusterNodePoolDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NodePoolID(id)
@@ -223,7 +223,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
@@ -411,10 +411,10 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmKubernetesClusterNodePoolRead(d, meta)
+	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	client := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -546,10 +546,10 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 
 	d.Partial(false)
 
-	return resourceArmKubernetesClusterNodePoolRead(d, meta)
+	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -674,7 +674,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,39 +6,38 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
+type KubernetesClusterNodePoolDataSource struct {
+}
+
 var kubernetesNodePoolDataSourceTests = map[string]func(t *testing.T){
-	"basic": testAccAzureRMKubernetesClusterNodePoolDataSource_basic,
+	"basic": testAccKubernetesClusterNodePoolDataSource_basic,
 }
 
-func TestAccAzureRMKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
+func TestAccKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePoolDataSource_basic(t)
+	testAccKubernetesClusterNodePoolDataSource_basic(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
+func testAccKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePoolDataSource_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "node_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMKubernetesClusterNodePoolDataSource_basicConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data)
+func (KubernetesClusterNodePoolDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -47,5 +46,5 @@ data "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_name = azurerm_kubernetes_cluster.test.name
   resource_group_name     = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, template)
+`, KubernetesClusterNodePoolResource{}.manualScaleConfig(data))
 }

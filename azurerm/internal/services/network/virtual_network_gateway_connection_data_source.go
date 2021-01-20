@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
+func dataSourceVirtualNetworkGatewayConnection() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVirtualNetworkGatewayConnectionRead,
+		Read: dataSourceVirtualNetworkGatewayConnectionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -188,7 +188,7 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 	}
 }
 
-func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,12 +253,12 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 
 		d.Set("resource_guid", gwc.ResourceGUID)
 
-		ipsecPoliciesSettingsFlat := flattenArmVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
+		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
 		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
 			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
 		}
 
-		trafficSelectorsPolicyFlat := flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(gwc.TrafficSelectorPolicies)
+		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(gwc.TrafficSelectorPolicies)
 		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
 			return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
 		}
@@ -267,7 +267,7 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 	return nil
 }
 
-func flattenArmVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
+func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
 	schemaIpsecPolicies := make([]interface{}, 0)
 
 	if ipsecPolicies != nil {
@@ -296,7 +296,7 @@ func flattenArmVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolic
 	return schemaIpsecPolicies
 }
 
-func flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
+func flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
 	schemaTrafficSelectorPolicies := make([]interface{}, 0)
 
 	if trafficSelectorPolicies != nil {

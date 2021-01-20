@@ -6,30 +6,31 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type WebApplicationFirewallDataSource struct {
+}
 
 func TestAccDataSourceAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallDataSource{}
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMWebApplicationFirewallPolicyBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestwafpolicy-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestwafpolicy-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMWebApplicationFirewallPolicyBasic(data acceptance.TestData) string {
+func (WebApplicationFirewallDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -38,5 +39,5 @@ data "azurerm_web_application_firewall_policy" "test" {
   name                = azurerm_web_application_firewall_policy.test.name
 
 }
-`, testAccAzureRMWebApplicationFirewallPolicy_complete(data))
+`, WebApplicationFirewallResource{}.complete(data))
 }

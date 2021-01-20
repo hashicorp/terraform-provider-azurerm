@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -9,15 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type KubernetesClusterResource struct {
+}
+
 var (
-	olderKubernetesVersion   = "1.16.15"
-	currentKubernetesVersion = "1.17.11"
+	olderKubernetesVersion   = "1.18.14"
+	currentKubernetesVersion = "1.19.6"
 )
 
-func TestAccAzureRMKubernetes_all(t *testing.T) {
+func TestAccKubernetes_all(t *testing.T) {
 	// NOTE: this test is no longer used, but this assignment kicks around temporarily
 	// to allow us to migrate off this without causing conflicts in open PR's
 	_ = map[string]map[string]func(t *testing.T){
@@ -35,59 +40,18 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 	t.Skip("Skipping since this is being run Individually")
 }
 
-func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", name)
-		}
-
-		aks, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
-		}
-
-		if aks.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Managed Kubernetes Cluster %q (Resource Group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kubernetes_cluster" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Kubernetes Cluster still exists:\n%#v", resp)
-		}
+func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ClusterID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Containers.KubernetesClustersClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func kubernetesClusterUpdateNodePoolCount(resourceName string, nodeCount int) resource.TestCheckFunc {
