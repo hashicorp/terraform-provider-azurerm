@@ -8,660 +8,569 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
-	"enableNodePublicIP":                            testAccAzureRMKubernetesCluster_enableNodePublicIP,
-	"internalNetwork":                               testAccAzureRMKubernetesCluster_internalNetwork,
-	"changingLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
-	"prefixedLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
-	"standardLoadBalancer":                          testAccAzureRMKubernetesCluster_standardLoadBalancer,
-	"standardLoadBalancerComplete":                  testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
-	"standardLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
-	"standardLoadBalancerProfileComplete":           testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
-	"advancedNetworkingKubenet":                     testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
-	"advancedNetworkingKubenetComplete":             testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
-	"advancedNetworkingAzure":                       testAccAzureRMKubernetesCluster_advancedNetworkingAzure,
-	"advancedNetworkingAzureComplete":               testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
-	"advancedNetworkingAzureCalicoPolicy":           testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
-	"advancedNetworkingAzureCalicoPolicyComplete":   testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
-	"advancedNetworkingAzureNPMPolicy":              testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
-	"advancedNetworkingAzureNPMPolicyComplete":      testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
-	"basicLoadBalancerProfile":                      testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
-	"standardLoadBalancerProfileWithPortAndTimeout": testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout,
+	"enableNodePublicIP":                            testAccKubernetesCluster_enableNodePublicIP,
+	"internalNetwork":                               testAccKubernetesCluster_internalNetwork,
+	"changingLoadBalancerProfile":                   testAccKubernetesCluster_changingLoadBalancerProfile,
+	"prefixedLoadBalancerProfile":                   testAccKubernetesCluster_prefixedLoadBalancerProfile,
+	"standardLoadBalancer":                          testAccKubernetesCluster_standardLoadBalancer,
+	"standardLoadBalancerComplete":                  testAccKubernetesCluster_standardLoadBalancerComplete,
+	"standardLoadBalancerProfile":                   testAccKubernetesCluster_standardLoadBalancerProfile,
+	"standardLoadBalancerProfileComplete":           testAccKubernetesCluster_standardLoadBalancerProfileComplete,
+	"advancedNetworkingKubenet":                     testAccKubernetesCluster_advancedNetworkingKubenet,
+	"advancedNetworkingKubenetComplete":             testAccKubernetesCluster_advancedNetworkingKubenetComplete,
+	"advancedNetworkingAzure":                       testAccKubernetesCluster_advancedNetworkingAzure,
+	"advancedNetworkingAzureComplete":               testAccKubernetesCluster_advancedNetworkingAzureComplete,
+	"advancedNetworkingAzureCalicoPolicy":           testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
+	"advancedNetworkingAzureCalicoPolicyComplete":   testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
+	"advancedNetworkingAzureNPMPolicy":              testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy,
+	"advancedNetworkingAzureNPMPolicyComplete":      testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
+	"basicLoadBalancerProfile":                      testAccKubernetesCluster_basicLoadBalancerProfile,
+	"standardLoadBalancerProfileWithPortAndTimeout": testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout,
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t)
+	testAccKubernetesCluster_advancedNetworkingKubenet(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data, "kubenet"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "kubenet"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingConfig(data, "kubenet"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t)
+	testAccKubernetesCluster_advancedNetworkingKubenetComplete(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data, "kubenet"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "kubenet"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingCompleteConfig(data, "kubenet"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t)
+	testAccKubernetesCluster_advancedNetworkingAzure(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data, "azure"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingConfig(data, "azure"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t)
+	testAccKubernetesCluster_advancedNetworkingAzureComplete(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data, "azure"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingCompleteConfig(data, "azure"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t)
+	testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "calico"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t)
+	testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data, "azure", "calico"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "calico"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "calico"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTransparent(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTransparent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "transparent"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "calico"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_mode", "transparent"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "transparent"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+				check.That(data.ResourceName).Key("network_profile.0.network_mode").HasValue("transparent"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeBridge(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeBridge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "bridge"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "calico"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_mode", "bridge"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "bridge"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+				check.That(data.ResourceName).Key("network_profile.0.network_mode").HasValue("bridge"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
+	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "azure"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t)
+	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
+func testAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data, "azure", "azure"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "azure"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "azure"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func TestAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_enableNodePublicIP(t)
+	testAccKubernetesCluster_enableNodePublicIP(t)
 }
 
-func testAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func testAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_node_public_ip", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_node_public_ip", "false"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_node_public_ip", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.enableNodePublicIPConfig(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
+		{
+			// Disabled
+			Config: r.enableNodePublicIPConfig(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.enableNodePublicIPConfig(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
+func TestAccKubernetesCluster_internalNetwork(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_internalNetwork(t)
+	testAccKubernetesCluster_internalNetwork(t)
 }
 
-func testAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
+func testAccKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_internalNetworkConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.max_pods", "60"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.internalNetworkConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").HasValue("60"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
+func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t)
+	testAccKubernetesCluster_outboundTypeLoadBalancer(t)
 }
 
-func testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
+func testAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_outboundTypeLoadBalancerConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.outboundTypeLoadBalancerConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
+func TestAccKubernetesCluster_privateClusterOn(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_privateClusterOn(t)
+	testAccKubernetesCluster_privateClusterOn(t)
 }
 
-func testAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
+func testAccKubernetesCluster_privateClusterOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_privateClusterConfig(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateClusterConfig(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_fqdn").Exists(),
+				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_privateClusterOff(t *testing.T) {
+func TestAccKubernetesCluster_privateClusterOff(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_privateClusterOff(t)
+	testAccKubernetesCluster_privateClusterOff(t)
 }
 
-func testAccAzureRMKubernetesCluster_privateClusterOff(t *testing.T) {
+func testAccKubernetesCluster_privateClusterOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_privateClusterConfig(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateClusterConfig(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
+func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_standardLoadBalancer(t)
+	testAccKubernetesCluster_standardLoadBalancer(t)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
+func testAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardLoadBalancerConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
+func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t)
+	testAccKubernetesCluster_standardLoadBalancerComplete(t)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
+func testAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardLoadBalancerCompleteConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
+func TestAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t)
+	testAccKubernetesCluster_standardLoadBalancerProfile(t)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
+func testAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ports_allocated", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardLoadBalancerProfileConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("3"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("3"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ports_allocated").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
+func TestAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t)
+	testAccKubernetesCluster_standardLoadBalancerProfileComplete(t)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
+func testAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { acceptance.PreCheck(t) },
-		Providers:                 acceptance.SupportedProviders,
-		CheckDestroy:              testCheckAzureRMKubernetesClusterDestroy,
-		PreventPostDestroyRefresh: true,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardLoadBalancerProfileCompleteConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
+			PreventPostDestroyRefresh: true,
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
+func TestAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t)
+	testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
+func testAccKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { acceptance.PreCheck(t) },
-		Providers:                 acceptance.SupportedProviders,
-		CheckDestroy:              testCheckAzureRMKubernetesClusterDestroy,
-		PreventPostDestroyRefresh: true,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeoutConfig(data, clientId, clientSecret),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ports_allocated", "8000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes", "10"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardLoadBalancerProfileWithPortAndTimeoutConfig(data, clientId, clientSecret),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ports_allocated").HasValue("8000"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes").HasValue("10"),
+			),
+			PreventPostDestroyRefresh: true,
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
+func TestAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t)
+	testAccKubernetesCluster_basicLoadBalancerProfile(t)
 }
 
-func testAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
+func testAccKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data),
-				ExpectError: regexp.MustCompile("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.basicLoadBalancerProfileConfig(data),
+			ExpectError: regexp.MustCompile("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
+func TestAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t)
+	testAccKubernetesCluster_prefixedLoadBalancerProfile(t)
 }
 
-func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
+func testAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.prefixedLoadBalancerProfileConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
+func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t)
+	testAccKubernetesCluster_changingLoadBalancerProfile(t)
 }
 
-func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
+func testAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigManagedIPs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPIds(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.changingLoadBalancerProfileConfigManagedIPs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.changingLoadBalancerProfileConfigIPIds(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_address_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
+func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -718,7 +627,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string) string {
+func (KubernetesClusterResource) advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -779,7 +688,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 // nolint unparam
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
+func (KubernetesClusterResource) advancedNetworkingWithPolicyConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -838,7 +747,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 // nolint unparam
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
+func (KubernetesClusterResource) advancedNetworkingWithPolicyCompleteConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -918,7 +827,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 // nolint unparam
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyNetworkMode(data acceptance.TestData, networkPlugin string, networkPolicy string, networkMode string) string {
+func (KubernetesClusterResource) advancedNetworkingWithPolicyNetworkMode(data acceptance.TestData, networkPlugin string, networkPolicy string, networkMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -998,7 +907,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkMode, networkPlugin, networkPolicy)
 }
 
-func testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1029,7 +938,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func testAccAzureRMKubernetesCluster_internalNetworkConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) internalNetworkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1083,7 +992,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_outboundTypeLoadBalancerConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) outboundTypeLoadBalancerConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1124,7 +1033,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {
+func (KubernetesClusterResource) privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1168,7 +1077,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) standardLoadBalancerConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1227,7 +1136,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1306,7 +1215,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) standardLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1368,7 +1277,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1438,7 +1347,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func (KubernetesClusterResource) standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1488,7 +1397,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) basicLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1550,7 +1459,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) prefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1619,7 +1528,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
+func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1691,7 +1600,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
+func (KubernetesClusterResource) changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1763,7 +1672,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
+func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

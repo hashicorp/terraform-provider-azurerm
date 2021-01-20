@@ -6,284 +6,257 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 var kubernetesAddOnTests = map[string]func(t *testing.T){
-	"addonProfileAciConnectorLinux":         testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux,
-	"addonProfileAciConnectorLinuxDisabled": testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
-	"addonProfileAzurePolicy":               testAccAzureRMKubernetesCluster_addonProfileAzurePolicy,
-	"addonProfileKubeDashboard":             testAccAzureRMKubernetesCluster_addonProfileKubeDashboard,
-	"addonProfileOMS":                       testAccAzureRMKubernetesCluster_addonProfileOMS,
-	"addonProfileOMSToggle":                 testAccAzureRMKubernetesCluster_addonProfileOMSToggle,
-	"addonProfileRouting":                   testAccAzureRMKubernetesCluster_addonProfileRoutingToggle,
+	"addonProfileAciConnectorLinux":         testAccKubernetesCluster_addonProfileAciConnectorLinux,
+	"addonProfileAciConnectorLinuxDisabled": testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
+	"addonProfileAzurePolicy":               testAccKubernetesCluster_addonProfileAzurePolicy,
+	"addonProfileKubeDashboard":             testAccKubernetesCluster_addonProfileKubeDashboard,
+	"addonProfileOMS":                       testAccKubernetesCluster_addonProfileOMS,
+	"addonProfileOMSToggle":                 testAccKubernetesCluster_addonProfileOMSToggle,
+	"addonProfileRouting":                   testAccKubernetesCluster_addonProfileRoutingToggle,
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t)
+	testAccKubernetesCluster_addonProfileAciConnectorLinux(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
+func testAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.aci_connector_linux.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.aci_connector_linux.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.aci_connector_linux.0.subnet_name", fmt.Sprintf("acctestsubnet-aci%d", data.RandomInteger)),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addonProfileAciConnectorLinuxConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.0.subnet_name").HasValue(fmt.Sprintf("acctestsubnet-aci%d", data.RandomInteger)),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t)
+	testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
+func testAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.aci_connector_linux.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.aci_connector_linux.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.aci_connector_linux.0.subnet_name", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addonProfileAciConnectorLinuxDisabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("addon_profile.0.aci_connector_linux.0.subnet_name").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t)
+	testAccKubernetesCluster_addonProfileAzurePolicy(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
+func testAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enable with V2
-				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disable it
-				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "false"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enable with V2
-				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enable with V2
+			Config: r.addonProfileAzurePolicyConfig(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
+		{
+			// Disable it
+			Config: r.addonProfileAzurePolicyConfig(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enable with V2
+			Config: r.addonProfileAzurePolicyConfig(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t)
+	testAccKubernetesCluster_addonProfileKubeDashboard(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
+func testAccKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileKubeDashboardConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.kube_dashboard.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.kube_dashboard.0.enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addonProfileKubeDashboardConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileOMS(t)
+	testAccKubernetesCluster_addonProfileOMS(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
+func testAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileOMSConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.oms_agent_identity.0.client_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.oms_agent_identity.0.object_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.oms_agent_identity.0.user_assigned_identity_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addonProfileOMSConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.log_analytics_workspace_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.oms_agent_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.oms_agent_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.oms_agent_identity.0.user_assigned_identity_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileOMSToggle(t)
+	testAccKubernetesCluster_addonProfileOMSToggle(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
+func testAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileOMSConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileOMSDisabledConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileOMSScaleWithoutBlockConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileOMSConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addonProfileOMSConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.log_analytics_workspace_id").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileOMSDisabledConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.log_analytics_workspace_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileOMSScaleWithoutBlockConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.log_analytics_workspace_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileOMSConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.log_analytics_workspace_id").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addonProfileRoutingToggle(t)
+	testAccKubernetesCluster_addonProfileRoutingToggle(t)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
+func testAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileRoutingConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.0.enabled", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.http_application_routing.0.http_application_routing_zone_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileRoutingConfigDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.http_application_routing.0.enabled", "false"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "addon_profile.0.http_application_routing.0.http_application_routing_zone_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.oms_agent.#", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addonProfileRoutingConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.http_application_routing_zone_name").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileRoutingConfigDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.http_application_routing_zone_name").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileAciConnectorLinuxConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -363,7 +336,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabledConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileAciConnectorLinuxDisabledConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -426,7 +399,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) addonProfileAzurePolicyConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -470,7 +443,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileKubeDashboardConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileKubeDashboardConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -514,7 +487,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileOMSConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileOMSConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -579,7 +552,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileOMSDisabledConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileOMSDisabledConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -623,7 +596,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileOMSScaleWithoutBlockConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileOMSScaleWithoutBlockConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -661,7 +634,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileRoutingConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileRoutingConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -708,7 +681,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileRoutingConfigDisabled(data acceptance.TestData) string {
+func (KubernetesClusterResource) addonProfileRoutingConfigDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

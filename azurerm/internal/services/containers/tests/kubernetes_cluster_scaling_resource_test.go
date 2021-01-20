@@ -7,346 +7,303 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 var kubernetesScalingTests = map[string]func(t *testing.T){
-	"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
-	"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
-	"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
-	"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
-	"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
-	"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
-	"autoScalingEnabledWithMaxCount":   testAccAzureRMKubernetesCluster_autoScalingWithMaxCount,
-	"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
-	"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
-	"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
+	"addAgent":                         testAccKubernetesCluster_addAgent,
+	"manualScaleIgnoreChanges":         testAccKubernetesCluster_manualScaleIgnoreChanges,
+	"removeAgent":                      testAccKubernetesCluster_removeAgent,
+	"autoScalingEnabledError":          testAccKubernetesCluster_autoScalingError,
+	"autoScalingEnabledErrorMax":       testAccKubernetesCluster_autoScalingErrorMax,
+	"autoScalingEnabledErrorMin":       testAccKubernetesCluster_autoScalingErrorMin,
+	"autoScalingEnabledWithMaxCount":   testAccKubernetesCluster_autoScalingWithMaxCount,
+	"autoScalingNodeCountUnset":        testAccKubernetesCluster_autoScalingNodeCountUnset,
+	"autoScalingNoAvailabilityZones":   testAccKubernetesCluster_autoScalingNoAvailabilityZones,
+	"autoScalingWithAvailabilityZones": testAccKubernetesCluster_autoScalingWithAvailabilityZones,
 }
 
-func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
+func TestAccKubernetesCluster_addAgent(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_addAgent(t)
+	testAccKubernetesCluster_addAgent(t)
 }
 
-func testAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
+func testAccKubernetesCluster_addAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addAgentConfig(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesCluster_addAgentConfig(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addAgentConfig(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+			),
+		},
+		{
+			Config: r.addAgentConfig(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
+func TestAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t)
+	testAccKubernetesCluster_manualScaleIgnoreChanges(t)
 }
 
-func testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
+func testAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-					kubernetesClusterUpdateNodePoolCount(data.ResourceName, 2),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfigUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleIgnoreChangesConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+				kubernetesClusterUpdateNodePoolCount(data.ResourceName, 2),
+			),
+		},
+		{
+			Config: r.manualScaleIgnoreChangesConfigUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
+func TestAccKubernetesCluster_removeAgent(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_removeAgent(t)
+	testAccKubernetesCluster_removeAgent(t)
 }
 
-func testAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
+func testAccKubernetesCluster_removeAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_addAgentConfig(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesCluster_addAgentConfig(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addAgentConfig(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+			),
+		},
+		{
+			Config: r.addAgentConfig(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingError(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingError(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingError(t)
+	testAccKubernetesCluster_autoScalingError(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingError(t *testing.T) {
+func testAccKubernetesCluster_autoScalingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoScalingEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesCluster_autoScalingEnabledUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-				ExpectError: regexp.MustCompile("cannot change `node_count` when `enable_auto_scaling` is set to `true`"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoScalingEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+			),
+		},
+		{
+			Config: r.autoScalingEnabledUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("cannot change `node_count` when `enable_auto_scaling` is set to `true`"),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingErrorMax(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingErrorMax(t)
+	testAccKubernetesCluster_autoScalingErrorMax(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingErrorMax(t *testing.T) {
+func testAccKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoScalingEnabledUpdateMax(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-				ExpectError: regexp.MustCompile("`node_count`\\(11\\) must be equal to or less than `max_count`\\(10\\) when `enable_auto_scaling` is set to `true`"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoScalingEnabledUpdateMax(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("`node_count`\\(11\\) must be equal to or less than `max_count`\\(10\\) when `enable_auto_scaling` is set to `true`"),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingWithMaxCount(t)
+	testAccKubernetesCluster_autoScalingWithMaxCount(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
+func testAccKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoScalingWithMaxCountConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoScalingWithMaxCountConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_autoScalingErrorMin(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_autoScalingErrorMin(t)
+}
+
+func testAccKubernetesCluster_autoScalingErrorMin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoScalingEnabledUpdateMin(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("`node_count`\\(1\\) must be equal to or greater than `min_count`\\(2\\) when `enable_auto_scaling` is set to `true`"),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingErrorMin(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingErrorMin(t)
+	testAccKubernetesCluster_autoScalingNodeCountUnset(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingErrorMin(t *testing.T) {
+func testAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoScalingEnabledUpdateMin(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-				ExpectError: regexp.MustCompile("`node_count`\\(1\\) must be equal to or greater than `min_count`\\(2\\) when `enable_auto_scaling` is set to `true`"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoscaleNodeCountUnsetConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.min_count").HasValue("2"),
+				check.That(data.ResourceName).Key("default_node_pool.0.max_count").HasValue("4"),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_graceful_termination_sec").HasValue("600"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.new_pod_scale_up_delay").HasValue("0s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_add").HasValue("10m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_delete").HasValue("10s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_failure").HasValue("3m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unneeded").HasValue("10m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unready").HasValue("20m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_utilization_threshold").HasValue("0.5"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scan_interval").HasValue("10s"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t)
+	testAccKubernetesCluster_autoScalingNoAvailabilityZones(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
+func testAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoscaleNodeCountUnsetConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.min_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.max_count", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_auto_scaling", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.max_graceful_termination_sec", "600"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.new_pod_scale_up_delay", "0s"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_add", "10m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_delete", "10s"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_failure", "3m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unneeded", "10m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unready", "20m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_utilization_threshold", "0.5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scan_interval", "10s"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoscaleNoAvailabilityZonesConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.type").HasValue("VirtualMachineScaleSets"),
+				check.That(data.ResourceName).Key("default_node_pool.0.min_count").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.max_count").HasValue("2"),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t)
+	testAccKubernetesCluster_autoScalingWithAvailabilityZones(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
+func testAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoscaleNoAvailabilityZonesConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.type", "VirtualMachineScaleSets"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.min_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.max_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_auto_scaling", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoscaleWithAvailabilityZonesConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.type").HasValue("VirtualMachineScaleSets"),
+				check.That(data.ResourceName).Key("default_node_pool.0.min_count").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.max_count").HasValue("2"),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.availability_zones.#").HasValue("2"),
+				check.That(data.ResourceName).Key("default_node_pool.0.availability_zones.0").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.availability_zones.1").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
+func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t)
+	testAccKubernetesCluster_autoScalingProfile(t)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
+func testAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoscaleWithAvailabilityZonesConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.type", "VirtualMachineScaleSets"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.min_count", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.max_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_auto_scaling", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.availability_zones.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.availability_zones.0", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.availability_zones.1", "2"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoScalingProfileConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_graceful_termination_sec").HasValue("15"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.new_pod_scale_up_delay").HasValue("10s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_add").HasValue("10m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_delete").HasValue("10s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_failure").HasValue("15m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unneeded").HasValue("15m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unready").HasValue("15m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_utilization_threshold").HasValue("0.5"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.scan_interval").HasValue("10s"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScalingProfile(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_autoScalingProfile(t)
-}
-
-func testAccAzureRMKubernetesCluster_autoScalingProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_autoScalingProfileConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_auto_scaling", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.max_graceful_termination_sec", "15"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.new_pod_scale_up_delay", "10s"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_add", "10m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_delete", "10s"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_failure", "15m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unneeded", "15m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unready", "15m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_utilization_threshold", "0.5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scan_interval", "10s"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMKubernetesCluster_addAgentConfig(data acceptance.TestData, numberOfAgents int) string {
+func (KubernetesClusterResource) addAgentConfig(data acceptance.TestData, numberOfAgents int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -381,7 +338,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, numberOfAgents)
 }
 
-func testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) manualScaleIgnoreChangesConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -417,7 +374,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfigUpdated(data acceptance.TestData) string {
+func (KubernetesClusterResource) manualScaleIgnoreChangesConfigUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -457,7 +414,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_autoscaleNodeCountUnsetConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) autoscaleNodeCountUnsetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -489,7 +446,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_autoscaleNoAvailabilityZonesConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) autoscaleNoAvailabilityZonesConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -521,7 +478,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_autoscaleWithAvailabilityZonesConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) autoscaleWithAvailabilityZonesConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -560,7 +517,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
 
-func testAccAzureRMKubernetesCluster_autoScalingProfileConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) autoScalingProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

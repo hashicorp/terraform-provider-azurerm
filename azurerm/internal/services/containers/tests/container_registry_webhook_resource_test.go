@@ -1,192 +1,170 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMContainerRegistryWebhook_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+type ContainerRegistryWebhookResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccContainerRegistryWebhook_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistryWebhook_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.label").HasValue("test"),
+			),
+		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.label").HasValue("test1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
+func TestAccContainerRegistryWebhook_actions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.actions(data),
+		},
+		data.ImportStep(),
+		{
+			Config: r.actionsUpdate(data),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistryWebhook_status(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.status(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("enabled"),
+			),
+		},
+		{
+			Config: r.statusUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("disabled"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
+func TestAccContainerRegistryWebhook_serviceUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_actions(data),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_actionsUpdate(data),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serviceUri(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_uri").HasValue("https://mywebhookreceiver.example/mytag"),
+			),
+		},
+		{
+			Config: r.serviceUriUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_uri").HasValue("https://my.webhookreceiver.example/mytag/2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerRegistryWebhook_status(t *testing.T) {
+func TestAccContainerRegistryWebhook_scope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_status(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "enabled"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_statusUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "disabled"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scope(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("mytag:*"),
+			),
+		},
+		{
+			Config: r.scopeUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("mytag:4"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerRegistryWebhook_serviceUri(t *testing.T) {
+func TestAccContainerRegistryWebhook_customHeaders(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
+	r := ContainerRegistryWebhookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_serviceUri(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_uri", "https://mywebhookreceiver.example/mytag"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_serviceUriUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_uri", "https://my.webhookreceiver.example/mytag/2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customHeaders(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_headers.%").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_headers.Content-Type").HasValue("application/json"),
+			),
+		},
+		{
+			Config: r.customHeadersUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_headers.%").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_headers.Content-Type").HasValue("application/xml"),
+				check.That(data.ResourceName).Key("custom_headers.Accept-Charset").HasValue("utf-8"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMContainerRegistryWebhook_scope(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_scope(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "mytag:*"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_scopeUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "mytag:4"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_customHeaders(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.Content-Type", "application/json"),
-				),
-			},
-			{
-				Config: testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.Content-Type", "application/xml"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.Accept-Charset", "utf-8"),
-				),
-			},
-		},
-	})
-}
-
-func testAccAzureRMContainerRegistryWebhook_basic(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -219,7 +197,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_withTags(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -256,7 +234,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_withTagsUpdate(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -294,7 +272,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_actions(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) actions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -327,7 +305,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_actionsUpdate(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) actionsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -361,7 +339,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_status(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) status(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -396,7 +374,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_statusUpdate(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) statusUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -431,7 +409,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_serviceUri(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) serviceUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -464,7 +442,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_serviceUriUpdate(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) serviceUriUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -499,7 +477,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_scope(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) scope(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -534,7 +512,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_scopeUpdate(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) scopeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -569,7 +547,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_customHeaders(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) customHeaders(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -606,7 +584,7 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(data acceptance.TestData) string {
+func (ContainerRegistryWebhookResource) customHeadersUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -644,64 +622,19 @@ resource "azurerm_container_registry_webhook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t ContainerRegistryWebhookResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	registryName := id.Path["registries"]
+	name := id.Path["webhooks"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_container_registry_webhook" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		registryName := rs.Primary.Attributes["registry_name"]
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, registryName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
+	resp, err := clients.Containers.WebhooksClient.Get(ctx, resourceGroup, registryName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Container Registry Webhook (%s): %+v", id, err)
 	}
 
-	return nil
-}
-
-func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		webhookName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Container Registry Webhook: %s", webhookName)
-		}
-
-		registryName, hasRegistryName := rs.Primary.Attributes["registry_name"]
-		if !hasRegistryName {
-			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Container Registry Webhook %q (resource group: %q) does not exist", webhookName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on WebhooksClient: %+v", err)
-		}
-
-		return nil
-	}
+	return utils.Bool(resp.ID != nil), nil
 }

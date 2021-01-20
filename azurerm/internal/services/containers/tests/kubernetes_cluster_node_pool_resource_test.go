@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -11,907 +12,754 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type KubernetesClusterNodePoolResource struct {
+}
+
 var kubernetesNodePoolTests = map[string]func(t *testing.T){
-	"autoScale":                      testAccAzureRMKubernetesClusterNodePool_autoScale,
-	"autoScaleUpdate":                testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate,
-	"availabilityZones":              testAccAzureRMKubernetesClusterNodePool_availabilityZones,
-	"errorForAvailabilitySet":        testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet,
-	"multiplePools":                  testAccAzureRMKubernetesClusterNodePool_multiplePools,
-	"manualScale":                    testAccAzureRMKubernetesClusterNodePool_manualScale,
-	"manualScaleMultiplePools":       testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools,
-	"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
-	"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
-	"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
-	"maxSize":                        testAccAzureRMKubernetesClusterNodePool_maxSize,
-	"nodeLabels":                     testAccAzureRMKubernetesClusterNodePool_nodeLabels,
-	"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
-	"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
-	"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
-	"spot":                           testAccAzureRMKubernetesClusterNodePool_spot,
-	"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
-	"proximityPlacementGroupId":      testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId,
-	"osDiskType":                     testAccAzureRMKubernetesClusterNodePool_osDiskType,
-	"modeSystem":                     testAccAzureRMKubernetesClusterNodePool_modeSystem,
-	"modeUpdate":                     testAccAzureRMKubernetesClusterNodePool_modeUpdate,
-	"virtualNetworkAutomatic":        testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic,
-	"virtualNetworkManual":           testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual,
-	"windows":                        testAccAzureRMKubernetesClusterNodePool_windows,
-	"windowsAndLinux":                testAccAzureRMKubernetesClusterNodePool_windowsAndLinux,
-	"zeroSize":                       testAccAzureRMKubernetesClusterNodePool_zeroSize,
+	"autoScale":                      testAccKubernetesClusterNodePool_autoScale,
+	"autoScaleUpdate":                testAccKubernetesClusterNodePool_autoScaleUpdate,
+	"availabilityZones":              testAccKubernetesClusterNodePool_availabilityZones,
+	"errorForAvailabilitySet":        testAccKubernetesClusterNodePool_errorForAvailabilitySet,
+	"multiplePools":                  testAccKubernetesClusterNodePool_multiplePools,
+	"manualScale":                    testAccKubernetesClusterNodePool_manualScale,
+	"manualScaleMultiplePools":       testAccKubernetesClusterNodePool_manualScaleMultiplePools,
+	"manualScaleMultiplePoolsUpdate": testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
+	"manualScaleUpdate":              testAccKubernetesClusterNodePool_manualScaleUpdate,
+	"manualScaleVMSku":               testAccKubernetesClusterNodePool_manualScaleVMSku,
+	"maxSize":                        testAccKubernetesClusterNodePool_maxSize,
+	"nodeLabels":                     testAccKubernetesClusterNodePool_nodeLabels,
+	"nodePublicIP":                   testAccKubernetesClusterNodePool_nodePublicIP,
+	"nodeTaints":                     testAccKubernetesClusterNodePool_nodeTaints,
+	"requiresImport":                 testAccKubernetesClusterNodePool_requiresImport,
+	"spot":                           testAccKubernetesClusterNodePool_spot,
+	"osDiskSizeGB":                   testAccKubernetesClusterNodePool_osDiskSizeGB,
+	"proximityPlacementGroupId":      testAccKubernetesClusterNodePool_proximityPlacementGroupId,
+	"osDiskType":                     testAccKubernetesClusterNodePool_osDiskType,
+	"modeSystem":                     testAccKubernetesClusterNodePool_modeSystem,
+	"modeUpdate":                     testAccKubernetesClusterNodePool_modeUpdate,
+	"virtualNetworkAutomatic":        testAccKubernetesClusterNodePool_virtualNetworkAutomatic,
+	"virtualNetworkManual":           testAccKubernetesClusterNodePool_virtualNetworkManual,
+	"windows":                        testAccKubernetesClusterNodePool_windows,
+	"windowsAndLinux":                testAccKubernetesClusterNodePool_windowsAndLinux,
+	"zeroSize":                       testAccKubernetesClusterNodePool_zeroSize,
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
+func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_autoScale(t)
+	testAccKubernetesClusterNodePool_autoScale(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
+func testAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Enabled
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Disabled
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Enabled
+			Config: r.autoScaleConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Disabled
+			Config: r.manualScaleConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.autoScaleConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_autoScaleUpdate(t)
+}
+
+func testAccKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoScaleNodeCountConfig(data, 1, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoScaleNodeCountConfig(data, 3, 5),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoScaleNodeCountConfig(data, 0, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_availabilityZones(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_availabilityZones(t)
+}
+
+func testAccKubernetesClusterNodePool_availabilityZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.availabilityZonesConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_errorForAvailabilitySet(t)
+}
+
+func testAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.availabilitySetConfig(data),
+			ExpectError: regexp.MustCompile("must be a VirtualMachineScaleSet to attach multiple node pools"),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
+func TestAccKubernetesClusterNodePool_multiplePools(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t)
+	testAccKubernetesClusterNodePool_multiplePools(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(data, 1, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(data, 3, 5),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(data, 0, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_availabilityZones(t)
-}
-
-func testAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t)
-}
-
-func testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(data),
-				ExpectError: regexp.MustCompile("must be a VirtualMachineScaleSet to attach multiple node pools"),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_multiplePools(t)
-}
-
-func testAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
+func testAccKubernetesClusterNodePool_multiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "autoscale")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_multiplePoolsConfig(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.manual"),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      "azurerm_kubernetes_cluster_node_pool.manual",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiplePoolsConfig(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			ResourceName:      "azurerm_kubernetes_cluster_node_pool.manual",
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
+func TestAccKubernetesClusterNodePool_manualScale(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_manualScale(t)
+	testAccKubernetesClusterNodePool_manualScale(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
+func testAccKubernetesClusterNodePool_manualScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
+func TestAccKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t)
+	testAccKubernetesClusterNodePool_manualScaleMultiplePools(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
+func testAccKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "first")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.second"),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleMultiplePoolsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.second").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
+func TestAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t)
+	testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
+func testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "first")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCountConfig(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.second"),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCountConfig(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.second"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleMultiplePoolsNodeCountConfig(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.second").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
+			ImportState:       true,
+			ImportStateVerify: true,
+		},
+		{
+			Config: r.manualScaleMultiplePoolsNodeCountConfig(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.second").ExistsInAzure(r),
+			),
+		},
 
-			data.ImportStep(),
-			{
-				ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+		data.ImportStep(),
+		{
+			ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
+func TestAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChanges(t)
+	testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
+func testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_count", "1"),
-					testCheckAzureRMKubernetesNodePoolScale(data.ResourceName, 2),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesUpdatedConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_count", "2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleIgnoreChangesConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+				testCheckKubernetesNodePoolScale(data.ResourceName, 2),
+			),
+		},
+		{
+			Config: r.manualScaleIgnoreChangesUpdatedConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_count").HasValue("2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
+func TestAccKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t)
+	testAccKubernetesClusterNodePool_manualScaleUpdate(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
+func testAccKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// up
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// and down
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleNodeCountConfig(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// up
+			Config: r.manualScaleNodeCountConfig(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// and down
+			Config: r.manualScaleNodeCountConfig(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
+func TestAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t)
+	testAccKubernetesClusterNodePool_manualScaleVMSku(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
+func testAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleVMSkuConfig(data, "Standard_F2s_v2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleVMSkuConfig(data, "Standard_F2s_v2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_modeSystem(t *testing.T) {
+func TestAccKubernetesClusterNodePool_modeSystem(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_modeSystem(t)
+	testAccKubernetesClusterNodePool_modeSystem(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_modeSystem(t *testing.T) {
+func testAccKubernetesClusterNodePool_modeSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_modeSystemConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.modeSystemConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_modeUpdate(t *testing.T) {
+func TestAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_modeUpdate(t)
+	testAccKubernetesClusterNodePool_modeUpdate(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_modeUpdate(t *testing.T) {
+func testAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_modeUserConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_modeSystemConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_modeUserConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.modeUserConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.modeSystemConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.modeUserConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_nodeLabels(t *testing.T) {
+func TestAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_nodeLabels(t)
+	testAccKubernetesClusterNodePool_nodeLabels(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodeLabels(t *testing.T) {
+func testAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 	labels1 := map[string]string{"key": "value"}
 	labels2 := map[string]string{"key2": "value2"}
 	labels3 := map[string]string{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, labels1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, labels2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels2),
-				),
-			},
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, labels3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels3),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nodeLabelsConfig(data, labels1),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
+			),
+		},
+		{
+			Config: r.nodeLabelsConfig(data, labels2),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels2),
+			),
+		},
+		{
+			Config: r.nodeLabelsConfig(data, labels3),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels3),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
+func TestAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t)
+	testAccKubernetesClusterNodePool_nodePublicIP(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
+func testAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nodePublicIPConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
+func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_nodeTaints(t)
+	testAccKubernetesClusterNodePool_nodeTaints(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
+func testAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodeTaintsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nodeTaintsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+func TestAccKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t)
+	testAccKubernetesClusterNodePool_osDiskSizeGB(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+func testAccKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.osDiskSizeGBConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
+func TestAccKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId(t)
+	testAccKubernetesClusterNodePool_proximityPlacementGroupId(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
+func testAccKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupIdConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.proximityPlacementGroupIdConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_osDiskType(t *testing.T) {
+func TestAccKubernetesClusterNodePool_osDiskType(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_osDiskType(t)
+	testAccKubernetesClusterNodePool_osDiskType(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_osDiskType(t *testing.T) {
+func testAccKubernetesClusterNodePool_osDiskType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_osDiskTypeConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.osDiskTypeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
+func TestAccKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_requiresImport(t)
+	testAccKubernetesClusterNodePool_requiresImport(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
+func testAccKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMKubernetesClusterNodePool_requiresImportConfig(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_cluster_node_pool"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualScaleConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImportConfig(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_cluster_node_pool"),
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_spot(t *testing.T) {
+func TestAccKubernetesClusterNodePool_spot(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_spot(t)
+	testAccKubernetesClusterNodePool_spot(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_spot(t *testing.T) {
+func testAccKubernetesClusterNodePool_spot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_spotConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.spotConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
+func TestAccKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t)
+	testAccKubernetesClusterNodePool_virtualNetworkAutomatic(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
+func testAccKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomaticConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.virtualNetworkAutomaticConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
+func TestAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t)
+	testAccKubernetesClusterNodePool_virtualNetworkManual(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
+func testAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_virtualNetworkManualConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.virtualNetworkManualConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
+func TestAccKubernetesClusterNodePool_windows(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_windows(t)
+	testAccKubernetesClusterNodePool_windows(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
+func testAccKubernetesClusterNodePool_windows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_windowsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Os", "Windows"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Os").HasValue("Windows"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
+func TestAccKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t)
+	testAccKubernetesClusterNodePool_windowsAndLinux(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
+func testAccKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_windowsAndLinuxConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.linux"),
-					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.windows"),
-				),
-			},
-			{
-				ResourceName:      "azurerm_kubernetes_cluster_node_pool.linux",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				ResourceName:      "azurerm_kubernetes_cluster_node_pool.windows",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsAndLinuxConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_kubernetes_cluster_node_pool.linux").ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.windows").ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      "azurerm_kubernetes_cluster_node_pool.linux",
+			ImportState:       true,
+			ImportStateVerify: true,
+		},
+		{
+			ResourceName:      "azurerm_kubernetes_cluster_node_pool.windows",
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
+func TestAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_zeroSize(t)
+	testAccKubernetesClusterNodePool_zeroSize(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
+func testAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_zeroSizeConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.zeroSizeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
+func TestAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_maxSize(t)
+	testAccKubernetesClusterNodePool_maxSize(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
+func testAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_maxSizeConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.maxSizeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
+func TestAccKubernetesClusterNodePool_sameSize(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_sameSize(t)
+	testAccKubernetesClusterNodePool_sameSize(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
+func testAccKubernetesClusterNodePool_sameSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesClusterNodePool_sameSizeConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sameSizeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kubernetes_cluster_node_pool" {
-			continue
-		}
-
-		parsedK8sId, err := parse.NodePoolID(rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("Error parsing kubernetes node pool id: %+v", err)
-		}
-
-		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, parsedK8sId.AgentPoolName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Kubernetes Cluster Node Pool still exists:\n%#v", resp)
-		}
+func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NodePoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
-		if err != nil {
-			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
-		}
-
-		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
-		}
-
-		if agentPool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
-		}
-
-		return nil
+	resp, err := clients.Containers.AgentPoolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Kubernetes Cluster Node Pool (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMKubernetesNodePoolScale(resourceName string, nodeCount int) resource.TestCheckFunc {
+func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -960,7 +808,7 @@ func testCheckAzureRMKubernetesNodePoolScale(resourceName string, nodeCount int)
 	}
 }
 
-func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedLabels map[string]string) resource.TestCheckFunc {
+func testCheckKubernetesNodePoolNodeLabels(resourceName string, expectedLabels map[string]string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -999,8 +847,7 @@ func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedL
 	}
 }
 
-func testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1016,11 +863,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 1
   max_count             = 3
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(data acceptance.TestData, min int, max int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) autoScaleNodeCountConfig(data acceptance.TestData, min int, max int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1036,10 +882,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = %d
   max_count             = %d
 }
-`, template, min, max)
+`, r.templateConfig(data), min, max)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) availabilitySetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1077,7 +923,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) availabilityZonesConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1136,8 +982,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1155,11 +1000,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     environment = "Staging"
   }
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleIgnoreChangesConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1179,11 +1023,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     ]
   }
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesUpdatedConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleIgnoreChangesUpdatedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1207,11 +1050,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     ]
   }
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleMultiplePoolsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1232,11 +1074,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "second" {
   vm_size               = "Standard_F2s_v2"
   node_count            = 1
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCountConfig(data acceptance.TestData, numberOfAgents int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleMultiplePoolsNodeCountConfig(data acceptance.TestData, numberOfAgents int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1257,11 +1098,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "second" {
   vm_size               = "Standard_F2s_v2"
   node_count            = %d
 }
-`, template, numberOfAgents, numberOfAgents)
+`, r.templateConfig(data), numberOfAgents, numberOfAgents)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(data acceptance.TestData, numberOfAgents int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleNodeCountConfig(data acceptance.TestData, numberOfAgents int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1275,11 +1115,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = %d
 }
-`, template, numberOfAgents)
+`, r.templateConfig(data), numberOfAgents)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSkuConfig(data acceptance.TestData, sku string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) manualScaleVMSkuConfig(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1293,11 +1132,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "%s"
   node_count            = 1
 }
-`, template, sku)
+`, r.templateConfig(data), sku)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_modeSystemConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) modeSystemConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1312,11 +1150,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   mode                  = "System"
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_modeUserConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) modeUserConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1331,11 +1168,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   mode                  = "User"
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_multiplePoolsConfig(data acceptance.TestData, numberOfAgents int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) multiplePoolsConfig(data acceptance.TestData, numberOfAgents int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1358,11 +1194,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "manual" {
   vm_size               = "Standard_F2s_v2"
   node_count            = %d
 }
-`, template, numberOfAgents)
+`, r.templateConfig(data), numberOfAgents)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
 	labelsSlice := make([]string, 0, len(labels))
 	for k, v := range labels {
 		labelsSlice = append(labelsSlice, fmt.Sprintf("    \"%s\" = \"%s\"", k, v))
@@ -1384,11 +1219,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 %s
   }
 }
-`, template, labelsStr)
+`, r.templateConfig(data), labelsStr)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) nodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1403,11 +1237,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   enable_node_public_ip = true
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodeTaintsConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) nodeTaintsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1424,11 +1257,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     "key=value:NoSchedule"
   ]
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_requiresImportConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data)
+func (r KubernetesClusterNodePoolResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1438,11 +1270,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "import" {
   vm_size               = azurerm_kubernetes_cluster_node_pool.test.vm_size
   node_count            = azurerm_kubernetes_cluster_node_pool.test.node_count
 }
-`, template)
+`, r.manualScaleConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) osDiskSizeGBConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1457,10 +1288,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_disk_size_gb       = 100
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupIdConfig(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) proximityPlacementGroupIdConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1501,8 +1332,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_osDiskTypeConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) osDiskTypeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1516,11 +1346,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   os_disk_size_gb       = 100
   os_disk_type          = "Ephemeral"
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_spotConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) spotConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1543,11 +1372,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomaticConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(data)
+func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1564,11 +1392,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = 3
   vnet_subnet_id        = azurerm_subnet.test.id
 }
-`, template)
+`, r.templateVirtualNetworkConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManualConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(data)
+func (r KubernetesClusterNodePoolResource) virtualNetworkManualConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1583,11 +1410,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test.id
 }
-`, template)
+`, r.templateVirtualNetworkConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_windowsConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(data)
+func (r KubernetesClusterNodePoolResource) windowsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1606,11 +1432,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     Os = "Windows"
   }
 }
-`, template)
+`, r.templateWindowsConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_windowsAndLinuxConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(data)
+func (r KubernetesClusterNodePoolResource) windowsAndLinuxConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1632,10 +1457,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
   node_count            = 1
   os_type               = "Windows"
 }
-`, template)
+`, r.templateWindowsConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_templateConfig(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) templateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
@@ -1661,7 +1486,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) templateVirtualNetworkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
@@ -1702,7 +1527,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) templateWindowsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
@@ -1741,8 +1566,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_zeroSizeConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) zeroSizeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1759,11 +1583,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = 3
   node_count            = 0
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_maxSizeConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) maxSizeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1780,11 +1603,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = 1000
   node_count            = 1
 }
-`, template)
+`, r.templateConfig(data))
 }
 
-func testAccAzureRMKubernetesClusterNodePool_sameSizeConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+func (r KubernetesClusterNodePoolResource) sameSizeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1801,5 +1623,5 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = 1
   node_count            = 1
 }
-`, template)
+`, r.templateConfig(data))
 }

@@ -28,12 +28,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKubernetesCluster() *schema.Resource {
+func resourceKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterCreate,
-		Read:   resourceArmKubernetesClusterRead,
-		Update: resourceArmKubernetesClusterUpdate,
-		Delete: resourceArmKubernetesClusterDelete,
+		Create: resourceKubernetesClusterCreate,
+		Read:   resourceKubernetesClusterRead,
+		Update: resourceKubernetesClusterUpdate,
+		Delete: resourceKubernetesClusterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ClusterID(id)
@@ -672,7 +672,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -831,10 +831,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmKubernetesClusterRead(d, meta)
+	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
@@ -1145,10 +1145,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	d.Partial(false)
 
-	return resourceArmKubernetesClusterRead(d, meta)
+	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1293,7 +1293,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
