@@ -16,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKubernetesCluster() *schema.Resource {
+func dataSourceKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKubernetesClusterRead,
+		Read: dataSourceKubernetesClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -543,7 +543,7 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

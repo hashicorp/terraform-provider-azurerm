@@ -27,12 +27,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmContainerGroup() *schema.Resource {
+func resourceContainerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerGroupCreate,
-		Read:   resourceArmContainerGroupRead,
-		Delete: resourceArmContainerGroupDelete,
-		Update: resourceArmContainerGroupUpdate,
+		Create: resourceContainerGroupCreate,
+		Read:   resourceContainerGroupRead,
+		Delete: resourceContainerGroupDelete,
+		Update: resourceContainerGroupUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -246,7 +246,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							ForceNew: true,
-							Set:      resourceArmContainerGroupPortsHash,
+							Set:      resourceContainerGroupPortsHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"port": {
@@ -508,7 +508,7 @@ func resourceArmContainerGroup() *schema.Resource {
 	}
 }
 
-func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -596,10 +596,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerGroupRead(d, meta)
+	return resourceContainerGroupRead(d, meta)
 }
 
-func resourceArmContainerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -619,10 +619,10 @@ func resourceArmContainerGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmContainerGroupRead(d, meta)
+	return resourceContainerGroupRead(d, meta)
 }
 
-func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -688,7 +688,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1275,7 +1275,7 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				port["protocol"] = string(p.Protocol)
 				ports = append(ports, port)
 			}
-			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
+			containerConfig["ports"] = schema.NewSet(resourceContainerGroupPortsHash, ports)
 		}
 
 		if container.EnvironmentVariables != nil {
@@ -1575,7 +1575,7 @@ func flattenContainerGroupDiagnostics(d *schema.ResourceData, input *containerin
 	}
 }
 
-func resourceArmContainerGroupPortsHash(v interface{}) int {
+func resourceContainerGroupPortsHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
