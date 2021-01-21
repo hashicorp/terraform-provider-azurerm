@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -105,6 +104,13 @@ func resourceCosmosDbAccount() *schema.Resource {
 			},
 
 			"enable_free_tier": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"analytical_storage_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -227,6 +233,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
 								"AllowSelfServeUpgradeToMongo36",
+								// TODO: Remove in 3.0 - doesn't do anything
 								"EnableAnalyticalStorage",
 							}, true),
 						},
@@ -386,6 +393,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -423,6 +431,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 			PublicNetworkAccess:           publicNetworkAccess,
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -481,6 +490,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -530,6 +540,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
 			PublicNetworkAccess:           publicNetworkAccess,
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -629,6 +640,7 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("endpoint", resp.DocumentEndpoint)
 
 	d.Set("enable_free_tier", resp.EnableFreeTier)
+	d.Set("analytical_storage_enabled", resp.EnableAnalyticalStorage)
 	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == documentdb.Enabled)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
@@ -1042,7 +1054,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
@@ -1052,7 +1064,7 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
@@ -1062,7 +1074,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 		buf.WriteString(strings.ToLower(m["id"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func diffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {

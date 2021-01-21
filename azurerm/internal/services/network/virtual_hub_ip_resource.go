@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubIP() *schema.Resource {
+func resourceVirtualHubIP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubIPCreateUpdate,
-		Read:   resourceArmVirtualHubIPRead,
-		Update: resourceArmVirtualHubIPCreateUpdate,
-		Delete: resourceArmVirtualHubIPDelete,
+		Create: resourceVirtualHubIPCreateUpdate,
+		Read:   resourceVirtualHubIPRead,
+		Update: resourceVirtualHubIPCreateUpdate,
+		Delete: resourceVirtualHubIPDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -84,7 +84,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,10 +155,10 @@ func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubIPRead(d, meta)
+	return resourceVirtualHubIPRead(d, meta)
 }
 
-func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +198,7 @@ func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceArmVirtualHubIPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

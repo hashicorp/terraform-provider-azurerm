@@ -24,6 +24,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_iothub_dps":                      dataSourceIotHubDPS(),
 		"azurerm_iothub_dps_shared_access_policy": dataSourceIotHubDPSSharedAccessPolicy(),
 		"azurerm_iothub_shared_access_policy":     dataSourceIotHubSharedAccessPolicy(),
+		"azurerm_iothub":                          dataSourceIotHub(),
 	}
 }
 

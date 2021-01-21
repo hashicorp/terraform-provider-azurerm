@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -125,30 +127,30 @@ func resourceApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiOperationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
-	operationID := id.Path["operations"]
+	serviceName := id.ServiceName
+	apiName := id.ApiName
+	operationName := id.OperationName
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID, apimanagement.PolicyExportFormatXML)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q) was not found - removing from state!", resourceGroup, serviceName, apiName, operationID)
+			log.Printf("[DEBUG] API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q) was not found - removing from state!", resourceGroup, serviceName, apiName, operationName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+		return fmt.Errorf("making Read request for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationName, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 	d.Set("api_name", apiName)
-	d.Set("operation_id", operationID)
+	d.Set("operation_id", operationName)
 
 	if properties := resp.PolicyContractProperties; properties != nil {
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
@@ -164,18 +166,18 @@ func resourceApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiOperationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
-	operationID := id.Path["operations"]
+	serviceName := id.ServiceName
+	apiName := id.ApiName
+	operationName := id.OperationName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, operationID, ""); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, operationName, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
+			return fmt.Errorf("deleting API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationName, err)
 		}
 	}
 

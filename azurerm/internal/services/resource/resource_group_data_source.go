@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmResourceGroup() *schema.Resource {
+func dataSourceResourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmResourceGroupRead,
+		Read: dataSourceResourceGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -28,7 +28,7 @@ func dataSourceArmResourceGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -44,5 +44,5 @@ func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*resp.ID)
 
-	return resourceArmResourceGroupRead(d, meta)
+	return resourceResourceGroupRead(d, meta)
 }

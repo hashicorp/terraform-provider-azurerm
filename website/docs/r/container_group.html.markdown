@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

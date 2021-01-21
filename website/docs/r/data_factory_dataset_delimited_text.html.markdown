@@ -100,6 +100,8 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `null_value` - (Required) The null value string.
 
+* `compression_level` - (Optional) The compression ratio for the Data Factory Dataset. Valid values are `Fastest` or `Optimal`. Please note these values are case sensitive.
+
 ---
 
 A `schema_column` block supports the following:

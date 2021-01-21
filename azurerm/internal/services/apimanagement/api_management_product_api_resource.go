@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -70,7 +72,6 @@ func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 	}
 
-	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
 	return resourceApiManagementProductApiRead(d, meta)
@@ -81,14 +82,14 @@ func resourceApiManagementProductApiRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductApiID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
-	apiName := id.Path["apis"]
+	serviceName := id.ServiceName
+	productId := id.ProductName
+	apiName := id.ApiName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 	if err != nil {
@@ -122,14 +123,14 @@ func resourceApiManagementProductApiDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductApiID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
-	apiName := id.Path["apis"]
+	serviceName := id.ServiceName
+	productId := id.ProductName
+	apiName := id.ApiName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, apiName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

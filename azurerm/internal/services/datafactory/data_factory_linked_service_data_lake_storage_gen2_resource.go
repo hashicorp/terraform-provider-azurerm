@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read,
-		Update: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete,
+		Create: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceDataLakeStorageGen2Read,
+		Update: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -129,7 +129,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,10 +214,10 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schem
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d, meta)
+	return resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -290,7 +290,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

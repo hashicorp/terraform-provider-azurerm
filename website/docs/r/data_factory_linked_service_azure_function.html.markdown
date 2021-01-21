@@ -35,7 +35,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
-  url                 = data.azurerm_function_app.example.default_hostname
+  url                 = "https://${data.azurerm_function_app.example.default_hostname}"
   key                 = "foo"
 
 }

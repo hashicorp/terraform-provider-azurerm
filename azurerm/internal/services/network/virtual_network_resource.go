@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,12 +25,12 @@ import (
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
-func resourceArmVirtualNetwork() *schema.Resource {
+func resourceVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkCreateUpdate,
-		Read:   resourceArmVirtualNetworkRead,
-		Update: resourceArmVirtualNetworkCreateUpdate,
-		Delete: resourceArmVirtualNetworkDelete,
+		Create: resourceVirtualNetworkCreateUpdate,
+		Read:   resourceVirtualNetworkRead,
+		Update: resourceVirtualNetworkCreateUpdate,
+		Delete: resourceVirtualNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -149,7 +148,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,10 +224,10 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualNetworkRead(d, meta)
+	return resourceVirtualNetworkRead(d, meta)
 }
 
-func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,7 +290,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -481,7 +480,7 @@ func resourceAzureSubnetHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
