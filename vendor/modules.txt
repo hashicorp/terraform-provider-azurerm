@@ -25,6 +25,7 @@ github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/con
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
+github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2019-08-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account

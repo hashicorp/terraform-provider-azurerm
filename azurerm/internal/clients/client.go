@@ -27,6 +27,7 @@ import (
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/client"
 	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/client"
+	databoxedge "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databoxedge/client"
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
@@ -123,6 +124,7 @@ type Client struct {
 	CustomProviders       *customproviders.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
+	DataboxEdge           *databoxedge.Client
 	DataFactory           *datafactory.Client
 	Datalake              *datalake.Client
 	DataShare             *datashare.Client
@@ -220,6 +222,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.CustomProviders = customproviders.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
+	client.DataboxEdge = databoxedge.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
