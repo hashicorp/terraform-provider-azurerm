@@ -1,6 +1,8 @@
 package kusto
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -22,44 +24,63 @@ func schemaIdentity() *schema.Schema {
 					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(kusto.IdentityTypeNone),
 						string(kusto.IdentityTypeSystemAssigned),
+						string(kusto.IdentityTypeUserAssigned),
+						string(kusto.IdentityTypeSystemAssignedUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
+
 				"identity_ids": {
-					Type:     schema.TypeList,
-					Computed: true,
+					Type:     schema.TypeSet,
+					Optional: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
+				},
+
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 			},
 		},
 	}
 }
 
-func expandIdentity(input []interface{}) *kusto.Identity {
+func expandIdentity(input []interface{}) (*kusto.Identity, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &kusto.Identity{
+			Type: kusto.IdentityTypeNone,
+		}, nil
 	}
-	identity := input[0].(map[string]interface{})
-	identityType := kusto.IdentityType(identity["type"].(string))
+	raw := input[0].(map[string]interface{})
 
 	kustoIdentity := kusto.Identity{
-		Type: identityType,
+		Type: kusto.IdentityType(raw["type"].(string)),
 	}
 
-	return &kustoIdentity
+	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+	identityIds := make(map[string]*kusto.IdentityUserAssignedIdentitiesValue)
+	for _, v := range identityIdsRaw {
+		identityIds[v.(string)] = &kusto.IdentityUserAssignedIdentitiesValue{}
+	}
+
+	if len(identityIds) > 0 {
+		if kustoIdentity.Type != kusto.IdentityTypeUserAssigned && kustoIdentity.Type != kusto.IdentityTypeSystemAssignedUserAssigned {
+			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+		}
+
+		kustoIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &kustoIdentity, nil
 }
 
 func flattenIdentity(input *kusto.Identity) ([]interface{}, error) {

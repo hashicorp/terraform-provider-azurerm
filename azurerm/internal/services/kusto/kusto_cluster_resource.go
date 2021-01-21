@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,10 @@ func resourceKustoCluster() *schema.Resource {
 		Update: resourceKustoClusterCreateUpdate,
 		Delete: resourceKustoClusterDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -76,6 +78,7 @@ func resourceKustoCluster() *schema.Resource {
 								string(kusto.StandardE16aV4),
 								string(kusto.StandardE2aV4),
 								string(kusto.StandardE4aV4),
+								string(kusto.StandardE64iV3),
 								string(kusto.StandardE8asV41TBPS),
 								string(kusto.StandardE8asV42TBPS),
 								string(kusto.StandardE8aV4),
@@ -124,6 +127,12 @@ func resourceKustoCluster() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"double_encryption_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"enable_disk_encryption": {
@@ -262,11 +271,12 @@ func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	engine := kusto.EngineType(d.Get("engine").(string))
 
 	clusterProperties := kusto.ClusterProperties{
-		OptimizedAutoscale:    optimizedAutoScale,
-		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
-		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
-		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
-		EngineType:            engine,
+		OptimizedAutoscale:     optimizedAutoScale,
+		EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
+		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
+		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
+		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
+		EngineType:             engine,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -291,8 +301,11 @@ func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		kustoIdentityRaw := d.Get("identity").([]interface{})
-		kustoIdentity := expandIdentity(kustoIdentityRaw)
+		kustoIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
 		kustoCluster.Identity = kustoIdentity
 	}
 
@@ -405,6 +418,7 @@ func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("double_encryption_enabled", clusterProperties.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)

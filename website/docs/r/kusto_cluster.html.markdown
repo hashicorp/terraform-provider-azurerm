@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
 * `identity` - (Optional) A identity block.
 
 * `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
@@ -72,7 +74,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Dev(No SLA)_Standard_E2a_v4`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_E16as_v4+3TB_PS`, `Standard_E16as_v4+4TB_PS`, `Standard_E16a_v4`, `Standard_E2a_v4`, `Standard_E4a_v4`, `Standard_E8as_v4+1TB_PS`, `Standard_E8as_v4+2TB_PS`, `Standard_E8a_v4`, `Standard_L16s`, `Standard_L4s` and `Standard_L8s`
+* `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Dev(No SLA)_Standard_E2a_v4`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_E16as_v4+3TB_PS`, `Standard_E16as_v4+4TB_PS`, `Standard_E16a_v4`, `Standard_E2a_v4`, `Standard_E4a_v4`, `Standard_E64i_v3`, `Standard_E8as_v4+1TB_PS`, `Standard_E8as_v4+2TB_PS`, `Standard_E8a_v4`, `Standard_L16s`, `Standard_L4s` and `Standard_L8s`.
 
 * `capacity` - (Optional) Specifies the node count for the cluster. Boundaries depend on the sku name.
 
@@ -95,13 +97,13 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned` (where Azure will generate a Service Principal for you).
 
+* `identity_ids` - (Optional) The list of user identities associated with the Kusto cluster.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, the Principal ID can be retrieved after the cluster has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
+
 * `principal_id` - (Computed) Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Kusto Cluster.
 
 * `tenant_id` - (Computed) Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Kusto Cluster.
-
-* `identity_ids` - (Computed) The list of user identities associated with the Kusto cluster.
-
-~> **NOTE:** When `type` is set to `SystemAssigned`, the Principal ID can be retrieved after the cluster has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
 
 ---
 
