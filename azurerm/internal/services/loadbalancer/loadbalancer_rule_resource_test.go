@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -152,6 +154,32 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 		},
 		data.ImportStep(),
 		data2.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
+	r := LoadBalancerRule{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vmssBackendPool(data, lbRuleName, "Standard"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vmssBackendPoolUpdate(data, lbRuleName, "Standard"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vmssBackendPoolWithoutLBRule(data, "Standard"),
+		},
 	})
 }
 
@@ -386,4 +414,113 @@ resource "azurerm_lb_rule" "test2" {
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 `, template, data.RandomStringOfLength(8), data2.RandomStringOfLength(8))
+}
+
+func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData, sku string) string {
+	template := r.template(data, sku)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "acctest-lb-BAP-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-lb-vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-lb-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_virtual_machine_scale_set" "hbtest" {
+  name                   = "acctest-lb-vmss-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  upgrade_policy_mode    = "Automatic"
+  overprovision          = false
+  single_placement_group = true
+  sku {
+    name     = "Standard_B2ms"
+    tier     = "Standard"
+    capacity = 3
+  }
+  storage_profile_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-datacenter-core-smalldisk-g2"
+    version   = "latest"
+  }
+  storage_profile_os_disk {
+    create_option     = "FromImage"
+    caching           = "ReadWrite"
+    managed_disk_type = "Premium_LRS"
+  }
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+  os_profile_windows_config {
+    provision_vm_agent        = true
+    enable_automatic_upgrades = false
+  }
+  network_profile {
+    name    = "primary"
+    primary = true
+    ip_configuration {
+      name      = "primary"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [
+        azurerm_lb_backend_address_pool.test.id
+      ]
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName, sku string) string {
+	template := r.vmssBackendPoolWithoutLBRule(data, sku)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  name                           = "%s"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, template, lbRuleName)
+}
+
+func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRuleName, sku string) string {
+	template := r.vmssBackendPoolWithoutLBRule(data, sku)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  name                           = "%s"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  disable_outbound_snat          = false
+}
+`, template, lbRuleName)
 }
