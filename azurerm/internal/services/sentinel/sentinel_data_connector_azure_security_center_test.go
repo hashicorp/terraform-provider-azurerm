@@ -47,35 +47,6 @@ func TestAccAzureRMSentinelDataConnectorAzureSecurityCenter_complete(t *testing.
 	})
 }
 
-func TestAccAzureRMSentinelDataConnectorAzureSecurityCenter_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_azure_security_center", "test")
-	r := SentinelDataConnectorAzureSecurityCenterResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAzureRMSentinelDataConnectorAzureSecurityCenter_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_azure_security_center", "test")
 	r := SentinelDataConnectorAzureSecurityCenterResource{}
@@ -132,7 +103,6 @@ resource "azurerm_sentinel_data_connector_azure_security_center" "test" {
   name                       = "accTestDC-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   subscription_id            = data.azurerm_client_config.test.subscription_id
-  alerts_enabled             = false
 }
 `, template, data.RandomInteger)
 }

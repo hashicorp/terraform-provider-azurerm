@@ -3,7 +3,6 @@ package sentinel
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
@@ -23,7 +22,6 @@ func resourceSentinelDataConnectorAzureActiveDirectory() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSentinelDataConnectorAzureActiveDirectoryCreateUpdate,
 		Read:   resourceSentinelDataConnectorAzureActiveDirectoryRead,
-		Update: resourceSentinelDataConnectorAzureActiveDirectoryCreateUpdate,
 		Delete: resourceSentinelDataConnectorAzureActiveDirectoryDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
@@ -57,13 +55,8 @@ func resourceSentinelDataConnectorAzureActiveDirectory() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
-			},
-
-			"alerts_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 		},
 	}
@@ -100,18 +93,13 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreateUpdate(d *schema.Res
 		tenantId = meta.(*clients.Client).Account.TenantId
 	}
 
-	alertState := securityinsight.Enabled
-	if !d.Get("alerts_enabled").(bool) {
-		alertState = securityinsight.Disabled
-	}
-
 	param := securityinsight.AADDataConnector{
 		Name: &name,
 		AADDataConnectorProperties: &securityinsight.AADDataConnectorProperties{
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.AlertsDataTypeOfDataConnector{
 				Alerts: &securityinsight.AlertsDataTypeOfDataConnectorAlerts{
-					State: alertState,
+					State: securityinsight.Enabled,
 				},
 			},
 		},
@@ -158,11 +146,6 @@ func resourceSentinelDataConnectorAzureActiveDirectoryRead(d *schema.ResourceDat
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	d.Set("tenant_id", dc.TenantID)
-	if dt := dc.DataTypes; dt != nil {
-		if alert := dt.Alerts; alert != nil {
-			d.Set("alerts_enabled", strings.EqualFold(string(alert.State), string(securityinsight.Enabled)))
-		}
-	}
 
 	return nil
 }

@@ -38,7 +38,7 @@ func TestAccAzureRMSentinelDataConnectorMicrosoftCloudAppSecurity_complete(t *te
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, true, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -60,7 +60,21 @@ func TestAccAzureRMSentinelDataConnectorMicrosoftCloudAppSecurity_update(t *test
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, true, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data, false, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data, true, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -121,7 +135,7 @@ resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SentinelDataConnectorMicrosoftCloudAppSecurityResource) complete(data acceptance.TestData) string {
+func (r SentinelDataConnectorMicrosoftCloudAppSecurityResource) complete(data acceptance.TestData, alertsEnabled, discoveryLogsEnabled bool) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -132,10 +146,10 @@ resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "test" {
   name                       = "accTestDC-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
-  alerts_enabled             = false
-  discovery_logs_enabled     = true
+  alerts_enabled             = %t
+  discovery_logs_enabled     = %t
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, alertsEnabled, discoveryLogsEnabled)
 }
 
 func (r SentinelDataConnectorMicrosoftCloudAppSecurityResource) requiresImport(data acceptance.TestData) string {

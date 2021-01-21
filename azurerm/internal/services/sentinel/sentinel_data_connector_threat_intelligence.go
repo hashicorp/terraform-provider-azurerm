@@ -3,7 +3,6 @@ package sentinel
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
@@ -23,7 +22,6 @@ func resourceSentinelDataConnectorThreatIntelligence() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSentinelDataConnectorThreatIntelligenceCreateUpdate,
 		Read:   resourceSentinelDataConnectorThreatIntelligenceRead,
-		Update: resourceSentinelDataConnectorThreatIntelligenceCreateUpdate,
 		Delete: resourceSentinelDataConnectorThreatIntelligenceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
@@ -57,13 +55,8 @@ func resourceSentinelDataConnectorThreatIntelligence() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
-			},
-
-			"indicator_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 		},
 	}
@@ -100,18 +93,13 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *schema.Resou
 		tenantId = meta.(*clients.Client).Account.TenantId
 	}
 
-	indicatorState := securityinsight.Enabled
-	if !d.Get("indicator_enabled").(bool) {
-		indicatorState = securityinsight.Disabled
-	}
-
 	param := securityinsight.TIDataConnector{
 		Name: &name,
 		TIDataConnectorProperties: &securityinsight.TIDataConnectorProperties{
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.TIDataConnectorDataTypes{
 				Indicators: &securityinsight.TIDataConnectorDataTypesIndicators{
-					State: indicatorState,
+					State: securityinsight.Enabled,
 				},
 			},
 		},
@@ -158,11 +146,6 @@ func resourceSentinelDataConnectorThreatIntelligenceRead(d *schema.ResourceData,
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	d.Set("tenant_id", dc.TenantID)
-	if dt := dc.DataTypes; dt != nil {
-		if indicator := dt.Indicators; indicator != nil {
-			d.Set("indicator_enabled", strings.EqualFold(string(indicator.State), string(securityinsight.Enabled)))
-		}
-	}
 
 	return nil
 }

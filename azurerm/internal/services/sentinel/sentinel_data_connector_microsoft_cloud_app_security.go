@@ -69,7 +69,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *schema.Resource {
 			"discovery_logs_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 		},
 	}
@@ -106,13 +106,21 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 		tenantId = meta.(*clients.Client).Account.TenantId
 	}
 
+	alertsEnabled := d.Get("alerts_enabled").(bool)
+	discoveryLogsEnabled := d.Get("discovery_logs_enabled").(bool)
+
+	// Service will not create the DC in case non of the toggle is enabled.
+	if !alertsEnabled && !discoveryLogsEnabled {
+		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
+	}
+
 	alertState := securityinsight.Enabled
-	if !d.Get("alerts_enabled").(bool) {
+	if !alertsEnabled {
 		alertState = securityinsight.Disabled
 	}
 
 	discoveryLogsState := securityinsight.Enabled
-	if !d.Get("discovery_logs_enabled").(bool) {
+	if !discoveryLogsEnabled {
 		discoveryLogsState = securityinsight.Disabled
 	}
 
@@ -130,6 +138,19 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 			},
 		},
 		Kind: securityinsight.KindMicrosoftCloudAppSecurity,
+	}
+
+	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
+	if !d.IsNewResource() {
+		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sentinel Data Connector Microsoft Cloud App Security %q: %+v", id, err)
+		}
+
+		if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindMicrosoftCloudAppSecurity); err != nil {
+			return fmt.Errorf("asserting Sentinel Data Connector of %q: %+v", id, err)
+		}
+		param.Etag = resp.Value.(securityinsight.MCASDataConnector).Etag
 	}
 
 	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
