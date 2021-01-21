@@ -115,9 +115,8 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_prefix_length": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 								},
 							},

@@ -1,26 +1,38 @@
-## 2.44.0 (Unreleased)
+## 2.45.0 (Unreleased)
 
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/go-autorest` to `v0.11.16` [GH-10164]
-* dependencies: updating `appconfiguration` to API version `2020-06-01` [GH-10176]
-* dependencies: updating `appplatform` to API version `2020-07-01` [GH-10175]
-* dependencies: updating `containerservice` to API version `2020-12-01` [GH-10171]
-* dependencies: updating `msi` to API version `2018-11-30` [GH-10174]
-* Data Source: `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
-* `azurerm_api_management` - support additional TLS ciphers within the `security` block [GH-9276]
-* `azurerm_container_group` - support for updating `tags` [GH-10210]
-* `azurerm_kubernetes_cluster` - the field `type` within the `identity` block can now be set to `UserAssigned` [GH-8737]
-* `azurerm_kubernetes_cluster` - support for the field `new_pod_scale_up_delay` within the `auto_scaler_profile` block [GH-9291]
-* `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block [GH-8737]
-* `azurerm_monitor_autoscale_setting` - now supports the `dimensions` property [GH-9795]
-* `azurerm_sentinel_alert_rule_scheduled` - now supports the `event_grouping_setting` property [GH-10078]
+* `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
+
+## 2.44.0 (January 21, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_iothub` ([#10228](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10228))
+* **New Resource:** `azurerm_media_content_key_policy` ([#9971](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9971))
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.11.16` ([#10164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10164))
+* dependencies: updating `appconfiguration` to API version `2020-06-01` ([#10176](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10176))
+* dependencies: updating `appplatform` to API version `2020-07-01` ([#10175](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10175))
+* dependencies: updating `containerservice` to API version `2020-12-01` ([#10171](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10171))
+* dependencies: updating `msi` to API version `2018-11-30` ([#10174](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10174))
+* Data Source: `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block ([#8737](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8737))
+* `azurerm_api_management` - support additional TLS ciphers within the `security` block ([#9276](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9276))
+* `azurerm_api_management_api_diagnostic` - support the `sampling_percentage` property ([#9321](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9321))
+* `azurerm_container_group` - support for updating `tags` ([#10210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10210))
+* `azurerm_kubernetes_cluster` - the field `type` within the `identity` block can now be set to `UserAssigned` ([#8737](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8737))
+* `azurerm_kubernetes_cluster` - support for the field `new_pod_scale_up_delay` within the `auto_scaler_profile` block ([#9291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9291))
+* `azurerm_kubernetes_cluster` - support for the field `user_assigned_identity_id` within the `identity` block ([#8737](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8737))
+* `azurerm_monitor_autoscale_setting` - now supports the `dimensions` property ([#9795](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9795))
+* `azurerm_sentinel_alert_rule_scheduled` - now supports the `event_grouping_setting` property ([#10078](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10078))
 
 BUG FIXES:
 
-* `azurerm_backup_protected_file_share` - updating to account for a breaking API change [GH-9015]
-* `azurerm_key_vault_certificate` - fixing a crash when `subject` within the `certificate_policy` block was nil [GH-10200]
-* `azurerm_user_assigned_identity` - adding a state migration to update the ID format [GH-10196]
+* `azurerm_backup_protected_file_share` - updating to account for a breaking API change ([#9015](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9015))
+* `azurerm_key_vault_certificate` - fixing a crash when `subject` within the `certificate_policy` block was nil ([#10200](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10200))
+* `azurerm_user_assigned_identity` - adding a state migration to update the ID format ([#10196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10196))
 
 ## 2.43.0 (January 14, 2021)
 

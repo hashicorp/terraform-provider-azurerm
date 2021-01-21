@@ -6,112 +6,101 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMResources_ByName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+type ResourcesDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMResources_template(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMResources_ByName(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resources.#", "1"),
-				),
-			},
+func TestAccDataSourceResources_ByName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.template(data),
+		},
+		{
+			Config: r.ByName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMResources_ByResourceGroup(t *testing.T) {
+func TestAccDataSourceResources_ByResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMResources_template(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMResources_ByResourceGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resources.#", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.template(data),
+		},
+		{
+			Config: r.ByResourceGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMResources_ByResourceType(t *testing.T) {
+func TestAccDataSourceResources_ByResourceType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMResources_template(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMResources_ByResourceType(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resources.#", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.template(data),
+		},
+		{
+			Config: r.ByResourceType(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
+func TestAccDataSourceResources_FilteredByTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMResources_template(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMResources_FilteredByTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resources.#", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.template(data),
+		},
+		{
+			Config: r.FilteredByTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMResources_ByName(data acceptance.TestData) string {
-	r := testAccDataSourceAzureRMResources_template(data)
+func (r ResourcesDataSource) ByName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_resources" "test" {
   name = azurerm_storage_account.test.name
 }
-`, r)
+`, r.template(data))
 }
 
-func testAccDataSourceAzureRMResources_ByResourceGroup(data acceptance.TestData) string {
-	r := testAccDataSourceAzureRMResources_template(data)
+func (r ResourcesDataSource) ByResourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_resources" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
 }
-`, r)
+`, r.template(data))
 }
 
-func testAccDataSourceAzureRMResources_ByResourceType(data acceptance.TestData) string {
-	r := testAccDataSourceAzureRMResources_template(data)
+func (r ResourcesDataSource) ByResourceType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -119,11 +108,10 @@ data "azurerm_resources" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
   type                = "Microsoft.Storage/storageAccounts"
 }
-`, r)
+`, r.template(data))
 }
 
-func testAccDataSourceAzureRMResources_FilteredByTags(data acceptance.TestData) string {
-	r := testAccDataSourceAzureRMResources_template(data)
+func (r ResourcesDataSource) FilteredByTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -135,10 +123,10 @@ data "azurerm_resources" "test" {
     environment = "production"
   }
 }
-`, r)
+`, r.template(data))
 }
 
-func testAccDataSourceAzureRMResources_template(data acceptance.TestData) string {
+func (ResourcesDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
