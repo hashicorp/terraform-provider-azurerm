@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_iothub` [GH-10228]
+* **New Resource:** `azurerm_media_content_key_policy` [GH-9971]
 
 IMPROVEMENTS:
 
