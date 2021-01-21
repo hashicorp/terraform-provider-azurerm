@@ -69,10 +69,8 @@ func resourceSpringCloudActiveDeploymentCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("making Read request on AzureRM Spring Cloud App %q (Spring Cloud service %q / resource group %q): %+v", appId.AppName, appId.SpringName, appId.ResourceGroup, err)
 	}
 
-	if d.IsNewResource() {
-		if existing.Properties != nil && existing.Properties.ActiveDeploymentName != nil {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_active_deployment", resourceId)
-		}
+	if existing.Properties != nil && existing.Properties.ActiveDeploymentName != nil && *existing.Properties.ActiveDeploymentName != "" {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_active_deployment", resourceId)
 	}
 
 	if existing.Properties == nil {
@@ -113,11 +111,11 @@ func resourceSpringCloudActiveDeploymentUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
-		return fmt.Errorf("swapping active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Active Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for swapping active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for Update of Active Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
 
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
@@ -173,7 +171,7 @@ func resourceSpringCloudActiveDeploymentDelete(d *schema.ResourceData, meta inte
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
-		return fmt.Errorf("deleting active deployment (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Active Deployment (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

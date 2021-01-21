@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_java_deployment"
 description: |-
-  Manages an Azure Spring Cloud Deployment which runtime is Java.
+  Manages an Azure Spring Cloud Deployment with a Java runtime.
 ---
 
 # azurerm_spring_cloud_java_deployment
 
-Manages an Azure Spring Cloud Deployment which runtime is Java.
+Manages an Azure Spring Cloud Deployment with a Java runtime.
 
 ## Example Usage
 

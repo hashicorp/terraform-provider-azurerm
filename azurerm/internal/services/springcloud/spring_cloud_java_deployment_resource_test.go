@@ -138,7 +138,7 @@ resource "azurerm_spring_cloud_java_deployment" "test" {
   memory_in_gb        = 4
   instance_count      = 2
   jvm_options         = "-XX:+PrintGC"
-  runtime_version     = "Java_8"
+  runtime_version     = "Java_11"
 
   environment_variables = {
     "Foo" : "Bar"

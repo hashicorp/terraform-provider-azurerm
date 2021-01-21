@@ -127,19 +127,14 @@ func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta 
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing Spring Cloud Service %q (Resource Group %q): %+v", appId.SpringName, appId.ResourceGroup, err)
 	}
-
-	skuName := "S0"
-	skuTier := "Standard"
-	if sku := service.Sku; sku != nil {
-		if sku.Name != nil {
-			skuName = *sku.Name
-			skuTier = *sku.Tier
-		}
+	if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
+		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
 	}
+
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
-			Name:     utils.String(skuName),
-			Tier:     utils.String(skuTier),
+			Name:     service.Sku.Name,
+			Tier:     service.Sku.Tier,
 			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
@@ -200,7 +195,6 @@ func resourceSpringCloudJavaDeploymentRead(d *schema.ResourceData, meta interfac
 		settings := resp.Properties.DeploymentSettings
 		d.Set("cpu", settings.CPU)
 		d.Set("memory_in_gb", settings.MemoryInGB)
-
 		d.Set("jvm_options", settings.JvmOptions)
 		d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 		d.Set("runtime_version", settings.RuntimeVersion)
