@@ -1,5 +1,9 @@
 ## 2.44.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_iothub` [GH-10228]
+
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/go-autorest` to `v0.11.16` [GH-10164]
