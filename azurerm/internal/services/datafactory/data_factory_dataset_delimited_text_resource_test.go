@@ -61,7 +61,7 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
 				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 				check.That(data.ResourceName).Key("compression_codec").HasValue("lz4"),
-				check.That(data.ResourceName).Key("compression_level").HasValue("Optimal"),
+				check.That(data.ResourceName).Key("compression_level").HasValue("Fastest"),
 			),
 		},
 		data.ImportStep(),
