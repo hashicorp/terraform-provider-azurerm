@@ -22,13 +22,12 @@ type ManagedDiskResource struct {
 func TestAccManagedDisk_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -38,13 +37,12 @@ func TestAccManagedDisk_empty(t *testing.T) {
 func TestAccManagedDisk_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
@@ -57,13 +55,12 @@ func TestAccManagedDisk_requiresImport(t *testing.T) {
 func TestAccManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.zeroGbFromPlatformImage(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			ExpectNonEmptyPlan: true, // since the `disk_size_gb` will have changed
 		},
@@ -73,7 +70,7 @@ func TestAccManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 func TestAccManagedDisk_import(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var vm compute.VirtualMachine
+	vm := VirtualMachineResource{}
 	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -83,7 +80,7 @@ func TestAccManagedDisk_import(t *testing.T) {
 			Destroy:            false,
 			ExpectNonEmptyPlan: true,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				check.That("azurerm_virtual_machine.test").ExistsInAzure(vm),
 				testDeleteVirtualMachine("azurerm_virtual_machine.test"),
 			),
 		},

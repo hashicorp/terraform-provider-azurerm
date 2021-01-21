@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -44,7 +46,7 @@ func TestAccImage_standaloneImage(t *testing.T) {
 		{
 			Config: r.standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckImageExists("azurerm_image.test", true),
+				check.That("azurerm_image.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
@@ -75,7 +77,7 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 		{
 			Config: r.standaloneImage_provision(data, userName, password, hostName, "LRS", "V2"),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckImageExists("azurerm_image.test", true),
+				check.That("azurerm_image.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
@@ -107,7 +109,7 @@ func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
 		{
 			Config: r.standaloneImage_provision(data, userName, password, hostName, "ZRS", ""),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckImageExists("azurerm_image.test", true),
+				check.That("azurerm_image.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -136,7 +138,7 @@ func TestAccImage_requiresImport(t *testing.T) {
 		{
 			Config: r.standaloneImage_provision(data, userName, password, hostName, "LRS", ""),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckImageExists("azurerm_image.test", true),
+				check.That("azurerm_image.test").ExistsInAzure(r),
 			),
 		},
 		{
@@ -338,41 +340,6 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	}
 
 	return nil
-}
-
-// nolint unparam
-func testCheckImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ImagesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		log.Printf("[INFO] testing MANAGED IMAGE EXISTS - BEGIN.")
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		dName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for image: %s", dName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on imageClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Bad: Image %q (resource group %q) does not exist", dName, resourceGroup)
-		}
-		if resp.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Bad: Image %q (resource group %q) still exists", dName, resourceGroup)
-		}
-
-		return nil
-	}
 }
 
 // nolint unparam
