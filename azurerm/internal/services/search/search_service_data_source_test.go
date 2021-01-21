@@ -20,7 +20,6 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("replica_count").Exists(),
 				check.That(data.ResourceName).Key("partition_count").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),

@@ -44,23 +44,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `query_keys` - A `query_keys` block as defined below.
 
-* `public_network_access_enabled` - Whether or not public network access is allowed for this resource. Defaults to `true`.
+* `public_network_access_enabled` - Whether or not public network access is enabled for this resource.
 
 * `partition_count` - The number of partitions which have been created.
 
 * `replica_count` - The number of replica's which have been created.
 
--> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
-
 * `identity` - An `identity` block as defined below.
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - The Type of Identity which should be used for the Search Service. At this time the only possible value is `SystemAssigned`.
+* `type` - The Type of Managed Identity which is used for the Search Service.
 
 ---
 

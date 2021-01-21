@@ -117,7 +117,7 @@ func dataSourceSearchServiceRead(d *schema.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
 			d.SetId("")
-			return nil
+			return fmt.Errorf("Search Service %q (Resource Group %q) was not found", id.Name, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("Error reading Search Service: %+v", err)
