@@ -1,3 +1,9 @@
+## 2.45.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
+
 ## 2.44.0 (January 21, 2021)
 
 FEATURES:
