@@ -50,17 +50,17 @@ The following arguments are supported:
 
 * `display_name` - (Required) Specifies the Display Name for this Iot Security Solution.
 
-* `iothub_ids` - (Required) Specifies the IoT Hub resource IDs to which this Iot Security Solution applies.
-
-* `log_analytics_workspace_id` - (Optional) Specifies the Log Analytics Workspace ID to which the security data will be sent.
+* `iothub_ids` - (Required) Specifies the IoT Hub resource IDs to which this Iot Security Solution is applied.
 
 * `enabled` - (Optional) Is the Iot Security Solution enabled? Defaults to `true`.
 
-* `unmasked_ip_logging_enabled` - (Optional) Is unmasked IP logging enabled? Defaults to `false`.
+* `events_to_export` - (Optional) A list of data which is to exported to analytic workspace. Valid values include `RawEvents`.
 
-* `export` - (Optional) A list of data which is to exported to analytic workspace. Valid values include `RawEvents`.
+* `log_analytics_workspace_id` - (Optional) Specifies the Log Analytics Workspace ID to which the security data will be sent.
 
-* `recommendation` - (Optional) A `recommendation` block as defined below.
+* `log_unmasked_ips_enabled` - (Optional) Should ip addressed be unmasked in the log? Defaults to `false`.
+
+* `recommendations_enabled` - (Optional) A `recommendations_enabled` block as defined below.
 
 * `user_defined_resource` - (Optional) A `user_defined_resource` block as defined below.
 
@@ -68,39 +68,39 @@ The following arguments are supported:
 
 ---
 
-A `recommendation` block supports the following:
+A `recommendations_enabled` block supports the following:
 
-* `iot_acr_authentication_enabled` - (Optional) Could Service Principal Authentication be used with ACR repository? Defaults to `true`.
+* `events_to_exportacr_authentication` - (Optional) Could Service Principal Authentication be used with ACR repository? Defaults to `true`.
 
-* `iot_agent_send_unutilized_msg_enabled` - (Optional) Could Agent send underutilized messages? Defaults to `true`.
+* `events_to_exportagent_send_unutilized_msg` - (Optional) Could Agent send underutilized messages? Defaults to `true`.
 
-* `iot_baseline_enabled` - (Optional) Is Security related system configuration issues identified? Defaults to `true`.
+* `events_to_exportbaseline` - (Optional) Is Security related system configuration issues identified? Defaults to `true`.
 
-* `iot_edge_hub_mem_optimize_enabled` - (Optional) Is IoT Edge Hub memory optimized? Defaults to `true`.
+* `events_to_exportedge_hub_mem_optimize` - (Optional) Is IoT Edge Hub memory optimized? Defaults to `true`.
 
-* `iot_edge_logging_option_enabled` - (Optional) Is logging configured for IoT Edge module? Defaults to `true`.
+* `events_to_exportedge_logging_option` - (Optional) Is logging configured for IoT Edge module? Defaults to `true`.
 
-* `iot_inconsistent_module_settings_enabled` - (Optional) Does SecurityGroup has inconsistent module settings? Defaults to `true`.
+* `events_to_exportinconsistent_module_settings` - (Optional) Does SecurityGroup has inconsistent module settings? Defaults to `true`.
 
-* `iot_install_agent_enabled` - (Optional) is Azure IoT Security agent installed? Defaults to `true`.
+* `events_to_exportinstall_agent` - (Optional) is Azure IoT Security agent installed? Defaults to `true`.
 
-* `iot_ip_filter_deny_all_enabled` - (Optional) Is Default IP filter policy denied? Defaults to `true`.
+* `events_to_exportip_filter_deny_all` - (Optional) Is Default IP filter policy denied? Defaults to `true`.
 
-* `iot_ip_filter_permissive_rule_enabled` - (Optional) Is IP filter rule source allowable IP range too large? Defaults to `true`.
+* `events_to_exportip_filter_permissive_rule` - (Optional) Is IP filter rule source allowable IP range too large? Defaults to `true`.
 
-* `iot_open_ports_enabled` - (Optional) Is any ports open on the device? Defaults to `true`.
+* `events_to_exportopen_ports` - (Optional) Is any ports open on the device? Defaults to `true`.
 
-* `iot_permissive_firewall_policy_enabled` - (Optional) Does firewall policy exist which allow necessary communication to/from the device? Defaults to `true`.
+* `events_to_exportpermissive_firewall_policy` - (Optional) Does firewall policy exist which allow necessary communication to/from the device? Defaults to `true`.
 
-* `iot_permissive_input_firewall_rules_enabled` - (Optional) Is only necessary addresses or ports are permitted in? Defaults to `true`.
+* `events_to_exportpermissive_input_firewall_rules` - (Optional) Is only necessary addresses or ports are permitted in? Defaults to `true`.
 
-* `iot_permissive_output_firewall_rules_enabled` - (Optional) Is only necessary addresses or ports are permitted out? Defaults to `true`.
+* `events_to_exportpermissive_output_firewall_rules` - (Optional) Is only necessary addresses or ports are permitted out? Defaults to `true`.
 
-* `iot_privileged_docker_options_enabled` - (Optional) Is high level permissions are needed for the module? Defaults to `true`.
+* `events_to_exportprivileged_docker_options` - (Optional) Is high level permissions are needed for the module? Defaults to `true`.
 
-* `iot_shared_credentials_enabled` - (Optional) Is any credentials shared among devices? Defaults to `true`.
+* `events_to_exportshared_credentials` - (Optional) Is any credentials shared among devices? Defaults to `true`.
 
-* `iot_vulnerable_tls_cipher_suite_enabled` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
+* `events_to_exportvulnerable_tls_cipher_suite` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
 
 ---
 

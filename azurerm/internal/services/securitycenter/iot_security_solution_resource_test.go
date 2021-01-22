@@ -154,27 +154,27 @@ resource "azurerm_iot_security_solution" "test" {
   display_name                = "Iot Security Solution"
   iothub_ids                  = [azurerm_iothub.test.id]
   enabled                     = true
-  unmasked_ip_logging_enabled = true
+  log_unmasked_ips_enabled = true
   log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
-  export                      = ["RawEvents"]
+  events_to_export                      = ["RawEvents"]
 
-  recommendation {
-    iot_acr_authentication_enabled               = false
-    iot_agent_send_unutilized_msg_enabled        = false
-    iot_baseline_enabled                         = false
-    iot_edge_hub_mem_optimize_enabled            = false
-    iot_edge_logging_option_enabled              = false
-    iot_inconsistent_module_settings_enabled     = false
-    iot_install_agent_enabled                    = false
-    iot_ip_filter_deny_all_enabled               = false
-    iot_ip_filter_permissive_rule_enabled        = false
-    iot_open_ports_enabled                       = false
-    iot_permissive_firewall_policy_enabled       = false
-    iot_permissive_input_firewall_rules_enabled  = false
-    iot_permissive_output_firewall_rules_enabled = false
-    iot_privileged_docker_options_enabled        = false
-    iot_shared_credentials_enabled               = false
-    iot_vulnerable_tls_cipher_suite_enabled      = false
+  recommendations_enabled {
+    acr_authentication               = false
+    agent_send_unutilized_msg        = false
+    baseline                         = false
+    edge_hub_mem_optimize            = false
+    edge_logging_option              = false
+    inconsistent_module_settings     = false
+    install_agent                    = false
+    ip_filter_deny_all               = false
+    ip_filter_permissive_rule        = false
+    open_ports                       = false
+    permissive_firewall_policy       = false
+    permissive_input_firewall_rules  = false
+    permissive_output_firewall_rules = false
+    privileged_docker_options        = false
+    shared_credentials               = false
+    vulnerable_tls_cipher_suite      = false
   }
 
   user_defined_resource {

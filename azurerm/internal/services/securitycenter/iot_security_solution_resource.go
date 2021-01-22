@@ -85,13 +85,13 @@ func resourceIotSecuritySolution() *schema.Resource {
 				Default:  true,
 			},
 
-			"unmasked_ip_logging_enabled": {
+			"log_unmasked_ips_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
-			"export": {
+			"events_to_export": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -102,104 +102,104 @@ func resourceIotSecuritySolution() *schema.Resource {
 				},
 			},
 
-			"recommendation": {
+			"recommendations_enabled": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"iot_acr_authentication_enabled": {
+						"acr_authentication": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_agent_send_unutilized_msg_enabled": {
+						"agent_send_unutilized_msg": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_baseline_enabled": {
+						"baseline": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_edge_hub_mem_optimize_enabled": {
+						"edge_hub_mem_optimize": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_edge_logging_option_enabled": {
+						"edge_logging_option": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_inconsistent_module_settings_enabled": {
+						"inconsistent_module_settings": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_install_agent_enabled": {
+						"install_agent": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_ip_filter_deny_all_enabled": {
+						"ip_filter_deny_all": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_ip_filter_permissive_rule_enabled": {
+						"ip_filter_permissive_rule": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_open_ports_enabled": {
+						"open_ports": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_permissive_firewall_policy_enabled": {
+						"permissive_firewall_policy": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_permissive_input_firewall_rules_enabled": {
+						"permissive_input_firewall_rules": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_permissive_output_firewall_rules_enabled": {
+						"permissive_output_firewall_rules": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_privileged_docker_options_enabled": {
+						"privileged_docker_options": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_shared_credentials_enabled": {
+						"shared_credentials": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
-						"iot_vulnerable_tls_cipher_suite_enabled": {
+						"vulnerable_tls_cipher_suite": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
@@ -266,7 +266,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	unmaskedIPLoggingStatus := security.UnmaskedIPLoggingStatusDisabled
-	if d.Get("unmasked_ip_logging_enabled").(bool) {
+	if d.Get("log_unmasked_ips_enabled").(bool) {
 		unmaskedIPLoggingStatus = security.UnmaskedIPLoggingStatusEnabled
 	}
 	solution := security.IoTSecuritySolutionModel{
@@ -274,10 +274,10 @@ func resourceIotSecuritySolutionCreateUpdate(d *schema.ResourceData, meta interf
 		IoTSecuritySolutionProperties: &security.IoTSecuritySolutionProperties{
 			DisplayName:                  utils.String(d.Get("display_name").(string)),
 			Status:                       status,
-			Export:                       expandIotSecuritySolutionExport(d.Get("export").(*schema.Set).List()),
+			Export:                       expandIotSecuritySolutionExport(d.Get("events_to_export").(*schema.Set).List()),
 			IotHubs:                      utils.ExpandStringSlice(d.Get("iothub_ids").(*schema.Set).List()),
 			UserDefinedResources:         expandIotSecuritySolutionUserDefinedResources(d.Get("user_defined_resource").([]interface{})),
-			RecommendationsConfiguration: expandIotSecuritySolutionRecommendation(d.Get("recommendation").([]interface{})),
+			RecommendationsConfiguration: expandIotSecuritySolutionRecommendation(d.Get("recommendations_enabled").([]interface{})),
 			UnmaskedIPLoggingStatus:      unmaskedIPLoggingStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -324,12 +324,12 @@ func resourceIotSecuritySolutionRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("display_name", prop.DisplayName)
 		d.Set("iothub_ids", utils.FlattenStringSlice(prop.IotHubs))
 		d.Set("log_analytics_workspace_id", prop.Workspace)
-		d.Set("unmasked_ip_logging_enabled", prop.UnmaskedIPLoggingStatus == security.UnmaskedIPLoggingStatusEnabled)
-		if err := d.Set("export", flattenIotSecuritySolutionExport(prop.Export)); err != nil {
-			return fmt.Errorf("setting `export`: %s", err)
+		d.Set("log_unmasked_ips_enabled", prop.UnmaskedIPLoggingStatus == security.UnmaskedIPLoggingStatusEnabled)
+		if err := d.Set("events_to_export", flattenIotSecuritySolutionExport(prop.Export)); err != nil {
+			return fmt.Errorf("setting `events_to_export`: %s", err)
 		}
-		if err := d.Set("recommendation", flattenIotSecuritySolutionRecommendation(prop.RecommendationsConfiguration)); err != nil {
-			return fmt.Errorf("setting `recommendation`: %s", err)
+		if err := d.Set("recommendations_enabled", flattenIotSecuritySolutionRecommendation(prop.RecommendationsConfiguration)); err != nil {
+			return fmt.Errorf("setting `recommendations_enabled`: %s", err)
 		}
 		if err := d.Set("user_defined_resource", flattenIotSecuritySolutionUserDefinedResources(prop.UserDefinedResources)); err != nil {
 			return fmt.Errorf("setting `user_defined_resource`: %s", err)
@@ -442,21 +442,21 @@ func flattenIotSecuritySolutionRecommendation(input *[]security.RecommendationCo
 
 func getRecommendationSchemaMap() map[security.RecommendationType]string {
 	return map[security.RecommendationType]string{
-		security.IoTACRAuthentication:             "iot_acr_authentication_enabled",
-		security.IoTAgentSendsUnutilizedMessages:  "iot_agent_send_unutilized_msg_enabled",
-		security.IoTBaseline:                      "iot_baseline_enabled",
-		security.IoTEdgeHubMemOptimize:            "iot_edge_hub_mem_optimize_enabled",
-		security.IoTEdgeLoggingOptions:            "iot_edge_logging_option_enabled",
-		security.IoTInconsistentModuleSettings:    "iot_inconsistent_module_settings_enabled",
-		security.IoTInstallAgent:                  "iot_install_agent_enabled",
-		security.IoTIPFilterDenyAll:               "iot_ip_filter_deny_all_enabled",
-		security.IoTIPFilterPermissiveRule:        "iot_ip_filter_permissive_rule_enabled",
-		security.IoTOpenPorts:                     "iot_open_ports_enabled",
-		security.IoTPermissiveFirewallPolicy:      "iot_permissive_firewall_policy_enabled",
-		security.IoTPermissiveInputFirewallRules:  "iot_permissive_input_firewall_rules_enabled",
-		security.IoTPermissiveOutputFirewallRules: "iot_permissive_output_firewall_rules_enabled",
-		security.IoTPrivilegedDockerOptions:       "iot_privileged_docker_options_enabled",
-		security.IoTSharedCredentials:             "iot_shared_credentials_enabled",
-		security.IoTVulnerableTLSCipherSuite:      "iot_vulnerable_tls_cipher_suite_enabled",
+		security.IoTACRAuthentication:             "acr_authentication",
+		security.IoTAgentSendsUnutilizedMessages:  "agent_send_unutilized_msg",
+		security.IoTBaseline:                      "baseline",
+		security.IoTEdgeHubMemOptimize:            "edge_hub_mem_optimize",
+		security.IoTEdgeLoggingOptions:            "edge_logging_option",
+		security.IoTInconsistentModuleSettings:    "inconsistent_module_settings",
+		security.IoTInstallAgent:                  "install_agent",
+		security.IoTIPFilterDenyAll:               "ip_filter_deny_all",
+		security.IoTIPFilterPermissiveRule:        "ip_filter_permissive_rule",
+		security.IoTOpenPorts:                     "open_ports",
+		security.IoTPermissiveFirewallPolicy:      "permissive_firewall_policy",
+		security.IoTPermissiveInputFirewallRules:  "permissive_input_firewall_rules",
+		security.IoTPermissiveOutputFirewallRules: "permissive_output_firewall_rules",
+		security.IoTPrivilegedDockerOptions:       "privileged_docker_options",
+		security.IoTSharedCredentials:             "shared_credentials",
+		security.IoTVulnerableTLSCipherSuite:      "vulnerable_tls_cipher_suite",
 	}
 }
