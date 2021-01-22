@@ -441,43 +441,35 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_virtual_machine_scale_set" "hbtest" {
-  name                   = "acctest-lb-vmss-%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  upgrade_policy_mode    = "Automatic"
-  overprovision          = false
-  single_placement_group = true
-  sku {
-    name     = "Standard_B2ms"
-    tier     = "Standard"
-    capacity = 3
-  }
-  storage_profile_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-datacenter-core-smalldisk-g2"
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctest-lb-vmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
-  storage_profile_os_disk {
-    create_option     = "FromImage"
-    caching           = "ReadWrite"
-    managed_disk_type = "Premium_LRS"
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
   }
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
-  }
-  os_profile_windows_config {
-    provision_vm_agent        = true
-    enable_automatic_upgrades = false
-  }
-  network_profile {
-    name    = "primary"
+
+  network_interface {
+    name    = "example"
     primary = true
+
     ip_configuration {
-      name      = "primary"
+      name      = "internal"
       primary   = true
       subnet_id = azurerm_subnet.test.id
       load_balancer_backend_address_pool_ids = [
