@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -92,14 +91,12 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 }
 
 func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["proximityPlacementGroups"]
 
-	resp, err := clients.Compute.ProximityPlacementGroupsClient.Get(ctx, resourceGroup, name, "")
+	resp, err := clients.Compute.ProximityPlacementGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Proximity Placement Group %q", id)
 	}
@@ -108,7 +105,7 @@ func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *cl
 }
 
 func (ProximityPlacementGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AvailabilitySetID(state.ID)
+	id, err := parse.ProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
