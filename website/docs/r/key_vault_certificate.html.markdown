@@ -315,7 +315,7 @@ The following attributes are exported:
 * `id` - The Key Vault Certificate ID.
 * `secret_id` - The ID of the associated Key Vault Secret.
 * `version` - The current version of the Key Vault Certificate.
-* `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
+* `certificate_data` - (/ **Deprecated in favour of `certificate_data_base64`**) The raw Key Vault Certificate data represented as a hexadecimal string.
 * `certificate_data_base64` - The Base64 encoded Key Vault Certificate data.
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 * `certificate_attribute` - A `certificate_attribute` block as defined below.

@@ -336,8 +336,9 @@ func resourceKeyVaultCertificate() *schema.Resource {
 			},
 
 			"certificate_data": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:    	schema.TypeString,
+				Computed:	true,
+				Deprecated:	"Deprecated in favour of `certificate_data_base64`",
 			},
 
 			"certificate_data_base64": {
