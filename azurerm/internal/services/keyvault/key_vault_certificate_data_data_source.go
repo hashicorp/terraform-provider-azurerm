@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/pkcs12"
 )
 
-func dataSourceArmKeyVaultCertificateData() *schema.Resource {
+func dataSourceKeyVaultCertificateData() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKeyVaultCertificateDataRead,
 
