@@ -148,15 +148,15 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_iot_security_solution" "test" {
-  name                        = "acctest-Iot-Security-Solution-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  display_name                = "Iot Security Solution"
-  iothub_ids                  = [azurerm_iothub.test.id]
-  enabled                     = true
-  log_unmasked_ips_enabled = true
-  log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
-  events_to_export                      = ["RawEvents"]
+  name                       = "acctest-Iot-Security-Solution-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  display_name               = "Iot Security Solution"
+  iothub_ids                 = [azurerm_iothub.test.id]
+  enabled                    = true
+  log_unmasked_ips_enabled   = true
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  events_to_export           = ["RawEvents"]
 
   recommendations_enabled {
     acr_authentication               = false
