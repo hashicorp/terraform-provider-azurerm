@@ -10,6 +10,7 @@ IMPROVEMENTS:
 
 * dependencies: updating to `v0.11.17` of `github.com/Azure/go-autorest/autorest` [GH-10259]
 * dependencies: updating the `firewall` resources to use the Networking API `2020-07-01` [GH-10252]
+* dependencies: updating the `load balancer` resources to use the Networking API version `2020-05-01` [GH-10263]
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
 
 BUG FIXES:
