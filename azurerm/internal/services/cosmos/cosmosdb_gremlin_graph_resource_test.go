@@ -86,18 +86,20 @@ func TestAccCosmosDbGremlinGraph_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.update(data, 700),
+			Config: r.update(data, 700, 900),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("throughput").HasValue("700"),
+				check.That(data.ResourceName).Key("default_ttl").HasValue("900"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, 1700),
+			Config: r.update(data, 1700, 1900),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("throughput").HasValue("1700"),
+				check.That(data.ResourceName).Key("default_ttl").HasValue("1900"),
 			),
 		},
 		data.ImportStep(),
@@ -251,7 +253,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 `, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosGremlinGraphResource) update(data acceptance.TestData, throughput int) string {
+func (CosmosGremlinGraphResource) update(data acceptance.TestData, throughput int, defaultTTL int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -262,6 +264,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
   partition_key_path  = "/test"
   throughput          = %[3]d
+  default_ttl         = %[4]d
 
   index_policy {
     automatic      = true
@@ -279,7 +282,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     paths = ["/definition/id1", "/definition/id2"]
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, throughput)
+`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, throughput, defaultTTL)
 }
 
 func (CosmosGremlinGraphResource) autoscale(data acceptance.TestData, maxThroughput int) string {

@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -1570,7 +1569,7 @@ func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
@@ -1584,7 +1583,7 @@ func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
@@ -1650,7 +1649,7 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
@@ -1672,7 +1671,7 @@ func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
@@ -1687,7 +1686,7 @@ func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
@@ -1720,7 +1719,7 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func expandVirtualMachineScaleSetSku(d *schema.ResourceData) *compute.Sku {

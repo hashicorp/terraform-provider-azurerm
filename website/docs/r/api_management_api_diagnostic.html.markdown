@@ -69,6 +69,7 @@ resource "azurerm_api_management_api_diagnostic" "example" {
   api_name                 = azurerm_api_management_api.example.name
   api_management_logger_id = azurerm_api_management_logger.example.id
 
+  sampling_percentage       = 5.0
   always_log_errors         = true
   log_client_ip             = true
   verbosity                 = "Verbose"
@@ -141,6 +142,8 @@ The following arguments are supported:
 * `http_correlation_protocol` - (Optional) The HTTP Correlation Protocol to use. Possible values are `None`, `Legacy` or `W3C`.
 
 * `log_client_ip` - (Optional) Log client IP address.
+
+* `sampling_percentage` - (Optional) Sampling (%). For high traffic APIs, please read this [documentation](https://docs.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling. Valid values are between `0.0` and `100.0`.
 
 * `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.
 

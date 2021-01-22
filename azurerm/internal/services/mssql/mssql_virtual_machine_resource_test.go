@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -71,7 +70,7 @@ func TestAccMsSqlVirtualMachine_complete(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachine_updateAutoPatching(t *testing.T) {
+func TestAccMsSqlVirtualMachine_withAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
 
@@ -93,8 +92,9 @@ func TestAccMsSqlVirtualMachine_updateAutoPatching(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
+func TestAccMsSqlVirtualMachine_withKeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
 	r := MsSqlVirtualMachineResource{}
 	value, err := uuid.GenerateUUID()
 	if err != nil {
@@ -106,7 +106,7 @@ func TestAccMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 			Config: r.withKeyVault(data, value),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("r_services_enabled").MatchesRegex(regexp.MustCompile("/*:acctestkv")),
+				check.That(data.ResourceName).Key("key_vault_credential.0.name").MatchesRegex(regexp.MustCompile("/*:acctestkv")),
 			),
 		},
 		data.ImportStep("key_vault_credential.0.key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
@@ -115,20 +115,20 @@ func TestAccMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 			Config: r.withKeyVaultUpdated(data, value),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("r_services_enabled").MatchesRegex(regexp.MustCompile("/*:acctestkv2")),
+				check.That(data.ResourceName).Key("key_vault_credential.0.name").MatchesRegex(regexp.MustCompile("/*:acctestkv2")),
 			),
 		},
 		data.ImportStep("key_vault_credential.0.key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
 	})
 }
 
-func TestAccMsSqlVirtualMachine_storageConfigurationSettings(t *testing.T) {
+func TestAccMsSqlVirtualMachine_withStorageConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.storageConfigurationSettings(data),
+			Config: r.withStorageConfiguration(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -434,7 +434,7 @@ resource "azuread_service_principal" "test" {
 resource "azuread_service_principal_password" "test" {
   service_principal_id = azuread_service_principal.test.id
   value                = "%[3]s"
-  end_date             = "2021-01-01T01:02:03Z"
+  end_date_relative    = "240h"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -514,7 +514,7 @@ resource "azuread_service_principal" "test" {
 resource "azuread_service_principal_password" "test" {
   service_principal_id = azuread_service_principal.test.id
   value                = "%[3]s"
-  end_date             = "2021-01-01T01:02:03Z"
+  end_date_relative    = "240h"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -530,7 +530,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger, value)
 }
 
-func (r MsSqlVirtualMachineResource) storageConfigurationSettings(data acceptance.TestData) string {
+func (r MsSqlVirtualMachineResource) withStorageConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

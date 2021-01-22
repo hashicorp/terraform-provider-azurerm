@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -81,14 +83,14 @@ func resourceApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.GroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	userId := id.UserName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 	if err != nil {
@@ -114,14 +116,14 @@ func resourceApiManagementGroupUserDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.GroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	userId := id.UserName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

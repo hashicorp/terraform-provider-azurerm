@@ -11,7 +11,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -929,7 +928,7 @@ func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
 	}
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *insights.MetricAlertsClient, resourceGroupName string, name string) resource.StateRefreshFunc {

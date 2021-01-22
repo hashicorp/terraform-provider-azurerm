@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualWan() *schema.Resource {
+func resourceVirtualWan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualWanCreateUpdate,
-		Read:   resourceArmVirtualWanRead,
-		Update: resourceArmVirtualWanCreateUpdate,
-		Delete: resourceArmVirtualWanDelete,
+		Create: resourceVirtualWanCreateUpdate,
+		Read:   resourceVirtualWanRead,
+		Update: resourceVirtualWanCreateUpdate,
+		Delete: resourceVirtualWanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceArmVirtualWan() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,10 +149,10 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualWanRead(d, meta)
+	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

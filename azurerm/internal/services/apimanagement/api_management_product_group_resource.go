@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -70,7 +72,6 @@ func resourceApiManagementProductGroupCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("adding Product %q to Group %q (API Management Service %q / Resource Group %q): %+v", productId, groupName, serviceName, resourceGroup, err)
 	}
 
-	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
 	return resourceApiManagementProductGroupRead(d, meta)
@@ -81,14 +82,14 @@ func resourceApiManagementProductGroupRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	productId := id.ProductName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 	if err != nil {
@@ -114,14 +115,14 @@ func resourceApiManagementProductGroupDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	productId := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, groupName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

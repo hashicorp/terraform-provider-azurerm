@@ -100,6 +100,8 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `null_value` - (Required) The null value string.
 
+* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case sensitive.
+
 * `compression_level` - (Optional) The compression ratio for the Data Factory Dataset. Valid values are `Fastest` or `Optimal`. Please note these values are case sensitive.
 
 ---

@@ -77,7 +77,7 @@ func TestAccRoleDefinitionDataSource_builtIn_contributor(t *testing.T) {
 				check.That(data.ResourceName).Key("permissions.0.not_actions.2").HasValue("Microsoft.Authorization/elevateAccess/Action"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.3").HasValue("Microsoft.Blueprint/blueprintAssignments/write"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.4").HasValue("Microsoft.Blueprint/blueprintAssignments/delete"),
-				check.That(data.ResourceName).Key("permissions.0.not_actions.4").HasValue("Microsoft.Compute/galleries/share/action"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.5").HasValue("Microsoft.Compute/galleries/share/action"),
 			),
 		},
 	})

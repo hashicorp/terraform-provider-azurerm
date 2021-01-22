@@ -49,6 +49,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_factory_linked_service_mysql":                  resourceDataFactoryLinkedServiceMySQL(),
 		"azurerm_data_factory_linked_service_postgresql":             resourceDataFactoryLinkedServicePostgreSQL(),
 		"azurerm_data_factory_linked_service_sftp":                   resourceDataFactoryLinkedServiceSFTP(),
+		"azurerm_data_factory_linked_service_snowflake":              resourceDataFactoryLinkedServiceSnowflake(),
 		"azurerm_data_factory_linked_service_sql_server":             resourceDataFactoryLinkedServiceSQLServer(),
 		"azurerm_data_factory_linked_service_synapse":                resourceDataFactoryLinkedServiceSynapse(),
 		"azurerm_data_factory_linked_service_web":                    resourceDataFactoryLinkedServiceWeb(),
