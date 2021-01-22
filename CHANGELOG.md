@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating to `v0.11.17` of `github.com/Azure/go-autorest/autorest` [GH-10259]
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
 
 ## 2.44.0 (January 21, 2021)
