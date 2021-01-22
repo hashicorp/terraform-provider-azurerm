@@ -73,7 +73,7 @@ func TestAccKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultDisappears("azurerm_key_vault.test"),
+				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -242,6 +242,19 @@ func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Clien
 	}
 
 	return utils.Bool(true), nil
+}
+
+func (KeyVaultSecretResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
+	if err != nil {
+		return err
+	}
+
+	if ok == nil || !*ok {
+		return fmt.Errorf("deleting parent key vault failed")
+	}
+
+	return nil
 }
 
 func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.ClientCheckFunc {

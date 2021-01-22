@@ -240,7 +240,7 @@ func TestAccKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 		{
 			Config: r.basicEC(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultDisappears("azurerm_key_vault.test"),
+				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -294,6 +294,19 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	return utils.Bool(resp.Key != nil), nil
+}
+
+func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
+	if err != nil {
+		return err
+	}
+
+	if ok == nil || !*ok {
+		return fmt.Errorf("deleting parent key vault failed")
+	}
+
+	return nil
 }
 
 func updateExpiryDateForKeyVaultKey(resourceName string, expiryDate string) resource.TestCheckFunc {
