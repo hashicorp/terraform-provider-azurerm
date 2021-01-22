@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -252,7 +252,7 @@ func resourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
 		}
 
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(prop.DNSSettings)); err != nil {
 			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 
