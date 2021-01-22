@@ -62,8 +62,7 @@ func resourceFirewallPolicy() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.FirewallPolicySkuTierPremium),
 					string(network.FirewallPolicySkuTierStandard),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"location": location.Schema(),
