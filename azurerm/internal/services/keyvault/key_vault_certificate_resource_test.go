@@ -144,6 +144,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
