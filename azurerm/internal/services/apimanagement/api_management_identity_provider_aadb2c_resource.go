@@ -120,16 +120,16 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *schema.Resour
 	profileEditingPolicy := d.Get("profile_editing_policy").(string)
 	passwordResetPolicy := d.Get("password_reset_policy").(string)
 
+	id := parse.NewIdentityProviderID(client.SubscriptionID, resourceGroup, serviceName, string(apimanagement.AadB2C))
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.AadB2C)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.AadB2C, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
 			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", *existing.ID)
+		} else {
+			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
 		}
 	}
 
@@ -152,15 +152,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *schema.Resour
 		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.AadB2C, resourceGroup, serviceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.AadB2C)
-	if err != nil {
-		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.AadB2C, resourceGroup, serviceName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.AadB2C, resourceGroup, serviceName)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
 }
 

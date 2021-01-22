@@ -34,18 +34,10 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
 	r := ApiManagementIdentityProviderAADB2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
-	env, err := acceptance.Environment()
-	if err != nil {
-		t.Fatalf("could not load Azure Environment: %+v", err)
-	}
-	apiDomain := env.APIManagementHostNameSuffix
-	if apiDomain == "" {
-		t.Fatalf("APIManagementHostNameSuffix was empty")
-	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, b2cConfig, apiDomain),
+			Config: r.basic(data, b2cConfig),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -58,17 +50,16 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
 	r := ApiManagementIdentityProviderAADB2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
-	apiDomain := acceptance.AzureProvider.Meta().(*clients.Client).Account.Environment.APIManagementHostNameSuffix
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, b2cConfig, apiDomain),
+			Config: r.basic(data, b2cConfig),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:      r.requiresImport(data, b2cConfig, apiDomain),
+			Config:      r.requiresImport(data, b2cConfig),
 			ExpectError: acceptance.RequiresImportError(data.ResourceType),
 		},
 	})
@@ -113,7 +104,7 @@ func (ApiManagementIdentityProviderAADB2CResource) Exists(ctx context.Context, c
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (ApiManagementIdentityProviderAADB2CResource) basic(data acceptance.TestData, b2cConfig map[string]string, apiDomain string) string {
+func (ApiManagementIdentityProviderAADB2CResource) basic(data acceptance.TestData, b2cConfig map[string]string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -142,7 +133,7 @@ resource "azurerm_api_management" "test" {
 resource "azuread_application" "test" {
   name                       = "acctestAM-%[5]d"
   oauth2_allow_implicit_flow = true
-  reply_urls                 = ["https://${azurerm_api_management.test.name}.developer.%[8]s/signin"]
+  reply_urls                 = [azurerm_api_management.test.developer_portal_url]
 }
 
 resource "azuread_application_password" "test" {
@@ -166,11 +157,11 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
 
   depends_on = [azuread_application_password.test]
 }
-`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary, data.RandomString, apiDomain)
+`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ApiManagementIdentityProviderAADB2CResource) requiresImport(data acceptance.TestData, b2cConfig map[string]string, apiDomain string) string {
-	template := r.basic(data, b2cConfig, apiDomain)
+func (r ApiManagementIdentityProviderAADB2CResource) requiresImport(data acceptance.TestData, b2cConfig map[string]string) string {
+	template := r.basic(data, b2cConfig)
 	return fmt.Sprintf(`
 %s
 

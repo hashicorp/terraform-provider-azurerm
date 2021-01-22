@@ -3,12 +3,12 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_identity_provider_aadb2c"
 description: |-
-  Manages an API Management AADB2C Identity Provider.
+  Manages an API Management Azure AD B2C Identity Provider.
 ---
 
 # azurerm_api_management_identity_provider_aadb2c
 
-Manages an API Management AADB2C Identity Provider.
+Manages an API Management Azure AD B2C Identity Provider.
 
 ## Example Usage
 
@@ -71,9 +71,9 @@ The following arguments are supported:
 
 * `authority` - (Required) OpenID Connect discovery endpoint hostname, usually your b2clogin.com domain.
 
-* `signin_policy` - (Required) Signup Policy Name.
+* `signin_policy` - (Required) Signin Policy Name.
 
-* `signup_policy` - (Required) Signin Policy Name.
+* `signup_policy` - (Required) Signup Policy Name.
 
 ---
 
@@ -85,20 +85,20 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the API Management Identity Provider Resource.
+* `id` - The ID of the API Management Azure AD B2C Identity Provider Resource.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the API Management Resources.
-* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Resources.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Resources.
-* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Resources.
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Azure AD B2C Identity Provider.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Azure AD B2C Identity Provider.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Azure AD B2C Identity Provider.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Azure AD B2C Identity Provider.
 
 ## Import
 
-API Management Resourcess can be imported using the `resource id`, e.g.
+API Management Azure AD B2C Identity Providers can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_api_management_identity_provider_aadb2c.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service1/identityProviders/AadB2C
