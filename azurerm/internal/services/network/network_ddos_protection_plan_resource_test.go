@@ -108,14 +108,10 @@ func testAccNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 	r := NetworkDDoSProtectionPlanResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkDDoSProtectionPlanDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicConfig,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -135,34 +131,24 @@ func (t NetworkDDoSProtectionPlanResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNetworkDDoSProtectionPlanDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.DDOSProtectionPlansClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on NetworkDDoSProtectionPlanClient: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: waiting for Deletion on NetworkDDoSProtectionPlanClient: %+v", err)
-		}
-
-		return nil
+func (NetworkDDoSProtectionPlanResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	name := id.Path["ddosProtectionPlans"]
+
+	future, err := client.Network.DDOSProtectionPlansClient.Delete(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting DDoS Protection Plan %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.DDOSProtectionPlansClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion on NetworkDDoSProtectionPlanClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (NetworkDDoSProtectionPlanResource) basicConfig(data acceptance.TestData) string {
