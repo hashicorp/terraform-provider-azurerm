@@ -63,6 +63,38 @@ func TestAccMediaStreamingEndpoint_MaxCacheAge(t *testing.T) {
 	})
 }
 
+func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+	r := MediaStreamingEndpointResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				data.CheckWithClient(r.Start),
+			),
+		},
+	})
+}
+
+func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.StreamingEndpointID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Media.StreamingEndpointsClient.Start(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("starting %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Media.StreamingEndpointsClient.Client); err != nil {
+		return fmt.Errorf("waiting for %s to start: %+v", id, err)
+	}
+
+	return nil
+}
+
 func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.StreamingEndpointID(state.ID)
 	if err != nil {
