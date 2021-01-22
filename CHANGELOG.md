@@ -1,5 +1,9 @@
 ## 2.45.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_data_factory_linked_service_snowflake` [GH-10239]
+
 IMPROVEMENTS:
 
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
