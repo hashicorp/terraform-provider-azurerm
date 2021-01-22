@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_snowflake` [GH-10239]
+* **New Resource:** `azurerm_spring_cloud_active_deployment` [GH-9959]
+* **New Resource:** `azurerm_spring_cloud_java_deployment` [GH-9959]
 
 IMPROVEMENTS:
 
