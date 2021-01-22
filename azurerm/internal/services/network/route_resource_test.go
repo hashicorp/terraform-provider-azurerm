@@ -87,14 +87,10 @@ func TestAccRoute_disappears(t *testing.T) {
 	r := RouteResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckRouteDisappears("azurerm_route.test"),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -136,34 +132,25 @@ func (t RouteResource) Exists(ctx context.Context, clients *clients.Client, stat
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckRouteDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		rtName := rs.Primary.Attributes["route_table_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, rtName, name)
-		if err != nil {
-			return fmt.Errorf("Error deleting Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resourceGroup, err)
-		}
-
-		return nil
+func (r RouteResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	rtName := id.Path["routeTables"]
+	routeName := id.Path["routes"]
+
+	future, err := client.Network.RoutesClient.Delete(ctx, resGroup, rtName, routeName)
+	if err != nil {
+		return nil, fmt.Errorf("deleting on routesClient: %+v", err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.RoutesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion of Route %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (RouteResource) basic(data acceptance.TestData) string {
