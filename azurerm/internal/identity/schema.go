@@ -6,8 +6,10 @@ import (
 
 const none = "None"
 const systemAssigned = "SystemAssigned"
-const systemAssignedUserAssigned = "SystemAssigned, UserAssigned"
-const userAssigned = "UserAssigned"
+
+// TODO: support UserAssigned & SystemAssigned, UserAssigned
+// const systemAssignedUserAssigned = "SystemAssigned, UserAssigned"
+// const userAssigned = "UserAssigned"
 
 type ExpandedConfig struct {
 	// Type is the type of User Assigned Identity, either `None`, `SystemAssigned`, `UserAssigned`
