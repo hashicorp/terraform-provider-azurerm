@@ -9,6 +9,10 @@ IMPROVEMENTS:
 * dependencies: updating to `v0.11.17` of `github.com/Azure/go-autorest/autorest` [GH-10259]
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
 
+BUG FIXES:
+
+* `azurerm_media_streaming_endpoint` - stopping the streaming endpoint prior to deletion if the endpoint is in a running state [GH-10216]
+
 ## 2.44.0 (January 21, 2021)
 
 FEATURES:
