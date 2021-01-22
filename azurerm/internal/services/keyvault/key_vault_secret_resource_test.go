@@ -3,7 +3,6 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -59,14 +58,10 @@ func TestAccKeyVaultSecret_disappears(t *testing.T) {
 	r := KeyVaultSecretResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckKeyVaultSecretDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -78,7 +73,7 @@ func TestAccKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultDisappears("azurerm_key_vault.test"),
+				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -136,7 +131,7 @@ func TestAccKeyVaultSecret_updatingValueChangedExternally(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
-				updateKeyVaultSecretValue(data.ResourceName, "mad-scientist"),
+				data.CheckWithClient(r.updateSecretValue("mad-scientist")),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -203,7 +198,7 @@ func TestAccKeyVaultSecret_withExternalAccessPolicy(t *testing.T) {
 	})
 }
 
-func (t KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultClient := clients.KeyVault.VaultsClient
 
@@ -231,77 +226,53 @@ func (t KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckKeyVaultSecretDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	dataPlaneClient := client.KeyVault.ManagementClient
+	vaultClient := client.KeyVault.VaultsClient
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.DeleteSecret(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
+	name := state.Attributes["name"]
+	keyVaultId := state.Attributes["key_vault_id"]
+	vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
+
+	if _, err := dataPlaneClient.DeleteSecret(ctx, vaultBaseUrl, name); err != nil {
+		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func updateKeyVaultSecretValue(resourceName, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (KeyVaultSecretResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
+	if err != nil {
+		return err
+	}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+	if ok == nil || !*ok {
+		return fmt.Errorf("deleting parent key vault failed")
+	}
+
+	return nil
+}
+
+func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		dataPlaneClient := clients.KeyVault.ManagementClient
+		vaultClient := clients.KeyVault.VaultsClient
+
+		name := state.Attributes["name"]
+		keyVaultId := state.Attributes["key_vault_id"]
 		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
+			return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		updated := keyvault.SecretSetParameters{
 			Value: utils.String(value),
 		}
-		if _, err = client.SetSecret(ctx, vaultBaseUrl, name, updated); err != nil {
+		if _, err = dataPlaneClient.SetSecret(ctx, vaultBaseUrl, name, updated); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 		return nil

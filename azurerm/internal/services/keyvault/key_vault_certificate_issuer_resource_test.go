@@ -137,7 +137,7 @@ func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *
 		return utils.Bool(false), fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
 	}
 
-	ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+	ok, err := azure.KeyVaultExists(ctx, vaultClient, keyVaultId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 	}

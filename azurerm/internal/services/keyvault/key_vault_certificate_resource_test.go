@@ -3,7 +3,6 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -58,14 +57,10 @@ func TestAccKeyVaultCertificate_disappears(t *testing.T) {
 	r := KeyVaultCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicGenerate(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckKeyVaultCertificateDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicGenerate,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -77,7 +72,7 @@ func TestAccKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T
 		{
 			Config: r.basicGenerate(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultDisappears("azurerm_key_vault.test"),
+				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -266,44 +261,32 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(cert.ID != nil), nil
 }
 
-func testCheckKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.DeleteCertificate(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
+func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
+	if err != nil {
+		return err
 	}
+
+	if ok == nil || !*ok {
+		return fmt.Errorf("deleting parent key vault failed")
+	}
+
+	return nil
+}
+
+func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	keyVaultId := state.Attributes["key_vault_id"]
+	vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, client.KeyVault.VaultsClient, keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("looking up base uri for Secret %q from id %q: %+v", name, keyVaultId, err)
+	}
+
+	if _, err := client.KeyVault.ManagementClient.DeleteCertificate(ctx, vaultBaseUrl, name); err != nil {
+		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r KeyVaultCertificateResource) basicImportPFX(data acceptance.TestData) string {

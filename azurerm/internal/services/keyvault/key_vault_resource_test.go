@@ -6,9 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -100,9 +99,7 @@ func TestAccKeyVault_accessPolicyUpperLimit(t *testing.T) {
 			Config: r.accessPolicyUpperLimit(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckKeyVaultDisappears(data.ResourceName),
 			),
-			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -112,14 +109,10 @@ func TestAccKeyVault_disappears(t *testing.T) {
 	r := KeyVaultResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckKeyVaultDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -424,15 +417,13 @@ func TestAccKeyVault_deletePolicy(t *testing.T) {
 	})
 }
 
-func (t KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["vaults"]
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
@@ -440,34 +431,17 @@ func (t KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, s
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckKeyVaultDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		vaultName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := client.Delete(ctx, resourceGroup, vaultName)
-		if err != nil {
-			if response.WasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultClient: %+v", err)
-		}
-
-		return nil
+func (KeyVaultResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VaultID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	if _, err := client.KeyVault.VaultsClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (KeyVaultResource) basic(data acceptance.TestData) string {
