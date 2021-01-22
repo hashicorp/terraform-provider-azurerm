@@ -28,6 +28,7 @@ func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 		data.ImportStep("certificate"),
@@ -44,6 +45,7 @@ func TestAccKeyVaultCertificate_requiresImport(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 		{
@@ -95,6 +97,7 @@ func TestAccKeyVaultCertificate_basicGenerate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
 			),
@@ -129,6 +132,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 		{
@@ -140,7 +144,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
-				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 	})
@@ -156,6 +160,7 @@ func TestAccKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails.#").HasValue("1"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names.#").HasValue("1"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns.#").HasValue("1"),
@@ -174,6 +179,7 @@ func TestAccKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 			),
@@ -192,6 +198,7 @@ func TestAccKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#").HasValue("3"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.0").HasValue("1.3.6.1.5.5.7.3.1"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.1").HasValue("1.3.6.1.5.5.7.3.2"),
@@ -211,6 +218,7 @@ func TestAccKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#").HasValue("0"),
 			),
 		},
