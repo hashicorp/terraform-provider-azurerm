@@ -24,7 +24,7 @@ func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) 
 }
 
 func (r LoadBalancerBackendAddressPool) dataSourceBasic(data acceptance.TestData) string {
-	resource := r.basic(data)
+	resource := r.basicSkuBasic(data)
 	return fmt.Sprintf(`
 %s
 

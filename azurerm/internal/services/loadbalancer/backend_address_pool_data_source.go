@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -34,6 +35,34 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 				ValidateFunc: validate.LoadBalancerID,
 			},
 
+			"backend_address": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"virtual_network_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"network_interface_ip_configuration": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"backend_ip_configurations": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -46,12 +75,28 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 					},
 				},
 			},
+
+			"load_balancing_rules": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"outbound_rules": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
 
 func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -60,24 +105,24 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 	if err != nil {
 		return err
 	}
+	id := parse.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
 
-	resp, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer %q (Resource Group %q) for Backend Pool %q was not found", loadBalancerId.Name, loadBalancerId.ResourceGroup, name)
+			return fmt.Errorf("Load Balancer Backend Address Pool %q was not found", id)
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Backend Address Pool %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
+		return fmt.Errorf("failed to retrieve Load Balancer Backend Address Pool %q: %+v", id, err)
 	}
 
-	bap, _, exists := FindLoadBalancerBackEndAddressPoolByName(&resp, name)
-	if !exists {
-		return fmt.Errorf("Backend Address Pool %q was not found in Load Balancer %q (Resource Group %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
+	d.SetId(id.ID())
 
-	d.SetId(*bap.ID)
+	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
+		if err := d.Set("backend_address", flattenArmLoadBalancerBackendAddressesForDataSource(props.LoadBalancerBackendAddresses)); err != nil {
+			return fmt.Errorf("setting `backend_address`: %v", err)
+		}
 
-	backendIPConfigurations := make([]interface{}, 0)
-	if props := bap.BackendAddressPoolPropertiesFormat; props != nil {
+		var backendIPConfigurations []interface{}
 		if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
 			for _, config := range *beipConfigs {
 				ipConfig := make(map[string]interface{})
@@ -87,9 +132,78 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 				}
 			}
 		}
+		if err := d.Set("backend_ip_configurations", backendIPConfigurations); err != nil {
+			return fmt.Errorf("setting `backend_ip_configurations`: %v", err)
+		}
+
+		var loadBalancingRules []string
+		if rules := props.LoadBalancingRules; rules != nil {
+			for _, rule := range *rules {
+				if rule.ID == nil {
+					continue
+				}
+				loadBalancingRules = append(loadBalancingRules, *rule.ID)
+			}
+		}
+		if err := d.Set("load_balancing_rules", loadBalancingRules); err != nil {
+			return fmt.Errorf("setting `load_balancing_rules`: %v", err)
+		}
+
+		var outboundRules []string
+		if rules := props.OutboundRules; rules != nil {
+			for _, rule := range *rules {
+				if rule.ID == nil {
+					continue
+				}
+				outboundRules = append(outboundRules, *rule.ID)
+			}
+		}
+		if err := d.Set("outbound_rules", outboundRules); err != nil {
+			return fmt.Errorf("setting `outbound_rules`: %v", err)
+		}
 	}
 
-	d.Set("backend_ip_configurations", backendIPConfigurations)
-
 	return nil
+}
+
+func flattenArmLoadBalancerBackendAddressesForDataSource(input *[]network.LoadBalancerBackendAddress) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var name string
+		if e.Name != nil {
+			name = *e.Name
+		}
+
+		var (
+			ipAddress string
+			vnetId    string
+			ipConfig  string
+		)
+		if prop := e.LoadBalancerBackendAddressPropertiesFormat; prop != nil {
+			if prop.IPAddress != nil {
+				ipAddress = *prop.IPAddress
+			}
+			if prop.VirtualNetwork != nil && prop.VirtualNetwork.ID != nil {
+				vnetId = *prop.VirtualNetwork.ID
+			}
+			if prop.NetworkInterfaceIPConfiguration != nil && prop.NetworkInterfaceIPConfiguration.ID != nil {
+				ipConfig = *prop.NetworkInterfaceIPConfiguration.ID
+			}
+		}
+
+		v := map[string]interface{}{
+			"name":                               name,
+			"virtual_network_id":                 vnetId,
+			"ip_address":                         ipAddress,
+			"network_interface_ip_configuration": ipConfig,
+		}
+		output = append(output, v)
+	}
+
+	return output
 }

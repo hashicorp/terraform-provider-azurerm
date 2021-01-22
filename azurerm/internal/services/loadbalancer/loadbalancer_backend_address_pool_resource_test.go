@@ -18,13 +18,72 @@ import (
 type LoadBalancerBackendAddressPool struct {
 }
 
-func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
+func TestAccAzureRMLoadBalancerBackEndAddressPool_basicSkuBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicSkuBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standardSkuNIC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardSkuNIC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standardSkuIPBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardSkuIPBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standardSkuIPUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardSkuIPBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardSkuIPMultipleBackendAddress(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardSkuIPChangeVnet(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -39,7 +98,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicSkuBasic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -49,13 +108,13 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
+func TestAccAzureRMLoadBalancerBackEndAddressPool_BasicSkuRemoval(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
+			Config:       r.basicSkuBasic,
 			TestResource: r,
 		}),
 	})
@@ -130,7 +189,7 @@ func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *cli
 	return utils.Bool(true), nil
 }
 
-func (r LoadBalancerBackendAddressPool) basic(data acceptance.TestData) string {
+func (r LoadBalancerBackendAddressPool) basicSkuBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -160,22 +219,150 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "Address-pool-%d"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "Address-pool-%d"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LoadBalancerBackendAddressPool) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
+	template := r.basicSkuBasic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_backend_address_pool" "import" {
-  name                = azurerm_lb_backend_address_pool.test.name
-  loadbalancer_id     = azurerm_lb_backend_address_pool.test.loadbalancer_id
-  resource_group_name = azurerm_lb_backend_address_pool.test.resource_group_name
+  name            = azurerm_lb_backend_address_pool.test.name
+  loadbalancer_id = azurerm_lb_backend_address_pool.test.loadbalancer_id
 }
 `, template)
+}
+
+func (r LoadBalancerBackendAddressPool) standardSkuTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancerBackendAddressPool) standardSkuNIC(data acceptance.TestData) string {
+	template := r.standardSkuTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "Address-pool-%d"
+}
+`, template, data.RandomInteger)
+}
+
+func (r LoadBalancerBackendAddressPool) standardSkuIPBasic(data acceptance.TestData) string {
+	template := r.standardSkuTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "arm-test-vnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.0.0/16"]
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "Address-pool-%d"
+  backend_address {
+    name               = "addr1"
+    virtual_network_id = azurerm_virtual_network.test.id
+    ip_address         = "191.168.0.1"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancerBackendAddressPool) standardSkuIPMultipleBackendAddress(data acceptance.TestData) string {
+	template := r.standardSkuTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "arm-test-vnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.0.0/16"]
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "Address-pool-%d"
+  backend_address {
+    name               = "addr1"
+    virtual_network_id = azurerm_virtual_network.test.id
+    ip_address         = "191.168.0.1"
+  }
+
+  backend_address {
+    name               = "addr2"
+    virtual_network_id = azurerm_virtual_network.test.id
+    ip_address         = "191.168.0.2"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancerBackendAddressPool) standardSkuIPChangeVnet(data acceptance.TestData) string {
+	template := r.standardSkuTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "arm-test-vnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.0.0/16"]
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "arm-test-vnet2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "Address-pool-%d"
+  backend_address {
+    name               = "addr1"
+    virtual_network_id = azurerm_virtual_network.test2.id
+    ip_address         = "10.0.0.1"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
