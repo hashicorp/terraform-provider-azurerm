@@ -53,6 +53,17 @@ func resourceFirewallPolicy() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.FirewallPolicySkuTierPremium),
+					string(network.FirewallPolicySkuTierStandard),
+				}, false),
+			},
+
 			"location": location.Schema(),
 
 			"base_policy_id": {
@@ -195,6 +206,12 @@ func resourceFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}
 		props.FirewallPolicyPropertiesFormat.BasePolicy = &network.SubResource{ID: utils.String(id.(string))}
 	}
 
+	if v, ok := d.GetOk("sku"); ok {
+		props.FirewallPolicyPropertiesFormat.Sku = &network.FirewallPolicySku{
+			Tier: network.FirewallPolicySkuTier(v.(string)),
+		}
+	}
+
 	locks.ByName(name, azureFirewallPolicyResourceName)
 	defer locks.UnlockByName(name, azureFirewallPolicyResourceName)
 
@@ -247,6 +264,10 @@ func resourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("base_policy_id", basePolicyID)
 
 		d.Set("threat_intelligence_mode", string(prop.ThreatIntelMode))
+
+		if sku := prop.Sku; sku != nil {
+			d.Set("sku", string(sku.Tier))
+		}
 
 		if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(resp.ThreatIntelWhitelist)); err != nil {
 			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
