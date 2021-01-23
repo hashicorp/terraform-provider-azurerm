@@ -18,9 +18,14 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+data "azurerm_databox_edge_device" "example" {
+  name                = "example-device"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 resource "azurerm_databox_edge_order" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  device_name = "somename"
+  device_name         = azurerm_databox_edge_device.example.name
 }
 ```
 
@@ -32,13 +37,9 @@ The following arguments are supported:
 
 * `device_name` - (Required) The order details of a device. Changing this forces a new Databox Edge Order to be created.
 
----
+* `contact_information` - (Required)  A `contact_information` block as defined below.
 
-* `contact_information` - (Optional)  A `contact_information` block as defined below.
-
-* `current_status` - (Optional)  A `current_status` block as defined below.
-
-* `shipping_address` - (Optional)  A `shipping_address` block as defined below.
+* `shipping_address` - (Required)  A `shipping_address` block as defined below.
 
 ---
 
@@ -48,15 +49,9 @@ An `contact_information` block exports the following:
 
 * `contact_person` - (Required) The contact person name.
 
-* `emails` - (Required) The email list.
+* `emails` - (Required) A list of email address to send order notification to.
 
 * `phone_number` - (Required) The phone number.
-
----
-
-An `current_status` block exports the following:
-
-* `comments` - (Optional) Comments related to this status change.
 
 ---
 
@@ -66,13 +61,11 @@ An `shipping_address` block exports the following:
 
 * `city` - (Required) The city name.
 
-* `country` - (Required) The country name.
+* `country` - (Required) The 2 to 3 character country code.
 
 * `postal_code` - (Required) The postal code.
 
 * `state` - (Required) The state name.
-
----
 
 * `address_line2` - (Optional) The address line2.
 
@@ -88,6 +81,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `delivery_tracking_info` - Tracking information for the package delivered to the customer whether it has an original or a replacement device. A `delivery_tracking_info` block as defined below.
 
+* `current_status` - The current status of the order. A `current_status` block as defined below.
+
 * `order_history` - List of status changes in the order. A `order_history` block as defined below.
 
 * `return_tracking_info` - Tracking information for the package returned from the customer whether it has an original or a replacement device. A `return_tracking_info` block as defined below.
@@ -98,7 +93,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-An `delivery_tracking_info` block exports the following:
+A `delivery_tracking_info` block exports the following:
 
 * `carrier_name` - Name of the carrier used in the delivery.
 
@@ -110,10 +105,11 @@ An `delivery_tracking_info` block exports the following:
 
 ---
 
-An `order_history` block exports the following:
+A `current_status` block exports the following:
 
-* `additional_order_details` - Dictionary to hold generic information which is not stored
-by the already existing properties.
+ * `status` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
+
+* `additional_order_details` - Dictionary to hold generic information which is not stored by the already existing properties.
 
 * `comments` - Comments related to this status change.
 
@@ -121,7 +117,17 @@ by the already existing properties.
 
 ---
 
-An `return_tracking_info` block exports the following:
+A `order_history` block exports the following:
+
+* `additional_order_details` - Dictionary to hold generic information which is not stored by the already existing properties.
+
+* `comments` - Comments related to this status change.
+
+* `update_date_time` - Time of status update.
+
+---
+
+A `return_tracking_info` block exports the following:
 
 * `carrier_name` - Name of the carrier used in the delivery.
 

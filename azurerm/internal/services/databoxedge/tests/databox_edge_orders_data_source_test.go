@@ -33,7 +33,7 @@ func testAccDataSourcedataboxedgeOrder_basic(data acceptance.TestData) string {
 
 data "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_databox_edge_order.test.resource_group_name
-  name = azurerm_databox_edge_order.test.name
+  name                = azurerm_databox_edge_order.test.name
 }
 `, config)
 }

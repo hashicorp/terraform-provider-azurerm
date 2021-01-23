@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	OrderClient *databoxedge.OrdersClient
+	DeviceClient *databoxedge.DevicesClient
+	OrderClient  *databoxedge.OrdersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	deviceClient := databoxedge.NewDevicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&deviceClient.Client, o.ResourceManagerAuthorizer)
+
 	orderClient := databoxedge.NewOrdersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&orderClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		OrderClient: &orderClient,
+		DeviceClient: &deviceClient,
+		OrderClient:  &orderClient,
 	}
 }

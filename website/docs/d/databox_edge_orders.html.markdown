@@ -14,8 +14,8 @@ Use this data source to access information about an existing Databox Edge Order.
 
 ```hcl
 data "azurerm_databox_edge_order" "example" {
-  resource_group_name = "existing"
-  device_name = "existing"
+  resource_group_name = "example-rg"
+  device_name         = "example-device"
 }
 
 output "id" {

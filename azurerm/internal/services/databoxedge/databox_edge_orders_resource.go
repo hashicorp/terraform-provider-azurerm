@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2019-08-01/databoxedge"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -49,7 +48,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 
 			"contact_information": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -71,7 +70,6 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-							ValidateFunc: validate.DataboxEdgeEmail,
 						},
 
 						"phone_number": {
@@ -85,14 +83,18 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 
 			"current_status": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"comments": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 
 						"additional_order_details": {
@@ -113,28 +115,20 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 
 			"shipping_address": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address_line1": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"address_line2": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"address_line3": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataboxEdgeStreetAddress,
 						},
 
 						"city": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataboxEdgeCity,
 						},
 
 						"country": {
@@ -142,14 +136,28 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 							Required: true,
 						},
 
-						"postal_code": {
-							Type:     schema.TypeString,
-							Required: true,
+						"state": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataboxEdgeState,
 						},
 
-						"state": {
-							Type:     schema.TypeString,
-							Required: true,
+						"postal_code": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataboxEdgePostalCode,
+						},
+
+						"address_line2": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataboxEdgeStreetAddress,
+						},
+
+						"address_line3": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataboxEdgeStreetAddress,
 						},
 					},
 				},
@@ -272,9 +280,8 @@ func resourceDataboxEdgeOrderCreateUpdate(d *schema.ResourceData, meta interface
 
 	order := databoxedge.Order{
 		OrderProperties: &databoxedge.OrderProperties{
-			ContactInformation: expandArmOrderContactDetails(d.Get("contact_information").([]interface{})),
-			CurrentStatus:      expandArmOrderOrderStatus(d.Get("current_status").([]interface{})),
-			ShippingAddress:    expandArmOrderAddress(d.Get("shipping_address").([]interface{})),
+			ContactInformation: expandOrderContactDetails(d.Get("contact_information").([]interface{})),
+			ShippingAddress:    expandOrderAddress(d.Get("shipping_address").([]interface{})),
 		},
 	}
 
@@ -296,6 +303,7 @@ func resourceDataboxEdgeOrderCreateUpdate(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+
 	d.SetId(id.ID(subscriptionId))
 
 	return resourceDataboxEdgeOrderRead(d, meta)
@@ -314,7 +322,7 @@ func resourceDataboxEdgeOrderRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, id.DeviceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] databoxedge %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Databox Edge %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -326,22 +334,22 @@ func resourceDataboxEdgeOrderRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("device_name", id.DeviceName)
 
 	if props := resp.OrderProperties; props != nil {
-		if err := d.Set("contact_information", flattenArmOrderContactDetails(props.ContactInformation)); err != nil {
+		if err := d.Set("contact_information", flattenOrderContactDetails(props.ContactInformation)); err != nil {
 			return fmt.Errorf("setting `contact_information`: %+v", err)
 		}
-		if err := d.Set("current_status", flattenArmOrderOrderStatus(props.CurrentStatus)); err != nil {
+		if err := d.Set("current_status", flattenOrderStatus(props.CurrentStatus)); err != nil {
 			return fmt.Errorf("setting `current_status`: %+v", err)
 		}
-		if err := d.Set("shipping_address", flattenArmOrderAddress(props.ShippingAddress)); err != nil {
+		if err := d.Set("shipping_address", flattenOrderAddress(props.ShippingAddress)); err != nil {
 			return fmt.Errorf("setting `shipping_address`: %+v", err)
 		}
-		if err := d.Set("delivery_tracking_info", flattenArmOrderTrackingInfoArray(props.DeliveryTrackingInfo)); err != nil {
+		if err := d.Set("delivery_tracking_info", flattenOrderTrackingInfoArray(props.DeliveryTrackingInfo)); err != nil {
 			return fmt.Errorf("setting `delivery_tracking_info`: %+v", err)
 		}
-		if err := d.Set("order_history", flattenArmOrderOrderStatusArray(props.OrderHistory)); err != nil {
+		if err := d.Set("order_history", flattenOrderStatusArray(props.OrderHistory)); err != nil {
 			return fmt.Errorf("setting `order_history`: %+v", err)
 		}
-		if err := d.Set("return_tracking_info", flattenArmOrderTrackingInfoArray(props.ReturnTrackingInfo)); err != nil {
+		if err := d.Set("return_tracking_info", flattenOrderTrackingInfoArray(props.ReturnTrackingInfo)); err != nil {
 			return fmt.Errorf("setting `return_tracking_info`: %+v", err)
 		}
 		d.Set("serial_number", props.SerialNumber)
@@ -371,7 +379,7 @@ func resourceDataboxEdgeOrderDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandArmOrderContactDetails(input []interface{}) *databoxedge.ContactDetails {
+func expandOrderContactDetails(input []interface{}) *databoxedge.ContactDetails {
 	if len(input) == 0 {
 		return nil
 	}
@@ -384,17 +392,7 @@ func expandArmOrderContactDetails(input []interface{}) *databoxedge.ContactDetai
 	}
 }
 
-func expandArmOrderOrderStatus(input []interface{}) *databoxedge.OrderStatus {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &databoxedge.OrderStatus{
-		Comments: utils.String(v["comments"].(string)),
-	}
-}
-
-func expandArmOrderAddress(input []interface{}) *databoxedge.Address {
+func expandOrderAddress(input []interface{}) *databoxedge.Address {
 	if len(input) == 0 {
 		return nil
 	}
@@ -410,7 +408,7 @@ func expandArmOrderAddress(input []interface{}) *databoxedge.Address {
 	}
 }
 
-func flattenArmOrderContactDetails(input *databoxedge.ContactDetails) []interface{} {
+func flattenOrderContactDetails(input *databoxedge.ContactDetails) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -437,9 +435,14 @@ func flattenArmOrderContactDetails(input *databoxedge.ContactDetails) []interfac
 	}
 }
 
-func flattenArmOrderOrderStatus(input *databoxedge.OrderStatus) []interface{} {
+func flattenOrderStatus(input *databoxedge.OrderStatus) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
+	}
+
+	var status string
+	if input.Status != "" {
+		status = string(input.Status)
 	}
 
 	var comments string
@@ -456,6 +459,7 @@ func flattenArmOrderOrderStatus(input *databoxedge.OrderStatus) []interface{} {
 	}
 	return []interface{}{
 		map[string]interface{}{
+			"status":                   status,
 			"comments":                 comments,
 			"additional_order_details": additionalOrderDetails,
 			"update_date_time":         updateDateTime,
@@ -463,7 +467,7 @@ func flattenArmOrderOrderStatus(input *databoxedge.OrderStatus) []interface{} {
 	}
 }
 
-func flattenArmOrderAddress(input *databoxedge.Address) []interface{} {
+func flattenOrderAddress(input *databoxedge.Address) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -509,7 +513,7 @@ func flattenArmOrderAddress(input *databoxedge.Address) []interface{} {
 	}
 }
 
-func flattenArmOrderTrackingInfoArray(input *[]databoxedge.TrackingInfo) []interface{} {
+func flattenOrderTrackingInfoArray(input *[]databoxedge.TrackingInfo) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -542,7 +546,7 @@ func flattenArmOrderTrackingInfoArray(input *[]databoxedge.TrackingInfo) []inter
 	return results
 }
 
-func flattenArmOrderOrderStatusArray(input *[]databoxedge.OrderStatus) []interface{} {
+func flattenOrderStatusArray(input *[]databoxedge.OrderStatus) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

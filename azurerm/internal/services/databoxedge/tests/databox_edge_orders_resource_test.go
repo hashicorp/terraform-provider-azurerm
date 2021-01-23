@@ -179,7 +179,7 @@ func testCheckDataboxEdgeOrderExists(resourceName string) resource.TestCheckFunc
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("databoxedge Order not found: %s", resourceName)
+			return fmt.Errorf("Databox Edge Order not found: %s", resourceName)
 		}
 		id, err := parse.DataboxEdgeOrderID(rs.Primary.ID)
 		if err != nil {
@@ -187,9 +187,9 @@ func testCheckDataboxEdgeOrderExists(resourceName string) resource.TestCheckFunc
 		}
 		if resp, err := client.Get(ctx, id.DeviceName, id.ResourceGroup); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Databoxedge Order does not exist")
+				return fmt.Errorf("bad: Databox Edge Order does not exist")
 			}
-			return fmt.Errorf("bad: Get on Databoxedge.OrderClient: %+v", err)
+			return fmt.Errorf("bad: Get on DataboxEdge.OrderClient: %+v", err)
 		}
 		return nil
 	}
@@ -209,7 +209,7 @@ func testCheckDataboxEdgeOrderDestroy(s *terraform.State) error {
 		}
 		if resp, err := client.Get(ctx, id.DeviceName, id.ResourceGroup); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Databoxedge.OrderClient: %+v", err)
+				return fmt.Errorf("bad: Get on DataboxEdge.OrderClient: %+v", err)
 			}
 		}
 		return nil
@@ -227,7 +227,13 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-databoxedge-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_databox_edge_device" "test" {
+  name                = "acctest-dd-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataboxEdgeOrder_basic(data acceptance.TestData) string {
@@ -237,7 +243,7 @@ func testAccDataboxEdgeOrder_basic(data acceptance.TestData) string {
 
 resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  device_name = azurerm_databoxedge_device.test.name
+  device_name         = azurerm_databox_edge_device.test.name
 }
 `, template)
 }
@@ -260,7 +266,7 @@ func testAccDataboxEdgeOrder_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_databox_edge_order" "test" {
-  name                = azurerm_databoxedge_device.test.name
+  name                = azurerm_databox_edge_device.test.name
   resource_group_name = azurerm_resource_group.test.name
 
   contact_information {
@@ -292,12 +298,13 @@ func testAccDataboxEdgeOrder_updateContactInformation(data acceptance.TestData) 
 
 resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  device_name = azurerm_databoxedge_device.test.name
+  device_name         = azurerm_databox_edge_device.test.name
+
   contact_information {
-    company_name = "Microsoft"
+    company_name   = "Microsoft"
     contact_person = "John Mcclane"
-    email_lists = ["john@microsoft.com"]
-    phone = "(800) 426-9400"
+    email_lists    = ["john@microsoft.com"]
+    phone          = "(800) 426-9400"
   }
 
   current_status {
@@ -306,10 +313,10 @@ resource "azurerm_databox_edge_order" "test" {
 
   shipping_address {
     address_line1 = "Microsoft Corporation"
-    city = "WA"
-    country = "USA"
-    postal_code = "98052"
-    state = "WA"
+    city          = "WA"
+    country       = "USA"
+    postal_code   = "98052"
+    state         = "WA"
     address_line2 = "One Microsoft Way"
     address_line3 = "Redmond"
   }
@@ -324,12 +331,13 @@ func testAccDataboxEdgeOrder_updateCurrentStatus(data acceptance.TestData) strin
 
 resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  device_name = azurerm_databoxedge_device.test.name
+  device_name = azurerm_databox_edge_device.test.name
+
   contact_information {
-    company_name = "Microsoft"
+    company_name   = "Microsoft"
     contact_person = "John Mcclane"
-    email_lists = ["john@microsoft.com"]
-    phone = "(800) 426-9400"
+    email_lists    = ["john@microsoft.com"]
+    phone          = "(800) 426-9400"
   }
 
   current_status {
@@ -338,10 +346,10 @@ resource "azurerm_databox_edge_order" "test" {
 
   shipping_address {
     address_line1 = "Microsoft Corporation"
-    city = "WA"
-    country = "USA"
-    postal_code = "98052"
-    state = "WA"
+    city          = "WA"
+    country       = "USA"
+    postal_code   = "98052"
+    state         = "WA"
     address_line2 = "One Microsoft Way"
     address_line3 = "Redmond"
   }
@@ -356,12 +364,13 @@ func testAccDataboxEdgeOrder_updateShippingAddress(data acceptance.TestData) str
 
 resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  device_name = azurerm_databoxedge_device.test.name
+  device_name         = azurerm_databox_edge_device.test.name
+
   contact_information {
-    company_name = "Microsoft"
+    company_name   = "Microsoft"
     contact_person = "John Mcclane"
-    email_lists = ["john@microsoft.com"]
-    phone = "(800) 426-9400"
+    email_lists    = ["john@microsoft.com"]
+    phone          = "(800) 426-9400"
   }
 
   current_status {
@@ -370,10 +379,10 @@ resource "azurerm_databox_edge_order" "test" {
 
   shipping_address {
     address_line1 = "Microsoft Corporation"
-    city = "WA"
-    country = "USA"
-    postal_code = "98052"
-    state = "WA"
+    city          = "WA"
+    country       = "USA"
+    postal_code   = "98052"
+    state         = "WA"
     address_line2 = "One Microsoft Way"
     address_line3 = "Redmond"
   }

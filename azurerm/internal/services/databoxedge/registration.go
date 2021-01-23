@@ -21,13 +21,15 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_databox_edge_order": dataSourceDataboxEdgeOrder(),
+		"azurerm_databox_edge_device": dataSourceDataboxEdgeDevice(),
+		"azurerm_databox_edge_order":  dataSourceDataboxEdgeOrder(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_databox_edge_order": resourceDataboxEdgeOrder(),
+		"azurerm_databox_edge_device": resourceDataboxEdgeDevice(),
+		"azurerm_databox_edge_order":  resourceDataboxEdgeOrder(),
 	}
 }
