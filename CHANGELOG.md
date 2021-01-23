@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_snowflake` [GH-10239]
+* **New Resource:** `azurerm_iothub_enrichment` [GH-9239]
 * **New Resource:** `azurerm_spring_cloud_active_deployment` [GH-9959]
 * **New Resource:** `azurerm_spring_cloud_java_deployment` [GH-9959]
 
@@ -13,6 +14,7 @@ IMPROVEMENTS:
 * dependencies: updating the `load balancer` resources to use the Networking API version `2020-05-01` [GH-10263]
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
 * `azurerm_redis_cache` - support multiple availability zones [GH-10283]
+* `azurerm_iothub` - support for the `enrichment` property [GH-9239]
 
 BUG FIXES:
 
