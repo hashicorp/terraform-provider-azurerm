@@ -55,14 +55,10 @@ func TestAccNetworkSecurityRule_disappears(t *testing.T) {
 	r := NetworkSecurityRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkSecurityRuleDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -132,32 +128,27 @@ func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNetworkSecurityRuleDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		sgName := rs.Primary.Attributes["network_security_group_name"]
-		sgrName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for network security rule: %s", sgName)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, sgName, sgrName)
-		if err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("Error deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgrName, sgName, resourceGroup, err)
-			}
-		}
-
-		return nil
+func (NetworkSecurityRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	networkSGName := id.Path["networkSecurityGroups"]
+	sgRuleName := id.Path["securityRules"]
+
+	future, err := client.Network.SecurityRuleClient.Delete(ctx, resGroup, networkSGName, sgRuleName)
+	if err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return nil, fmt.Errorf("deleting Network Security Rule %q: %+v", id, err)
+		}
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.SecurityRuleClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion on Network Security Rule: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (NetworkSecurityRuleResource) basic(data acceptance.TestData) string {

@@ -60,14 +60,10 @@ func TestAccVirtualMachineDataDiskAttachment_destroy(t *testing.T) {
 	r := VirtualMachineDataDiskAttachmentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineDataDiskAttachmentDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -224,70 +220,46 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 	return utils.Bool(disk != nil), nil
 }
 
-func testCheckVirtualMachineDataDiskAttachmentDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
-
-		id, err := azure.ParseAzureResourceID(virtualMachineId)
-		if err != nil {
-			return err
-		}
-
-		virtualMachineName := id.Path["virtualMachines"]
-		resourceGroup := id.ResourceGroup
-
-		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
-		}
-
-		diskId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		diskName := diskId.Path["dataDisks"]
-
-		outputDisks := make([]compute.DataDisk, 0)
-		for _, disk := range *resp.StorageProfile.DataDisks {
-			// deliberately not using strings.Equals as this is case sensitive
-			if *disk.Name == diskName {
-				continue
-			}
-
-			outputDisks = append(outputDisks, disk)
-		}
-		resp.StorageProfile.DataDisks = &outputDisks
-
-		// fixes #2485
-		resp.Identity = nil
-		// fixes #1600
-		resp.Resources = nil
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, resp)
-		if err != nil {
-			return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, diskName, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, diskName, err)
-		}
-
-		return nil
+func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	virtualMachineName := id.Path["virtualMachines"]
+	name := id.Path["dataDisks"]
+
+	resp, err := client.Compute.VMClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
+	}
+
+	outputDisks := make([]compute.DataDisk, 0)
+	for _, disk := range *resp.StorageProfile.DataDisks {
+		// deliberately not using strings.Equals as this is case sensitive
+		if *disk.Name == name {
+			continue
+		}
+
+		outputDisks = append(outputDisks, disk)
+	}
+	resp.StorageProfile.DataDisks = &outputDisks
+
+	// fixes #2485
+	resp.Identity = nil
+	// fixes #1600
+	resp.Resources = nil
+
+	future, err := client.Compute.VMClient.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, resp)
+	if err != nil {
+		return nil, fmt.Errorf("updating Virtual Machine %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Virtual Machine %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r VirtualMachineDataDiskAttachmentResource) basic(data acceptance.TestData) string {

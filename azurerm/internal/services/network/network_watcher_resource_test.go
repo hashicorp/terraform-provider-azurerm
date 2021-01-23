@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -157,14 +156,10 @@ func testAccNetworkWatcher_disappears(t *testing.T) {
 	r := NetworkWatcherResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkWatcherDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicConfig,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -182,37 +177,22 @@ func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		id, err := parse.NetworkWatcherID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if id.ResourceGroup == "" {
-			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", id.Name)
-		}
-
-		future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("Bad: Delete on watcherClient: %+v", err)
-			}
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: Delete on watcherClient: %+v", err)
-		}
-
-		return nil
+func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NetworkWatcherID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	future, err := client.Network.WatcherClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Network Watcher %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.WatcherClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion on NetworkWatcherClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (NetworkWatcherResource) basicConfig(data acceptance.TestData) string {

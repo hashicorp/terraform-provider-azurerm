@@ -33,34 +33,24 @@ func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckPublicIPPrefixDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		publicIpPrefixName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, publicIpPrefixName)
-		if err != nil {
-			return fmt.Errorf("Error deleting Public IP Prefix %q (Resource Group %q): %+v", publicIpPrefixName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of Public IP Prefix %q (Resource Group %q): %+v", publicIpPrefixName, resourceGroup, err)
-		}
-
-		return nil
+func (PublicIPPrefixResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	name := id.Path["publicIPPrefixes"]
+
+	future, err := client.Network.PublicIPPrefixesClient.Delete(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Public IP Prefix %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPPrefixesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion of Public IP Prefix %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func TestAccPublicIpPrefix_basic(t *testing.T) {
@@ -146,14 +136,10 @@ func TestAccPublicIpPrefix_disappears(t *testing.T) {
 	r := PublicIPPrefixResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckPublicIPPrefixDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 

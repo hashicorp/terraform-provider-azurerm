@@ -77,14 +77,10 @@ func TestAccNatGatewayPublicIpAssociation_deleted(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		// intentional as this is a Virtual Resource
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNatGatewayPublicIpAssociationDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -102,48 +98,37 @@ func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNatGatewayPublicIpAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NatGatewayPublicIPAddressAssociationID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
+	resp, err := client.Network.NatGatewayClient.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Nat Gateway Public IP Association (%s): %+v", id, err)
+	}
 
-		id, err := parse.NatGatewayPublicIPAddressAssociationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
-		if err != nil {
-			return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
-		}
-
-		updatedAddresses := make([]network.SubResource, 0)
-		if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
-			for _, publicIpAddress := range *publicIpAddresses {
-				if !strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
-					updatedAddresses = append(updatedAddresses, publicIpAddress)
-				}
+	updatedAddresses := make([]network.SubResource, 0)
+	if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
+		for _, publicIpAddress := range *publicIpAddresses {
+			if !strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
+				updatedAddresses = append(updatedAddresses, publicIpAddress)
 			}
 		}
-		resp.PublicIPAddresses = &updatedAddresses
-
-		future, err := client.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, resp)
-		if err != nil {
-			return fmt.Errorf("failed to remove Nat Gateway Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("failed to wait for removal of Nat Gateway Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
-		}
-
-		return nil
 	}
+	resp.PublicIPAddresses = &updatedAddresses
+
+	future, err := client.Network.NatGatewayClient.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove Nat Gateway Public Ip Association for Nat Gateway %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.NatGatewayClient.Client); err != nil {
+		return nil, fmt.Errorf("failed to wait for removal of Nat Gateway Public Ip Association for Nat Gateway %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r NatGatewayPublicAssociationResource) basic(data acceptance.TestData) string {
