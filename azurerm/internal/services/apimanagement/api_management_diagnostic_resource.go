@@ -63,6 +63,55 @@ func resourceApiManagementDiagnostic() *schema.Resource {
 				Optional:   true,
 				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
+
+			"sampling_percentage": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatBetween(0.0, 100.0),
+			},
+
+			"always_log_errors": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"verbosity": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.Verbose),
+					string(apimanagement.Information),
+					string(apimanagement.Error),
+				}, false),
+			},
+
+			"log_client_ip": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"http_correlation_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.HTTPCorrelationProtocolNone),
+					string(apimanagement.HTTPCorrelationProtocolLegacy),
+					string(apimanagement.HTTPCorrelationProtocolW3C),
+				}, false),
+			},
+
+			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"frontend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 		},
 	}
 }
@@ -93,6 +142,69 @@ func resourceApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta in
 		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
 			LoggerID: utils.String(d.Get("api_management_logger_id").(string)),
 		},
+	}
+
+	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+		parameters.Sampling = &apimanagement.SamplingSettings{
+			SamplingType: apimanagement.Fixed,
+			Percentage:   utils.Float(samplingPercentage.(float64)),
+		}
+	} else {
+		parameters.Sampling = nil
+	}
+
+	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
+		parameters.AlwaysLog = apimanagement.AllErrors
+	}
+
+	if verbosity, ok := d.GetOk("verbosity"); ok {
+		switch verbosity.(string) {
+		case string(apimanagement.Verbose):
+			parameters.Verbosity = apimanagement.Verbose
+		case string(apimanagement.Information):
+			parameters.Verbosity = apimanagement.Information
+		case string(apimanagement.Error):
+			parameters.Verbosity = apimanagement.Error
+		}
+	}
+
+	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
+	}
+
+	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
+		switch httpCorrelationProtocol.(string) {
+		case string(apimanagement.HTTPCorrelationProtocolNone):
+			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
+		case string(apimanagement.HTTPCorrelationProtocolLegacy):
+			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
+		case string(apimanagement.HTTPCorrelationProtocolW3C):
+			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
+		}
+	}
+
+	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
+	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
+	if frontendRequestSet || frontendResponseSet {
+		parameters.Frontend = &apimanagement.PipelineDiagnosticSettings{}
+		if frontendRequestSet {
+			parameters.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+		}
+		if frontendResponseSet {
+			parameters.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+		}
+	}
+
+	backendRequest, backendRequestSet := d.GetOk("backend_request")
+	backendResponse, backendResponseSet := d.GetOk("backend_response")
+	if backendRequestSet || backendResponseSet {
+		parameters.Backend = &apimanagement.PipelineDiagnosticSettings{}
+		if backendRequestSet {
+			parameters.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+		}
+		if backendResponseSet {
+			parameters.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, diagnosticId, parameters, ""); err != nil {
@@ -136,6 +248,29 @@ func resourceApiManagementDiagnosticRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", diagnosticId.ResourceGroup)
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	d.Set("api_management_logger_id", resp.LoggerID)
+	if props := resp.DiagnosticContractProperties; props != nil {
+		if props.Sampling != nil && props.Sampling.Percentage != nil {
+			d.Set("sampling_percentage", props.Sampling.Percentage)
+		}
+		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
+		d.Set("verbosity", props.Verbosity)
+		d.Set("log_client_ip", props.LogClientIP)
+		d.Set("http_correlation_protocol", props.HTTPCorrelationProtocol)
+		if frontend := props.Frontend; frontend != nil {
+			d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
+			d.Set("frontend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Response))
+		} else {
+			d.Set("frontend_request", nil)
+			d.Set("frontend_response", nil)
+		}
+		if backend := props.Backend; backend != nil {
+			d.Set("backend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Request))
+			d.Set("backend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Response))
+		} else {
+			d.Set("backend_request", nil)
+			d.Set("backend_response", nil)
+		}
+	}
 
 	return nil
 }
