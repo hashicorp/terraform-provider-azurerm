@@ -71,7 +71,7 @@ func TestAccApiManagementDiagnostic_requiresImport(t *testing.T) {
 
 func TestAccApiManagementDiagnostic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
-	r := ApiManagementApiDiagnosticResource{}
+	r := ApiManagementDiagnosticResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
