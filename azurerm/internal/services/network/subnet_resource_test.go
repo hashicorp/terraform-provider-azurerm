@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -71,14 +70,10 @@ func TestAccSubnet_disappears(t *testing.T) {
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckSubnetDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -280,37 +275,25 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckSubnetDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		vnetName := rs.Primary.Attributes["virtual_network_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
-		if err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("Error deleting Subnet %q (Network %q / Resource Group %q): %+v", name, vnetName, resourceGroup, err)
-			}
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", name, vnetName, resourceGroup, err)
-		}
-
-		return nil
+func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	networkName := id.Path["virtualNetworks"]
+	name := id.Path["subnets"]
+
+	future, err := client.Network.SubnetsClient.Delete(ctx, resourceGroup, networkName, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion of subnet %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r SubnetResource) basic(data acceptance.TestData) string {

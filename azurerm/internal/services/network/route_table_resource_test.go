@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -161,14 +160,10 @@ func TestAccRouteTable_disappears(t *testing.T) {
 	r := RouteTableResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckRouteTableDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -243,35 +238,22 @@ func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client,
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckRouteTableDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteTablesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("Error deleting Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		return nil
+func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := network.ParseRouteTableID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	future, err := client.Network.RouteTablesClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Route Table %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.RouteTablesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion of Route Table %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (RouteTableResource) basic(data acceptance.TestData) string {
