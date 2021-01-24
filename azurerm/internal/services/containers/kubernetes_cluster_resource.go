@@ -118,9 +118,9 @@ func resourceKubernetesCluster() *schema.Resource {
 							ValidateFunc: containerValidate.Duration,
 						},
 						"skip_nodes_with_local_storage": {
-						  Type:     schema.TypeBool,
-						  Optional: false,
-						  Default:  true,
+							Type:     schema.TypeBool,
+							Optional: false,
+							Default:  true,
 						},
 						"scan_interval": {
 							Type:         schema.TypeString,
@@ -1966,6 +1966,13 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		balanceSimilarNodeGroups = strings.EqualFold(*profile.BalanceSimilarNodeGroups, "true")
 	}
 
+	skipNodesWithLocalStorage := false
+	if profile.SkipNodesWithLocalStorage != nil {
+		// @tombuildsstuff: presumably this'll get converted to a Boolean at some point
+		//					at any rate we should use the proper type users expect here
+		skipNodesWithLocalStorage = strings.EqualFold(*profile.SkipNodesWithLocalStorage, "true")
+	}
+
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
 		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
@@ -2049,6 +2056,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
