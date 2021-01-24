@@ -2014,7 +2014,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
-			"skip_nodes_with_local_storage"     skipNodesWithLocalStorage,
+			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
