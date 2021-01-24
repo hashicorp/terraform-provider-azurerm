@@ -117,6 +117,11 @@ func resourceKubernetesCluster() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+						"skip_nodes_with_local_storage": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							Default:      false,
+						},
 						"scan_interval": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -2009,6 +2014,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
+			"skip_nodes_with_local_storage"     skipNodesWithLocalStorage,
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
@@ -2030,6 +2036,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
