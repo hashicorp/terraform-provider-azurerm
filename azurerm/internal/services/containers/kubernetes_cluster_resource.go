@@ -118,9 +118,9 @@ func resourceKubernetesCluster() *schema.Resource {
 							ValidateFunc: containerValidate.Duration,
 						},
 						"skip_nodes_with_local_storage": {
-							Type:     		schema.TypeBool,
-							Optional:     false,
-							Default:      true,
+						  Type:     schema.TypeBool,
+						  Optional: false,
+						  Default:  true,
 						},
 						"scan_interval": {
 							Type:         schema.TypeString,

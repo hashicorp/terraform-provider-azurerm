@@ -1,0 +1,11 @@
+"balance_similar_node_groups": {
+  Type:     schema.TypeBool,
+  Optional: true,
+  Default:  false,
+},
+
+"skip_nodes_with_local_storage": {
+  Type:     schema.TypeBool,
+  Optional: false,
+  Default:  true,
+},
