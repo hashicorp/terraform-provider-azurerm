@@ -545,7 +545,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   auto_scaler_profile {
     balance_similar_node_groups      = true
-		skip_nodes_with_local_storage    = true
+    skip_nodes_with_local_storage    = true
     max_graceful_termination_sec     = 15
     new_pod_scale_up_delay           = "10s"
     scan_interval                    = "10s"
