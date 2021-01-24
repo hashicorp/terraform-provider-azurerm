@@ -25,9 +25,10 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"outboundTypeLoadBalancer": testAccKubernetesCluster_outboundTypeLoadBalancer,
 	"privateClusterOn":         testAccKubernetesCluster_privateClusterOn,
 	"privateClusterOff":        testAccKubernetesCluster_privateClusterOff,
+	"privateClusterPrivateDNS": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
 }
 
-func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_basicAvailabilitySet(t)
 }
