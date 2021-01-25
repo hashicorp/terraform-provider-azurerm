@@ -206,8 +206,8 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 			},
 
 			"certificate_data": {
-				Type:       schema.TypeString,
-				Computed:   true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"certificate_data_base64": {
