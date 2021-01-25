@@ -29,7 +29,7 @@ func dataSourceKeyVault() *schema.Resource {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.KeyVaultName,
+					ValidateFunc: validate.VaultName,
 				},
 
 				"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

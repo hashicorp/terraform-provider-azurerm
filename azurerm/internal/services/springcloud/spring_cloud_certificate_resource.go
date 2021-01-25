@@ -83,7 +83,10 @@ func resourceSpringCloudCertificateCreate(d *schema.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
 	}
 
-	keyVaultCertificateId, _ := azure.ParseKeyVaultChildID(d.Get("key_vault_certificate_id").(string))
+	keyVaultCertificateId, err := azure.ParseKeyVaultChildID(d.Get("key_vault_certificate_id").(string))
+	if err != nil {
+		return err
+	}
 	cert := appplatform.CertificateResource{
 		Properties: &appplatform.CertificateProperties{
 			VaultURI:         &keyVaultCertificateId.KeyVaultBaseUrl,

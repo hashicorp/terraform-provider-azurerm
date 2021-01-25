@@ -68,7 +68,7 @@ func resourceKeyVault() *schema.Resource {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.KeyVaultName,
+					ValidateFunc: validate.VaultName,
 				},
 
 				"location": azure.SchemaLocation(),
@@ -792,6 +792,8 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		log.Printf("[DEBUG] Purged KeyVault %q.", id.Name)
 	}
 
+	meta.(*clients.Client).KeyVault.Purge(*id)
+
 	return nil
 }
 
@@ -799,10 +801,10 @@ func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
-		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
-
 		client := &http.Client{
-			Transport: PTransport,
+			Transport: &http.Transport{
+				Proxy: http.ProxyFromEnvironment,
+			},
 		}
 
 		conn, err := client.Get(vaultUri)
