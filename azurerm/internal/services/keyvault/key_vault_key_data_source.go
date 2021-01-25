@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -96,7 +97,7 @@ func dataSourceKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	id := *resp.Key.Kid
-	parsedId, err := azure.ParseKeyVaultChildID(id)
+	parsedId, err := parse.ParseNestedItemID(id)
 	if err != nil {
 		return err
 	}

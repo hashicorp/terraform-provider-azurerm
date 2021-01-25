@@ -59,7 +59,7 @@ func resourcePostgreSQLServerKey() *schema.Resource {
 }
 
 func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (*string, error) {
-	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
+	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}

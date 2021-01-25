@@ -116,7 +116,7 @@ func TestAccAzureRMValidateKeyVaultChildIDVersionOptional(t *testing.T) {
 func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 	cases := []struct {
 		Input       string
-		Expected    KeyVaultChildID
+		Expected    keyVaultParse.NestedItemId
 		ExpectError bool
 	}{
 		{
@@ -134,7 +134,7 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "bird",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "fdf067c93bbb4b22bff4d8b7a9a56217",
@@ -143,7 +143,7 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/certificates/hello/world",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "hello",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "world",
@@ -152,7 +152,7 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/keys/castle/1492",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "castle",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "1492",
@@ -165,7 +165,7 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		secretId, err := ParseKeyVaultChildID(tc.Input)
+		secretId, err := keyVaultParse.ParseNestedItemID(tc.Input)
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
@@ -195,7 +195,7 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 func TestAccAzureRMKeyVaultChild_parseIDVersionOptional(t *testing.T) {
 	cases := []struct {
 		Input       string
-		Expected    KeyVaultChildID
+		Expected    keyVaultParse.NestedItemId
 		ExpectError bool
 	}{
 		{
@@ -209,7 +209,7 @@ func TestAccAzureRMKeyVaultChild_parseIDVersionOptional(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "bird",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "",
@@ -218,7 +218,7 @@ func TestAccAzureRMKeyVaultChild_parseIDVersionOptional(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "bird",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "fdf067c93bbb4b22bff4d8b7a9a56217",
@@ -227,7 +227,7 @@ func TestAccAzureRMKeyVaultChild_parseIDVersionOptional(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/certificates/hello/world",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "hello",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "world",
@@ -236,7 +236,7 @@ func TestAccAzureRMKeyVaultChild_parseIDVersionOptional(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/keys/castle/1492",
 			ExpectError: false,
-			Expected: KeyVaultChildID{
+			Expected: keyVaultParse.NestedItemId{
 				Name:            "castle",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:         "1492",

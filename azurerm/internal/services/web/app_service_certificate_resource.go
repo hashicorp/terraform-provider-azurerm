@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -180,7 +181,7 @@ func resourceAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if keyVaultSecretId != "" {
-		parsedSecretId, err := azure.ParseKeyVaultChildID(keyVaultSecretId)
+		parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
 		if err != nil {
 			return err
 		}

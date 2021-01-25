@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
@@ -84,7 +85,7 @@ func resourceSpringCloudCertificateCreate(d *schema.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
 	}
 
-	keyVaultCertificateId, err := azure.ParseKeyVaultChildID(d.Get("key_vault_certificate_id").(string))
+	keyVaultCertificateId, err := keyVaultParse.ParseNestedItemID(d.Get("key_vault_certificate_id").(string))
 	if err != nil {
 		return err
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -312,7 +313,7 @@ type diskEncryptionSetKeyVault struct {
 }
 
 func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.VaultsClient, id string) (*diskEncryptionSetKeyVault, error) {
-	keyVaultKeyId, err := azure.ParseKeyVaultChildID(id)
+	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
 	if err != nil {
 		return nil, err
 	}
