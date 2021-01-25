@@ -1,4 +1,4 @@
-package azure
+package keyvault
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
-func SchemaKeyVaultCertificatePermissions() *schema.Schema {
+func schemaCertificatePermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -37,7 +37,7 @@ func SchemaKeyVaultCertificatePermissions() *schema.Schema {
 	}
 }
 
-func SchemaKeyVaultKeyPermissions() *schema.Schema {
+func schemaKeyPermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -66,7 +66,7 @@ func SchemaKeyVaultKeyPermissions() *schema.Schema {
 	}
 }
 
-func SchemaKeyVaultSecretPermissions() *schema.Schema {
+func schemaSecretPermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -87,7 +87,7 @@ func SchemaKeyVaultSecretPermissions() *schema.Schema {
 	}
 }
 
-func SchemaKeyVaultStoragePermissions() *schema.Schema {
+func schemaStoragePermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -113,7 +113,7 @@ func SchemaKeyVaultStoragePermissions() *schema.Schema {
 	}
 }
 
-func ExpandKeyVaultAccessPolicies(input []interface{}) (*[]keyvault.AccessPolicyEntry, error) {
+func expandAccessPolicies(input []interface{}) (*[]keyvault.AccessPolicyEntry, error) {
 	output := make([]keyvault.AccessPolicyEntry, 0)
 
 	for _, policySet := range input {
@@ -126,10 +126,10 @@ func ExpandKeyVaultAccessPolicies(input []interface{}) (*[]keyvault.AccessPolicy
 
 		policy := keyvault.AccessPolicyEntry{
 			Permissions: &keyvault.Permissions{
-				Certificates: ExpandCertificatePermissions(certificatePermissionsRaw),
-				Keys:         ExpandKeyPermissions(keyPermissionsRaw),
-				Secrets:      ExpandSecretPermissions(secretPermissionsRaw),
-				Storage:      ExpandStoragePermissions(storagePermissionsRaw),
+				Certificates: expandCertificatePermissions(certificatePermissionsRaw),
+				Keys:         expandKeyPermissions(keyPermissionsRaw),
+				Secrets:      expandSecretPermissions(secretPermissionsRaw),
+				Storage:      expandStoragePermissions(storagePermissionsRaw),
 			},
 		}
 
@@ -149,7 +149,7 @@ func ExpandKeyVaultAccessPolicies(input []interface{}) (*[]keyvault.AccessPolicy
 	return &output, nil
 }
 
-func FlattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map[string]interface{} {
+func flattenAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 
 	if policies == nil {
@@ -172,16 +172,16 @@ func FlattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map
 		}
 
 		if permissions := policy.Permissions; permissions != nil {
-			certs := FlattenCertificatePermissions(permissions.Certificates)
+			certs := flattenCertificatePermissions(permissions.Certificates)
 			policyRaw["certificate_permissions"] = certs
 
-			keys := FlattenKeyPermissions(permissions.Keys)
+			keys := flattenKeyPermissions(permissions.Keys)
 			policyRaw["key_permissions"] = keys
 
-			secrets := FlattenSecretPermissions(permissions.Secrets)
+			secrets := flattenSecretPermissions(permissions.Secrets)
 			policyRaw["secret_permissions"] = secrets
 
-			storage := FlattenStoragePermissions(permissions.Storage)
+			storage := flattenStoragePermissions(permissions.Storage)
 			policyRaw["storage_permissions"] = storage
 		}
 
@@ -191,7 +191,7 @@ func FlattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map
 	return result
 }
 
-func ExpandCertificatePermissions(input []interface{}) *[]keyvault.CertificatePermissions {
+func expandCertificatePermissions(input []interface{}) *[]keyvault.CertificatePermissions {
 	output := make([]keyvault.CertificatePermissions, 0)
 
 	for _, permission := range input {
@@ -201,7 +201,7 @@ func ExpandCertificatePermissions(input []interface{}) *[]keyvault.CertificatePe
 	return &output
 }
 
-func FlattenCertificatePermissions(input *[]keyvault.CertificatePermissions) []interface{} {
+func flattenCertificatePermissions(input *[]keyvault.CertificatePermissions) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -213,7 +213,7 @@ func FlattenCertificatePermissions(input *[]keyvault.CertificatePermissions) []i
 	return output
 }
 
-func ExpandKeyPermissions(keyPermissionsRaw []interface{}) *[]keyvault.KeyPermissions {
+func expandKeyPermissions(keyPermissionsRaw []interface{}) *[]keyvault.KeyPermissions {
 	output := make([]keyvault.KeyPermissions, 0)
 
 	for _, permission := range keyPermissionsRaw {
@@ -222,7 +222,7 @@ func ExpandKeyPermissions(keyPermissionsRaw []interface{}) *[]keyvault.KeyPermis
 	return &output
 }
 
-func FlattenKeyPermissions(input *[]keyvault.KeyPermissions) []interface{} {
+func flattenKeyPermissions(input *[]keyvault.KeyPermissions) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -234,7 +234,7 @@ func FlattenKeyPermissions(input *[]keyvault.KeyPermissions) []interface{} {
 	return output
 }
 
-func ExpandSecretPermissions(input []interface{}) *[]keyvault.SecretPermissions {
+func expandSecretPermissions(input []interface{}) *[]keyvault.SecretPermissions {
 	output := make([]keyvault.SecretPermissions, 0)
 
 	for _, permission := range input {
@@ -244,7 +244,7 @@ func ExpandSecretPermissions(input []interface{}) *[]keyvault.SecretPermissions 
 	return &output
 }
 
-func FlattenSecretPermissions(input *[]keyvault.SecretPermissions) []interface{} {
+func flattenSecretPermissions(input *[]keyvault.SecretPermissions) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -256,7 +256,7 @@ func FlattenSecretPermissions(input *[]keyvault.SecretPermissions) []interface{}
 	return output
 }
 
-func ExpandStoragePermissions(input []interface{}) *[]keyvault.StoragePermissions {
+func expandStoragePermissions(input []interface{}) *[]keyvault.StoragePermissions {
 	output := make([]keyvault.StoragePermissions, 0)
 
 	for _, permission := range input {
@@ -266,7 +266,7 @@ func ExpandStoragePermissions(input []interface{}) *[]keyvault.StoragePermission
 	return &output
 }
 
-func FlattenStoragePermissions(input *[]keyvault.StoragePermissions) []interface{} {
+func flattenStoragePermissions(input *[]keyvault.StoragePermissions) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {

@@ -113,10 +113,10 @@ func resourceKeyVault() *schema.Resource {
 								Optional:     true,
 								ValidateFunc: validate.IsUUIDOrEmpty,
 							},
-							"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
-							"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
-							"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
-							"storage_permissions":     azure.SchemaKeyVaultStoragePermissions(),
+							"certificate_permissions": schemaCertificatePermissions(),
+							"key_permissions":         schemaKeyPermissions(),
+							"secret_permissions":      schemaSecretPermissions(),
+							"storage_permissions":     schemaStoragePermissions(),
 						},
 					},
 				},
@@ -292,7 +292,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
-	accessPolicies, err := azure.ExpandKeyVaultAccessPolicies(policies)
+	accessPolicies, err := expandAccessPolicies(policies)
 	if err != nil {
 		return fmt.Errorf("Error expanding `access_policy`: %+v", err)
 	}
@@ -439,7 +439,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		policiesRaw := d.Get("access_policy").([]interface{})
-		accessPolicies, err := azure.ExpandKeyVaultAccessPolicies(policiesRaw)
+		accessPolicies, err := expandAccessPolicies(policiesRaw)
 		if err != nil {
 			return fmt.Errorf("Error expanding `access_policy`: %+v", err)
 		}
@@ -669,7 +669,7 @@ func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
-		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
