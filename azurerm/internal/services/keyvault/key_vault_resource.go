@@ -19,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -237,38 +238,38 @@ func resourceKeyVault() *schema.Resource {
 }
 
 func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	locks.ByName(name, keyVaultResourceName)
-	defer locks.UnlockByName(name, keyVaultResourceName)
+	locks.ByName(id.Name, keyVaultResourceName)
+	defer locks.UnlockByName(id.Name, keyVaultResourceName)
 
 	// check for the presence of an existing, live one which should be imported into the state
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_key_vault", id.ID())
 	}
 
 	// before creating check to see if the key vault exists in the soft delete state
-	softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
+	softDeletedKeyVault, err := client.GetDeleted(ctx, id.Name, location)
 	if err != nil {
 		// If Terraform lacks permission to read at the Subscription we'll get 409, not 404
 		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) && !utils.ResponseWasForbidden(softDeletedKeyVault.Response) {
-			return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
+			return fmt.Errorf("checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", id.Name, location, err)
 		}
 	}
 
@@ -278,7 +279,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) && !utils.ResponseWasForbidden(softDeletedKeyVault.Response) {
 		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
 			// this exists but the users opted out so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location))
+			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(id.Name, location))
 		}
 
 		recoverSoftDeletedKeyVault = true
@@ -340,37 +341,34 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err2 := azure.ParseAzureResourceID(v)
-		if err2 != nil {
-			return err2
+		id, err := networkParse.VirtualNetworkID(v)
+		if err != nil {
+			return err
 		}
-
-		virtualNetworkName := id.Path["virtualNetworks"]
-		if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
-			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+		if !utils.SliceContainsValue(virtualNetworkNames, id.Name) {
+			virtualNetworkNames = append(virtualNetworkNames, id.Name)
 		}
 	}
 
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault %s (resource Group %q) ID", name, resourceGroup)
+	if read.Properties == nil || read.Properties.VaultURI == nil {
+		return fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
 	}
-
-	d.SetId(*read.ID)
+	meta.(*clients.Client).KeyVault.AddToCache(id, *read.Properties.VaultURI)
 
 	if props := read.Properties; props != nil {
 		if vault := props.VaultURI; vault != nil {
-			log.Printf("[DEBUG] Waiting for Key Vault %q (Resource Group %q) to become available", name, resourceGroup)
+			log.Printf("[DEBUG] Waiting for %s to become available", id)
 			stateConf := &resource.StateChangeConf{
 				Pending:                   []string{"pending"},
 				Target:                    []string{"available"},
@@ -382,7 +380,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("Error waiting for Key Vault %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+				return fmt.Errorf("Error waiting for %s to become available: %s", id, err)
 			}
 		}
 	}
@@ -392,10 +390,10 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			ContactList: expandKeyVaultCertificateContactList(v.(*schema.Set).List()),
 		}
 		if read.Properties == nil || read.Properties.VaultURI == nil {
-			return fmt.Errorf("failed to get vault base url Key Vault %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+			return fmt.Errorf("failed to get vault base url for %s: %s", id, err)
 		}
 		if _, err := dataPlaneClient.SetCertificateContacts(ctx, *read.Properties.VaultURI, contacts); err != nil {
-			return fmt.Errorf("failed to set Contacts for Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("failed to set Contacts for %s: %+v", id, err)
 		}
 	}
 
@@ -408,27 +406,25 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VaultID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["vaults"]
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	locks.ByName(name, keyVaultResourceName)
-	defer locks.UnlockByName(name, keyVaultResourceName)
+	locks.ByName(id.Name, keyVaultResourceName)
+	defer locks.UnlockByName(id.Name, keyVaultResourceName)
 
 	d.Partial(true)
 
 	// first pull the existing key vault since we need to lock on several bits of its information
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if existing.Properties == nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	update := keyvault.VaultPatchParameters{}
@@ -441,7 +437,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		policiesRaw := d.Get("access_policy").([]interface{})
 		accessPolicies, err := expandAccessPolicies(policiesRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `access_policy`: %+v", err)
+			return fmt.Errorf("expanding `access_policy`: %+v", err)
 		}
 		update.Properties.AccessPolicies = accessPolicies
 	}
@@ -489,14 +485,13 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 		virtualNetworkNames := make([]string, 0)
 		for _, v := range subnetIds {
-			id, err2 := azure.ParseAzureResourceID(v)
-			if err2 != nil {
-				return err2
+			id, err := networkParse.VirtualNetworkID(v)
+			if err != nil {
+				return err
 			}
 
-			virtualNetworkName := id.Path["virtualNetworks"]
-			if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
-				virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+			if !utils.SliceContainsValue(virtualNetworkNames, id.Name) {
+				virtualNetworkNames = append(virtualNetworkNames, id.Name)
 			}
 		}
 
@@ -522,7 +517,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
 		if oldValue && !newValue {
-			return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): once Purge Protection has been Enabled it's not possible to disable it", name, resourceGroup)
+			return fmt.Errorf("updating %s: once Purge Protection has been Enabled it's not possible to disable it", *id)
 		}
 
 		update.Properties.EnablePurgeProtection = utils.Bool(newValue)
@@ -554,7 +549,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// hence the double-checking here
 		if oldValue != 0 {
 			// Code="BadRequest" Message="The property \"softDeleteRetentionInDays\" has been set already and it can't be modified."
-			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once `soft_delete_retention_days` has been configured it cannot be modified", name, resourceGroup)
+			return fmt.Errorf("updating %s: once `soft_delete_retention_days` has been configured it cannot be modified", *id)
 		}
 
 		update.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(d.Get("soft_delete_retention_days").(int)))
@@ -574,8 +569,8 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		update.Tags = tags.Expand(t)
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, name, update); err != nil {
-		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if d.HasChange("contact") {
@@ -583,7 +578,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 			ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*schema.Set).List()),
 		}
 		if existing.Properties == nil || existing.Properties.VaultURI == nil {
-			return fmt.Errorf("failed to get vault base url Key Vault %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+			return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
 		}
 		var err error
 		if len(*contacts.ContactList) == 0 {
@@ -592,7 +587,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 			_, err = managementClient.SetCertificateContacts(ctx, *existing.Properties.VaultURI, contacts)
 		}
 		if err != nil {
-			return fmt.Errorf("failed to set Contacts for Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("setting Contacts for %s: %+v", *id, err)
 		}
 	}
 
@@ -607,82 +602,85 @@ func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VaultID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["vaults"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Key Vault %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if resp.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+	if resp.Properties.VaultURI == nil {
+		return fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", *id)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	props := *resp.Properties
+	meta.(*clients.Client).KeyVault.AddToCache(*id, *resp.Properties.VaultURI)
+
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	d.Set("tenant_id", props.TenantID.String())
+	d.Set("enabled_for_deployment", props.EnabledForDeployment)
+	d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
+	d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+	d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
+	d.Set("purge_protection_enabled", props.EnablePurgeProtection)
+	d.Set("vault_uri", props.VaultURI)
+
+	// @tombuildsstuff: the API doesn't return this field if it's not configured
+	// however https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview
+	// defaults this to 90 days, as such we're going to have to assume that for the moment
+	// in lieu of anything being returned
+	softDeleteRetentionDays := 90
+	if props.SoftDeleteRetentionInDays != nil && *props.SoftDeleteRetentionInDays != 0 {
+		softDeleteRetentionDays = int(*props.SoftDeleteRetentionInDays)
+	}
+	d.Set("soft_delete_retention_days", softDeleteRetentionDays)
+
+	// TODO: remove in 3.0
+	if !features.ThreePointOh() {
+		d.Set("soft_delete_enabled", true)
 	}
 
-	if props := resp.Properties; props != nil {
-		d.Set("tenant_id", props.TenantID.String())
-		d.Set("enabled_for_deployment", props.EnabledForDeployment)
-		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
-		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
-		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
-		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
-		d.Set("vault_uri", props.VaultURI)
-
-		// @tombuildsstuff: the API doesn't return this field if it's not configured
-		// however https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview
-		// defaults this to 90 days, as such we're going to have to assume that for the moment
-		// in lieu of anything being returned
-		softDeleteRetentionDays := 90
-		if props.SoftDeleteRetentionInDays != nil && *props.SoftDeleteRetentionInDays != 0 {
-			softDeleteRetentionDays = int(*props.SoftDeleteRetentionInDays)
-		}
-		d.Set("soft_delete_retention_days", softDeleteRetentionDays)
-
-		// TODO: remove in 3.0
-		if !features.ThreePointOh() {
-			d.Set("soft_delete_enabled", true)
-		}
-
-		skuName := ""
-		if sku := props.Sku; sku != nil {
-			// the Azure API is inconsistent here, so rewrite this into the casing we expect
-			for _, v := range keyvault.PossibleSkuNameValues() {
-				if strings.EqualFold(string(v), string(sku.Name)) {
-					skuName = string(v)
-				}
+	skuName := ""
+	if sku := props.Sku; sku != nil {
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range keyvault.PossibleSkuNameValues() {
+			if strings.EqualFold(string(v), string(sku.Name)) {
+				skuName = string(v)
 			}
 		}
-		d.Set("sku_name", skuName)
+	}
+	d.Set("sku_name", skuName)
 
-		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
-		}
+	if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
+		return fmt.Errorf("setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
+	}
 
-		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
-		}
+	flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
+	if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+	}
 
-		contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
-		if err != nil {
-			if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
-				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
-			}
+	contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
+	if err != nil {
+		if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
+			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 		}
-		if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
-			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-		}
+	}
+	if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
+		return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

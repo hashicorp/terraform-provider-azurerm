@@ -20,6 +20,14 @@ type keyVaultDetails struct {
 	resourceGroup    string
 }
 
+func (c *Client) AddToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
+	keyVaultsCache[keyVaultId.Name] = keyVaultDetails{
+		keyVaultId:       keyVaultId.ID(),
+		dataPlaneBaseUri: dataPlaneUri,
+		resourceGroup:    keyVaultId.ResourceGroup,
+	}
+}
+
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultId) (*string, error) {
 	lock[keyVaultId.Name].Lock()
 	defer lock[keyVaultId.Name].Unlock()
@@ -59,7 +67,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, er
 		return false, fmt.Errorf("`properties` was nil for %s", keyVaultId)
 	}
 
-	c.addToCache(keyVaultId, *resp.Properties.VaultURI)
+	c.AddToCache(keyVaultId, *resp.Properties.VaultURI)
 
 	return true, nil
 }
@@ -108,7 +116,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, keyVaultBaseUrl stri
 		}
 
 		if keyVaultBaseUrl == *get.Properties.VaultURI {
-			c.addToCache(*id, *get.Properties.VaultURI)
+			c.AddToCache(*id, *get.Properties.VaultURI)
 			return get.ID, nil
 		}
 
@@ -124,14 +132,6 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, keyVaultBaseUrl stri
 func (c *Client) Purge(keyVaultId parse.VaultId) {
 	// TODO: hook this up
 	delete(keyVaultsCache, keyVaultId.Name)
-}
-
-func (c *Client) addToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
-	keyVaultsCache[keyVaultId.Name] = keyVaultDetails{
-		keyVaultId:       keyVaultId.ID(),
-		dataPlaneBaseUri: dataPlaneUri,
-		resourceGroup:    keyVaultId.ResourceGroup,
-	}
 }
 
 func (c *Client) parseNameFromBaseUrl(input string) (*string, error) {
