@@ -42,7 +42,7 @@ func TestAccAzureRMValidateKeyVaultChildID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		warnings, err := ValidateKeyVaultChildId(tc.Input, "example")
+		warnings, err := keyVaultValidate.NestedItemId(tc.Input, "example")
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for input %q: %+v", tc.Input, err)

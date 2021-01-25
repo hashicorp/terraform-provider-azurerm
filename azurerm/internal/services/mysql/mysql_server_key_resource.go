@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -51,7 +52,7 @@ func resourceMySQLServerKey() *schema.Resource {
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildId,
+				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 		},
 	}
