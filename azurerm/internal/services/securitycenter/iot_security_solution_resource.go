@@ -215,12 +215,12 @@ func resourceIotSecuritySolution() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"query": {
+						"query_for_resources": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
 
-						"subscription_ids": {
+						"query_subscription_ids": {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Schema{
@@ -373,8 +373,8 @@ func expandIotSecuritySolutionUserDefinedResources(input []interface{}) *securit
 	}
 	v := input[0].(map[string]interface{})
 	return &security.UserDefinedResourcesProperties{
-		Query:              utils.String(v["query"].(string)),
-		QuerySubscriptions: utils.ExpandStringSlice(v["subscription_ids"].(*schema.Set).List()),
+		Query:              utils.String(v["query_for_resources"].(string)),
+		QuerySubscriptions: utils.ExpandStringSlice(v["query_subscription_ids"].(*schema.Set).List()),
 	}
 }
 
@@ -420,8 +420,8 @@ func flattenIotSecuritySolutionUserDefinedResources(input *security.UserDefinedR
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"query":            query,
-			"subscription_ids": utils.FlattenStringSlice(input.QuerySubscriptions),
+			"query_for_resources":    query,
+			"query_subscription_ids": utils.FlattenStringSlice(input.QuerySubscriptions),
 		},
 	}
 }

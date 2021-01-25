@@ -106,9 +106,9 @@ A `recommendations_enabled` block supports the following:
 
 A `user_defined_resource` block supports the following:
 
-* `query` - (Required) Azure Resource Graph query which represents the security solution's user defined resources.
+* `query_for_resources` - (Required) Azure Resource Graph query which represents the security solution's user defined resources.
 
-* `subscription_ids` - (Required) A list of subscription Ids on which the user defined resources query should be executed..
+* `query_subscription_ids` - (Required) A list of subscription Ids on which the user defined resources query should be executed.
 
 ## Attributes Reference
 

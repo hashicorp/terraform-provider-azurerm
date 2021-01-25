@@ -178,8 +178,8 @@ resource "azurerm_iot_security_solution" "test" {
   }
 
   user_defined_resource {
-    query            = "where type != \"microsoft.devices/iothubs\" | where name contains \"iot\""
-    subscription_ids = [data.azurerm_client_config.test.subscription_id]
+    query_for_resources    = "where type != \"microsoft.devices/iothubs\" | where name contains \"iot\""
+    query_subscription_ids = [data.azurerm_client_config.test.subscription_id]
   }
 
   tags = {
