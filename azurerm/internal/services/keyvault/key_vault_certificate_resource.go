@@ -433,7 +433,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 			}
 		}
 
-		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
+		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
@@ -450,7 +450,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 

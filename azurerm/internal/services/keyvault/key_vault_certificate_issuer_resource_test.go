@@ -146,10 +146,10 @@ func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		return nil, fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId.ID(), name, *vaultBaseUrl, err)
 	}
 	if !ok {
-		return utils.Bool(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId, vaultBaseUrl)
+		return utils.Bool(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId.ID(), *vaultBaseUrl)
 	}
 
 	resp, err := dataPlaneClient.DeleteCertificateIssuer(ctx, *vaultBaseUrl, name)

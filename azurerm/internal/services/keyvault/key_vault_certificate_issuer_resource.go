@@ -126,7 +126,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, met
 		existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+				return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
 			}
 		}
 

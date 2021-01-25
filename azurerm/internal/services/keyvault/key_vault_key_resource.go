@@ -176,7 +176,7 @@ func resourceKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	existing, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+			return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
 		}
 	}
 
