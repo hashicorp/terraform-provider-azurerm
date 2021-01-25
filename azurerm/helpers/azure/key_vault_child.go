@@ -22,7 +22,3 @@ func ValidateKeyVaultChildName(v interface{}, k string) (warnings []string, erro
 func ValidateKeyVaultChildId(i interface{}, k string) (warnings []string, errors []error) {
 	return keyVaultValidate.NestedItemId(i, k)
 }
-
-func ValidateKeyVaultChildIdVersionOptional(i interface{}, k string) (warnings []string, errors []error) {
-	return keyVaultValidate.NestedItemIdWithOptionalVersion(i, k)
-}

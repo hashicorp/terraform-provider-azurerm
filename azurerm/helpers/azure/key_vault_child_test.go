@@ -2,6 +2,8 @@ package azure
 
 import (
 	"testing"
+
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 )
 
 func TestAccAzureRMValidateKeyVaultChildID(t *testing.T) {
@@ -93,7 +95,7 @@ func TestAccAzureRMValidateKeyVaultChildIDVersionOptional(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		warnings, err := ValidateKeyVaultChildIdVersionOptional(tc.Input, "example")
+		warnings, err := keyVaultValidate.NestedItemIdWithOptionalVersion(tc.Input, "example")
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for input %q: %+v", tc.Input, err)
