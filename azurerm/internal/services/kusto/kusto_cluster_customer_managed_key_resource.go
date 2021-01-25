@@ -69,7 +69,8 @@ func resourceKustoClusterCustomerManagedKey() *schema.Resource {
 
 func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	vaultsClient := keyVaultsClient.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -126,7 +127,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
 	}
 
-	keyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultsClient, keyVaultIDRaw)
+	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
 		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
 	}
@@ -138,7 +139,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 			KeyVaultProperties: &kusto.KeyVaultProperties{
 				KeyName:     utils.String(keyName),
 				KeyVersion:  utils.String(keyVersion),
-				KeyVaultURI: utils.String(keyVaultBaseURL),
+				KeyVaultURI: utils.String(*keyVaultBaseURL),
 			},
 		},
 	}
