@@ -40,6 +40,56 @@ func (n NestedItemId) ID() string {
 	return fmt.Sprintf("%s/%s/%s/%s", n.KeyVaultBaseUrl, n.NestedItemType, n.Name, n.Version)
 }
 
+// ParseNestedItemID parses a Key Vault Nested Item ID (such as a Certificate, Key or Secret)
+// containing a version into a NestedItemId object
 func ParseNestedItemID(input string) (*NestedItemId, error) {
-	return nil, nil
+	item, err := parseNestedItemId(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if item.Version == "" {
+		return nil, fmt.Errorf("expected a versioned ID but no version in %q", input)
+	}
+
+	return item, nil
+}
+
+// ParseOptionallyVersionedNestedItemID parses a Key Vault Nested Item ID (such as a Certificate, Key or Secret)
+// optionally containing a version into a NestedItemId object
+func ParseOptionallyVersionedNestedItemID(input string) (*NestedItemId, error) {
+	return parseNestedItemId(input)
+}
+
+func parseNestedItemId(id string) (*NestedItemId, error) {
+	// versioned example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
+	// versionless example: https://tharvey-keyvault.vault.azure.net/type/bird/
+	idURL, err := url.ParseRequestURI(id)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot parse Azure KeyVault Child Id: %s", err)
+	}
+
+	path := idURL.Path
+
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+
+	components := strings.Split(path, "/")
+
+	if len(components) != 2 && len(components) != 3 {
+		return nil, fmt.Errorf("KeyVault Nested Item should contain 2 or 3 segments, got %d from %q", len(components), path)
+	}
+
+	version := ""
+	if len(components) == 3 {
+		version = components[2]
+	}
+
+	childId := NestedItemId{
+		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
+		Name:            components[1],
+		Version:         version,
+	}
+
+	return &childId, nil
 }
