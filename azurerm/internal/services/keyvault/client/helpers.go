@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var keyVaultsCache map[string]keyVaultDetails
+var keyVaultsCache = map[string]keyVaultDetails{}
 var lock = map[string]*sync.RWMutex{}
 
 type keyVaultDetails struct {
