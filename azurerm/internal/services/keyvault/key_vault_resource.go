@@ -21,8 +21,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -691,29 +693,28 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VaultID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["vaults"]
-	location := d.Get("location").(string)
+	locks.ByName(id.Name, keyVaultResourceName)
+	defer locks.UnlockByName(id.Name, keyVaultResourceName)
 
-	locks.ByName(name, keyVaultResourceName)
-	defer locks.UnlockByName(name, keyVaultResourceName)
-
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if read.Properties == nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving %q: `properties` was nil", *id)
+	}
+	if read.Location == nil {
+		return fmt.Errorf("retrieving %q: `location` was nil", *id)
 	}
 
 	// Check to see if purge protection is enabled or not...
@@ -736,14 +737,13 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					id, err2 := azure.ParseAzureResourceID(*v.ID)
-					if err2 != nil {
-						return err2
+					virtualNetworkId, err := networkParse.VirtualNetworkID(*v.ID)
+					if err != nil {
+						return err
 					}
 
-					virtualNetworkName := id.Path["virtualNetworks"]
-					if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
-						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+					if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkId.Name) {
+						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkId.Name)
 					}
 				}
 			}
@@ -753,10 +753,10 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 	}
 
@@ -764,32 +764,32 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
 		// KeyVaults with Purge Protection Enabled cannot be deleted unless done by Azure
 		if purgeProtectionEnabled {
-			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, name, location)
+			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, id.Name, *read.Location)
 			if err != nil {
-				return fmt.Errorf("Error retrieving the Deletion Details for KeyVault %q: %+v", name, err)
+				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
 			}
 
 			// in the future it'd be nice to raise a warning, but this is the best we can do for now
 			if deletedInfo != nil {
-				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q", name, deletedInfo.deleteDate, deletedInfo.purgeDate)
+				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q", id.Name, deletedInfo.deleteDate, deletedInfo.purgeDate)
 			} else {
-				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and will be purged automatically by Azure", name)
+				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and will be purged automatically by Azure", id.Name)
 			}
 			return nil
 		}
 
-		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", name)
-		future, err := client.PurgeDeleted(ctx, name, location)
+		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", id.Name)
+		future, err := client.PurgeDeleted(ctx, id.Name, *read.Location)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[DEBUG] Waiting for purge of KeyVault %q..", name)
+		log.Printf("[DEBUG] Waiting for purge of KeyVault %q..", id.Name)
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Error purging Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Purged KeyVault %q.", name)
+		log.Printf("[DEBUG] Purged KeyVault %q.", id.Name)
 	}
 
 	return nil
