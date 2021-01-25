@@ -62,7 +62,9 @@ The following arguments are supported:
 
 * `recommendations_enabled` - (Optional) A `recommendations_enabled` block as defined below.
 
-* `user_defined_resource` - (Optional) A `user_defined_resource` block as defined below.
+* `query_for_resources` - (Optional) Azure Resource Graph query which represents the security solution's monitored resources.
+
+* `query_subscription_ids` - (Optional) A list of subscription Ids on which the user defined resources query should be executed.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -101,14 +103,6 @@ A `recommendations_enabled` block supports the following:
 * `events_to_exportshared_credentials` - (Optional) Is any credentials shared among devices? Defaults to `true`.
 
 * `events_to_exportvulnerable_tls_cipher_suite` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
-
----
-
-A `user_defined_resource` block supports the following:
-
-* `query_for_resources` - (Required) Azure Resource Graph query which represents the security solution's user defined resources.
-
-* `query_subscription_ids` - (Required) A list of subscription Ids on which the user defined resources query should be executed.
 
 ## Attributes Reference
 

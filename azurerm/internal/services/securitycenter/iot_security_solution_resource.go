@@ -208,27 +208,19 @@ func resourceIotSecuritySolution() *schema.Resource {
 				},
 			},
 
-			"user_defined_resource": {
-				Type:     schema.TypeList,
+			"query_for_resources": {
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"query_for_resources": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
+			},
 
-						"query_subscription_ids": {
-							Type:     schema.TypeSet,
-							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.IsUUID,
-							},
-						},
-					},
+			"query_subscription_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.IsUUID,
 				},
 			},
 
@@ -276,7 +268,6 @@ func resourceIotSecuritySolutionCreateUpdate(d *schema.ResourceData, meta interf
 			Status:                       status,
 			Export:                       expandIotSecuritySolutionExport(d.Get("events_to_export").(*schema.Set).List()),
 			IotHubs:                      utils.ExpandStringSlice(d.Get("iothub_ids").(*schema.Set).List()),
-			UserDefinedResources:         expandIotSecuritySolutionUserDefinedResources(d.Get("user_defined_resource").([]interface{})),
 			RecommendationsConfiguration: expandIotSecuritySolutionRecommendation(d.Get("recommendations_enabled").([]interface{})),
 			UnmaskedIPLoggingStatus:      unmaskedIPLoggingStatus,
 		},
@@ -286,6 +277,19 @@ func resourceIotSecuritySolutionCreateUpdate(d *schema.ResourceData, meta interf
 	logAnalyticsWorkspaceId := d.Get("log_analytics_workspace_id").(string)
 	if logAnalyticsWorkspaceId != "" {
 		solution.IoTSecuritySolutionProperties.Workspace = utils.String(logAnalyticsWorkspaceId)
+	}
+
+	query := d.Get("query_for_resources").(string)
+	querySubscriptions := d.Get("query_subscription_ids").(*schema.Set).List()
+	if query != "" || len(querySubscriptions) > 0 {
+		if query != "" && len(querySubscriptions) > 0 {
+			solution.UserDefinedResources = &security.UserDefinedResourcesProperties{
+				Query:              utils.String(query),
+				QuerySubscriptions: utils.ExpandStringSlice(querySubscriptions),
+			}
+		} else {
+			return fmt.Errorf("`query_for_resources` and `query_subscription_ids` must be set togetther")
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, solution); err != nil {
@@ -331,8 +335,9 @@ func resourceIotSecuritySolutionRead(d *schema.ResourceData, meta interface{}) e
 		if err := d.Set("recommendations_enabled", flattenIotSecuritySolutionRecommendation(prop.RecommendationsConfiguration)); err != nil {
 			return fmt.Errorf("setting `recommendations_enabled`: %s", err)
 		}
-		if err := d.Set("user_defined_resource", flattenIotSecuritySolutionUserDefinedResources(prop.UserDefinedResources)); err != nil {
-			return fmt.Errorf("setting `user_defined_resource`: %s", err)
+		if prop.UserDefinedResources != nil {
+			d.Set("query_for_resources", prop.UserDefinedResources.Query)
+			d.Set("query_subscription_ids", utils.FlattenStringSlice(prop.UserDefinedResources.QuerySubscriptions))
 		}
 	}
 
@@ -367,17 +372,6 @@ func expandIotSecuritySolutionExport(input []interface{}) *[]security.ExportData
 	return &result
 }
 
-func expandIotSecuritySolutionUserDefinedResources(input []interface{}) *security.UserDefinedResourcesProperties {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &security.UserDefinedResourcesProperties{
-		Query:              utils.String(v["query_for_resources"].(string)),
-		QuerySubscriptions: utils.ExpandStringSlice(v["query_subscription_ids"].(*schema.Set).List()),
-	}
-}
-
 func expandIotSecuritySolutionRecommendation(input []interface{}) *[]security.RecommendationConfigurationProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -405,25 +399,6 @@ func flattenIotSecuritySolutionExport(input *[]security.ExportData) []interface{
 		}
 	}
 	return result
-}
-
-func flattenIotSecuritySolutionUserDefinedResources(input *security.UserDefinedResourcesProperties) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-	if input.QuerySubscriptions == nil && input.Query == nil {
-		return []interface{}{}
-	}
-	query := ""
-	if input.Query != nil {
-		query = *input.Query
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"query_for_resources":    query,
-			"query_subscription_ids": utils.FlattenStringSlice(input.QuerySubscriptions),
-		},
-	}
 }
 
 func flattenIotSecuritySolutionRecommendation(input *[]security.RecommendationConfigurationProperties) []interface{} {

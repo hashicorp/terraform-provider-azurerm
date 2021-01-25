@@ -177,10 +177,8 @@ resource "azurerm_iot_security_solution" "test" {
     vulnerable_tls_cipher_suite      = false
   }
 
-  user_defined_resource {
-    query_for_resources    = "where type != \"microsoft.devices/iothubs\" | where name contains \"iot\""
-    query_subscription_ids = [data.azurerm_client_config.test.subscription_id]
-  }
+  query_for_resources    = "where type != \"microsoft.devices/iothubs\" | where name contains \"iot\""
+  query_subscription_ids = [data.azurerm_client_config.test.subscription_id]
 
   tags = {
     "Env" : "Staging"
