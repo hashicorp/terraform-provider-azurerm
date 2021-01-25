@@ -364,6 +364,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if read.Properties == nil || read.Properties.VaultURI == nil {
 		return fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
 	}
+	d.SetId(id.ID())
 	meta.(*clients.Client).KeyVault.AddToCache(id, *read.Properties.VaultURI)
 
 	if props := read.Properties; props != nil {
