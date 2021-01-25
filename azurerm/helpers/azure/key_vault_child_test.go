@@ -3,6 +3,7 @@ package azure
 import (
 	"testing"
 
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 )
 
@@ -248,7 +249,7 @@ func TestAccAzureRMKeyVaultChild_parseIDVersionOptional(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		secretId, err := ParseKeyVaultChildIDVersionOptional(tc.Input)
+		secretId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(tc.Input)
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)

@@ -21,6 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -438,12 +439,11 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := azure.ParseKeyVaultChildIDVersionOptional(keyVaultKeyIDRaw.(string))
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		keyVaultKeyURI := fmt.Sprintf("%skeys/%s", keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name)
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
@@ -547,12 +547,11 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := azure.ParseKeyVaultChildIDVersionOptional(keyVaultKeyIDRaw.(string))
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		keyVaultKeyURI := fmt.Sprintf("%skeys/%s", keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name)
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
@@ -1079,11 +1078,11 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 }
 
 func diffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {
-	oldKey, err := azure.ParseKeyVaultChildIDVersionOptional(old)
+	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)
 	if err != nil {
 		return false
 	}
-	newKey, err := azure.ParseKeyVaultChildIDVersionOptional(new)
+	newKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(new)
 	if err != nil {
 		return false
 	}

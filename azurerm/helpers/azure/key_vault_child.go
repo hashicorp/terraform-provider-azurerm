@@ -9,7 +9,3 @@ type KeyVaultChildID = keyVaultParse.NestedItemId
 func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	return keyVaultParse.ParseNestedItemID(id)
 }
-
-func ParseKeyVaultChildIDVersionOptional(id string) (*KeyVaultChildID, error) {
-	return keyVaultParse.ParseOptionallyVersionedNestedItemID(id)
-}
