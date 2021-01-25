@@ -293,10 +293,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
-	accessPolicies, err := expandAccessPolicies(policies)
-	if err != nil {
-		return fmt.Errorf("Error expanding `access_policy`: %+v", err)
-	}
+	accessPolicies := expandAccessPolicies(policies)
 
 	networkAclsRaw := d.Get("network_acls").([]interface{})
 	networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
@@ -436,10 +433,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		policiesRaw := d.Get("access_policy").([]interface{})
-		accessPolicies, err := expandAccessPolicies(policiesRaw)
-		if err != nil {
-			return fmt.Errorf("expanding `access_policy`: %+v", err)
-		}
+		accessPolicies := expandAccessPolicies(policiesRaw)
 		update.Properties.AccessPolicies = accessPolicies
 	}
 

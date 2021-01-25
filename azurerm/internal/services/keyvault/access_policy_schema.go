@@ -113,7 +113,7 @@ func schemaStoragePermissions() *schema.Schema {
 	}
 }
 
-func expandAccessPolicies(input []interface{}) (*[]keyvault.AccessPolicyEntry, error) {
+func expandAccessPolicies(input []interface{}) *[]keyvault.AccessPolicyEntry {
 	output := make([]keyvault.AccessPolicyEntry, 0)
 
 	for _, policySet := range input {
@@ -146,7 +146,7 @@ func expandAccessPolicies(input []interface{}) (*[]keyvault.AccessPolicyEntry, e
 		output = append(output, policy)
 	}
 
-	return &output, nil
+	return &output
 }
 
 func flattenAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map[string]interface{} {
