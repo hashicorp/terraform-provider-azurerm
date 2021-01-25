@@ -38,6 +38,7 @@ func TestNewNestedItemID(t *testing.T) {
 				t.Fatalf("Got error for New Resource ID '%s': %+v", tc.keyVaultBaseUrl, err)
 				return
 			}
+			continue
 		}
 		if id.ID() != tc.Expected {
 			t.Fatalf("Expected id for %q to be %q, got %q", tc.keyVaultBaseUrl, tc.Expected, id)
