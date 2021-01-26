@@ -338,12 +338,12 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.VirtualNetworkID(v)
+		id, err := networkParse.SubnetID(v)
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.Name) {
-			virtualNetworkNames = append(virtualNetworkNames, id.Name)
+		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
 
@@ -480,13 +480,13 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 		virtualNetworkNames := make([]string, 0)
 		for _, v := range subnetIds {
-			id, err := networkParse.VirtualNetworkID(v)
+			id, err := networkParse.SubnetID(v)
 			if err != nil {
 				return err
 			}
 
-			if !utils.SliceContainsValue(virtualNetworkNames, id.Name) {
-				virtualNetworkNames = append(virtualNetworkNames, id.Name)
+			if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 			}
 		}
 
@@ -730,13 +730,13 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					virtualNetworkId, err := networkParse.VirtualNetworkID(*v.ID)
+					subnetId, err := networkParse.SubnetID(*v.ID)
 					if err != nil {
 						return err
 					}
 
-					if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkId.Name) {
-						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkId.Name)
+					if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
 					}
 				}
 			}
