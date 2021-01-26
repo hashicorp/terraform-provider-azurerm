@@ -215,7 +215,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	}
 
 	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
-	if criticalAddonsEnabled == true {
+	if criticalAddonsEnabled {
 		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:PreferNoSchedule")
 	}
 
