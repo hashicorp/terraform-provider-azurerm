@@ -367,24 +367,18 @@ resource "azurerm_databox_edge_order" "test" {
   device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
+    name           = "TerraForm Test"
     company_name   = "Microsoft"
-    contact_person = "John Mcclane"
-    email_lists    = ["john@microsoft.com"]
-    phone          = "(800) 426-9400"
-  }
-
-  current_status {
-    comments = ""
+    emails         = ["creator4983@FlynnsArcade.com"]
+    phone_number   = "(425) 882-8080"
   }
 
   shipping_address {
-    address_line1 = "Microsoft Corporation"
-    city          = "WA"
-    country       = "USA"
+    address_line1 = "One Microsoft Way"
+    city          = "Redmond"
     postal_code   = "98052"
     state         = "WA"
-    address_line2 = "One Microsoft Way"
-    address_line3 = "Redmond"
+    country       = "USA"
   }
 }
 `, template)

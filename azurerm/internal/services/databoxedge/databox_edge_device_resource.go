@@ -137,6 +137,7 @@ func resourceDataboxEdgeDevice() *schema.Resource {
 		},
 	}
 }
+
 func resourceDataboxEdgeDeviceCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataboxEdge.DeviceClient
@@ -314,10 +315,12 @@ func flattenDeviceSku(input *databoxedge.Sku) *string {
 	}
 
 	var name databoxedge.SkuName
+	var tier databoxedge.SkuTier
+
 	if input.Name != "" {
 		name = input.Name
 	}
-	var tier databoxedge.SkuTier
+
 	if input.Tier != "" {
 		tier = input.Tier
 	} else {

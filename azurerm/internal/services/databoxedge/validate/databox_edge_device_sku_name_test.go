@@ -21,17 +21,17 @@ func TestDataboxEdgeSkuName(t *testing.T) {
 		{
 			name:     "Valid sku with no delimiter or tier",
 			input:    "TEA_4Node_UPS_Heater",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "valid sku with empty tier and extra delimiter",
 			input:    "TEA_4Node_UPS_Heater--",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "Valid sku with delimiter and no tier defined",
 			input:    "TEA_4Node_UPS_Heater-",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "Valid sku and tier",

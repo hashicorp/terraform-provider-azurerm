@@ -21,11 +21,6 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 	validSkus := getValidSkus()
 	validTiers := getValidTiers()
 
-	if skuParts[0] == "" {
-		errors = append(errors, fmt.Errorf("expected %q to be one of %v, got %q", k, validSkus, value))
-		return warnings, errors
-	}
-
 	// Validate the SKU Name section
 	for _, str := range validSkus {
 		if skuParts[0] == str {
@@ -34,29 +29,41 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 		}
 	}
 
-	if !validSku {
-		errors = append(errors, fmt.Errorf("expected %q to be one of %v, got %q", k, validSkus, value))
-		return warnings, errors
-	}
-
 	if len(skuParts) > 1 {
 		// Validate the SKU Tier section
-		if skuParts[1] != "" {
-			for _, str := range validTiers {
-				if skuParts[1] == str {
-					validTier = true
-					break
-				}
-			}
-
-			if !validTier {
-				errors = append(errors, fmt.Errorf("expected %q to be one of %v, got %q", k, validTiers, value))
-				return warnings, errors
+		for _, str := range validTiers {
+			if skuParts[1] == str {
+				validTier = true
+				break
 			}
 		}
 	}
 
+	if !validSku {
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", prettyErrorString(validSkus), value))
+	}
+	if !validTier {
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "tier", prettyErrorString(validTiers), value))
+	}
+
 	return warnings, errors
+}
+func prettyErrorString(strs []string) string {
+	if len(strs) == 1 {
+		return fmt.Sprint("\"", strs[0], "\"")
+	}
+
+	var sb strings.Builder
+
+	for i, str := range strs {
+		if i < (len(strs) - 1) {
+			sb.WriteString(fmt.Sprint("\"", str, "\", "))
+		} else {
+			sb.WriteString(fmt.Sprint(" or \"", str, "\""))
+		}
+	}
+
+	return sb.String()
 }
 
 func getValidSkus() []string {
