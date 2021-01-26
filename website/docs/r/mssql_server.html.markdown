@@ -138,7 +138,7 @@ An `extended_auditing_policy` block supports the following:
 
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
-~> **NOTE** (Preview) To configure Log Analytics or Event Hub as target of Azure SQL Auditing for `azurerm_mssql_server`, an `azurerm_monitor_diagnostic_setting` resource should be configured on every database including `master` like so. 
+~> **NOTE** (Preview) To configure Log Analytics or Event Hub as target of Azure SQL Auditing for `azurerm_mssql_server`, an `azurerm_monitor_diagnostic_setting` resource should be configured on database `master` like so. 
 ```hcl
 data "azurerm_mssql_database" "master" {
   name                = "master"
