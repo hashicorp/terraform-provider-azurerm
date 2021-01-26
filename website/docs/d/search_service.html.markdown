@@ -28,9 +28,9 @@ data "azurerm_search_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Name which should be used for this Search Service. Changing this forces a new Search Service to be created.
+* `name` - (Required) The Name of the Search Service.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Search Service should exist. Changing this forces a new Search Service to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Search Service exists.
 
 ## Attributes Reference
 

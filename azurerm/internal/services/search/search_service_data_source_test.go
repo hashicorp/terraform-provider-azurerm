@@ -13,7 +13,7 @@ type SearchServiceDataSource struct {
 }
 
 func TestAccDataSourceSearchService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_search_service", "test")
 	r := SearchServiceDataSource{}
 
 	data.DataSourceTest(t, []resource.TestStep{

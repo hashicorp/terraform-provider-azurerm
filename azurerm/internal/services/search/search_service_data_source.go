@@ -2,7 +2,6 @@ package search
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,7 +24,6 @@ func dataSourceSearchService() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -78,7 +76,6 @@ func dataSourceSearchService() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -104,27 +101,22 @@ func dataSourceSearchService() *schema.Resource {
 
 func dataSourceSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SearchServiceID(d.Id())
-	if err != nil {
-		return err
-	}
+	id := parse.NewSearchServiceID(subscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
-			d.SetId("")
 			return fmt.Errorf("Search Service %q (Resource Group %q) was not found", id.Name, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("Error reading Search Service: %+v", err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.SetId(id.ID())
 
 	if props := resp.ServiceProperties; props != nil {
 		if count := props.PartitionCount; count != nil {
