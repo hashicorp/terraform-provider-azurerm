@@ -13,11 +13,13 @@ IMPROVEMENTS:
 * dependencies: updating the `firewall` resources to use the Networking API `2020-07-01` [GH-10252]
 * dependencies: updating the `load balancer` resources to use the Networking API version `2020-05-01` [GH-10263]
 * `data.azurerm_app_service_environment` - export the `cluster_setting` block [GH-10303]
+* `data.azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute [GH-10275]
 * `azurerm_app_service` - support for the propety `number_of_workers` [GH-10143]
 * `azurerm_app_service_environment` - support for the `cluster_setting` block [GH-10303]
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
 * `azurerm_firewall_policy` - support for the `sku` property [GH-10186]
 * `azurerm_iothub` - support for the `enrichment` property [GH-9239]
+* `azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute [GH-10275]
 * `azurerm_redis_cache` - support multiple availability zones [GH-10283]
 
 BUG FIXES:
