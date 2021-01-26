@@ -210,6 +210,11 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"certificate_data_base64": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"thumbprint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -272,6 +277,12 @@ func dataSourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{})
 		certificateData = strings.ToUpper(hex.EncodeToString(*contents))
 	}
 	d.Set("certificate_data", certificateData)
+
+	certificateDataBase64 := ""
+	if contents := cert.Cer; contents != nil {
+		certificateDataBase64 = base64.StdEncoding.EncodeToString(*contents)
+	}
+	d.Set("certificate_data_base64", certificateDataBase64)
 
 	thumbprint := ""
 	if v := cert.X509Thumbprint; v != nil {
