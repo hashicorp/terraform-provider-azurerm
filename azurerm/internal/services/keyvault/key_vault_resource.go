@@ -338,7 +338,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.SubnetID(v)
+		id, err := networkParse.SubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
@@ -480,7 +480,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 		virtualNetworkNames := make([]string, 0)
 		for _, v := range subnetIds {
-			id, err := networkParse.SubnetID(v)
+			id, err := networkParse.SubnetIDInsensitively(v)
 			if err != nil {
 				return err
 			}
@@ -730,7 +730,7 @@ func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					subnetId, err := networkParse.SubnetID(*v.ID)
+					subnetId, err := networkParse.SubnetIDInsensitively(*v.ID)
 					if err != nil {
 						return err
 					}
@@ -908,7 +908,13 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 				continue
 			}
 
-			virtualNetworkRules = append(virtualNetworkRules, *v.ID)
+			id := *v.ID
+			subnetId, err := networkParse.SubnetIDInsensitively(*v.ID)
+			if err == nil {
+				id = subnetId.ID()
+			}
+
+			virtualNetworkRules = append(virtualNetworkRules, id)
 		}
 	}
 	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
