@@ -141,6 +141,24 @@ A `extended_auditing_policy` block supports the following:
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
+~> **NOTE** (Preview) To configure Log Analytics or Event Hub as target of Azure SQL Auditing, an `azurerm_monitor_diagnostic_setting` should be configured like so. 
+```hcl
+resource "azurerm_monitor_diagnostic_setting" "azure_mssql_auditing" {
+  name                       = "azure-mssql-auditing"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  target_resource_id         = azurerm_mssql_database.example.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+}
+```
+
 ---
 
 A `long_term_retention_policy` block supports the following:

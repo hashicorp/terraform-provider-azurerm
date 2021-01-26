@@ -12,6 +12,24 @@ Manages a Ms Sql Database Extended Auditing Policy.
 
 ~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
 
+~> **NOTE** (Preview) To configure Log Analytics or Event Hub as target of Azure SQL Auditing, an `azurerm_monitor_diagnostic_setting` should be configured like so. 
+```hcl
+resource "azurerm_monitor_diagnostic_setting" "azure_mssql_auditing" {
+  name                       = "azure-mssql-auditing"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  target_resource_id         = azurerm_mssql_database.example.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+}
+```
+
 ## Example Usage
 
 ```hcl

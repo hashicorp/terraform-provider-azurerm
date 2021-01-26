@@ -138,6 +138,29 @@ An `extended_auditing_policy` block supports the following:
 
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
+~> **NOTE** (Preview) To configure Log Analytics or Event Hub as target of Azure SQL Auditing for `azurerm_mssql_server`, an `azurerm_monitor_diagnostic_setting` resource should be configured on every database including `master` like so. 
+```hcl
+data "azurerm_mssql_database" "master" {
+  name                = "master"
+  resource_group_name = "example-mssql-server-id"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "azure_mssql_auditing" {
+  name                       = "azure-mssql-auditing"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  target_resource_id         = data.azurerm_mssql_database.master.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+}
+```
+
 ### Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
