@@ -534,7 +534,7 @@ func expandAppServiceEnvironmentClusterSettings(input interface{}) *[]web.NameVa
 }
 
 func flattenClusterSettings(input *[]web.NameValuePair) interface{} {
-	if len(*input) == 0 {
+	if input == nil || len(*input) == 0 {
 		return []map[string]interface{}{}
 	}
 
