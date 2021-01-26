@@ -52,10 +52,10 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("credentials.0.authorization.0.parameter").HasValue("parameter"),
 				check.That(data.ResourceName).Key("credentials.0.authorization.0.scheme").HasValue("scheme"),
 				check.That(data.ResourceName).Key("credentials.0.certificate.0").Exists(),
-				check.That(data.ResourceName).Key("credentials.0.header.header1").HasValue("header1value1"),
-				check.That(data.ResourceName).Key("credentials.0.header.header2").HasValue("header2value1"),
-				check.That(data.ResourceName).Key("credentials.0.query.query1").HasValue("query1value1"),
-				check.That(data.ResourceName).Key("credentials.0.query.query2").HasValue("query2value1"),
+				check.That(data.ResourceName).Key("credentials.0.header.header1").HasValue("header1value1,header1value2"),
+				check.That(data.ResourceName).Key("credentials.0.header.header2").HasValue("header2value1,header2value2"),
+				check.That(data.ResourceName).Key("credentials.0.query.query1").HasValue("query1value1,query1value2"),
+				check.That(data.ResourceName).Key("credentials.0.query.query2").HasValue("query2value1,query2value2"),
 				check.That(data.ResourceName).Key("proxy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("proxy.0.url").HasValue("http://192.168.1.1:8080"),
 				check.That(data.ResourceName).Key("proxy.0.username").HasValue("username"),
@@ -326,8 +326,8 @@ resource "azurerm_api_management_backend" "test" {
     ]
     max_partition_resolution_retries = 5
     server_certificate_thumbprints = [
-      "thumb1",
-      "thumb2",
+      azurerm_api_management_certificate.test.thumbprint,
+      azurerm_api_management_certificate.test.thumbprint,
     ]
   }
 }
