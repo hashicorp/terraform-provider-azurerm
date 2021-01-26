@@ -367,26 +367,69 @@ func TestAccMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withoutBlobAuditingPolices(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withBlobAuditingPolices(data),
+			Config: r.withBlobAuditingPolicesForStorageAccount(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
 		{
-			Config: r.withBlobAuditingPolicesUpdated(data),
+			Config: r.withBlobAuditingPolicesForStorageAccountUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.withBlobAuditingPolicesDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_withBlobAuditingPolicesForMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withoutBlobAuditingPolices(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBlobAuditingPolicesForStorageAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.withBlobAuditingPolicesForLogAnalytics(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.withBlobAuditingPolicesForEventhub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.withBlobAuditingPolicesDisabled(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -952,7 +995,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger, state)
 }
 
-func (r MsSqlDatabaseResource) withBlobAuditingPolices(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) withBlobAuditingPolicesTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -972,8 +1015,57 @@ resource "azurerm_storage_account" "test2" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[3]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "acctestEHRule"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-LAW-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withoutBlobAuditingPolices(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[3]d"
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_sql_server.test.id
+}
+`, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withBlobAuditingPolicesForStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
   server_id = azurerm_sql_server.test.id
   extended_auditing_policy {
     storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
@@ -982,31 +1074,15 @@ resource "azurerm_mssql_database" "test" {
     retention_in_days                       = 6
   }
 }
-`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+`, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) withBlobAuditingPolicesUpdated(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) withBlobAuditingPolicesForStorageAccountUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctest2%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[3]d"
+  name      = "acctest-db-%[2]d"
   server_id = azurerm_sql_server.test.id
   extended_auditing_policy {
     storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
@@ -1015,35 +1091,104 @@ resource "azurerm_mssql_database" "test" {
     retention_in_days                       = 3
   }
 }
-`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+`, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)
 }
 
 func (r MsSqlDatabaseResource) withBlobAuditingPolicesDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctest2%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_mssql_database" "test" {
   name                     = "acctest-db-%[3]d"
   server_id                = azurerm_sql_server.test.id
   extended_auditing_policy = []
 }
-`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+`, r.withBlobAuditingPolicesTemplate(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withBlobAuditingPolicesForLogAnalytics(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "acctest-DS-%[2]d"
+  target_resource_id         = azurerm_mssql_database.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [log, metric]
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_sql_server.test.id
+  extended_auditing_policy {
+    monitor_enabled = true
+  }
+}
+`, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withBlobAuditingPolicesForEventhub(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[2]d"
+  target_resource_id             = azurerm_mssql_database.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [log, metric]
+  }
+
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_sql_server.test.id
+  extended_auditing_policy {
+    monitor_enabled = true
+  }
+}
+`, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)
 }
 
 func (r MsSqlDatabaseResource) updateSku(data acceptance.TestData) string {
