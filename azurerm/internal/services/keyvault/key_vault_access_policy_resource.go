@@ -66,13 +66,13 @@ func resourceKeyVaultAccessPolicy() *schema.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
+			"certificate_permissions": schemaCertificatePermissions(),
 
-			"key_permissions": azure.SchemaKeyVaultKeyPermissions(),
+			"key_permissions": schemaKeyPermissions(),
 
-			"secret_permissions": azure.SchemaKeyVaultSecretPermissions(),
+			"secret_permissions": schemaSecretPermissions(),
 
-			"storage_permissions": azure.SchemaKeyVaultStoragePermissions(),
+			"storage_permissions": schemaStoragePermissions(),
 		},
 	}
 }
@@ -162,16 +162,16 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta int
 	}
 
 	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
-	certPermissions := azure.ExpandCertificatePermissions(certPermissionsRaw)
+	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
 	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
-	keyPermissions := azure.ExpandKeyPermissions(keyPermissionsRaw)
+	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
 	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
-	secretPermissions := azure.ExpandSecretPermissions(secretPermissionsRaw)
+	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
 	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
-	storagePermissions := azure.ExpandStoragePermissions(storagePermissionsRaw)
+	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
 	accessPolicy := keyvault.AccessPolicyEntry{
 		ObjectID: utils.String(objectId),
@@ -301,22 +301,22 @@ func resourceKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if permissions := policy.Permissions; permissions != nil {
-		certificatePermissions := azure.FlattenCertificatePermissions(permissions.Certificates)
+		certificatePermissions := flattenCertificatePermissions(permissions.Certificates)
 		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
 			return fmt.Errorf("Error setting `certificate_permissions`: %+v", err)
 		}
 
-		keyPermissions := azure.FlattenKeyPermissions(permissions.Keys)
+		keyPermissions := flattenKeyPermissions(permissions.Keys)
 		if err := d.Set("key_permissions", keyPermissions); err != nil {
 			return fmt.Errorf("Error setting `key_permissions`: %+v", err)
 		}
 
-		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
+		secretPermissions := flattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
 			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
 		}
 
-		storagePermissions := azure.FlattenStoragePermissions(permissions.Storage)
+		storagePermissions := flattenStoragePermissions(permissions.Storage)
 		if err := d.Set("storage_permissions", storagePermissions); err != nil {
 			return fmt.Errorf("Error setting `storage_permissions`: %+v", err)
 		}

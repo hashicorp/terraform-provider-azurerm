@@ -49,7 +49,7 @@ func resourceKustoClusterCustomerManagedKey() *schema.Resource {
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_name": {

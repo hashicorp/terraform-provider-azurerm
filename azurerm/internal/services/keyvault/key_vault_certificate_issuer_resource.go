@@ -39,14 +39,14 @@ func resourceKeyVaultCertificateIssuer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KeyVaultID,
+				ValidateFunc: validate.VaultID,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KeyVaultCertificateIssuerName,
+				ValidateFunc: validate.CertificateIssuerName,
 			},
 
 			"provider_name": {

@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -268,7 +269,7 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	client := clients.KeyVault.ManagementClient
 	keyVaultClient := clients.KeyVault.VaultsClient
 
-	id, err := azure.ParseKeyVaultChildID(state.ID)
+	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}

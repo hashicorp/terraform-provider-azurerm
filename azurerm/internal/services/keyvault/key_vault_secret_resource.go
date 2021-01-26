@@ -15,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -42,14 +44,14 @@ func resourceKeyVaultSecret() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildName,
+				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"value": {
@@ -189,7 +191,7 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -260,7 +262,7 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
 	}
 
-	if _, err = azure.ParseKeyVaultChildID(*read.ID); err != nil {
+	if _, err = parse.ParseNestedItemID(*read.ID); err != nil {
 		return err
 	}
 
@@ -276,7 +278,7 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -313,7 +315,7 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := azure.ParseKeyVaultChildID(*resp.ID)
+	respID, err := parse.ParseNestedItemID(*resp.ID)
 	if err != nil {
 		return err
 	}
@@ -342,7 +344,7 @@ func resourceKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}

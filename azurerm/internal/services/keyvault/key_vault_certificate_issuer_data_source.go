@@ -30,7 +30,7 @@ func dataSourceKeyVaultCertificateIssuer() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.KeyVaultCertificateIssuerName,
+				ValidateFunc: validate.CertificateIssuerName,
 			},
 
 			"provider_name": {

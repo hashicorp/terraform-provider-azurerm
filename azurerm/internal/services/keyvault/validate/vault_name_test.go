@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestValidateKeyVaultName(t *testing.T) {
+func TestValidateVaultName(t *testing.T) {
 	cases := []struct {
 		Input       string
 		ExpectError bool
@@ -52,7 +52,7 @@ func TestValidateKeyVaultName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := KeyVaultName(tc.Input, "")
+		_, errors := VaultName(tc.Input, "")
 
 		hasError := len(errors) > 0
 		if tc.ExpectError && !hasError {
