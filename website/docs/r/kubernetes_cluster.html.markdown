@@ -223,6 +223,8 @@ A `default_node_pool` block supports the following:
 
 -> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
 
+* `only_critical_addons_enabled` - (Optional) Enabling this option will taint default node pool with `CriticalAddonsOnly=true:PreferNoSchedule` taint. Changing this forces a new resource to be created.
+
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
 -> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.

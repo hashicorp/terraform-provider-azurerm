@@ -115,12 +115,8 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Type:     schema.TypeList,
 					ForceNew: true,
 					Optional: true,
-					MaxItems: 1,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CriticalAddonsOnly=true:PreferNoSchedule",
-						}, false),
 					},
 				},
 
@@ -162,6 +158,11 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: computeValidate.ProximityPlacementGroupID,
+				},
+				"only_critical_addons_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					ForceNew: true,
 				},
 			},
 		},
@@ -209,8 +210,13 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 
-	if len(*nodeTaints) > 1 {
-		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. The only accepted value for a default node pool is `CriticalAddonsOnly=true:PreferNoSchedule`. To taint a node pool with other taints, create a separate one.")
+	if len(*nodeTaints) != 0 {
+		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one.")
+	}
+
+	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
+	if criticalAddonsEnabled == true {
+		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:PreferNoSchedule")
 	}
 
 	t := raw["tags"].(map[string]interface{})
@@ -389,9 +395,9 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
-	var nodeTaints []string
+	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
-		nodeTaints = *agentPool.NodeTaints
+		criticalAddonsEnabled = true
 	}
 
 	osDiskSizeGB := 0
@@ -431,7 +437,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                         name,
 			"node_count":                   count,
 			"node_labels":                  nodeLabels,
-			"node_taints":                  nodeTaints,
+			"node_taints":                  []string{},
 			"os_disk_size_gb":              osDiskSizeGB,
 			"os_disk_type":                 string(osDiskType),
 			"tags":                         tags.Flatten(agentPool.Tags),
@@ -440,6 +446,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"orchestrator_version":         orchestratorVersion,
 			"proximity_placement_group_id": proximityPlacementGroupId,
 			"vnet_subnet_id":               vnetSubnetId,
+			"only_critical_addons_enabled": criticalAddonsEnabled,
 		},
 	}, nil
 }
