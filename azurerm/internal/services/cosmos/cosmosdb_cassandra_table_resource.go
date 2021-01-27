@@ -69,6 +69,8 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
+			"schema": common.CassandraTableSchemaPropertySchema(),
+
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -112,6 +114,8 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
+
+	table.CassandraTableCreateUpdateProperties.Resource.Schema = expandTableSchema(d)
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
 		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
@@ -173,6 +177,8 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
+
+	table.CassandraTableCreateUpdateProperties.Resource.Schema = expandTableSchema(d)
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
 		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
@@ -276,4 +282,70 @@ func resourceCosmosDbCassandraTableDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func expandTableSchema(d *schema.ResourceData) *documentdb.CassandraSchema {
+	i := d.Get("schema").([]interface{})
+
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+	input := i[0].(map[string]interface{})
+
+	cassandraSchema := documentdb.CassandraSchema{}
+
+	if v, ok := input["column"].([]interface{}); ok {
+		cassandraSchema.Columns = expandTableSchemaColumns(v)
+	}
+
+	if v, ok := input["partition_key"].([]interface{}); ok {
+		cassandraSchema.PartitionKeys = expandTableSchemaPartitionKeys(v)
+	}
+
+	if v, ok := input["cluster_key"].([]interface{}); ok {
+		cassandraSchema.ClusterKeys = expandTableSchemaClusterKeys(v)
+	}
+
+	return &cassandraSchema
+}
+
+func expandTableSchemaColumns(input []interface{}) *[]documentdb.Column {
+	columns := make([]documentdb.Column, 0)
+	for _, col := range input {
+		data := col.(map[string]interface{})
+		column := documentdb.Column{
+			Name: utils.String(data["name"].(string)),
+			Type: utils.String(data["type"].(string)),
+		}
+		columns = append(columns, column)
+	}
+
+	return &columns
+}
+
+func expandTableSchemaPartitionKeys(input []interface{}) *[]documentdb.CassandraPartitionKey {
+	keys := make([]documentdb.CassandraPartitionKey, 0)
+	for _, key := range input {
+		data := key.(map[string]interface{})
+		k := documentdb.CassandraPartitionKey{
+			Name: utils.String(data["name"].(string)),
+		}
+		keys = append(keys, k)
+	}
+
+	return &keys
+}
+
+func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey {
+	keys := make([]documentdb.ClusterKey, 0)
+	for _, key := range input {
+		data := key.(map[string]interface{})
+		k := documentdb.ClusterKey{
+			Name:    utils.String(data["name"].(string)),
+			OrderBy: utils.String(data["order_by"].(string)),
+		}
+		keys = append(keys, k)
+	}
+
+	return &keys
 }
