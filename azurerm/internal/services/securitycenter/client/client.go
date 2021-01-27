@@ -14,7 +14,8 @@ type Client struct {
 	AutoProvisioningClient         *security.AutoProvisioningSettingsClient
 	SettingClient                  *security.SettingsClient
 	AutomationsClient              *security.AutomationsClient
-	JitNetworkAccessPoliciesClient *security.JitNetworkAccessPoliciesClient
+
+	o *common.ClientOptions
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -44,9 +45,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	AutomationsClient := security.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
 
-	JitNetworkAccessPoliciesClient := security.NewJitNetworkAccessPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&JitNetworkAccessPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		ContactsClient:                 &ContactsClient,
 		IotSecuritySolutionClient:      &IotSecuritySolutionClient,
@@ -56,6 +54,14 @@ func NewClient(o *common.ClientOptions) *Client {
 		AutoProvisioningClient:         &AutoProvisioningClient,
 		SettingClient:                  &SettingClient,
 		AutomationsClient:              &AutomationsClient,
-		JitNetworkAccessPoliciesClient: &JitNetworkAccessPoliciesClient,
+
+		o: o,
 	}
+}
+
+func (client Client) NewJitNetworkAccessPoliciesClient(location string) *security.JitNetworkAccessPoliciesClient {
+	jitNetworkAccessPoliciesClient := security.NewJitNetworkAccessPoliciesClientWithBaseURI(client.o.ResourceManagerEndpoint, client.o.SubscriptionId, location)
+	client.o.ConfigureClient(&jitNetworkAccessPoliciesClient.Client, client.o.ResourceManagerAuthorizer)
+
+	return &jitNetworkAccessPoliciesClient
 }
