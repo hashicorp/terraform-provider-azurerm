@@ -234,6 +234,7 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
+	d.Set("keyspace_name", id.CassandraKeyspaceName)
 	if props := resp.CassandraTableGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
