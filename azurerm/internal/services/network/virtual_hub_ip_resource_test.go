@@ -18,10 +18,6 @@ type VirtualHubIPResource struct {
 }
 
 func TestAccVirtualHubIP_basic(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 	r := VirtualHubIPResource{}
 
@@ -37,10 +33,6 @@ func TestAccVirtualHubIP_basic(t *testing.T) {
 }
 
 func TestAccVirtualHubIP_requiresImport(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 	r := VirtualHubIPResource{}
 
@@ -59,10 +51,6 @@ func TestAccVirtualHubIP_requiresImport(t *testing.T) {
 }
 
 func TestAccVirtualHubIP_complete(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 	r := VirtualHubIPResource{}
 
@@ -78,10 +66,6 @@ func TestAccVirtualHubIP_complete(t *testing.T) {
 }
 
 func TestAccVirtualHubIP_update(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 	r := VirtualHubIPResource{}
 
