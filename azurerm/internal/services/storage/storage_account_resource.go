@@ -1124,6 +1124,19 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	// azure_files_identity_based_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
 	if d.HasChange("azure_files_identity_based_authentication") {
+		// due to service issue: https://github.com/Azure/azure-rest-api-specs/issues/12473, we need to update to None before changing its DirectoryServiceOptions
+		dsNone := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				AzureFilesIdentityBasedAuthentication: &storage.AzureFilesIdentityBasedAuthentication{
+					DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
+				},
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, dsNone); err != nil {
+			return fmt.Errorf("updating Azure Storage Account azure_files_identity_based_authentication %q: %+v", storageAccountName, err)
+		}
+
 		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(d.Get("azure_files_identity_based_authentication").([]interface{}))
 		if err != nil {
 			return err
