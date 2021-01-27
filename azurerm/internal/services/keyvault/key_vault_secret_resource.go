@@ -108,7 +108,7 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 	existing, err := client.GetSecret(ctx, *keyVaultBaseUrl, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
+			return fmt.Errorf("checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 
