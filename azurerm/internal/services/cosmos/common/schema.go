@@ -11,6 +11,7 @@ import (
 func CassandraTableSchemaPropertySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
+		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
