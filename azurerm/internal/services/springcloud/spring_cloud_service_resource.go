@@ -119,6 +119,7 @@ func resourceSpringCloudService() *schema.Resource {
 			"config_server_git_setting": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -688,6 +689,11 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 		}
 	}
 
+	oldGitPatternRepositories := []interface{}{}
+	if v, ok := oldGitSetting["repository"]; ok {
+		oldGitPatternRepositories = v.([]interface{})
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"uri":             uri,
@@ -695,22 +701,15 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 			"search_paths":    searchPaths,
 			"http_basic_auth": httpBasicAuth,
 			"ssh_auth":        sshAuth,
-			"repository":      flattenSpringCloudGitPatternRepository(gitProperty.Repositories, d),
+			"repository":      flattenSpringCloudGitPatternRepository(gitProperty.Repositories, oldGitPatternRepositories),
 		},
 	}
 }
 
-func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *schema.ResourceData) []interface{} {
+func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, oldGitPatternRepositories []interface{}) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
-	}
-
-	// prepare old state to find sensitive props not returned by API.
-	oldGitPatternRepositories := []interface{}{}
-	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
-		oldGitSetting := oldGitSettings[0].(map[string]interface{})
-		oldGitPatternRepositories = oldGitSetting["repository"].([]interface{})
 	}
 
 	for i, item := range *input {
