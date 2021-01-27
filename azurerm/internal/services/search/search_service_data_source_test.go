@@ -25,7 +25,7 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("identity.type").Exists(),
+				check.That(data.ResourceName).Key("identity.0.type").Exists(),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
