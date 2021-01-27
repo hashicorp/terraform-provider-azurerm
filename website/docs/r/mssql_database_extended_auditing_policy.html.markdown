@@ -61,15 +61,16 @@ The following arguments are supported:
 
 * `database_id` - (Required) The ID of the sql database to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `storage_endpoint` - (Required) The blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all extended auditing logs.
-
----
+* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all extended auditing logs.
 
 * `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
 
 * `storage_account_access_key` - (Optional) The access key to use for the auditing storage account.
 
 * `storage_account_access_key_is_secondary` - (Optional) Is `storage_account_access_key` value the storage's secondary key?
+
+* `monitor_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_eventhub). 
+
 
 ## Attributes Reference
 
