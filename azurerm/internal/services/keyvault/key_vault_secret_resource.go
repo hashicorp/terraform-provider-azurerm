@@ -102,7 +102,7 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
+		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
 	existing, err := client.GetSecret(ctx, *keyVaultBaseUrl, name, "")
