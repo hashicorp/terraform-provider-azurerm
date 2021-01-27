@@ -241,6 +241,10 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
 				d.Set("default_ttl", defaultTTL)
 			}
+
+			if schema := res.Schema; schema != nil {
+				d.Set("schema", flattenTableSchema(schema))
+			}
 		}
 	}
 
@@ -348,4 +352,69 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey 
 	}
 
 	return &keys
+}
+
+func flattenTableSchema(schema *documentdb.CassandraSchema) []interface{} {
+	results := make([]interface{}, 0)
+	if schema == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+	result["column"] = flattenTableSchemaColumns(schema.Columns)
+	result["partition_key"] = flattenTableSchemaPartitionKeys(schema.PartitionKeys)
+	result["cluster_key"] = flattenTableSchemaClusterKeys(schema.ClusterKeys)
+
+	results = append(results, result)
+	return results
+}
+
+func flattenTableSchemaColumns(input *[]documentdb.Column) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	columns := make([]interface{}, 0)
+
+	for _, v := range *input {
+		block := make(map[string]interface{})
+		block["name"] = v.Name
+		block["type"] = v.Type
+		columns = append(columns, block)
+	}
+
+	return columns
+}
+
+func flattenTableSchemaPartitionKeys(input *[]documentdb.CassandraPartitionKey) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	keys := make([]interface{}, 0)
+
+	for _, v := range *input {
+		block := make(map[string]interface{})
+		block["name"] = v.Name
+		keys = append(keys, block)
+	}
+
+	return keys
+}
+
+func flattenTableSchemaClusterKeys(input *[]documentdb.ClusterKey) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	keys := make([]interface{}, 0)
+
+	for _, v := range *input {
+		block := make(map[string]interface{})
+		block["name"] = v.Name
+		block["order_by"] = v.OrderBy
+		keys = append(keys, block)
+	}
+
+	return keys
 }

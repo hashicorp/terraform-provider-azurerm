@@ -56,6 +56,22 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   keyspace_name       = azurerm_cosmosdb_cassandra_keyspace.test.name
+
+  schema {
+    column {
+      name = "test1"
+      type = "ascii"
+    }
+
+    column {
+      name = "test2"
+      type = "int"
+    }
+
+    partition_key {
+      name = "test1"
+    }
+  }
 }
 `, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
 }
