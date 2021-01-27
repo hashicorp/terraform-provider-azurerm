@@ -397,7 +397,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
-		criticalAddonsEnabled = true
+		for _, taint := range *agentPool.NodeTaints {
+			if strings.EqualsFold(taint, "CriticalAddonsOnly=true:PreferNoSchedule") {
+				criticalAddonsEnabled = true
+			}
+		}
 	}
 
 	osDiskSizeGB := 0
