@@ -80,6 +80,7 @@ func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 			"ace": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"scope": {
