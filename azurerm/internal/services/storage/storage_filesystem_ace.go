@@ -1,4 +1,4 @@
-package parse
+package storage
 
 import (
 	"github.com/google/uuid"
@@ -58,9 +58,11 @@ func FlattenDataLakeGen2AceList(acl accesscontrol.ACL) []interface{} {
 		}
 		ace["scope"] = scope
 		ace["type"] = string(v.TagType)
+		id := ""
 		if v.TagQualifier != nil {
-			ace["id"] = v.TagQualifier.String()
+			id = v.TagQualifier.String()
 		}
+		ace["id"] = id
 		ace["permissions"] = v.Permissions
 
 		output[i] = ace
