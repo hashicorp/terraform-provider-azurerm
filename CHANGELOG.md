@@ -28,6 +28,7 @@ IMPROVEMENTS:
 * `azurerm_linux_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
 * `azurerm_media_services_account` - support for setting the `storage_authentication_type` field to `System` [GH-10133]
 * `azurerm_redis_cache` - support multiple availability zones [GH-10283]
+* `azurerm_storage_data_lake_gen2_filesystem` - support for the `ace` block [GH-9917]
 * `azurerm_windows_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
 
 BUG FIXES:
