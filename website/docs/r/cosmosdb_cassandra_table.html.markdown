@@ -3,7 +3,7 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_cassandra_table"
 description: |-
-Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.
+  Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.
 ---
 
 # azurerm_cosmosdb_cassandra_table
