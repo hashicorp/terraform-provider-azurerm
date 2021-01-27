@@ -3,12 +3,12 @@ subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_linked_service"
 description: |-
-  Manages a Log Analytics (formally Operational Insights) Linked Service.
+  Manages a Log Analytics Linked Service.
 ---
 
 # azurerm_log_analytics_linked_service
 
-Links a Log Analytics (formally Operational Insights) Workspace to another resource. The (currently) only linkable service is an Azure Automation Account.
+Manages a Log Analytics Linked Service.
 
 ## Example Usage
 
@@ -39,8 +39,8 @@ resource "azurerm_log_analytics_workspace" "example" {
 
 resource "azurerm_log_analytics_linked_service" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
-  resource_id         = azurerm_automation_account.example.id
+  workspace_id        = azurerm_log_analytics_workspace.example.id
+  read_access_id      = azurerm_automation_account.example.id
 }
 ```
 
@@ -50,11 +50,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Log Analytics Linked Service is created. Changing this forces a new resource to be created.
 
-* `workspace_name` - (Required) Name of the Log Analytics Workspace that will contain the linkedServices resource. Changing this forces a new resource to be created.
+* `workspace_name` - (Deprecated) The name of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. Changing this forces a new resource to be created.
 
-* `linked_service_name` - (Optional) Name of the type of linkedServices resource to connect to the Log Analytics Workspace specified in `workspace_name`. Currently it defaults to and only supports `automation` as a value. Changing this forces a new resource to be created.
+* `workspace_id` - (Required) The ID of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. Changing this forces a new resource to be created.
 
-* `resource_id` - (Required) The ID of the Resource that will be linked to the workspace. Changing this forces a new resource to be created.
+* `linked_service_name` - (Deprecated) Name of the type of linkedServices resource to connect to the Log Analytics Workspace specified in workspace_name. Accepted values are `automation` and `cluster`. Defaults to `automation`. Changing this forces a new resource to be created.
+
+* `resource_id` - (Deprecated) The ID of the Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
+
+* `read_access_id` - (Optional) The ID of the readable Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
+
+* `write_access_id` - (Optional) The ID of the writable Resource that will be linked to the workspace. This should be used for linking to a Log Analytics Cluster resource.
+
+~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_resource_id`/`resouce_id` or `write_access_resource_id`).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -64,7 +72,7 @@ The following attributes are exported:
 
 * `id` - The Log Analytics Linked Service ID.
 
-* `name` - The automatically generated name of the Linked Service. This cannot be specified. The format is always `<workspace_name>/<linked_service_name>` e.g. `workspace1/Automation`
+* `name` - The generated name of the Linked Service. The format for this attribute is always `<workspace name>/<linked service type>`(e.g. `workspace1/Automation` or `workspace1/Cluster`)
 
 ## Timeouts
 
@@ -80,5 +88,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedservices/automation
+terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/Automation
 ```

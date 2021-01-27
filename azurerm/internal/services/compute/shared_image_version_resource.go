@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSharedImageVersion() *schema.Resource {
+func resourceSharedImageVersion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSharedImageVersionCreateUpdate,
-		Read:   resourceArmSharedImageVersionRead,
-		Update: resourceArmSharedImageVersionCreateUpdate,
-		Delete: resourceArmSharedImageVersionDelete,
+		Create: resourceSharedImageVersionCreateUpdate,
+		Read:   resourceSharedImageVersionRead,
+		Update: resourceSharedImageVersionCreateUpdate,
+		Delete: resourceSharedImageVersionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SharedImageVersionID(id)
@@ -131,7 +131,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 	}
 }
 
-func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,10 +196,10 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmSharedImageVersionRead(d, meta)
+	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +253,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

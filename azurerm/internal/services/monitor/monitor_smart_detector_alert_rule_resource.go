@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
+func resourceMonitorSmartDetectorAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorSmartDetectorAlertRuleCreateUpdate,
-		Read:   resourceArmMonitorSmartDetectorAlertRuleRead,
-		Update: resourceArmMonitorSmartDetectorAlertRuleCreateUpdate,
-		Delete: resourceArmMonitorSmartDetectorAlertRuleDelete,
+		Create: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Read:   resourceMonitorSmartDetectorAlertRuleRead,
+		Update: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Delete: resourceMonitorSmartDetectorAlertRuleDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -141,7 +141,7 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +178,7 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 				ID: utils.String(d.Get("detector_type").(string)),
 			},
 			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*schema.Set).List()),
-			ActionGroups: expandArmMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
+			ActionGroups: expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
 		},
 	}
 
@@ -202,10 +202,10 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmMonitorSmartDetectorAlertRuleRead(d, meta)
+	return resourceMonitorSmartDetectorAlertRuleRead(d, meta)
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,7 +244,7 @@ func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta i
 		}
 		d.Set("throttling_duration", throttlingDuration)
 
-		if err := d.Set("action_group", flattenArmMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
+		if err := d.Set("action_group", flattenMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
 			return fmt.Errorf("setting `action_group`: %+v", err)
 		}
 	}
@@ -252,7 +252,7 @@ func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +268,7 @@ func resourceArmMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta
 	return nil
 }
 
-func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
+func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -280,7 +280,7 @@ func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *ale
 	}
 }
 
-func flattenArmMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
+func flattenMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

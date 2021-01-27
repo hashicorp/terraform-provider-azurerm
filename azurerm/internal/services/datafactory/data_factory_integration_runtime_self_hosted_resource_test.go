@@ -1,58 +1,54 @@
 package datafactory_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_basic(t *testing.T) {
+type IntegrationRuntimeSelfHostedResource struct {
+}
+
+func TestAccDataFactoryIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
+	r := IntegrationRuntimeSelfHostedResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_rbac(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeSelfHosted_rbac(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "target")
+	r := IntegrationRuntimeSelfHostedResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_rbac(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "rbac_authorization.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.rbac(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rbac_authorization.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_basic(data acceptance.TestData) string {
+func (IntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -77,7 +73,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_rbac(data acceptance.TestData) string {
+func (IntegrationRuntimeSelfHostedResource) rbac(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -219,57 +215,19 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "target" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-		id, err := parse.IntegrationRuntimeID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Self-hosted Integration Runtime %q (Resource Group: %q, Data Factory %q) does not exist", id.Name, id.FactoryName, id.ResourceGroup)
-		}
-
-		return nil
+func (t IntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	dataFactoryName := id.Path["factories"]
+	name := id.Path["integrationruntimes"]
 
-func testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_integration_self_hosted" {
-			continue
-		}
-
-		id, err := parse.IntegrationRuntimeID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Self-hosted Integration Runtime still exists:\n%#v", resp.Properties)
-		}
+	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Data Factory Integration Runtime Self Hosted (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }

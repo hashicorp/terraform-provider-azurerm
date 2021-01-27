@@ -18,12 +18,12 @@ import (
 
 const azureNetworkDDoSProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 
-func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
+func resourceNetworkDDoSProtectionPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
-		Read:   resourceArmNetworkDDoSProtectionPlanRead,
-		Update: resourceArmNetworkDDoSProtectionPlanCreateUpdate,
-		Delete: resourceArmNetworkDDoSProtectionPlanDelete,
+		Create: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Read:   resourceNetworkDDoSProtectionPlanRead,
+		Update: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Delete: resourceNetworkDDoSProtectionPlanDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -60,7 +60,7 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,7 +86,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	vnetsToLock, err := expandArmNetworkDDoSProtectionPlanVnetNames(d)
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
@@ -122,10 +122,10 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*plan.ID)
 
-	return resourceArmNetworkDDoSProtectionPlanRead(d, meta)
+	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
-		vNetIDs := flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
+		vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
 		if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_ids`: %+v", err)
 		}
@@ -164,7 +164,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, plan.Tags)
 }
 
-func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DDOSProtectionPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +210,7 @@ func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta int
 	return err
 }
 
-func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]string, error) {
+func expandNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]string, error) {
 	vnetIDs := d.Get("virtual_network_ids").([]interface{})
 	vnetNames := make([]string, 0)
 
@@ -230,7 +230,7 @@ func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]str
 	return &vnetNames, nil
 }
 
-func flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
+func flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubResource) []string {
 	vnetIDs := make([]string, 0)
 	if input == nil {
 		return vnetIDs

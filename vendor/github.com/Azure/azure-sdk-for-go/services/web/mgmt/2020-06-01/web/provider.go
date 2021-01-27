@@ -70,6 +70,7 @@ func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelec
 	result.asc, err = client.GetAvailableStacksResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "GetAvailableStacks", resp, "Failure responding to request")
+		return
 	}
 	if result.asc.hasNextLink() && result.asc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -131,6 +132,7 @@ func (client ProviderClient) getAvailableStacksNextResults(ctx context.Context, 
 	result, err = client.GetAvailableStacksResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "getAvailableStacksNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -180,6 +182,7 @@ func (client ProviderClient) GetAvailableStacksOnPrem(ctx context.Context, osTyp
 	result.asc, err = client.GetAvailableStacksOnPremResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "GetAvailableStacksOnPrem", resp, "Failure responding to request")
+		return
 	}
 	if result.asc.hasNextLink() && result.asc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -245,6 +248,7 @@ func (client ProviderClient) getAvailableStacksOnPremNextResults(ctx context.Con
 	result, err = client.GetAvailableStacksOnPremResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "getAvailableStacksOnPremNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -295,6 +299,7 @@ func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOper
 	result.coc, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "ListOperations", resp, "Failure responding to request")
+		return
 	}
 	if result.coc.hasNextLink() && result.coc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -353,6 +358,7 @@ func (client ProviderClient) listOperationsNextResults(ctx context.Context, last
 	result, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "listOperationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

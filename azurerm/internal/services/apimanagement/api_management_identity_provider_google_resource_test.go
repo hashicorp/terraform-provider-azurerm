@@ -1,133 +1,95 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementIdentityProviderGoogle_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
+type ApiManagementIdentityProviderGoogleResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("client_secret"),
+func TestAccApiManagementIdentityProviderGoogle_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
+	r := ApiManagementIdentityProviderGoogleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("client_secret"),
 	})
 }
 
-func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
+func TestAccApiManagementIdentityProviderGoogle_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
+	r := ApiManagementIdentityProviderGoogleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000.apps.googleusercontent.com"),
-				),
-			},
-			data.ImportStep("client_secret"),
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderGoogle_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111.apps.googleusercontent.com"),
-				),
-			},
-			data.ImportStep("client_secret"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_id").HasValue("00000000.apps.googleusercontent.com"),
+			),
 		},
+		data.ImportStep("client_secret"),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_id").HasValue("11111111.apps.googleusercontent.com"),
+			),
+		},
+		data.ImportStep("client_secret"),
 	})
 }
 
-func TestAccAzureRMApiManagementIdentityProviderGoogle_requiresImport(t *testing.T) {
+func TestAccApiManagementIdentityProviderGoogle_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
+	r := ApiManagementIdentityProviderGoogleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementIdentityProviderGoogle_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMApiManagementIdentityProviderGoogleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.IdentityProviderClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_identity_provider_google" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Google)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementIdentityProviderGoogleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	identityProviderName := id.Path["identityProviders"]
 
-func testCheckAzureRMApiManagementIdentityProviderGoogleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.IdentityProviderClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Google)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Identity Provider %q (Resource Group %q / API Management Service %q) does not exist", apimanagement.Google, resourceGroup, serviceName)
-			}
-			return fmt.Errorf("Bad: Get on apiManagementIdentityProviderClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.IdentityProviderClient.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Identity Provider Google (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementIdentityProviderGoogle_basic(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderGoogleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -156,7 +118,7 @@ resource "azurerm_api_management_identity_provider_google" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementIdentityProviderGoogle_update(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderGoogleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,8 +147,7 @@ resource "azurerm_api_management_identity_provider_google" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementIdentityProviderGoogle_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementIdentityProviderGoogle_basic(data)
+func (r ApiManagementIdentityProviderGoogleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,5 +157,5 @@ resource "azurerm_api_management_identity_provider_google" "import" {
   client_id           = azurerm_api_management_identity_provider_google.test.client_id
   client_secret       = azurerm_api_management_identity_provider_google.test.client_secret
 }
-`, template)
+`, r.basic(data))
 }

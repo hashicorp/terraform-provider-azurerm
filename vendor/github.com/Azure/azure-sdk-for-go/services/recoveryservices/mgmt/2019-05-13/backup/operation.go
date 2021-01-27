@@ -73,6 +73,7 @@ func (client OperationClient) Validate(ctx context.Context, vaultName string, re
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.OperationClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return

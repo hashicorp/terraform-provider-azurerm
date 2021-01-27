@@ -229,6 +229,7 @@ func (client ReplicationvCentersClient) Get(ctx context.Context, fabricName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -304,6 +305,7 @@ func (client ReplicationvCentersClient) List(ctx context.Context) (result VCente
 	result.vcc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.vcc.hasNextLink() && result.vcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -368,6 +370,7 @@ func (client ReplicationvCentersClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -419,6 +422,7 @@ func (client ReplicationvCentersClient) ListByReplicationFabrics(ctx context.Con
 	result.vcc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
 	}
 	if result.vcc.hasNextLink() && result.vcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -484,6 +488,7 @@ func (client ReplicationvCentersClient) listByReplicationFabricsNextResults(ctx 
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -72,7 +72,7 @@ func resourceDataShareDataSetBlobStorage() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: storage.ValidateArmStorageAccountName,
+							ValidateFunc: storage.ValidateStorageAccountName,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupName(),

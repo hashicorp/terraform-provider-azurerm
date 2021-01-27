@@ -88,6 +88,7 @@ func (client TablesClient) Get(ctx context.Context, resourceGroupName string, wo
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.TablesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,6 +179,7 @@ func (client TablesClient) ListByWorkspace(ctx context.Context, resourceGroupNam
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.TablesClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,6 +271,7 @@ func (client TablesClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.TablesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

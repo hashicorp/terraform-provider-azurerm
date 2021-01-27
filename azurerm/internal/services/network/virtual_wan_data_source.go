@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualWan() *schema.Resource {
+func dataSourceVirtualWan() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVirtualWanRead,
+		Read: dataSourceVirtualWanRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -67,7 +67,7 @@ func dataSourceArmVirtualWan() *schema.Resource {
 	}
 }
 
-func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

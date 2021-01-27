@@ -75,6 +75,7 @@ func (client VaultCertificatesClient) Create(ctx context.Context, resourceGroupN
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultCertificatesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return

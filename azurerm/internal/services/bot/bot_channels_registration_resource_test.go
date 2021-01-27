@@ -77,7 +77,7 @@ func (t BotChannelsRegistrationResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Channels Registration (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

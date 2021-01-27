@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
+func resourceDataFactoryLinkedServiceMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceMySQLCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceMySQLRead,
-		Update: resourceArmDataFactoryLinkedServiceMySQLCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceMySQLDelete,
+		Create: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceMySQLRead,
+		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceMySQLDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -98,7 +98,7 @@ func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,10 +174,10 @@ func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceMySQLRead(d, meta)
+	return resourceDataFactoryLinkedServiceMySQLRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

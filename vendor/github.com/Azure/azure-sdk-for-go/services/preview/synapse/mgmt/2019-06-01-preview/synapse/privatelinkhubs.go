@@ -44,10 +44,10 @@ func NewPrivateLinkHubsClientWithBaseURI(baseURI string, subscriptionID string) 
 
 // CreateOrUpdate creates or updates a privateLinkHub
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// privateLinkHubName - the name of the privateLinkHub
 // privateLinkHubInfo - privateLinkHub create or update request properties
-func (client PrivateLinkHubsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateLinkHubName string, privateLinkHubInfo PrivateLinkHub) (result PrivateLinkHub, err error) {
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// privateLinkHubName - name of the privateLinkHub
+func (client PrivateLinkHubsClient) CreateOrUpdate(ctx context.Context, privateLinkHubInfo PrivateLinkHub, resourceGroupName string, privateLinkHubName string) (result PrivateLinkHub, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkHubsClient.CreateOrUpdate")
 		defer func() {
@@ -68,7 +68,7 @@ func (client PrivateLinkHubsClient) CreateOrUpdate(ctx context.Context, resource
 		return result, validation.NewError("synapse.PrivateLinkHubsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, privateLinkHubName, privateLinkHubInfo)
+	req, err := client.CreateOrUpdatePreparer(ctx, privateLinkHubInfo, resourceGroupName, privateLinkHubName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -84,13 +84,14 @@ func (client PrivateLinkHubsClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client PrivateLinkHubsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateLinkHubName string, privateLinkHubInfo PrivateLinkHub) (*http.Request, error) {
+func (client PrivateLinkHubsClient) CreateOrUpdatePreparer(ctx context.Context, privateLinkHubInfo PrivateLinkHub, resourceGroupName string, privateLinkHubName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"privateLinkHubName": autorest.Encode("path", privateLinkHubName),
 		"resourceGroupName":  autorest.Encode("path", resourceGroupName),
@@ -133,14 +134,14 @@ func (client PrivateLinkHubsClient) CreateOrUpdateResponder(resp *http.Response)
 // Delete deletes a privateLinkHub
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// privateLinkHubName - the name of the privateLinkHub
-func (client PrivateLinkHubsClient) Delete(ctx context.Context, resourceGroupName string, privateLinkHubName string) (result autorest.Response, err error) {
+// privateLinkHubName - name of the privateLinkHub
+func (client PrivateLinkHubsClient) Delete(ctx context.Context, resourceGroupName string, privateLinkHubName string) (result PrivateLinkHubsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkHubsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -161,16 +162,10 @@ func (client PrivateLinkHubsClient) Delete(ctx context.Context, resourceGroupNam
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Delete", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
@@ -199,8 +194,14 @@ func (client PrivateLinkHubsClient) DeletePreparer(ctx context.Context, resource
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateLinkHubsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client PrivateLinkHubsClient) DeleteSender(req *http.Request) (future PrivateLinkHubsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -208,7 +209,7 @@ func (client PrivateLinkHubsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client PrivateLinkHubsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -217,7 +218,7 @@ func (client PrivateLinkHubsClient) DeleteResponder(resp *http.Response) (result
 // Get gets a privateLinkHub
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// privateLinkHubName - the name of the privateLinkHub
+// privateLinkHubName - name of the privateLinkHub
 func (client PrivateLinkHubsClient) Get(ctx context.Context, resourceGroupName string, privateLinkHubName string) (result PrivateLinkHub, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkHubsClient.Get")
@@ -255,6 +256,7 @@ func (client PrivateLinkHubsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -334,9 +336,11 @@ func (client PrivateLinkHubsClient) List(ctx context.Context) (result PrivateLin
 	result.plhilr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.plhilr.hasNextLink() && result.plhilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -457,9 +461,11 @@ func (client PrivateLinkHubsClient) ListByResourceGroup(ctx context.Context, res
 	result.plhilr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.plhilr.hasNextLink() && result.plhilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -480,7 +486,7 @@ func (client PrivateLinkHubsClient) ListByResourceGroupPreparer(ctx context.Cont
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/privateLinkHub", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/privateLinkHubs", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -542,10 +548,10 @@ func (client PrivateLinkHubsClient) ListByResourceGroupComplete(ctx context.Cont
 
 // Update updates a privateLinkHub
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// privateLinkHubName - the name of the privateLinkHub
 // privateLinkHubPatchInfo - privateLinkHub patch request properties
-func (client PrivateLinkHubsClient) Update(ctx context.Context, resourceGroupName string, privateLinkHubName string, privateLinkHubPatchInfo PrivateLinkHubPatchInfo) (result PrivateLinkHub, err error) {
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// privateLinkHubName - name of the privateLinkHub
+func (client PrivateLinkHubsClient) Update(ctx context.Context, privateLinkHubPatchInfo PrivateLinkHubPatchInfo, resourceGroupName string, privateLinkHubName string) (result PrivateLinkHub, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkHubsClient.Update")
 		defer func() {
@@ -566,7 +572,7 @@ func (client PrivateLinkHubsClient) Update(ctx context.Context, resourceGroupNam
 		return result, validation.NewError("synapse.PrivateLinkHubsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, privateLinkHubName, privateLinkHubPatchInfo)
+	req, err := client.UpdatePreparer(ctx, privateLinkHubPatchInfo, resourceGroupName, privateLinkHubName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Update", nil, "Failure preparing request")
 		return
@@ -582,13 +588,14 @@ func (client PrivateLinkHubsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // UpdatePreparer prepares the Update request.
-func (client PrivateLinkHubsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, privateLinkHubName string, privateLinkHubPatchInfo PrivateLinkHubPatchInfo) (*http.Request, error) {
+func (client PrivateLinkHubsClient) UpdatePreparer(ctx context.Context, privateLinkHubPatchInfo PrivateLinkHubPatchInfo, resourceGroupName string, privateLinkHubName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"privateLinkHubName": autorest.Encode("path", privateLinkHubName),
 		"resourceGroupName":  autorest.Encode("path", resourceGroupName),

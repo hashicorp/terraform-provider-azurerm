@@ -80,6 +80,7 @@ func (client JobExecutionsClient) Cancel(ctx context.Context, resourceGroupName 
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +324,7 @@ func (client JobExecutionsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -411,6 +413,7 @@ func (client JobExecutionsClient) ListByAgent(ctx context.Context, resourceGroup
 	result.jelr, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "ListByAgent", resp, "Failure responding to request")
+		return
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -497,6 +500,7 @@ func (client JobExecutionsClient) listByAgentNextResults(ctx context.Context, la
 	result, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "listByAgentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -559,6 +563,7 @@ func (client JobExecutionsClient) ListByJob(ctx context.Context, resourceGroupNa
 	result.jelr, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "ListByJob", resp, "Failure responding to request")
+		return
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -646,6 +651,7 @@ func (client JobExecutionsClient) listByJobNextResults(ctx context.Context, last
 	result, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "listByJobNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

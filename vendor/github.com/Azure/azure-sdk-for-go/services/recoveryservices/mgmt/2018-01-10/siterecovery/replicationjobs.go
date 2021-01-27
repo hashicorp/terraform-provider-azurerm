@@ -222,6 +222,7 @@ func (client ReplicationJobsClient) Get(ctx context.Context, jobName string) (re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,6 +299,7 @@ func (client ReplicationJobsClient) List(ctx context.Context, filter string) (re
 	result.jc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.jc.hasNextLink() && result.jc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -365,6 +367,7 @@ func (client ReplicationJobsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

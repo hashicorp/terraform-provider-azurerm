@@ -69,6 +69,7 @@ func (client UserMetricsKeysClient) CreateOrUpdate(ctx context.Context) (result 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.UserMetricsKeysClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -139,6 +140,7 @@ func (client UserMetricsKeysClient) Delete(ctx context.Context) (result DeleteOp
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.UserMetricsKeysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -209,6 +211,7 @@ func (client UserMetricsKeysClient) Get(ctx context.Context) (result UserMetrics
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.UserMetricsKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

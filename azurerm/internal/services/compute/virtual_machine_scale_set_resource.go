@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -20,18 +19,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
 //       `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
 //       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
-func resourceArmVirtualMachineScaleSet() *schema.Resource {
+func resourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmVirtualMachineScaleSetCreateUpdate,
-		Read:          resourceArmVirtualMachineScaleSetRead,
-		Update:        resourceArmVirtualMachineScaleSetCreateUpdate,
-		Delete:        resourceArmVirtualMachineScaleSetDelete,
+		Create:        resourceVirtualMachineScaleSetCreateUpdate,
+		Read:          resourceVirtualMachineScaleSetRead,
+		Update:        resourceVirtualMachineScaleSetCreateUpdate,
+		Delete:        resourceVirtualMachineScaleSetDelete,
 		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
 		SchemaVersion: 1,
 
@@ -81,7 +82,8 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
 							},
 						},
 						"principal_id": {
@@ -349,7 +351,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
+				Set: resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
 			// lintignore:S018
@@ -384,7 +386,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
+				Set: resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
 			// lintignore:S018
@@ -523,7 +525,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
+				Set: resourceVirtualMachineScaleSetNetworkConfigurationHash,
 			},
 
 			"boot_diagnostics": {
@@ -598,7 +600,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
+				Set: resourceVirtualMachineScaleSetStorageProfileOsDiskHash,
 			},
 
 			"storage_profile_data_disk": {
@@ -677,7 +679,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
+				Set: resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
 			// lintignore:S018
@@ -762,7 +764,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetExtensionHash,
+				Set: resourceVirtualMachineScaleSetExtensionHash,
 			},
 
 			"proximity_placement_group_id": {
@@ -784,7 +786,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -929,10 +931,10 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualMachineScaleSetRead(d, meta)
+	return resourceVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -965,7 +967,10 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("[DEBUG] Error setting `sku`: %#v", err)
 	}
 
-	flattenedIdentity := flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)
+	flattenedIdentity, err := flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
 	}
@@ -1091,7 +1096,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1115,9 +1120,9 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachineScaleSetIdentity) []interface{} {
+func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	result := make(map[string]interface{})
@@ -1129,12 +1134,16 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 	result["identity_ids"] = identityIds
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(config *compute.LinuxConfiguration) []interface{} {
@@ -1539,7 +1548,7 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 	return result, nil
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
+func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1560,10 +1569,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
+func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1574,10 +1583,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
+func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1640,10 +1649,10 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
+func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1662,10 +1671,10 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
+func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1677,10 +1686,10 @@ func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) 
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
+func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1710,7 +1719,7 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func expandVirtualMachineScaleSetSku(d *schema.ResourceData) *compute.Sku {

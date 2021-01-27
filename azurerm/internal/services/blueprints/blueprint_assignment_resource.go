@@ -251,7 +251,11 @@ func resourceBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if resp.Identity != nil {
-		d.Set("identity", flattenArmBlueprintAssignmentIdentity(resp.Identity))
+		identity, err := flattenArmBlueprintAssignmentIdentity(resp.Identity)
+		if err != nil {
+			return err
+		}
+		d.Set("identity", identity)
 	}
 
 	if resp.AssignmentProperties != nil {

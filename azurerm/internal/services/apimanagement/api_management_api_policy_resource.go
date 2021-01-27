@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -15,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiPolicy() *schema.Resource {
+func resourceApiManagementApiPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementAPIPolicyCreateUpdate,
-		Read:   resourceArmApiManagementAPIPolicyRead,
-		Update: resourceArmApiManagementAPIPolicyCreateUpdate,
-		Delete: resourceArmApiManagementAPIPolicyDelete,
+		Create: resourceApiManagementAPIPolicyCreateUpdate,
+		Read:   resourceApiManagementAPIPolicyRead,
+		Update: resourceApiManagementAPIPolicyCreateUpdate,
+		Delete: resourceApiManagementAPIPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +58,7 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,21 +121,21 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementAPIPolicyRead(d, meta)
+	return resourceApiManagementAPIPolicyRead(d, meta)
 }
 
-func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
+	serviceName := id.ServiceName
+	apiName := id.ApiName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
@@ -164,18 +166,18 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmApiManagementAPIPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
+	serviceName := id.ServiceName
+	apiName := id.ApiName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

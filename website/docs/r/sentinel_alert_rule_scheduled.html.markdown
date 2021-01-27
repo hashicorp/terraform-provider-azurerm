@@ -59,9 +59,15 @@ The following arguments are supported:
 
 ---
 
+* `alert_rule_template_guid` - (Optional) The GUID of the alert rule template which is used for this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel Scheduled Alert Rule to be created.
+
 * `description` - (Optional) The description of this Sentinel Scheduled Alert Rule.
 
 * `enabled` - (Optional) Should the Sentinel Scheduled Alert Rule be enabled? Defaults to `true`.
+
+* `event_grouping` - (Optional) A `event_grouping` block as defined below.
+
+* `incident_configuration` - (Optional) A `incident_configuration` block as defined below.
 
 * `query_frequency` - (Optional) The ISO 8601 timespan duration between two consecutive queries. Defaults to `PT5H`.
 
@@ -80,6 +86,34 @@ The following arguments are supported:
 * `trigger_operator` - (Optional) The alert trigger operator, combined with `trigger_threshold`, setting alert threshold of this Sentinel Scheduled Alert Rule. Possible values are `Equal`, `GreaterThan`, `LessThan`, `NotEqual`.
 
 * `trigger_threshold` - (Optional) The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule.
+
+---
+
+A `event_grouping` block supports the following:
+
+* `aggregation_method` - (Required) The aggregation type of grouping the events.
+
+---
+
+A `incident_configuration` block supports the following:
+
+* `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
+
+* `grouping` - (Optional) A `grouping` block as defined below.
+
+---
+
+A `grouping` block supports the following:
+
+* `enabled` - (Optional) Enable grouping incidents created from alerts triggered by this Sentinel Scheduled Alert Rule. Defaults to `true`.
+
+* `lookback_duration` - (Optional) Limit the group to alerts created within the lookback duration (in ISO 8601 duration format). Defaults to `PT5M`.
+
+* `reopen_closed_incidents` - (Optional) Whether to re-open closed matching incidents? Defaults to `false`.
+
+* `entity_matching_method` - (Optional) The method used to group incidents. Possible values are `All`, `Custom` and `None`. Defaults to `None`.
+
+* `group_by` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Custom`. Possible values are `Account`, `Host`, `Url`, `Ip`.
 
 ## Attributes Reference
 

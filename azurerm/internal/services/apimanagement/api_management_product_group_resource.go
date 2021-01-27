@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -13,11 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductGroup() *schema.Resource {
+func resourceApiManagementProductGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementProductGroupCreate,
-		Read:   resourceArmApiManagementProductGroupRead,
-		Delete: resourceArmApiManagementProductGroupDelete,
+		Create: resourceApiManagementProductGroupCreate,
+		Read:   resourceApiManagementProductGroupRead,
+		Delete: resourceApiManagementProductGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +43,7 @@ func resourceArmApiManagementProductGroup() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,25 +72,24 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("adding Product %q to Group %q (API Management Service %q / Resource Group %q): %+v", productId, groupName, serviceName, resourceGroup, err)
 	}
 
-	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductGroupRead(d, meta)
+	return resourceApiManagementProductGroupRead(d, meta)
 }
 
-func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	productId := id.ProductName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 	if err != nil {
@@ -109,19 +110,19 @@ func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	productId := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, groupName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

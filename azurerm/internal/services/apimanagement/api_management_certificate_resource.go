@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementCertificate() *schema.Resource {
+func resourceApiManagementCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementCertificateCreateUpdate,
-		Read:   resourceArmApiManagementCertificateRead,
-		Update: resourceArmApiManagementCertificateCreateUpdate,
-		Delete: resourceArmApiManagementCertificateDelete,
+		Create: resourceApiManagementCertificateCreateUpdate,
+		Read:   resourceApiManagementCertificateRead,
+		Update: resourceApiManagementCertificateCreateUpdate,
+		Delete: resourceApiManagementCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -70,7 +72,7 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,21 +116,21 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementCertificateRead(d, meta)
+	return resourceApiManagementCertificateRead(d, meta)
 }
 
-func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["certificates"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -158,18 +160,18 @@ func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["certificates"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

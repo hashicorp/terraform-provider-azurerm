@@ -86,6 +86,7 @@ func (client SourceControlSyncJobStreamsClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobStreamsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -176,6 +177,7 @@ func (client SourceControlSyncJobStreamsClient) ListBySyncJob(ctx context.Contex
 	result.scsjslbsj, err = client.ListBySyncJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobStreamsClient", "ListBySyncJob", resp, "Failure responding to request")
+		return
 	}
 	if result.scsjslbsj.hasNextLink() && result.scsjslbsj.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -245,6 +247,7 @@ func (client SourceControlSyncJobStreamsClient) listBySyncJobNextResults(ctx con
 	result, err = client.ListBySyncJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobStreamsClient", "listBySyncJobNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

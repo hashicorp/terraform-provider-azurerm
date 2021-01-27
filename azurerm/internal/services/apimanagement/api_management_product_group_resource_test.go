@@ -1,108 +1,71 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementProductGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_product_group", "test")
+type ApiManagementProductGroupResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementProductGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProductGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementProductGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementProductGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_group", "test")
+	r := ApiManagementProductGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementProductGroup_requiresImport(t *testing.T) {
+func TestAccApiManagementProductGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_group", "test")
+	r := ApiManagementProductGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementProductGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProductGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementProductGroupExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementProductGroup_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductGroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_product_group" {
-			continue
-		}
-
-		productId := rs.Primary.Attributes["product_id"]
-		groupName := rs.Primary.Attributes["group_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementProductGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	groupName := id.Path["groups"]
+	productId := id.Path["products"]
+
+	_, err = clients.ApiManagement.ProductGroupsClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Product Group (%s): %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		productId := rs.Primary.Attributes["product_id"]
-		groupName := rs.Primary.Attributes["group_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Product %q / Group %q (API Management Service %q / Resource Group %q) does not exist", productId, groupName, serviceName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on apiManagement.ProductGroupsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMApiManagementProductGroup_basic(data acceptance.TestData) string {
+func (ApiManagementProductGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,8 +112,7 @@ resource "azurerm_api_management_product_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProductGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementProductGroup_basic(data)
+func (r ApiManagementProductGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -160,5 +122,5 @@ resource "azurerm_api_management_product_group" "import" {
   api_management_name = azurerm_api_management_product_group.test.api_management_name
   resource_group_name = azurerm_api_management_product_group.test.resource_group_name
 }
-`, template)
+`, r.basic(data))
 }

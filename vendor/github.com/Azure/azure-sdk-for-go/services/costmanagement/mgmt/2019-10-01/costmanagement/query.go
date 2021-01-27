@@ -122,6 +122,7 @@ func (client QueryClient) Usage(ctx context.Context, scope string, parameters Qu
 	result, err = client.UsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.QueryClient", "Usage", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -92,6 +92,26 @@ func TestAccEventGridTopic_basicWithTags(t *testing.T) {
 	})
 }
 
+func TestAccEventGridTopic_inboundIPRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.inboundIPRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("inbound_ip_rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.0.ip_mask").HasValue("10.0.0.0/16"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.1.ip_mask").HasValue("10.1.0.0/16"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.0.action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("inbound_ip_rule.1.action").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.TopicID(state.ID)
 	if err != nil {
@@ -190,4 +210,35 @@ resource "azurerm_eventgrid_topic" "test" {
   }
 }
 `, data.RandomInteger, location, data.RandomInteger)
+}
+
+func (EventGridTopicResource) inboundIPRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
+
+  inbound_ip_rule {
+    ip_mask = "10.0.0.0/16"
+    action  = "Allow"
+  }
+
+  inbound_ip_rule {
+    ip_mask = "10.1.0.0/16"
+    action  = "Allow"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

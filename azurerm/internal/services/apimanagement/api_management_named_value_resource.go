@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementNamedValue() *schema.Resource {
+func resourceApiManagementNamedValue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementNamedValueCreateUpdate,
-		Read:   resourceArmApiManagementNamedValueRead,
-		Update: resourceArmApiManagementNamedValueCreateUpdate,
-		Delete: resourceArmApiManagementNamedValueDelete,
+		Create: resourceApiManagementNamedValueCreateUpdate,
+		Read:   resourceApiManagementNamedValueRead,
+		Update: resourceApiManagementNamedValueCreateUpdate,
+		Delete: resourceApiManagementNamedValueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +71,7 @@ func resourceArmApiManagementNamedValue() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,21 +123,21 @@ func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementNamedValueRead(d, meta)
+	return resourceApiManagementNamedValueRead(d, meta)
 }
 
-func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamedValueID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["namedValues"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -165,18 +167,18 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmApiManagementNamedValueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamedValueID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["namedValues"]
+	serviceName := id.ServiceName
+	name := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

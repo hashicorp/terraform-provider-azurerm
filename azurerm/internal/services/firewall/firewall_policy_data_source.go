@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmFirewallPolicy() *schema.Resource {
+func FirewallDataSourcePolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmFirewallPolicyRead,
+		Read: FirewallDataSourcePolicyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -119,7 +119,7 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func FirewallDataSourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) e
 		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
 			return fmt.Errorf(`setting "child_policies": %+v`, err)
 		}
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(prop.DNSSettings)); err != nil {
 			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 		if err := d.Set("firewalls", flattenNetworkSubResourceID(prop.Firewalls)); err != nil {

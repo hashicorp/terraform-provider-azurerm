@@ -1,37 +1,57 @@
 package recoveryservices_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
+type BackupProtectionContainerStorageAccountResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionContainerStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectionContainerStorageAccountExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
+	r := BackupProtectionContainerStorageAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMBackupProtectionContainerStorageAccount_basic(data acceptance.TestData) string {
+func (t BackupProtectionContainerStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resGroup := id.ResourceGroup
+	vaultName := id.Path["vaults"]
+	fabricName := id.Path["backupFabrics"]
+	containerName := id.Path["protectionContainers"]
+
+	resp, err := clients.RecoveryServices.BackupProtectionContainersClient.Get(ctx, vaultName, resGroup, fabricName, containerName)
+	if err != nil {
+		return nil, fmt.Errorf("reading site recovery protection container (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (BackupProtectionContainerStorageAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -48,7 +68,7 @@ resource "azurerm_recovery_services_vault" "testvlt" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
+  soft_delete_enabled = true
 }
 
 resource "azurerm_storage_account" "test" {
@@ -66,82 +86,4 @@ resource "azurerm_backup_container_storage_account" "test" {
   storage_account_id  = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
-}
-
-func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		state, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroupName := state.Primary.Attributes["resource_group_name"]
-		vaultName := state.Primary.Attributes["recovery_vault_name"]
-		storageAccountID := state.Primary.Attributes["storage_account_id"]
-
-		parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
-		if err != nil {
-			return fmt.Errorf("Bad: Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
-		}
-		accountName, hasName := parsedStorageAccountID.Path["storageAccounts"]
-		if !hasName {
-			return fmt.Errorf("Bad: Parsed storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
-		}
-
-		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
-
-		// Ensure container exists in API
-		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on protection container: %+v", err)
-		}
-
-		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: container: %q does not exist", containerName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMBackupProtectionContainerStorageAccountDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_backup_container_storage_account" {
-			continue
-		}
-
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		storageAccountID := rs.Primary.Attributes["storage_account_id"]
-
-		parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
-		if err != nil {
-			return fmt.Errorf("Bad: Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
-		}
-		accountName, hasName := parsedStorageAccountID.Path["storageAccounts"]
-		if !hasName {
-			return fmt.Errorf("Bad: Parsed storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
-		}
-
-		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
-
-		// Ensure container exists in API
-		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Backup Container Storage Account still exists:\n%#v", resp.Properties)
-		}
-	}
-
-	return nil
 }

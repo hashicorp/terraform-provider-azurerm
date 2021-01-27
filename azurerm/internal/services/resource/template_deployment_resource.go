@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmTemplateDeployment() *schema.Resource {
+func resourceTemplateDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTemplateDeploymentCreateUpdate,
-		Read:   resourceArmTemplateDeploymentRead,
-		Update: resourceArmTemplateDeploymentCreateUpdate,
-		Delete: resourceArmTemplateDeploymentDelete,
+		Create: resourceTemplateDeploymentCreateUpdate,
+		Read:   resourceTemplateDeploymentRead,
+		Update: resourceTemplateDeploymentCreateUpdate,
+		Delete: resourceTemplateDeploymentDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(180 * time.Minute),
@@ -91,7 +91,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 	}
 }
 
-func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,10 +203,10 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmTemplateDeploymentRead(d, meta)
+	return resourceTemplateDeploymentRead(d, meta)
 }
 
-func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +272,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	return d.Set("outputs", outputs)
 }
 
-func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDiskEncryptionSet() *schema.Resource {
+func resourceDiskEncryptionSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDiskEncryptionSetCreate,
-		Read:   resourceArmDiskEncryptionSetRead,
-		Update: resourceArmDiskEncryptionSetUpdate,
-		Delete: resourceArmDiskEncryptionSetDelete,
+		Create: resourceDiskEncryptionSetCreate,
+		Read:   resourceDiskEncryptionSetRead,
+		Update: resourceDiskEncryptionSetUpdate,
+		Delete: resourceDiskEncryptionSetDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -90,7 +90,7 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 	}
 }
 
-func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +135,7 @@ func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}
 				},
 			},
 		},
-		Identity: expandArmDiskEncryptionSetIdentity(identityRaw),
+		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
 	}
 
@@ -156,10 +156,10 @@ func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDiskEncryptionSetRead(d, meta)
+	return resourceDiskEncryptionSetRead(d, meta)
 }
 
-func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,14 +193,14 @@ func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("key_vault_key_id", keyVaultKeyId)
 	}
 
-	if err := d.Set("identity", flattenArmDiskEncryptionSetIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -246,10 +246,10 @@ func resourceArmDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error waiting for update of Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDiskEncryptionSetRead(d, meta)
+	return resourceDiskEncryptionSetRead(d, meta)
 }
 
-func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,14 +271,14 @@ func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandArmDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
+func expandDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
 	val := input[0].(map[string]interface{})
 	return &compute.EncryptionSetIdentity{
 		Type: compute.DiskEncryptionSetIdentityType(val["type"].(string)),
 	}
 }
 
-func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
+func flattenDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

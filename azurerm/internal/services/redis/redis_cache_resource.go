@@ -64,7 +64,7 @@ func resourceRedisCache() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": azure.SchemaSingleZone(),
+			"zones": azure.SchemaMultipleZones(),
 
 			"capacity": {
 				Type:     schema.TypeInt,

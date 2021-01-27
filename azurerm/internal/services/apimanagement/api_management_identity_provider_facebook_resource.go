@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderFacebook() *schema.Resource {
+func resourceApiManagementIdentityProviderFacebook() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderFacebookCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderFacebookRead,
-		Update: resourceArmApiManagementIdentityProviderFacebookCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderFacebookDelete,
+		Create: resourceApiManagementIdentityProviderFacebookCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderFacebookRead,
+		Update: resourceApiManagementIdentityProviderFacebookCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderFacebookDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +55,7 @@ func resourceArmApiManagementIdentityProviderFacebook() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderFacebookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,21 +99,21 @@ func resourceArmApiManagementIdentityProviderFacebookCreateUpdate(d *schema.Reso
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderFacebookRead(d, meta)
+	return resourceApiManagementIdentityProviderFacebookRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderFacebookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
 	if err != nil {
@@ -134,18 +136,18 @@ func resourceArmApiManagementIdentityProviderFacebookRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderFacebookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName), ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

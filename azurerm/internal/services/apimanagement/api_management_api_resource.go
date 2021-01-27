@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -17,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApi() *schema.Resource {
+func resourceApiManagementApi() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiCreateUpdate,
-		Read:   resourceArmApiManagementApiRead,
-		Update: resourceArmApiManagementApiCreateUpdate,
-		Delete: resourceArmApiManagementApiDelete,
+		Create: resourceApiManagementApiCreateUpdate,
+		Read:   resourceApiManagementApiRead,
+		Update: resourceApiManagementApiCreateUpdate,
+		Delete: resourceApiManagementApiDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -242,7 +244,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -396,22 +398,22 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementApiRead(d, meta)
+	return resourceApiManagementApiRead(d, meta)
 }
 
-func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiid := id.Path["apis"]
+	serviceName := id.ServiceName
+	apiid := id.Name
 
 	name := apiid
 	revision := ""
@@ -468,19 +470,19 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiid := id.Path["apis"]
+	serviceName := id.ServiceName
+	apiid := id.Name
 
 	name := apiid
 	revision := ""
