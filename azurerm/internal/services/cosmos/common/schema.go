@@ -15,14 +15,18 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"column": {
-					Type: schema.TypeList,
+					Type:     schema.TypeList,
+					Required: true,
+					MinItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"name": {
+								Required:     true,
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
+								Required:     true,
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
@@ -30,10 +34,12 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 					},
 				},
 				"partition_key": {
-					Type: schema.TypeList,
+					Type:     schema.TypeList,
+					Required: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"name": {
+								Required:     true,
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
@@ -41,15 +47,18 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 					},
 				},
 				"cluster_key": {
-					Type: schema.TypeList,
+					Optional: true,
+					Type:     schema.TypeList,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"name": {
 								Type:         schema.TypeString,
+								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"order_by": {
-								Type: schema.TypeString,
+								Type:     schema.TypeString,
+								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Asc",
 									"Desc",
