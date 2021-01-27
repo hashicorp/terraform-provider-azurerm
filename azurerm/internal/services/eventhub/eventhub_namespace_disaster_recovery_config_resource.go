@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -92,6 +94,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceDat
 		}
 	}
 
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
+
 	parameters := eventhub.ArmDisasterRecovery{
 		ArmDisasterRecoveryProperties: &eventhub.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
@@ -137,6 +142,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceDat
 	name := id.Path["disasterRecoveryConfigs"]
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
+
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
 	if d.HasChange("partner_namespace_id") {
 		// break pairing
@@ -219,6 +227,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceDat
 	name := id.Path["disasterRecoveryConfigs"]
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
+
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
 	breakPair, err := client.BreakPairing(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
