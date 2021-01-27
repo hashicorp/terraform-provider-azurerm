@@ -20,7 +20,7 @@ import (
 
 func resourceSentinelDataConnectorOfficeATP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSentinelDataConnectorOfficeATPCreateUpdate,
+		Create: resourceSentinelDataConnectorOfficeATPCreate,
 		Read:   resourceSentinelDataConnectorOfficeATPRead,
 		Delete: resourceSentinelDataConnectorOfficeATPDelete,
 
@@ -62,7 +62,7 @@ func resourceSentinelDataConnectorOfficeATP() *schema.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorOfficeATPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOfficeATPCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -20,7 +20,7 @@ import (
 
 func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreateUpdate,
+		Create: resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreate,
 		Read:   resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead,
 		Delete: resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionDelete,
 
@@ -62,7 +62,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection() *s
 	}
 }
 
-func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

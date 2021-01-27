@@ -20,7 +20,7 @@ import (
 
 func resourceSentinelDataConnectorAzureActiveDirectory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSentinelDataConnectorAzureActiveDirectoryCreateUpdate,
+		Create: resourceSentinelDataConnectorAzureActiveDirectoryCreate,
 		Read:   resourceSentinelDataConnectorAzureActiveDirectoryRead,
 		Delete: resourceSentinelDataConnectorAzureActiveDirectoryDelete,
 
@@ -62,7 +62,7 @@ func resourceSentinelDataConnectorAzureActiveDirectory() *schema.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorAzureActiveDirectoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

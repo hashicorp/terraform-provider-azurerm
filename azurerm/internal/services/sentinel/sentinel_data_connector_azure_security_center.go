@@ -20,7 +20,7 @@ import (
 
 func resourceSentinelDataConnectorAzureSecurityCenter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSentinelDataConnectorAzureSecurityCenterCreateUpdate,
+		Create: resourceSentinelDataConnectorAzureSecurityCenterCreate,
 		Read:   resourceSentinelDataConnectorAzureSecurityCenterRead,
 		Delete: resourceSentinelDataConnectorAzureSecurityCenterDelete,
 
@@ -62,7 +62,7 @@ func resourceSentinelDataConnectorAzureSecurityCenter() *schema.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorAzureSecurityCenterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
