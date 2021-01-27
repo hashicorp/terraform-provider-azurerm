@@ -57,14 +57,6 @@ func resourceSentinelDataConnectorAwsCloudTrail() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"tenant_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
 		},
 	}
 }
@@ -93,11 +85,6 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 		if id != nil && *id != "" {
 			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_aws_cloud_trail", *id)
 		}
-	}
-
-	tenantId := d.Get("tenant_id").(string)
-	if tenantId == "" {
-		tenantId = meta.(*clients.Client).Account.TenantId
 	}
 
 	param := securityinsight.AwsCloudTrailDataConnector{
