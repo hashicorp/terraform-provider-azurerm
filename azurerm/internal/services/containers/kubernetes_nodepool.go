@@ -217,7 +217,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
 	if criticalAddonsEnabled {
-		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true")
+		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:NoSchedule")
 	}
 
 	t := raw["tags"].(map[string]interface{})
@@ -399,7 +399,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
 		for _, taint := range *agentPool.NodeTaints {
-			if strings.EqualFold(taint, "CriticalAddonsOnly=true") {
+			if strings.EqualFold(taint, "CriticalAddonsOnly=true:NoSchedule") {
 				criticalAddonsEnabled = true
 			}
 		}
