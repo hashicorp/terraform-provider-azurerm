@@ -97,7 +97,7 @@ func resourceMediaServicesAccount() *schema.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(media.ManagedIdentityTypeSystemAssigned),
 							}, true),
 						},
 					},
@@ -109,7 +109,8 @@ func resourceMediaServicesAccount() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"ManagedIdentity",
+					string(media.ManagedIdentity),
+					string(media.System),
 				}, true),
 			},
 
