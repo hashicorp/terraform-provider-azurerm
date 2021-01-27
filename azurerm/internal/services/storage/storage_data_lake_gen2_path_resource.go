@@ -184,7 +184,7 @@ func resourceStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Unhandled resource type %q", resourceString)
 	}
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := parse.ExpandDataLakeGen2AceList(aceRaw)
+	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -248,7 +248,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta interfac
 	path := d.Get("path").(string)
 
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := parse.ExpandDataLakeGen2AceList(aceRaw)
+	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -336,7 +336,7 @@ func resourceStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error parsing response ACL %q: %s", resp.ACL, err)
 	}
-	d.Set("ace", parse.FlattenDataLakeGen2AceList(acl))
+	d.Set("ace", FlattenDataLakeGen2AceList(acl))
 
 	return nil
 }
