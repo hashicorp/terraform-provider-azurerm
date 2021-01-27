@@ -28,7 +28,6 @@ func (c *Client) AddToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
 	}
 }
 
-// nolint: deadcode unused
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultId) (*string, error) {
 	lock[keyVaultId.Name].Lock()
 	defer lock[keyVaultId.Name].Unlock()
@@ -48,7 +47,6 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	return resp.Properties.VaultURI, nil
 }
 
-// nolint: deadcode unused
 func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, error) {
 	lock[keyVaultId.Name].Lock()
 	defer lock[keyVaultId.Name].Unlock()
@@ -74,7 +72,6 @@ func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, er
 	return true, nil
 }
 
-// nolint: deadcode unused
 func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
