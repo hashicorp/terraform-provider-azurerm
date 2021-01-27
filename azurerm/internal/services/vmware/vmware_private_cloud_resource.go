@@ -28,10 +28,10 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 		Delete: resourceVmwarePrivateCloudDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(6 * time.Hour),
+			Create: schema.DefaultTimeout(10 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(6 * time.Hour),
-			Delete: schema.DefaultTimeout(6 * time.Hour),
+			Update: schema.DefaultTimeout(10 * time.Hour),
+			Delete: schema.DefaultTimeout(10 * time.Hour),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
