@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_firewall_policy` - support for the `sku` property [GH-10186]
 * `azurerm_iothub` - support for the `enrichment` property [GH-9239]
 * `azurerm_key_vault` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
+* `azurerm_key_vault` - support both ipv4 and cidr formats for the `network_acls.ip_rules` property [GH-10266]
 * `azurerm_key_vault_certificate` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
 * `azurerm_key_vault_key` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
 * `azurerm_key_vault_secret` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
