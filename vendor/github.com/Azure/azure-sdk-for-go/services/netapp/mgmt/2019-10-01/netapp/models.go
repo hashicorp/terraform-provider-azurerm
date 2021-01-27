@@ -20,14 +20,15 @@ package netapp
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 
 // Account netApp account resource
 type Account struct {
