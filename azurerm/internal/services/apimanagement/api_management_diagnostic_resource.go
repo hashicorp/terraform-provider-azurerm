@@ -168,7 +168,8 @@ func resourceApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+	logClientIP, _ := d.GetOk("log_client_ip")
+	if logClientIP != nil {
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 
