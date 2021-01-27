@@ -19,8 +19,10 @@ IMPROVEMENTS:
 * `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
 * `azurerm_firewall_policy` - support for the `sku` property [GH-10186]
 * `azurerm_iothub` - support for the `enrichment` property [GH-9239]
+* `azurerm_linux_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
 * `azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute [GH-10275]
 * `azurerm_redis_cache` - support multiple availability zones [GH-10283]
+* `azurerm_windows_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
 
 BUG FIXES:
 
