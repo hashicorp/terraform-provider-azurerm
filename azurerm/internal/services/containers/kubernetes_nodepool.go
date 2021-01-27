@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"strings"
 
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
@@ -398,7 +399,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
 		for _, taint := range *agentPool.NodeTaints {
-			if strings.EqualsFold(taint, "CriticalAddonsOnly=true:PreferNoSchedule") {
+			if strings.EqualFold(taint, "CriticalAddonsOnly=true:PreferNoSchedule") {
 				criticalAddonsEnabled = true
 			}
 		}
