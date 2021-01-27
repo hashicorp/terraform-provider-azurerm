@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	resourcesClient "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -95,6 +96,7 @@ func resourceDiskEncryptionSet() *schema.Resource {
 func resourceDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -112,7 +114,7 @@ func resourceDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
-	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, keyVaultKeyId)
+	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 	if err != nil {
 		return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 	}
@@ -205,6 +207,7 @@ func resourceDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) err
 func resourceDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -220,7 +223,7 @@ func resourceDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("key_vault_key_id") {
 		keyVaultKeyId := d.Get("key_vault_key_id").(string)
-		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, keyVaultKeyId)
+		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 		if err != nil {
 			return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 		}
@@ -312,12 +315,12 @@ type diskEncryptionSetKeyVault struct {
 	softDeleteEnabled      bool
 }
 
-func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, id string) (*diskEncryptionSetKeyVault, error) {
+func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, id string) (*diskEncryptionSetKeyVault, error) {
 	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, keyVaultKeyId.KeyVaultBaseUrl)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 	}

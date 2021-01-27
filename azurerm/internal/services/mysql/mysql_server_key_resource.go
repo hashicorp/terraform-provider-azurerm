@@ -16,6 +16,7 @@ import (
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
+	resourcesClient "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,12 +58,12 @@ func resourceMySQLServerKey() *schema.Resource {
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, keyVaultKeyURI string) (*string, error) {
+func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +77,7 @@ func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, 
 func resourceMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -84,7 +86,7 @@ func resourceMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, keyVaultKeyURI)
+	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
 	if err != nil {
 		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}

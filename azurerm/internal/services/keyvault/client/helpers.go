@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,7 +73,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, er
 	return true, nil
 }
 
-func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, keyVaultBaseUrl string) (*string, error) {
+func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resource.Client, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
 		return nil, err
@@ -130,7 +131,8 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, keyVaultBaseUrl stri
 }
 
 func (c *Client) Purge(keyVaultId parse.VaultId) {
-	// TODO: hook this up
+	lock[keyVaultId.Name].Lock()
+	defer lock[keyVaultId.Name].Unlock()
 	delete(keyVaultsCache, keyVaultId.Name)
 }
 

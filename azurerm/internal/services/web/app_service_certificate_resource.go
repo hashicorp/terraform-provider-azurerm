@@ -127,6 +127,7 @@ func resourceAppServiceCertificate() *schema.Resource {
 func resourceAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,7 +189,7 @@ func resourceAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta inte
 
 		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
 
-		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, keyVaultBaseUrl)
+		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultBaseUrl)
 		if err != nil {
 			return fmt.Errorf("Error retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 		}

@@ -176,8 +176,9 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, met
 }
 
 func resourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +187,7 @@ func resourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -245,6 +246,7 @@ func resourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interfac
 func resourceKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -254,7 +256,7 @@ func resourceKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interf
 	}
 
 	// we verify it exists
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

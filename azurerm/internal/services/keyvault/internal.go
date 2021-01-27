@@ -126,6 +126,7 @@ func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
 
 func nestedItemResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -134,7 +135,7 @@ func nestedItemResourceImporter(d *schema.ResourceData, meta interface{}) ([]*sc
 		return []*schema.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)
 	}
 
-	keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, id.KeyVaultBaseUrl)
+	keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return []*schema.ResourceData{d}, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

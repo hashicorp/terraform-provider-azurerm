@@ -16,6 +16,7 @@ import (
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
+	resourcesClient "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,12 +58,12 @@ func resourcePostgreSQLServerKey() *schema.Resource {
 	}
 }
 
-func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, keyVaultKeyURI string) (*string, error) {
+func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +81,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Cli
 func resourcePostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).Postgres.ServerKeysClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -88,7 +90,7 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getPostgreSQLServerKeyName(ctx, keyVaultsClient, keyVaultKeyURI)
+	name, err := getPostgreSQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
 	if err != nil {
 		return fmt.Errorf("cannot compose name for PostgreSQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
