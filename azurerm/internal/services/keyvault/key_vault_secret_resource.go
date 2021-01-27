@@ -266,7 +266,7 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 	// "" indicates the latest version
 	read, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err)
+		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
 	if _, err = parse.ParseNestedItemID(*read.ID); err != nil {
