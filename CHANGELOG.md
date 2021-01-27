@@ -34,6 +34,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_media_streaming_endpoint` - stopping the streaming endpoint prior to deletion if the endpoint is in a running state [GH-10216]
+* `azurerm_role_definition` - don't add `scope` to `assignable_scopes` unless none are specified [GH-8624]
 
 ## 2.44.0 (January 21, 2021)
 
