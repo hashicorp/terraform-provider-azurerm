@@ -71,7 +71,6 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   lifecycle {
     ignore_changes = [log, metric]
   }
-
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "example" {
