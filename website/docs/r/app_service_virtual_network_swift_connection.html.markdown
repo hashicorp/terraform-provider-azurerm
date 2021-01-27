@@ -9,9 +9,11 @@ description: |-
 
 # azurerm_app_service_virtual_network_swift_connection
 
-Manages an App Service Virtual Network Association (this is for the [Regional VNet Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration) which is still in preview).
+Manages an App Service Virtual Network Association (this is for the [Regional VNet Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration)).
 
-## Example Usage
+~> **Note:** This resource can be used for both `azurerm_app_service` and `azurerm_function_app`.
+
+## Example Usage (with App Service)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -66,11 +68,75 @@ resource "azurerm_app_service_virtual_network_swift_connection" "example" {
 }
 ```
 
+## Example Usage (with Function App)
+```hcl
+esource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "uksouth"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-virtual-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "example-delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "example-app-service-plan"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "functionsappexamplesa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_function_app" "example" {
+  name                       = "example-function-app"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+}
+
+resource "azurerm_app_service_virtual_network_swift_connection" "example" {
+  app_service_id = azurerm_function_app.example.id
+  subnet_id      = azurerm_subnet.example.id
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `app_service_id` - (Required) The ID of the App Service to associate to the VNet. Changing this forces a new resource to be created.
+* `app_service_id` - (Required) The ID of the App Service or Function App to associate to the VNet. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
 
