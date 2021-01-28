@@ -88,7 +88,7 @@ func (r SecurityCenterAssessmentMetadataResource) Exists(ctx context.Context, cl
 }
 
 func (r SecurityCenterAssessmentMetadataResource) basic() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -99,11 +99,11 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   severity        = "Medium"
   description     = "Test Description"
 }
-`)
+`
 }
 
 func (r SecurityCenterAssessmentMetadataResource) complete() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -119,11 +119,11 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   threats                 = ["DataExfiltration", "DataSpillage", "MaliciousInsider"]
   user_impact             = "Low"
 }
-`)
+`
 }
 
 func (r SecurityCenterAssessmentMetadataResource) update() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -139,5 +139,5 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   threats                 = ["DataExfiltration", "DataSpillage"]
   user_impact             = "Moderate"
 }
-`)
+`
 }
