@@ -202,7 +202,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 		throughputFuture, err := client.UpdateCassandraTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
-				return fmt.Errorf("Error setting Throughput for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v - "+
+				return fmt.Errorf("setting Throughput for %s: %+v - "+
 					"If the collection has not been created with an initial throughput, you cannot configure it later.", *id, err)
 			}
 		}
