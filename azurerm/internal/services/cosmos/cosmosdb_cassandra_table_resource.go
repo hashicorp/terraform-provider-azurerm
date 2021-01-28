@@ -161,7 +161,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-			return fmt.Errorf("updating %s: %+v", *id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	table := documentdb.CassandraTableCreateUpdateParameters{
@@ -181,11 +181,11 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 
 	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.DatabaseAccountName, id.TableName, table)
 	if err != nil {
-			return fmt.Errorf("updating %s: %+v", *id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	if common.HasThroughputChange(d) {
