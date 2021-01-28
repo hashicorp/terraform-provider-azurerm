@@ -70,9 +70,9 @@ func TestAccFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rule.3765122797.name").HasValue("rule1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.updatedName(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -81,9 +81,9 @@ func TestAccFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rule.1700340761.name").HasValue("rule2"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -854,7 +854,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, FirewallResource{}.enableDNS(data))
+`, FirewallResource{}.enableDNS(data, "1.1.1.1", "8.8.8.8"))
 }
 
 func (r FirewallNetworkRuleCollectionResource) noSource(data acceptance.TestData) string {
