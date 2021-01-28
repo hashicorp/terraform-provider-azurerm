@@ -286,7 +286,7 @@ func testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_count").HasValue("1"),
-				testCheckKubernetesNodePoolScale(data.ResourceName, 2),
+				data.CheckWithClient(r.scaleNodePool(2)),
 			),
 		},
 		{
@@ -760,19 +760,10 @@ func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		nodePoolName := rs.Primary.Attributes["name"]
-		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
+func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		nodePoolName := state.Attributes["name"]
+		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
 		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
@@ -781,7 +772,7 @@ func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resour
 		clusterName := parsedK8sId.ManagedClusterName
 		resourceGroup := parsedK8sId.ResourceGroup
 
-		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
+		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, resourceGroup, clusterName, nodePoolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
 		}
@@ -796,12 +787,12 @@ func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resour
 
 		nodePool.ManagedClusterAgentPoolProfileProperties.Count = utils.Int32(int32(nodeCount))
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
+		future, err := clients.Containers.AgentPoolsClient.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err := future.WaitForCompletionRef(ctx, clients.Containers.AgentPoolsClient.Client); err != nil {
 			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
 		}
 
