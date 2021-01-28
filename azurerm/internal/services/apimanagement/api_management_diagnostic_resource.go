@@ -158,14 +158,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		switch verbosity.(string) {
-		case string(apimanagement.Verbose):
-			parameters.Verbosity = apimanagement.Verbose
-		case string(apimanagement.Information):
-			parameters.Verbosity = apimanagement.Information
-		case string(apimanagement.Error):
-			parameters.Verbosity = apimanagement.Error
-		}
+		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
 	logClientIP, _ := d.GetOk("log_client_ip")
@@ -174,14 +167,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		switch httpCorrelationProtocol.(string) {
-		case string(apimanagement.HTTPCorrelationProtocolNone):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
-		case string(apimanagement.HTTPCorrelationProtocolLegacy):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
-		case string(apimanagement.HTTPCorrelationProtocolW3C):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
-		}
+		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
