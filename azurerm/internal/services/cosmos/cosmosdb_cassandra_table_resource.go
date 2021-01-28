@@ -85,7 +85,7 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	keyspaceId, err := parse.CassandraKeyspaceID(d.Get("keyspace_id").(string))
+	keyspaceId, err := parse.CassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Cassandra Keyspace ID: %+v", err)
 	}
