@@ -30,7 +30,6 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
