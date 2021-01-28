@@ -39,9 +39,10 @@ func resourceDeviceSecurityGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"target_resource_id": {
@@ -143,7 +144,7 @@ func resourceDeviceSecurityGroupCreateUpdate(d *schema.ResourceData, meta interf
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
+		if !utils.ResponseWasNotFound(server.Response) {
 			return tf.ImportAsExistsError("azurerm_device_security_group", id.ID())
 		}
 	}
@@ -164,7 +165,7 @@ func resourceDeviceSecurityGroupCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.TargetResourceID, id.Name, deviceSecurityGroup); err != nil {
-		return fmt.Errorf("creating/updating Device Security Group for %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -189,7 +190,7 @@ func resourceDeviceSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Device Security Group status for %q: %+v", id.ID(), err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("target_resource_id", id.TargetResourceID)
@@ -217,7 +218,7 @@ func resourceDeviceSecurityGroupDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	if _, err := client.Delete(ctx, id.TargetResourceID, id.Name); err != nil {
-		return fmt.Errorf("deleting Device Security Group for %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
@@ -228,10 +229,10 @@ func expandDeviceSecurityGroupAllowListRule(input []interface{}) (*[]security.Ba
 		return nil, nil
 	}
 	result := make([]security.BasicAllowlistCustomAlertRule, 0)
-	ruleTypeMap := make(map[security.RuleType]struct{})
+	ruleTypeMap := make(map[security.RuleTypeBasicCustomAlertRule]struct{})
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		t := security.RuleType(v["type"].(string))
+		t := security.RuleTypeBasicCustomAlertRule(v["type"].(string))
 		values := v["values"].(*schema.Set).List()
 
 		// check duplicate
@@ -266,10 +267,10 @@ func expandDeviceSecurityGroupTimeWindowRule(input []interface{}) (*[]security.B
 		return nil, nil
 	}
 	result := make([]security.BasicTimeWindowCustomAlertRule, 0)
-	ruleTypeMap := make(map[security.RuleType]struct{})
+	ruleTypeMap := make(map[security.RuleTypeBasicCustomAlertRule]struct{})
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		t := security.RuleType(v["type"].(string))
+		t := security.RuleTypeBasicCustomAlertRule(v["type"].(string))
 		timeWindowSize := v["time_window_size"].(string)
 		minThreshold := int32(v["min_threshold"].(int))
 		maxThreshold := int32(v["max_threshold"].(int))
