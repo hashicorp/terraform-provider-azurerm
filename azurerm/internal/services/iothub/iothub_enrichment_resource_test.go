@@ -8,10 +8,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,35 +72,31 @@ func TestAccIotHubEnrichment_update(t *testing.T) {
 }
 
 func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.EnrichmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	iothubName := id.Path["IotHubs"]
-	enrichmentKey := id.Path["Enrichments"]
-	resourceGroup := id.ResourceGroup
-
-	iothub, err := client.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
 			return utils.Bool(false), nil
 		}
 
-		return nil, fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil {
-		return nil, fmt.Errorf("Bad: No Enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
+		return nil, fmt.Errorf("Bad: No Enrichment %s defined for IotHub %s", id.Name, id.IotHubName)
 	}
 
 	enrichments := iothub.Properties.Routing.Enrichments
 	if enrichments == nil {
-		return nil, fmt.Errorf("Bad: No enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
+		return nil, fmt.Errorf("Bad: No enrichment %s defined for IotHub %s", id.Name, id.IotHubName)
 	}
 
 	for _, enrichment := range *enrichments {
-		if strings.EqualFold(*enrichment.Key, enrichmentKey) {
+		if strings.EqualFold(*enrichment.Key, id.Name) {
 			return utils.Bool(true), nil
 		}
 	}
