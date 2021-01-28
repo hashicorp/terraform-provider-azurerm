@@ -208,6 +208,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id, err := parse.CassandraTableID(d.Id())
@@ -226,9 +227,11 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	keyspaceId := parse.NewCassandraKeyspaceID(subscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName)
+
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
-	d.Set("keyspace_name", id.CassandraKeyspaceName)
+	d.Set("cassandra_keyspace_id", keyspaceId.ID())
 	if props := resp.CassandraTableGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
@@ -372,8 +375,6 @@ func flattenTableSchemaColumns(input *[]documentdb.Column) []interface{} {
 	columns := make([]interface{}, 0)
 
 	for _, v := range *input {
-		block := make(map[string]interface{})
-		block["name"] = v.Name
 		name := ""
 		if v.Name != nil {
 			name = *v.Name
@@ -386,7 +387,6 @@ func flattenTableSchemaColumns(input *[]documentdb.Column) []interface{} {
 			"name": name,
 			"type": typeStr,
 		})
-		columns = append(columns, block)
 	}
 
 	return columns
@@ -400,9 +400,13 @@ func flattenTableSchemaPartitionKeys(input *[]documentdb.CassandraPartitionKey) 
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		block := make(map[string]interface{})
-		block["name"] = v.Name
-		keys = append(keys, block)
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+		keys = append(keys, map[string]interface{}{
+			"name": name,
+		})
 	}
 
 	return keys
@@ -416,10 +420,18 @@ func flattenTableSchemaClusterKeys(input *[]documentdb.ClusterKey) []interface{}
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		block := make(map[string]interface{})
-		block["name"] = v.Name
-		block["order_by"] = v.OrderBy
-		keys = append(keys, block)
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+		orderBy := ""
+		if v.OrderBy != nil {
+			orderBy = *v.OrderBy
+		}
+		keys = append(keys, map[string]interface{}{
+			"name":     name,
+			"order_by": orderBy,
+		})
 	}
 
 	return keys
