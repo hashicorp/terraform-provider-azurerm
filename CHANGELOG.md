@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_snowflake` [GH-10239]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_table_storage` [GH-10305]
 * **New Resource:** `azurerm_iothub_enrichment` [GH-9239]
 * **New Resource**: `azurerm_media_streaming_policy` [GH-10133]
 * **New Resource:** `azurerm_spring_cloud_active_deployment` [GH-9959]
