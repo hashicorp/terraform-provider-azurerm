@@ -3,8 +3,8 @@ package apimanagement
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
@@ -18,9 +18,10 @@ func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
 		},
 
 		"key_vault_id": {
+			// TODO: should this become `key_vault_key_id` since that's what this is?
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
+			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 		},
 
 		"certificate": {

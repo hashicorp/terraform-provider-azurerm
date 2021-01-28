@@ -213,7 +213,7 @@ func TestAccStorageBlob_blockFromLocalFile(t *testing.T) {
 			Config: r.blockFromLocalBlob(data, sourceBlob.Name()),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckStorageBlobMatchesFile(data.ResourceName, blobs.BlockBlob, sourceBlob.Name()),
+				data.CheckWithClient(r.blobMatchesFile(blobs.BlockBlob, sourceBlob.Name())),
 			),
 		},
 		data.ImportStep("parallelism", "size", "source", "type"),
@@ -359,7 +359,7 @@ func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
 			Config: r.pageFromLocalBlob(data, sourceBlob.Name()),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckStorageBlobMatchesFile(data.ResourceName, blobs.PageBlob, sourceBlob.Name()),
+				data.CheckWithClient(r.blobMatchesFile(blobs.PageBlob, sourceBlob.Name())),
 			),
 		},
 		data.ImportStep("parallelism", "size", "type"),
@@ -452,21 +452,13 @@ func (r StorageBlobResource) Destroy(ctx context.Context, client *clients.Client
 	return utils.Bool(true), nil
 }
 
-func testCheckStorageBlobMatchesFile(resourceName string, kind blobs.BlobType, filePath string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath string) func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		name := state.Attributes["name"]
+		containerName := state.Attributes["storage_container_name"]
+		accountName := state.Attributes["storage_account_name"]
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		containerName := rs.Primary.Attributes["storage_container_name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
+		account, err := clients.Storage.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
@@ -474,7 +466,7 @@ func testCheckStorageBlobMatchesFile(resourceName string, kind blobs.BlobType, f
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.BlobsClient(ctx, *account)
+		client, err := clients.Storage.BlobsClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}

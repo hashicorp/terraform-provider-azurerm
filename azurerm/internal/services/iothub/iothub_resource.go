@@ -346,6 +346,39 @@ func resourceIotHub() *schema.Resource {
 				},
 			},
 
+			"enrichment": {
+				Type: schema.TypeList,
+				// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
+				MaxItems:   10,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+								"Enrichment Key name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
+						},
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"endpoint_names": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"fallback_route": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -509,6 +542,10 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		routingProperties.Routes = expandIoTHubRoutes(d)
 	}
 
+	if _, ok := d.GetOk("enrichment"); ok {
+		routingProperties.Enrichments = expandIoTHubEnrichments(d)
+	}
+
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
 	}
@@ -565,12 +602,23 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
 	if err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	timeout := schema.TimeoutUpdate
+	if d.IsNewResource() {
+		timeout = schema.TimeoutCreate
+	}
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Activating", "Transitioning"},
+		Target:  []string{"Succeeded"},
+		Refresh: iothubStateRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: d.Timeout(timeout),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -605,16 +653,13 @@ func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving IotHub Client %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("listing keys for IoTHub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
+	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
+		keyList := keysResp.Response()
+		keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
 
-	keyList := keysResp.Response()
-	keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
-
-	if err := d.Set("shared_access_policy", keys); err != nil {
-		return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
+		if err := d.Set("shared_access_policy", keys); err != nil {
+			return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
+		}
 	}
 
 	if properties := hub.Properties; properties != nil {
@@ -644,6 +689,11 @@ func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
 			return fmt.Errorf("setting `route` in IoTHub %q: %+v", id.Name, err)
+		}
+
+		enrichments := flattenIoTHubEnrichment(properties.Routing)
+		if err := d.Set("enrichment", enrichments); err != nil {
+			return fmt.Errorf("setting `enrichment` in IoTHub %q: %+v", id.Name, err)
 		}
 
 		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
@@ -694,6 +744,20 @@ func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
+	// when running acctest of `azurerm_iot_security_solution`, we found after delete the iot security solution, the iothub provisionState is `Transitioning`
+	// if we delete directly, the func `client.Delete` will throw error
+	// so first wait for the iotHub state become succeed
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Activating", "Transitioning"},
+		Target:  []string{"Succeeded"},
+		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+		Timeout: d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for ProvisioningState of IotHub %q (Resource Group %q) to become `Succeeded`: %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
@@ -720,6 +784,27 @@ func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourc
 	}
 
 	return nil
+}
+
+func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+
+		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		if res.Properties == nil || res.Properties.ProvisioningState == nil {
+			return res, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		return res, *res.Properties.ProvisioningState, nil
+	}
 }
 
 func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
@@ -765,6 +850,29 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 	}
 
 	return &routeProperties
+}
+
+func expandIoTHubEnrichments(d *schema.ResourceData) *[]devices.EnrichmentProperties {
+	enrichmentList := d.Get("enrichment").([]interface{})
+
+	enrichmentProperties := make([]devices.EnrichmentProperties, 0)
+
+	for _, enrichmentRaw := range enrichmentList {
+		enrichment := enrichmentRaw.(map[string]interface{})
+
+		key := enrichment["key"].(string)
+		value := enrichment["value"].(string)
+
+		endpointNamesRaw := enrichment["endpoint_names"].([]interface{})
+
+		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
+			Key:           &key,
+			Value:         &value,
+			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+		})
+	}
+
+	return &enrichmentProperties
 }
 
 func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool) {
@@ -1102,6 +1210,30 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 				output["enabled"] = *isEnabled
 			}
 			output["source"] = route.Source
+
+			results = append(results, output)
+		}
+	}
+
+	return results
+}
+
+func flattenIoTHubEnrichment(input *devices.RoutingProperties) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil && input.Enrichments != nil {
+		for _, enrichment := range *input.Enrichments {
+			output := make(map[string]interface{})
+
+			if key := enrichment.Key; key != nil {
+				output["key"] = *key
+			}
+			if value := enrichment.Value; value != nil {
+				output["value"] = *value
+			}
+			if endpointNames := enrichment.EndpointNames; endpointNames != nil {
+				output["endpoint_names"] = *endpointNames
+			}
 
 			results = append(results, output)
 		}

@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNetworkInterface() *schema.Resource {
+func dataSourceNetworkInterface() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNetworkInterfaceRead,
+		Read: dataSourceNetworkInterfaceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -166,7 +166,7 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 	}
 }
 
-func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

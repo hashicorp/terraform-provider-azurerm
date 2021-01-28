@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceSynapse() *schema.Resource {
+func resourceDataFactoryLinkedServiceSynapse() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceSynapseCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceSynapseRead,
-		Update: resourceArmDataFactoryLinkedServiceSynapseCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceSynapseDelete,
+		Create: resourceDataFactoryLinkedServiceSynapseCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceSynapseRead,
+		Update: resourceDataFactoryLinkedServiceSynapseCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceSynapseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -124,7 +124,7 @@ func resourceArmDataFactoryLinkedServiceSynapse() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,10 +193,10 @@ func resourceArmDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceSynapseRead(d, meta)
+	return resourceDataFactoryLinkedServiceSynapseRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,7 +262,7 @@ func resourceArmDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceSynapseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

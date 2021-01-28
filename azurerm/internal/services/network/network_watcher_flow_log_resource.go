@@ -46,12 +46,12 @@ func ParseNetworkWatcherFlowLogID(id string) (*NetworkWatcherFlowLogAccountID, e
 	}, nil
 }
 
-func resourceArmNetworkWatcherFlowLog() *schema.Resource {
+func resourceNetworkWatcherFlowLog() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkWatcherFlowLogCreateUpdate,
-		Read:   resourceArmNetworkWatcherFlowLogRead,
-		Update: resourceArmNetworkWatcherFlowLogCreateUpdate,
-		Delete: resourceArmNetworkWatcherFlowLogDelete,
+		Create: resourceNetworkWatcherFlowLogCreateUpdate,
+		Read:   resourceNetworkWatcherFlowLogRead,
+		Update: resourceNetworkWatcherFlowLogCreateUpdate,
+		Delete: resourceNetworkWatcherFlowLogDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -175,7 +175,7 @@ func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *schema.R
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,10 +226,10 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*resp.ID + "/networkSecurityGroupId" + networkSecurityGroupID)
 
-	return resourceArmNetworkWatcherFlowLogRead(d, meta)
+	return resourceNetworkWatcherFlowLogRead(d, meta)
 }
 
-func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +294,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

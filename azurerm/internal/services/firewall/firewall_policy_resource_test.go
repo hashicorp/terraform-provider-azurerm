@@ -32,6 +32,21 @@ func TestAccFirewallPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccFirewallPolicy_basicPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicPremium(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}
@@ -129,6 +144,20 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+`, template, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) basicPremium(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
 }
 `, template, data.RandomInteger)
 }

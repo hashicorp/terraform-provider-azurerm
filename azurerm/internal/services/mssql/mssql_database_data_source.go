@@ -72,6 +72,11 @@ func dataSourceMsSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
+			"storage_account_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"zone_redundant": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -123,6 +128,7 @@ func dataSourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error
 			d.Set("read_scale", false)
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

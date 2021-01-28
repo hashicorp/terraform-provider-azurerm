@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -19,16 +18,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmContainerGroup() *schema.Resource {
+func resourceContainerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerGroupCreate,
-		Read:   resourceArmContainerGroupRead,
-		Delete: resourceArmContainerGroupDelete,
+		Create: resourceContainerGroupCreate,
+		Read:   resourceContainerGroupRead,
+		Delete: resourceContainerGroupDelete,
+		Update: resourceContainerGroupUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -146,14 +149,14 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
 							},
 						},
 					},
 				},
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 
 			"restart_policy": {
 				Type:             schema.TypeString,
@@ -242,7 +245,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							ForceNew: true,
-							Set:      resourceArmContainerGroupPortsHash,
+							Set:      resourceContainerGroupPortsHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"port": {
@@ -504,7 +507,7 @@ func resourceArmContainerGroup() *schema.Resource {
 	}
 }
 
-func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -592,10 +595,33 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerGroupRead(d, meta)
+	return resourceContainerGroupRead(d, meta)
 }
 
-func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Containers.GroupsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ContainerGroupID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	t := d.Get("tags").(map[string]interface{})
+
+	parameters := containerinstance.Resource{
+		Tags: tags.Expand(t),
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return resourceContainerGroupRead(d, meta)
+}
+
+func resourceContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -624,7 +650,11 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenContainerGroupIdentity(resp.Identity)); err != nil {
+	identity, err := flattenContainerGroupIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
@@ -657,7 +687,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1124,9 +1154,9 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) []interface{} {
+func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	result := make(map[string]interface{})
@@ -1146,12 +1176,16 @@ func flattenContainerGroupIdentity(identity *containerinstance.ContainerGroupIde
 			}
 		*/
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 	result["identity_ids"] = identityIds
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -1240,7 +1274,7 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				port["protocol"] = string(p.Protocol)
 				ports = append(ports, port)
 			}
-			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
+			containerConfig["ports"] = schema.NewSet(resourceContainerGroupPortsHash, ports)
 		}
 
 		if container.EnvironmentVariables != nil {
@@ -1540,7 +1574,7 @@ func flattenContainerGroupDiagnostics(d *schema.ResourceData, input *containerin
 	}
 }
 
-func resourceArmContainerGroupPortsHash(v interface{}) int {
+func resourceContainerGroupPortsHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -1548,7 +1582,7 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {

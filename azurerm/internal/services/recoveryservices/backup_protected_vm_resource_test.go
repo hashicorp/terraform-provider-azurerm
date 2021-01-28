@@ -105,12 +105,12 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 			// Backup policy link will need to be removed first so the VM's backup policy subsequently reverts to Default
 			// Azure API is quite sensitive, adding the step to control resource cleanup order
 			ResourceName: fBackupPolicyResourceName,
-			Config:       r.withVM(data),
+			Config:       r.withBasePolicy(data),
 		},
 		{
 			// Then VM can be removed
 			ResourceName: virtualMachine,
-			Config:       r.withSecondPolicy(data),
+			Config:       r.withBasePolicy(data),
 		},
 		{
 			// Remove backup policies and vault
@@ -161,7 +161,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest_subnet"
   virtual_network_name = azurerm_virtual_network.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  address_prefix       = "10.0.10.0/24"
+  address_prefixes     = ["10.0.10.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -310,7 +310,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest_subnet"
   virtual_network_name = azurerm_virtual_network.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  address_prefix       = "10.0.10.0/24"
+  address_prefixes     = ["10.0.10.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -354,45 +354,7 @@ resource "azurerm_managed_disk" "test" {
 }
 
 // For update backup policy id test
-func (r BackupProtectedVmResource) withVault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-
-  soft_delete_enabled = false
-}
-`, r.base(data), data.RandomInteger)
-}
-
-// For update backup policy id test
-func (r BackupProtectedVmResource) withFirstPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_policy_vm" "test" {
-  name                = "acctest-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-
-  backup {
-    frequency = "Daily"
-    time      = "23:00"
-  }
-
-  retention_daily {
-    count = 10
-  }
-}
-`, r.withVault(data), data.RandomInteger)
-}
-
-// For update backup policy id test
-func (r BackupProtectedVmResource) withSecondPolicy(data acceptance.TestData) string {
+func (r BackupProtectedVmResource) withBasePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -410,61 +372,7 @@ resource "azurerm_backup_policy_vm" "test_change_backup" {
     count = 15
   }
 }
-`, r.withFirstPolicy(data), data.RandomInteger)
-}
-
-// For update backup policy id test
-func (r BackupProtectedVmResource) withVM(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_machine" "test" {
-  name                          = "acctestvm-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  vm_size                       = "Standard_A0"
-  network_interface_ids         = [azurerm_network_interface.test.id]
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "acctest-osdisk"
-    managed_disk_type = "Standard_LRS"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-  }
-
-  storage_data_disk {
-    name              = "acctest-datadisk"
-    managed_disk_id   = azurerm_managed_disk.test.id
-    managed_disk_type = "Standard_LRS"
-    disk_size_gb      = azurerm_managed_disk.test.disk_size_gb
-    create_option     = "Attach"
-    lun               = 0
-  }
-
-  os_profile {
-    computer_name  = "acctest"
-    admin_username = "vmadmin"
-    admin_password = "Password123!@#"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  boot_diagnostics {
-    enabled     = true
-    storage_uri = azurerm_storage_account.test.primary_blob_endpoint
-  }
-}
-`, r.withSecondPolicy(data), data.RandomInteger)
+`, r.base(data), data.RandomInteger)
 }
 
 // For update backup policy id test
@@ -478,7 +386,7 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
   backup_policy_id    = azurerm_backup_policy_vm.test.id
 }
-`, r.withVM(data))
+`, r.withBasePolicy(data))
 }
 
 // For update backup policy id test
@@ -492,7 +400,7 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
   backup_policy_id    = azurerm_backup_policy_vm.test_change_backup.id
 }
-`, r.withVM(data))
+`, r.withBasePolicy(data))
 }
 
 func (r BackupProtectedVmResource) requiresImport(data acceptance.TestData) string {

@@ -22,16 +22,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmContainerRegistry() *schema.Resource {
+func resourceContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerRegistryCreate,
-		Read:   resourceArmContainerRegistryRead,
-		Update: resourceArmContainerRegistryUpdate,
-		Delete: resourceArmContainerRegistryDelete,
+		Create: resourceContainerRegistryCreate,
+		Read:   resourceContainerRegistryRead,
+		Update: resourceContainerRegistryUpdate,
+		Delete: resourceContainerRegistryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  ResourceAzureRMContainerRegistryMigrateState,
+		MigrateState:  ResourceContainerRegistryMigrateState,
 		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -46,7 +46,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -236,11 +236,11 @@ func resourceArmContainerRegistry() *schema.Resource {
 	}
 }
 
-func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
+	log.Printf("[INFO] preparing arguments for  Container Registry creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -348,14 +348,14 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerRegistryRead(d, meta)
+	return resourceContainerRegistryRead(d, meta)
 }
 
-func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
+	log.Printf("[INFO] preparing arguments for  Container Registry update.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -447,7 +447,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerRegistryRead(d, meta)
+	return resourceContainerRegistryRead(d, meta)
 }
 
 func applyContainerRegistrySku(d *schema.ResourceData, meta interface{}, sku string, resourceGroup string, name string) error {
@@ -478,7 +478,7 @@ func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, reso
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
+	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
 	createLocations := make(map[string]bool)
 
@@ -544,7 +544,7 @@ func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, reso
 	return nil
 }
 
-func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -642,7 +642,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -672,7 +672,7 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func ValidateAzureRMContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(

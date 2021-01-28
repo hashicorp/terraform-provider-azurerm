@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -22,6 +21,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -111,6 +112,13 @@ func resourceCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"analytical_storage_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -128,7 +136,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: diffSuppressIgnoreKeyVaultKeyVersion,
-				ValidateFunc:     azure.ValidateKeyVaultChildIdVersionOptional,
+				ValidateFunc:     keyVaultValidate.NestedItemIdWithOptionalVersion,
 			},
 
 			"consistency_policy": {
@@ -227,6 +235,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
 								"AllowSelfServeUpgradeToMongo36",
+								// TODO: Remove in 3.0 - doesn't do anything
 								"EnableAnalyticalStorage",
 							}, true),
 						},
@@ -386,6 +395,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -423,17 +433,17 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 			PublicNetworkAccess:           publicNetworkAccess,
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := azure.ParseKeyVaultChildIDVersionOptional(keyVaultKeyIDRaw.(string))
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		keyVaultKeyURI := fmt.Sprintf("%skeys/%s", keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name)
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
@@ -481,6 +491,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -530,17 +541,17 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
 			PublicNetworkAccess:           publicNetworkAccess,
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := azure.ParseKeyVaultChildIDVersionOptional(keyVaultKeyIDRaw.(string))
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		keyVaultKeyURI := fmt.Sprintf("%skeys/%s", keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name)
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
@@ -629,6 +640,7 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("endpoint", resp.DocumentEndpoint)
 
 	d.Set("enable_free_tier", resp.EnableFreeTier)
+	d.Set("analytical_storage_enabled", resp.EnableAnalyticalStorage)
 	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == documentdb.Enabled)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
@@ -1042,7 +1054,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
@@ -1052,7 +1064,7 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
@@ -1062,15 +1074,15 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 		buf.WriteString(strings.ToLower(m["id"].(string)))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func diffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {
-	oldKey, err := azure.ParseKeyVaultChildIDVersionOptional(old)
+	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)
 	if err != nil {
 		return false
 	}
-	newKey, err := azure.ParseKeyVaultChildIDVersionOptional(new)
+	newKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(new)
 	if err != nil {
 		return false
 	}

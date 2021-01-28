@@ -69,7 +69,9 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
-* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace. Changing this forces a new resource to be created.
+* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Changing this forces a new resource to be created.
+
+* `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
 * `managed_resource_group_name` - Workspace managed resource group.
 

@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -239,7 +241,7 @@ func schemaAppServiceIdentity() *schema.Schema {
 					MinItems: 1,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validation.NoZeroValues,
+						ValidateFunc: validate.UserAssignedIdentityID,
 					},
 				},
 
@@ -453,6 +455,13 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 				"health_check_path": {
 					Type:     schema.TypeString,
 					Optional: true,
+				},
+
+				"number_of_workers": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 100),
+					Computed:     true,
 				},
 
 				"linux_fx_version": {
@@ -771,6 +780,11 @@ func schemaAppServiceDataSourceSiteConfig() *schema.Schema {
 
 				"health_check_path": {
 					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"number_of_workers": {
+					Type:     schema.TypeInt,
 					Computed: true,
 				},
 
@@ -1482,9 +1496,9 @@ func expandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
 	return &managedServiceIdentity
 }
 
-func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) ([]interface{}, error) {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	principalId := ""
@@ -1500,7 +1514,11 @@ func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := parse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -1511,7 +1529,7 @@ func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
 		},
-	}
+	}, nil
 }
 
 func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
@@ -1637,6 +1655,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
+	if v, ok := config["number_of_workers"]; ok && v.(int) != 0 {
+		siteConfig.NumberOfWorkers = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1748,6 +1770,10 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HealthCheckPath != nil {
 		result["health_check_path"] = *input.HealthCheckPath
+	}
+
+	if input.NumberOfWorkers != nil {
+		result["number_of_workers"] = *input.NumberOfWorkers
 	}
 
 	result["min_tls_version"] = string(input.MinTLSVersion)

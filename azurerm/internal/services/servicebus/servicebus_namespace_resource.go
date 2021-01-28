@@ -78,7 +78,7 @@ func resourceServiceBusNamespace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      0,
-				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8}),
+				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
 			},
 
 			"default_primary_connection_string": {
@@ -159,7 +159,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interf
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
 		}
 		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) == 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4 or 8", sku)
+			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
 	}
