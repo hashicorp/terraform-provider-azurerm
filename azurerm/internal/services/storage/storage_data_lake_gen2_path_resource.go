@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -132,7 +131,7 @@ func resourceStorageDataLakeGen2Path() *schema.Resource {
 						"permissions": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateADLSAccessControlPermissions,
+							ValidateFunc: validate.ADLSAccessControlPermissions,
 						},
 					},
 				},
@@ -185,7 +184,7 @@ func resourceStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Unhandled resource type %q", resourceString)
 	}
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := expandDataLakeGen2PathAceList(aceRaw)
+	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -249,7 +248,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta interfac
 	path := d.Get("path").(string)
 
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := expandDataLakeGen2PathAceList(aceRaw)
+	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -337,7 +336,7 @@ func resourceStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error parsing response ACL %q: %s", resp.ACL, err)
 	}
-	d.Set("ace", flattenDataLakeGen2PathAceList(acl))
+	d.Set("ace", FlattenDataLakeGen2AceList(acl))
 
 	return nil
 }
@@ -360,80 +359,4 @@ func resourceStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
-}
-
-func expandDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-	aceList := make([]accesscontrol.ACE, len(input))
-
-	for i := 0; i < len(input); i++ {
-		v := input[i].(map[string]interface{})
-
-		isDefault := false
-		if scopeRaw, ok := v["scope"]; ok {
-			if scopeRaw.(string) == "default" {
-				isDefault = true
-			}
-		}
-
-		tagType := accesscontrol.TagType(v["type"].(string))
-
-		var id *uuid.UUID
-		if raw, ok := v["id"]; ok && raw != "" {
-			idTemp, err := uuid.Parse(raw.(string))
-			if err != nil {
-				return nil, err
-			}
-			id = &idTemp
-		}
-
-		permissions := v["permissions"].(string)
-
-		ace := accesscontrol.ACE{
-			IsDefault:    isDefault,
-			TagType:      tagType,
-			TagQualifier: id,
-			Permissions:  permissions,
-		}
-		aceList[i] = ace
-	}
-
-	return &accesscontrol.ACL{Entries: aceList}, nil
-}
-
-func flattenDataLakeGen2PathAceList(acl accesscontrol.ACL) []interface{} {
-	output := make([]interface{}, len(acl.Entries))
-
-	for i, v := range acl.Entries {
-		ace := make(map[string]interface{})
-
-		scope := "access"
-		if v.IsDefault {
-			scope = "default"
-		}
-		ace["scope"] = scope
-		ace["type"] = string(v.TagType)
-		if v.TagQualifier != nil {
-			ace["id"] = v.TagQualifier.String()
-		}
-		ace["permissions"] = v.Permissions
-
-		output[i] = ace
-	}
-	return output
-}
-
-func validateADLSAccessControlPermissions(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-	if err := accesscontrol.ValidateACEPermissions(v); err != nil {
-		errors = append(errors, fmt.Errorf("value of %s not valid: %s", k, err))
-		return warnings, errors
-	}
-	return warnings, errors
 }

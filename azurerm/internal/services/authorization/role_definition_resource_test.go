@@ -162,6 +162,37 @@ func testAccRoleDefinition_managementGroup(t *testing.T) {
 	})
 }
 
+func TestAccRoleDefinition_assignToSmallerScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+	r := RoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.assignToSmallerScope(uuid.New().String(), data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRoleDefinition_noAssignableScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+
+	r := RoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.noAssignableScope(uuid.New().String(), data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r RoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.RoleDefinitionId(state.ID)
 	if err != nil {
@@ -196,6 +227,10 @@ resource "azurerm_role_definition" "test" {
     actions     = ["*"]
     not_actions = []
   }
+
+  assignable_scopes = [
+    data.azurerm_subscription.primary.id,
+  ]
 }
 `, id, data.RandomInteger)
 }
@@ -353,6 +388,59 @@ resource "azurerm_role_definition" "test" {
     azurerm_management_group.test.id,
     data.azurerm_subscription.primary.id,
   ]
+}
+`, id, data.RandomInteger)
+}
+
+func (r RoleDefinitionResource) assignToSmallerScope(id string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_role_definition" "test" {
+  role_definition_id = "%s"
+  name               = "acctestrd-%d"
+  scope              = data.azurerm_subscription.primary.id
+
+  permissions {
+    actions     = ["*"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    azurerm_resource_group.test.id
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, id, data.RandomInteger)
+}
+
+func (r RoleDefinitionResource) noAssignableScope(id string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_role_definition" "test" {
+  role_definition_id = "%s"
+  name               = "acctestrd-%d"
+  scope              = data.azurerm_subscription.primary.id
+
+  permissions {
+    actions     = ["*"]
+    not_actions = []
+  }
 }
 `, id, data.RandomInteger)
 }

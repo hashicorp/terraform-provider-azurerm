@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func KeyVaultCertificateIssuerName(v interface{}, k string) (warnings []string, errors []error) {
+func CertificateIssuerName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {

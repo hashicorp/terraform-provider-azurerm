@@ -21,6 +21,7 @@ func TestAccDataSourceKeyVaultCertificate_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_size").HasValue("2048"),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_type").HasValue("RSA"),
 			),
@@ -37,6 +38,7 @@ func TestAccDataSourceKeyVaultCertificate_generated(t *testing.T) {
 			Config: r.generated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.issuer_parameters.0.name").HasValue("Self"),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.exportable").HasValue("true"),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_size").HasValue("2048"),
