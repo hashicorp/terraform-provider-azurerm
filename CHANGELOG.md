@@ -33,6 +33,8 @@ IMPROVEMENTS:
 * `azurerm_storage_data_lake_gen2_filesystem` - support for the `ace` block [GH-9917]
 * `azurerm_servicebus_namespace` - will now allow a capacity of `16` for the `Premium` SKU [GH-10337]
 * `azurerm_windows_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
+* `azurerm_linux_virtual_machine_scale_set` - support for the `extensions_time_budget` property [GH-10298]
+* `azurerm_windows_virtual_machine_scale_set` - support for the `extensions_time_budget` property [GH-10298]
 
 BUG FIXES:
 
