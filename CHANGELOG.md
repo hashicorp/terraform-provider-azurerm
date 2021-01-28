@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source** `azurerm_search_service` [GH-10181]
 * **New Resource:** `azurerm_data_factory_linked_service_snowflake` [GH-10239]
 * **New Resource:** `azurerm_data_factory_linked_service_azure_table_storage` [GH-10305]
 * **New Resource:** `azurerm_iothub_enrichment` [GH-9239]
