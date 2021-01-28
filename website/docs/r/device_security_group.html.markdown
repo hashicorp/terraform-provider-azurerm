@@ -37,18 +37,18 @@ resource "azurerm_iot_security_solution" "example" {
 }
 
 resource "azurerm_device_security_group" "example" {
-  name = "example-device-security-group"
+  name               = "example-device-security-group"
   target_resource_id = azurerm_iothub.example.id
 
   allow_list_rule {
-    type = "LocalUserNotAllowed"
+    type   = "LocalUserNotAllowed"
     values = ["user0"]
   }
 
   time_window_rule {
-    type = "ActiveConnectionsNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
+    type             = "ActiveConnectionsNotInAllowedRange"
+    min_threshold    = 0
+    max_threshold    = 30
     time_window_size = "PT5M"
   }
 
