@@ -2,6 +2,7 @@ package securitycenter
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"time"
 
@@ -18,9 +19,9 @@ import (
 
 func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterAssessmentMetadataCreateUpdate,
+		Create: resourceArmSecurityCenterAssessmentMetadataCreate,
 		Read:   resourceArmSecurityCenterAssessmentMetadataRead,
-		Update: resourceArmSecurityCenterAssessmentMetadataCreateUpdate,
+		Update: resourceArmSecurityCenterAssessmentMetadataUpdate,
 		Delete: resourceArmSecurityCenterAssessmentMetadataDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -36,13 +37,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 		}),
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
 			"description": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -127,31 +121,34 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 			// The `category` property doesn't take effect at the service side since the property name is incorrect and it should be `categories`.
 			// To implement this property once the bug is fixed.
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/12297
+
+			"name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func resourceArmSecurityCenterAssessmentMetadataCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentMetadataCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	name := uuid.New().String()
 
 	id := parse.NewAssessmentMetadataID(subscriptionId, name)
 
-	if d.IsNewResource() {
-		existing, err := client.GetInSubscription(ctx, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Security Center Assessment Metadata %q : %+v", name, err)
-			}
+	existing, err := client.GetInSubscription(ctx, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_security_center_assessment_metadata", id.ID())
-		}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_security_center_assessment_metadata", id.ID())
 	}
 
 	params := security.AssessmentMetadata{
@@ -165,8 +162,8 @@ func resourceArmSecurityCenterAssessmentMetadataCreateUpdate(d *schema.ResourceD
 
 	if v, ok := d.GetOk("threats"); ok {
 		threats := make([]security.Threats, 0)
-		for _, item := range *(utils.ExpandStringSlice(v.(*schema.Set).List())) {
-			threats = append(threats, (security.Threats)(item))
+		for _, item := range v.(*schema.Set).List() {
+			threats = append(threats, (security.Threats)(item.(string)))
 		}
 		params.AssessmentMetadataProperties.Threats = &threats
 	}
@@ -188,7 +185,7 @@ func resourceArmSecurityCenterAssessmentMetadataCreateUpdate(d *schema.ResourceD
 	}
 
 	if _, err := client.CreateInSubscription(ctx, name, params); err != nil {
-		return fmt.Errorf("creating/updating Security Center Assessment Metadata %q : %+v", name, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -209,35 +206,100 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 	resp, err := client.GetInSubscription(ctx, id.AssessmentMetadataName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] security Center Assessment Metadata %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Security Center Assessment Metadata %q : %+v", id.AssessmentMetadataName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.AssessmentMetadataName)
 
 	if props := resp.AssessmentMetadataProperties; props != nil {
-		d.Set("assessment_type", props.AssessmentType)
+		d.Set("assessment_type", string(props.AssessmentType))
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("severity", props.Severity)
-		d.Set("implementation_effort", props.ImplementationEffort)
+		d.Set("severity", string(props.Severity))
+		d.Set("implementation_effort", string(props.ImplementationEffort))
 		d.Set("is_preview", props.Preview)
 		d.Set("remediation_description", props.RemediationDescription)
-		d.Set("user_impact", props.UserImpact)
+		d.Set("user_impact", string(props.UserImpact))
 
 		threats := make([]string, 0)
 		if props.Threats != nil {
 			for _, item := range *props.Threats {
-				threats = append(threats, (string)(item))
+				threats = append(threats, string(item))
 			}
 		}
 		d.Set("threats", utils.FlattenStringSlice(&threats))
 	}
 
 	return nil
+}
+
+func resourceArmSecurityCenterAssessmentMetadataUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.AssessmentMetadataID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.GetInSubscription(ctx, id.AssessmentMetadataName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if existing.AssessmentMetadataProperties == nil {
+		return fmt.Errorf("retrieving %s: `assessmentMetadataProperties` was nil", id)
+	}
+
+	if d.HasChange("assessment_type") {
+		existing.AssessmentMetadataProperties.AssessmentType = security.AssessmentType(d.Get("assessment_type").(string))
+	}
+
+	if d.HasChange("description") {
+		existing.AssessmentMetadataProperties.Description = utils.String(d.Get("description").(string))
+	}
+
+	if d.HasChange("display_name") {
+		existing.AssessmentMetadataProperties.DisplayName = utils.String(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("severity") {
+		existing.AssessmentMetadataProperties.Severity = security.Severity(d.Get("severity").(string))
+	}
+
+	if d.HasChange("threats") {
+		threats := make([]security.Threats, 0)
+		for _, item := range d.Get("threats").(*schema.Set).List() {
+			threats = append(threats, (security.Threats)(item.(string)))
+		}
+		existing.AssessmentMetadataProperties.Threats = &threats
+	}
+
+	if d.HasChange("implementation_effort") {
+		existing.AssessmentMetadataProperties.ImplementationEffort = security.ImplementationEffort(d.Get("implementation_effort").(string))
+	}
+
+	if d.HasChange("is_preview") {
+		existing.AssessmentMetadataProperties.Preview = utils.Bool(d.Get("is_preview").(bool))
+	}
+
+	if d.HasChange("remediation_description") {
+		existing.AssessmentMetadataProperties.RemediationDescription = utils.String(d.Get("remediation_description").(string))
+	}
+
+	if d.HasChange("user_impact") {
+		existing.AssessmentMetadataProperties.UserImpact = security.UserImpact(d.Get("user_impact").(string))
+	}
+
+	if _, err := client.CreateInSubscription(ctx, id.AssessmentMetadataName, existing); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceArmSecurityCenterAssessmentMetadataRead(d, meta)
 }
 
 func resourceArmSecurityCenterAssessmentMetadataDelete(d *schema.ResourceData, meta interface{}) error {
@@ -251,7 +313,7 @@ func resourceArmSecurityCenterAssessmentMetadataDelete(d *schema.ResourceData, m
 	}
 
 	if _, err := client.DeleteInSubscription(ctx, id.AssessmentMetadataName); err != nil {
-		return fmt.Errorf("deleting Security Center Assessment Metadata %q : %+v", id.AssessmentMetadataName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

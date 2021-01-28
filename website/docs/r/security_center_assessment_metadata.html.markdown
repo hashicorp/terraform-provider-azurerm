@@ -14,7 +14,6 @@ Manages the Security Center Assessment Metadata for Azure Security Center.
 
 ```hcl
 resource "azurerm_security_center_assessment_metadata" "example" {
-  name            = "ca039e75-a276-4175-aebc-bcd41e4b14b7"
   display_name    = "Test Display Name"
   assessment_type = "CustomerManaged"
   severity        = "Medium"
@@ -26,15 +25,13 @@ resource "azurerm_security_center_assessment_metadata" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The GUID as name which should be used for this Security Center Assessment Metadata. Changing this forces a new Security Center Assessment Metadata to be created.
-
 * `assessment_type` - (Required) The type of the Security Center Assessment which can be specified by user. Possible value is `CustomerManaged`.
 
 * `description` - (Required) The description of the Security Center Assessment.
 
 * `display_name` - (Required) The user-friendly display name of the Security Center Assessment.
 
-* `severity` - (Required) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`.
+* `severity` - (Required) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`. Defaults to `Medium`.
 
 ---
 
@@ -54,6 +51,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Security Center Assessment Metadata.
 
+* `name` - The GUID as the name of the Security Center Assessment Metadata.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
@@ -65,7 +64,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-security AssessmentsMetadatums can be imported using the `resource id`, e.g.
+Security Assessments Metadata can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_security_center_assessment_metadata.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/assessmentMetadata/metadata1
