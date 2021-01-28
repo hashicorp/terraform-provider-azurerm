@@ -208,7 +208,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", id.TableName, id.DatabaseAccountName, id.CassandraKeyspaceName, err)
+			return fmt.Errorf("updating Throughput for %s: %+v", *id, err)
 		}
 	}
 
