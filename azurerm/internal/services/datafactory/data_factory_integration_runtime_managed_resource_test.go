@@ -26,60 +26,65 @@ func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("compute_type").HasValue("General"),
-				check.That(data.ResourceName).Key("core_count").HasValue("8"),
-				check.That(data.ResourceName).Key("time_to_live").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_computeType(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.computeType(data),
+			Config: r.vnetIntegration(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("compute_type").HasValue("ComputeOptimized"),
+				check.That(data.ResourceName).Key("vnet_integration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("vnet_integration.0.vnet_id").Exists(),
+				check.That(data.ResourceName).Key("vnet_integration.0.subnet_name").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_coreCount(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.coreCount(data),
+			Config: r.catalogInfo(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("core_count").HasValue("16"),
+				check.That(data.ResourceName).Key("catalog_info.#").HasValue("1"),
+				check.That(data.ResourceName).Key("catalog_info.0.server_endpoint").Exists(),
+				check.That(data.ResourceName).Key("catalog_info.0.administrator_login").HasValue("ssis_catalog_admin"),
+				check.That(data.ResourceName).Key("catalog_info.0.administrator_password").HasValue("my-s3cret-p4ssword!"),
+				check.That(data.ResourceName).Key("catalog_info.0.pricing_tier").HasValue("Basic"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("catalog_info.0.administrator_password"),
 	})
 }
 
-func TestAccDataFactoryIntegrationRuntimeManaged_timeToLive(t *testing.T) {
+func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.timeToLive(data),
+			Config: r.customSetupScript(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("time_to_live").HasValue("10"),
+				check.That(data.ResourceName).Key("custom_setup_script.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_setup_script.0.blob_container_uri").Exists(),
+				check.That(data.ResourceName).Key("custom_setup_script.0.sas_token").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("catalog_info.0.administrator_password", "custom_setup_script.0.sas_token"),
 	})
 }
 
@@ -105,11 +110,64 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  node_size                        = "Standard_D8_v3"
+  number_of_nodes                  = 2
+  max_parallel_executions_per_node = 8
+  edition                          = "Standard"
+  license_type                     = "LicenseIncluded"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedResource) computeType(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedResource) vnetIntegration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_integration_runtime_managed" "test" {
+  name                = "managed-integration-runtime"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  node_size = "Standard_D8_v3"
+
+  vnet_integration {
+    vnet_id     = "${azurerm_virtual_network.test.id}"
+    subnet_name = "${azurerm_subnet.test.name}"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeManagedResource) catalogInfo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -126,17 +184,34 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsql%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "ssis_catalog_admin"
+  administrator_login_password = "my-s3cret-p4ssword!"
+}
+
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  compute_type        = "ComputeOptimized"
+
+  node_size = "Standard_D8_v3"
+
+  catalog_info {
+    server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+    administrator_login    = "ssis_catalog_admin"
+    administrator_password = "my-s3cret-p4ssword!"
+    pricing_tier           = "Basic"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedResource) coreCount(data acceptance.TestData) string {
+func (IntegrationRuntimeManagedResource) customSetupScript(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,41 +228,55 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                      = "acctestsa%s"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  location                  = "${azurerm_resource_group.test.location}"
+  account_kind              = "BlobStorage"
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  access_tier               = "Hot"
+  enable_https_traffic_only = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "setup-files"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_blob_container_sas" "test" {
+  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  container_name    = "${azurerm_storage_container.test.name}"
+  https_only        = true
+
+  start  = "2017-03-21"
+  expiry = "2022-03-21"
+
+  permissions {
+    read   = true
+    add    = false
+    create = false
+    write  = true
+    delete = false
+    list   = true
+  }
+}
+
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
   name                = "managed-integration-runtime"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  core_count          = 16
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
 
-func (IntegrationRuntimeManagedResource) timeToLive(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+  node_size = "Standard_D8_v3"
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
+  custom_setup_script {
+    blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
+    sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
+  }
 }
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  time_to_live        = 10
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (t IntegrationRuntimeManagedResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {

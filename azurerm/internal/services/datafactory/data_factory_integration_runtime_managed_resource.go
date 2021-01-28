@@ -60,30 +60,141 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"compute_type": {
+			"node_size": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(datafactory.General),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.General),
-					string(datafactory.ComputeOptimized),
-					string(datafactory.MemoryOptimized),
+					"Standard_D2_v3",
+					"Standard_D4_v3",
+					"Standard_D8_v3",
+					"Standard_D16_v3",
+					"Standard_D32_v3",
+					"Standard_D64_v3",
+					"Standard_E2_v3",
+					"Standard_E4_v3",
+					"Standard_E8_v3",
+					"Standard_E16_v3",
+					"Standard_E32_v3",
+					"Standard_E64_v3",
+					"Standard_D1_v2",
+					"Standard_D2_v2",
+					"Standard_D3_v2",
+					"Standard_D4_v2",
+					"Standard_A4_v2",
+					"Standard_A8_v2",
 				}, false),
 			},
 
-			"core_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  8,
-				ValidateFunc: validation.IntInSlice([]int{
-					8, 16, 32, 48, 80, 144, 272,
-				}),
+			"number_of_nodes": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 10),
 			},
 
-			"time_to_live": {
-				Type:     schema.TypeInt,
+			"max_parallel_executions_per_node": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 16),
+			},
+
+			"edition": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  string(datafactory.Standard),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(datafactory.Standard),
+					string(datafactory.Enterprise),
+				}, false),
+			},
+
+			"license_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(datafactory.LicenseIncluded),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(datafactory.LicenseIncluded),
+					string(datafactory.BasePrice),
+				}, false),
+			},
+
+			"vnet_integration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"vnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"subnet_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"custom_setup_script": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"blob_container_uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"sas_token": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"catalog_info": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server_endpoint": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"administrator_login": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"administrator_password": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"pricing_tier": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(datafactory.IntegrationRuntimeSsisCatalogPricingTierBasic),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(datafactory.IntegrationRuntimeSsisCatalogPricingTierBasic),
+								string(datafactory.IntegrationRuntimeSsisCatalogPricingTierStandard),
+								string(datafactory.IntegrationRuntimeSsisCatalogPricingTierPremium),
+								string(datafactory.IntegrationRuntimeSsisCatalogPricingTierPremiumRS),
+							}, false),
+						},
+					},
+				},
 			},
 		},
 	}
@@ -100,7 +211,6 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resource
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, factoryName, name, "")
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
@@ -113,12 +223,12 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resource
 	}
 
 	description := d.Get("description").(string)
-
 	managedIntegrationRuntime := datafactory.ManagedIntegrationRuntime{
 		Description: &description,
 		Type:        datafactory.TypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
 			ComputeProperties: expandDataFactoryIntegrationRuntimeManagedComputeProperties(d),
+			SsisProperties:    expandDataFactoryIntegrationRuntimeManagedSsisProperties(d),
 		},
 	}
 
@@ -156,7 +266,6 @@ func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, me
 	if err != nil {
 		return err
 	}
-
 	resourceGroup := id.ResourceGroup
 	factoryName := id.Path["factories"]
 	name := id.Path["integrationruntimes"]
@@ -189,18 +298,33 @@ func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, me
 			d.Set("location", location)
 		}
 
-		if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
-			if computeType := &dataFlowProps.ComputeType; computeType != nil {
-				d.Set("compute_type", string(*computeType))
-			}
+		if nodeSize := computeProps.NodeSize; nodeSize != nil {
+			d.Set("node_size", nodeSize)
+		}
 
-			if coreCount := dataFlowProps.CoreCount; coreCount != nil {
-				d.Set("core_count", coreCount)
-			}
+		if numberOfNodes := computeProps.NumberOfNodes; numberOfNodes != nil {
+			d.Set("number_of_nodes", numberOfNodes)
+		}
 
-			if timeToLive := dataFlowProps.TimeToLive; timeToLive != nil {
-				d.Set("time_to_live", timeToLive)
-			}
+		if maxParallelExecutionsPerNode := computeProps.MaxParallelExecutionsPerNode; maxParallelExecutionsPerNode != nil {
+			d.Set("max_parallel_executions_per_node", maxParallelExecutionsPerNode)
+		}
+
+		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(computeProps.VNetProperties)); err != nil {
+			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
+		}
+	}
+
+	if ssisProps := managedIntegrationRuntime.SsisProperties; ssisProps != nil {
+		d.Set("edition", string(ssisProps.Edition))
+		d.Set("license_type", string(ssisProps.LicenseType))
+
+		if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
+			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
+		}
+
+		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
+			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
 
@@ -213,17 +337,14 @@ func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, 
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
-
 	resourceGroup := id.ResourceGroup
 	factoryName := id.Path["factories"]
 	name := id.Path["integrationruntimes"]
 
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
 			return fmt.Errorf("Error deleting Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
@@ -235,15 +356,106 @@ func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, 
 
 func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	coreCount := int32(d.Get("core_count").(int))
-	timeToLive := int32(d.Get("time_to_live").(int))
+	computeProperties := datafactory.IntegrationRuntimeComputeProperties{
+		Location:                     &location,
+		NodeSize:                     utils.String(d.Get("node_size").(string)),
+		NumberOfNodes:                utils.Int32(int32(d.Get("number_of_nodes").(int))),
+		MaxParallelExecutionsPerNode: utils.Int32(int32(d.Get("max_parallel_executions_per_node").(int))),
+	}
 
-	return &datafactory.IntegrationRuntimeComputeProperties{
-		Location: &location,
-		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
-			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
-			CoreCount:   &coreCount,
-			TimeToLive:  &timeToLive,
+	if vnetIntegrations, ok := d.GetOk("vnet_integration"); ok && len(vnetIntegrations.([]interface{})) > 0 {
+		vnetProps := vnetIntegrations.([]interface{})[0].(map[string]interface{})
+		computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
+			VNetID: utils.String(vnetProps["vnet_id"].(string)),
+			Subnet: utils.String(vnetProps["subnet_name"].(string)),
+		}
+	}
+
+	return &computeProperties
+}
+
+func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
+	ssisProperties := &datafactory.IntegrationRuntimeSsisProperties{
+		Edition:     datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
+		LicenseType: datafactory.IntegrationRuntimeLicenseType(d.Get("license_type").(string)),
+	}
+
+	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
+		catalogInfo := catalogInfos.([]interface{})[0].(map[string]interface{})
+
+		adminPassword := &datafactory.SecureString{
+			Value: utils.String(catalogInfo["administrator_password"].(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		ssisProperties.CatalogInfo = &datafactory.IntegrationRuntimeSsisCatalogInfo{
+			CatalogServerEndpoint: utils.String(catalogInfo["server_endpoint"].(string)),
+			CatalogAdminUserName:  utils.String(catalogInfo["administrator_login"].(string)),
+			CatalogAdminPassword:  adminPassword,
+			CatalogPricingTier:    datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string)),
+		}
+	}
+
+	if customSetupScripts, ok := d.GetOk("custom_setup_script"); ok && len(customSetupScripts.([]interface{})) > 0 {
+		customSetupScript := customSetupScripts.([]interface{})[0].(map[string]interface{})
+
+		sasToken := &datafactory.SecureString{
+			Value: utils.String(customSetupScript["sas_token"].(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		ssisProperties.CustomSetupScriptProperties = &datafactory.IntegrationRuntimeCustomSetupScriptProperties{
+			BlobContainerURI: utils.String(customSetupScript["blob_container_uri"].(string)),
+			SasToken:         sasToken,
+		}
+	}
+
+	return ssisProperties
+}
+
+func flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
+	if vnetProperties == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]string{
+			"vnet_id":     *vnetProperties.VNetID,
+			"subnet_name": *vnetProperties.Subnet,
 		},
 	}
+}
+
+func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
+	if ssisProperties == nil {
+		return []interface{}{}
+	}
+
+	catalogInfo := map[string]string{
+		"server_endpoint":     *ssisProperties.CatalogServerEndpoint,
+		"administrator_login": *ssisProperties.CatalogAdminUserName,
+		"pricing_tier":        string(ssisProperties.CatalogPricingTier),
+	}
+
+	if adminPassword, ok := d.GetOk("catalog_info.0.administrator_password"); ok {
+		catalogInfo["administrator_password"] = adminPassword.(string)
+	}
+
+	return []interface{}{catalogInfo}
+}
+
+func flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
+	if customSetupScriptProperties == nil {
+		return []interface{}{}
+	}
+
+	customSetupScript := map[string]string{
+		"blob_container_uri": *customSetupScriptProperties.BlobContainerURI,
+	}
+
+	if sasToken, ok := d.GetOk("custom_setup_script.0.sas_token"); ok {
+		customSetupScript["sas_token"] = sasToken.(string)
+	}
+
+	return []interface{}{customSetupScript}
 }

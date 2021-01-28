@@ -1,14 +1,14 @@
 ---
 subcategory: "Data Factory"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_integration_runtime_managed_ssis"
+page_title: "Azure Resource Manager: azurerm_data_factory_integration_runtime_azure_ssis"
 description: |-
-  Manages an Azure Data Factory Managed Integration Runtime (SSIS).
+  Manages a Data Factory Azure-SSIS Integration Runtime.
 ---
 
-# azurerm_data_factory_integration_runtime_managed_ssis
+# azurerm_data_factory_integration_runtime_azure_ssis
 
-Manages an Azure Data Factory Managed Integration Runtime (SSIS).
+Manages a Data Factory Azure-SSIS Integration Runtime.
 
 ## Example Usage
 
@@ -24,7 +24,7 @@ resource "azurerm_data_factory" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_data_factory_integration_runtime_managed_ssis" "example" {
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "example" {
   name                = "example"
   data_factory_name   = azurerm_data_factory.example.name
   resource_group_name = azurerm_resource_group.example.name
@@ -38,21 +38,21 @@ resource "azurerm_data_factory_integration_runtime_managed_ssis" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Managed Integration Runtime. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Azure-SSIS Integration Runtime. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
-* `data_factory_name` - (Required) Specifies the name of the Data Factory the Managed Integration Runtime belongs to. Changing this forces a new resource to be created.
+* `data_factory_name` - (Required) Specifies the name of the Data Factory the Azure-SSIS Integration Runtime belongs to. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Managed Integration Runtime. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Azure-SSIS Integration Runtime. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `node_size` - (Required) The size of the nodes on which the Managed Integration Runtime runs. Valid values are: `Standard_D2_v3`, `Standard_D4_v3`, `Standard_D8_v3`, `Standard_D16_v3`, `Standard_D32_v3`, `Standard_D64_v3`, `Standard_E2_v3`, `Standard_E4_v3`, `Standard_E8_v3`, `Standard_E16_v3`, `Standard_E32_v3`, `Standard_E64_v3`, `Standard_D1_v2`, `Standard_D2_v2`, `Standard_D3_v2`, `Standard_D4_v2`, `Standard_A4_v2` and `Standard_A8_v2`
+* `node_size` - (Required) The size of the nodes on which the Azure-SSIS Integration Runtime runs. Valid values are: `Standard_D2_v3`, `Standard_D4_v3`, `Standard_D8_v3`, `Standard_D16_v3`, `Standard_D32_v3`, `Standard_D64_v3`, `Standard_E2_v3`, `Standard_E4_v3`, `Standard_E8_v3`, `Standard_E16_v3`, `Standard_E32_v3`, `Standard_E64_v3`, `Standard_D1_v2`, `Standard_D2_v2`, `Standard_D3_v2`, `Standard_D4_v2`, `Standard_A4_v2` and `Standard_A8_v2`
 
-* `number_of_nodes` - (Optional) Number of nodes for the Managed Integration Runtime. Max is `10`. Defaults to `1`.
+* `number_of_nodes` - (Optional) Number of nodes for the Azure-SSIS Integration Runtime. Max is `10`. Defaults to `1`.
 
 * `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `16`.
 
-* `edition` - (Optional) The Managed Integration Runtime edition. Valid values are `Standard` and `Enterprise`. Defaults to `Standard`.
+* `edition` - (Optional) The Azure-SSIS Integration Runtime edition. Valid values are `Standard` and `Enterprise`. Defaults to `Standard`.
 
 * `license_type` - (Optional) The type of the license that is used. Valid values are `LicenseIncluded` and `BasePrize`. Defaults to `LicenseIncluded`.
 
@@ -88,29 +88,29 @@ A `custom_setup_script` block supports the following:
 
 A `vnet_integration` block supports the following:
 
-* `vnet_id` - (Required) ID of the virtual network to which the nodes of the Managed Integration Runtime will be added.
+* `vnet_id` - (Required) ID of the virtual network to which the nodes of the Azure-SSIS Integration Runtime will be added.
 
-* `subnet_name` - (Required) Name of the subnet to which the nodes of the Managed Integration Runtime will be added.
+* `subnet_name` - (Required) Name of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Integration Managed Runtime.
+* `id` - The ID of the Data Factory Azure-SSIS Integration Runtime.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Integration Managed Runtime.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Integration Managed Runtime.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Integration Managed Runtime.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Integration Managed Runtime.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Azure-SSIS Integration Runtime.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Azure-SSIS Integration Runtime.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Azure-SSIS Integration Runtime.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Azure-SSIS Integration Runtime.
 
 ## Import
 
-Data Factory Integration Managed Runtimes can be imported using the `resource id`, e.g.
+Data Factory Azure-SSIS Integration Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_integration_runtime_managed_ssis.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
+terraform import azurerm_data_factory_integration_runtime_azure_ssis.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
 ```

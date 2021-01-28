@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryIntegrationRuntimeManagedSsis() *schema.Resource {
+func resourceDataFactoryIntegrationRuntimeAzureSsis() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate,
-		Read:   resourceDataFactoryIntegrationRuntimeManagedSsisRead,
-		Update: resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate,
-		Delete: resourceDataFactoryIntegrationRuntimeManagedSsisDelete,
+		Create: resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate,
+		Read:   resourceDataFactoryIntegrationRuntimeAzureSsisRead,
+		Update: resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate,
+		Delete: resourceDataFactoryIntegrationRuntimeAzureSsisDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -200,7 +200,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsis() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,12 +213,12 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate(d *schema.Reso
 		existing, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_managed_ssis", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_azure_ssis", *existing.ID)
 		}
 	}
 
@@ -227,8 +227,8 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate(d *schema.Reso
 		Description: &description,
 		Type:        datafactory.TypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
-			ComputeProperties: expandDataFactoryIntegrationRuntimeManagedSsisComputeProperties(d),
-			SsisProperties:    expandDataFactoryIntegrationRuntimeManagedSsisProperties(d),
+			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d),
+			SsisProperties:    expandDataFactoryIntegrationRuntimeAzureSsisProperties(d),
 		},
 	}
 
@@ -240,24 +240,24 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisCreateUpdate(d *schema.Reso
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, factoryName, name, integrationRuntime, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("Error creating/updating Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("Error retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q) ID", name, resourceGroup, factoryName)
+		return fmt.Errorf("Cannot read Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q) ID", name, resourceGroup, factoryName)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceDataFactoryIntegrationRuntimeManagedSsisRead(d, meta)
+	return resourceDataFactoryIntegrationRuntimeAzureSsisRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +277,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("Error retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	d.Set("name", name)
@@ -286,7 +286,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData
 
 	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
 	if !convertSuccess {
-		return fmt.Errorf("Error converting integration runtime to managed managed integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
+		return fmt.Errorf("Error converting integration runtime to Azure-SSIS integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
 	}
 
 	if managedIntegrationRuntime.Description != nil {
@@ -310,7 +310,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData
 			d.Set("max_parallel_executions_per_node", maxParallelExecutionsPerNode)
 		}
 
-		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(computeProps.VNetProperties)); err != nil {
+		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(computeProps.VNetProperties)); err != nil {
 			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
@@ -319,11 +319,11 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData
 		d.Set("edition", string(ssisProps.Edition))
 		d.Set("license_type", string(ssisProps.LicenseType))
 
-		if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
+		if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
 			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 
-		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
+		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
 			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
@@ -331,7 +331,7 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedSsisDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -347,14 +347,14 @@ func resourceDataFactoryIntegrationRuntimeManagedSsisDelete(d *schema.ResourceDa
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+			return fmt.Errorf("Error deleting Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 		}
 	}
 
 	return nil
 }
 
-func expandDataFactoryIntegrationRuntimeManagedSsisComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	computeProperties := datafactory.IntegrationRuntimeComputeProperties{
 		Location:                     &location,
@@ -374,7 +374,7 @@ func expandDataFactoryIntegrationRuntimeManagedSsisComputeProperties(d *schema.R
 	return &computeProperties
 }
 
-func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
 	ssisProperties := &datafactory.IntegrationRuntimeSsisProperties{
 		Edition:     datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
 		LicenseType: datafactory.IntegrationRuntimeLicenseType(d.Get("license_type").(string)),
@@ -413,7 +413,7 @@ func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resource
 	return ssisProperties
 }
 
-func flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
 	if vnetProperties == nil {
 		return []interface{}{}
 	}
@@ -426,7 +426,7 @@ func flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
 	if ssisProperties == nil {
 		return []interface{}{}
 	}
@@ -444,7 +444,7 @@ func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *
 	return []interface{}{catalogInfo}
 }
 
-func flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
 	if customSetupScriptProperties == nil {
 		return []interface{}{}
 	}
