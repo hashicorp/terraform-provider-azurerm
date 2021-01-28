@@ -35,7 +35,7 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 		Delete: resourceArmCdnEndpointCustomDomainDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnEndpointCustomDomainID(id)
+			_, err := parse.EndpointCustomDomainID(id)
 			return err
 		}),
 
@@ -58,7 +58,7 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CdnEndpointID,
+				ValidateFunc: validate.EndpointID,
 			},
 
 			"host_name": {
@@ -105,12 +105,12 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 						"vault_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: keyvaultValidate.KeyVaultName,
+							ValidateFunc: keyvaultValidate.VaultName,
 						},
 						"secret_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateKeyVaultChildName,
+							ValidateFunc: keyvaultValidate.NestedItemName,
 						},
 						"secret_version": {
 							Type:         schema.TypeString,
@@ -133,7 +133,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	epid := d.Get("cdn_endpoint_id").(string)
 
-	cdnEndpointId, err := parse.CdnEndpointID(epid)
+	cdnEndpointId, err := parse.EndpointID(epid)
 	if err != nil {
 		return fmt.Errorf("parsing CDN Endpoint ID %q: %+v", epid, err)
 	}
@@ -220,22 +220,21 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointCustomDomainID(d.Id())
+	id, err := parse.EndpointCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName)
 	if err != nil {
-		return fmt.Errorf("retrieving Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-			id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+		return fmt.Errorf("retrieving Cdn Endpoint Custom Domain %q: %+v",
+			id, err)
 	}
 
 	switch {
 	case d.HasChange("cdn_managed_https_settings") && d.HasChange("user_managed_https_settings"):
 		// One is turned on and the other is turned off
-		return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q)",
-			id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName)
+		return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on Cdn Endpoint Custom Domain %q", id)
 	case d.HasChange("cdn_managed_https_settings"):
 		props := resp.CustomDomainProperties
 		if props == nil {
@@ -243,22 +242,19 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *schema.ResourceData, meta inter
 		}
 		if props.CustomHTTPSParameters == nil {
 			// disabled -> enabled
-			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name,
+			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName,
 				expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https_settings").([]interface{}))); err != nil {
-				return fmt.Errorf("enable HTTPS on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-					id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+				return fmt.Errorf("enable HTTPS on Cdn Endpoint Custom Domain %q: %+v", id, err)
 			}
 		} else {
 			params := expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https_settings").([]interface{}))
 			if params == nil {
 				// enabled -> disabled
-				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name); err != nil {
-					return fmt.Errorf("disable HTTPS on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-						id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName); err != nil {
+					return fmt.Errorf("disable HTTPS on Cdn Endpoint Custom Domain %q: %+v", id, err)
 				}
 			} else {
-				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q)",
-					id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName)
+				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on Cdn Endpoint Custom Domain %q", id)
 			}
 		}
 	case d.HasChange("user_managed_https_settings"):
@@ -268,22 +264,19 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *schema.ResourceData, meta inter
 		}
 		if props.CustomHTTPSParameters == nil {
 			// disabled -> enabled
-			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name,
+			if err := enableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName,
 				expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(d.Get("user_managed_https_settings").([]interface{}))); err != nil {
-				return fmt.Errorf("enable HTTPS on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-					id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+				return fmt.Errorf("enable HTTPS on Cdn Endpoint Custom Domain %q: %+v", id, err)
 			}
 		} else {
 			params := expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(d.Get("user_managed_https_settings").([]interface{}))
 			if params == nil {
 				// enabled -> disabled
-				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name); err != nil {
-					return fmt.Errorf("disable HTTPS on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-						id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+				if err := disableArmCdnEndpointCustomDomainHttps(ctx, client, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName); err != nil {
+					return fmt.Errorf("disable HTTPS on Cdn Endpoint Custom Domain %q: %+v", id, err)
 				}
 			} else {
-				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q)",
-					id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName)
+				return fmt.Errorf("in-place update on enabled HTTPS settings is not supported on Cdn Endpoint Custom Domain %q", id)
 			}
 		}
 	}
@@ -296,21 +289,20 @@ func resourceArmCdnEndpointCustomDomainRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointCustomDomainID(d.Id())
+	id, err := parse.EndpointCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Cdn Endpoint Custom Domain %q was not found in Endpoint %q of Profile %q of Resource Group %q - removing from state!", id.Name, id.EndpointName, id.ProfileName, id.ResourceGroup)
+			log.Printf("[DEBUG] Cdn Endpoint Custom Domain %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-			id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+		return fmt.Errorf("retrieving Cdn Endpoint Custom Domain %q: %+v", id, err)
 	}
 	cdnEndpointResp, err := epClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName)
 	if err != nil {
@@ -343,19 +335,17 @@ func resourceArmCdnEndpointCustomDomainDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointCustomDomainID(d.Id())
+	id, err := parse.EndpointCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName)
 	if err != nil {
-		return fmt.Errorf("deleting Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-			id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+		return fmt.Errorf("deleting Cdn Endpoint Custom Domain %q: %+v", id, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Cdn Endpoint Custom Domain %q (Resource Group %q / Profile %q / Endpoint %q): %+v",
-			id.Name, id.ResourceGroup, id.ProfileName, id.EndpointName, err)
+		return fmt.Errorf("waiting for deletion of Cdn Endpoint Custom Domain %q: %+v", id, err)
 	}
 
 	return nil
