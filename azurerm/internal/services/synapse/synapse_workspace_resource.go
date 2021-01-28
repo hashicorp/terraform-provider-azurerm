@@ -207,7 +207,7 @@ func resourceSynapseWorkspace() *schema.Resource {
 						"git_url": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 						"repository_name": {
 							Type:         schema.TypeString,
