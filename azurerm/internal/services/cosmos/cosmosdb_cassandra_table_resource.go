@@ -287,7 +287,7 @@ func resourceCosmosDbCassandraTableDelete(d *schema.ResourceData, meta interface
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", id.TableName, id.DatabaseAccountName, id.CassandraKeyspaceName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
