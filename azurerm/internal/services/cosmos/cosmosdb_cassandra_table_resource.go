@@ -137,7 +137,7 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", name, account, keyspace, err)
+			return fmt.Errorf("waiting for creation of %s: %+v", *id, err)
 	}
 
 	resp, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)
