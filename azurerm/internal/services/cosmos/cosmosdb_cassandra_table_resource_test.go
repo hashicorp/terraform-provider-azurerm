@@ -52,10 +52,9 @@ func (CosmosDBCassandraTableResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_cosmosdb_cassandra_table" "test" {
-  name                = "acctest-CCASST-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  keyspace_name       = azurerm_cosmosdb_cassandra_keyspace.test.name
+  name                  = "acctest-CCASST-%[2]d"
+  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
+  cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
 
   schema {
     column {

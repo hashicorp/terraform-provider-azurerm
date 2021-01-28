@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	packageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
@@ -48,11 +50,11 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"account_name": {
+			"cassandra_keyspace_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CosmosAccountName,
+				ValidateFunc: packageValidate.CassandraKeyspaceID,
 			},
 
 			"default_ttl": {
@@ -60,13 +62,6 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
-			},
-
-			"keyspace_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
 			},
 
 			"schema": common.CassandraTableSchemaPropertySchema(),
@@ -90,8 +85,12 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	account := d.Get("account_name").(string)
-	keyspace := d.Get("keyspace_name").(string)
+	keyspaceId, err := parse.CassandraKeyspaceID(d.Get("keyspace_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing Cassandra Keyspace ID: %+v", err)
+	}
+	account := keyspaceId.DatabaseAccountName
+	keyspace := keyspaceId.Name
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := parse.NewCassandraTableID(subscriptionId, resourceGroup, account, keyspace, name)

@@ -76,9 +76,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Account exists. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the Cosmos DB Account containing the Keyspace in which this Table should exist. Changing this forces a new resource to be created.
-
-* `keyspace_name` - (Required) The name of the Cosmos DB Cassandra Keyspace to create the table within. Changing this forces a new resource to be created.
+* `cassandra_keyspace_id` - (Required) The ID of the Cosmos DB Cassandra Keyspace to create the table within. Changing this forces a new resource to be created.
 
 * `schema` - (Required) A `schema` block as defined below. Changing this forces a new resource to be created.
 
