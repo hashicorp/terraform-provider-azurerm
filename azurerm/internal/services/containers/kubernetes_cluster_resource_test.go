@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -54,21 +53,13 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func kubernetesClusterUpdateNodePoolCount(resourceName string, nodeCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		nodePoolName := state.Attributes["default_node_pool.0.name"]
+		clusterName := state.Attributes["name"]
+		resourceGroup := state.Attributes["resource_group_name"]
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		nodePoolName := rs.Primary.Attributes["default_node_pool.0.name"]
-		clusterName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
+		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, resourceGroup, clusterName, nodePoolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
 		}
@@ -83,12 +74,12 @@ func kubernetesClusterUpdateNodePoolCount(resourceName string, nodeCount int) re
 
 		nodePool.ManagedClusterAgentPoolProfileProperties.Count = utils.Int32(int32(nodeCount))
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
+		future, err := clients.Containers.AgentPoolsClient.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err := future.WaitForCompletionRef(ctx, clients.Containers.AgentPoolsClient.Client); err != nil {
 			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
 		}
 
