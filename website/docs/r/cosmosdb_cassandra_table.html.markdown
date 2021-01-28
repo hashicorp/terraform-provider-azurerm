@@ -102,7 +102,7 @@ A `schema` block supports the following:
 
 * `column` - (Required) One or more `column` blocks as defined below.
 * `partition_key` - (Required) One or more `partition_key` blocks as defined below.
-* `cluster_key` - (Required) One or more `cluster_key` blocks as defined below.
+* `cluster_key` - (Optional) One or more `cluster_key` blocks as defined below.
 
 ---
 
