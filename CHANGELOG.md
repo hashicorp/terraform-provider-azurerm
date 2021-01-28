@@ -40,6 +40,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_iot_time_series_insights_reference_data_set` - the field `data_string_comparison_behavior` is now `ForceNew` [GH-10343]
+* `azurerm_iot_time_series_insights_reference_data_set` - the `key_property` block is now `ForceNew` [GH-10343]
 * `azurerm_media_streaming_endpoint` - stopping the streaming endpoint prior to deletion if the endpoint is in a running state [GH-10216]
 * `azurerm_role_definition` - don't add `scope` to `assignable_scopes` unless none are specified [GH-8624]
 
