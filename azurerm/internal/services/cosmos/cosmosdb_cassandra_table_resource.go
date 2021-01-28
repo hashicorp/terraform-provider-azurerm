@@ -256,7 +256,7 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 	throughputResp, err := client.GetCassandraTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", id.TableName, id.DatabaseAccountName, id.CassandraKeyspaceName, err)
+			return fmt.Errorf("retrieving Throughput for %s: %+v", *id, err)
 		} else {
 			d.Set("throughput", nil)
 			d.Set("autoscale_settings", nil)
