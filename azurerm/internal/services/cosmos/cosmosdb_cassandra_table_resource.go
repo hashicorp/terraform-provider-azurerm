@@ -380,7 +380,18 @@ func flattenTableSchemaColumns(input *[]documentdb.Column) []interface{} {
 	for _, v := range *input {
 		block := make(map[string]interface{})
 		block["name"] = v.Name
-		block["type"] = v.Type
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+		typeStr := ""
+		if v.Type != nil {
+			typeStr = *v.Type
+		}
+		columns = append(columns, map[string]interface{}{
+			"name": name,
+			"type": typeStr,
+		})
 		columns = append(columns, block)
 	}
 
