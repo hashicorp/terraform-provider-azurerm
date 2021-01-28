@@ -137,11 +137,11 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 
 	future, err := client.CreateUpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, table)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", *id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	resp, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)
