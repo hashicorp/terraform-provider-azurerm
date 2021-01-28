@@ -144,15 +144,6 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", name, account, keyspace, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Error getting ID from Cosmos Cassandra Table %q (Account: %q, Keyspace: %q)", name, account, keyspace)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceCosmosDbCassandraTableRead(d, meta)
