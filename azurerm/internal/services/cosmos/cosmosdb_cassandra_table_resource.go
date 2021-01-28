@@ -93,6 +93,8 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 	account := d.Get("account_name").(string)
 	keyspace := d.Get("keyspace_name").(string)
 
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewCassandraTableID(subscriptionId, resourceGroup, account, keyspace, name)
 	existing, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
