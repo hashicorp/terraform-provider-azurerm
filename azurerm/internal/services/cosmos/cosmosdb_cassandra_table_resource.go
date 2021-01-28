@@ -170,7 +170,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("Error updating Cosmos Cassandra Table %q (Account: %q, Keyspace: %q) - %+v", id.TableName, id.DatabaseAccountName, id.CassandraKeyspaceName, err)
+			return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	table := documentdb.CassandraTableCreateUpdateParameters{
