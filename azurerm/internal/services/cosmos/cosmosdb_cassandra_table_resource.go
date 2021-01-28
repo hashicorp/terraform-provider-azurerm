@@ -281,7 +281,7 @@ func resourceCosmosDbCassandraTableDelete(d *schema.ResourceData, meta interface
 	future, err := client.DeleteCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", id.TableName, id.DatabaseAccountName, id.CassandraKeyspaceName, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
