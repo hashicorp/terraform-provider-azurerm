@@ -1,6 +1,7 @@
 package iothub_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,178 +10,105 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type IotHubEnrichmentResource struct {
+}
+
 func TestAccIotHubEnrichment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
+	r := IotHubEnrichmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIotHubEnrichmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIotHubEnrichment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIotHubEnrichmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccIotHubEnrichment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
+	r := IotHubEnrichmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIotHubEnrichmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIotHubEnrichment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIotHubEnrichmentExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccIotHubEnrichment_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_enrichment"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccIotHubEnrichment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIotHubEnrichmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIotHubEnrichment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIotHubEnrichmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccIotHubEnrichment_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIotHubEnrichmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := IotHubEnrichmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckIotHubEnrichmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_enrichment" {
-			continue
+	iothubName := id.Path["IotHubs"]
+	enrichmentKey := id.Path["Enrichments"]
+	resourceGroup := id.ResourceGroup
+
+	iothub, err := client.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	if err != nil {
+		if utils.ResponseWasNotFound(iothub.Response) {
+			return utils.Bool(false), nil
 		}
 
-		enrichmentKey := rs.Primary.Attributes["key"]
-		iothubName := rs.Primary.Attributes["iothub_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		return nil, fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+	}
 
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return nil
-			}
+	if iothub.Properties == nil || iothub.Properties.Routing == nil {
+		return nil, fmt.Errorf("Bad: No Enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
+	}
 
-			return fmt.Errorf("Bad: Get on iothubResourceClient: %+v", err)
-		}
-		if iothub.Properties == nil || iothub.Properties.Routing == nil {
-			return nil
-		}
-		enrichments := iothub.Properties.Routing.Enrichments
+	enrichments := iothub.Properties.Routing.Enrichments
+	if enrichments == nil {
+		return nil, fmt.Errorf("Bad: No enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
+	}
 
-		if enrichments == nil {
-			return nil
-		}
-
-		for _, enrichment := range *enrichments {
-			if strings.EqualFold(*enrichment.Key, enrichmentKey) {
-				return fmt.Errorf("Bad: enrichment %s still exists on IoTHb %s", enrichmentKey, iothubName)
-			}
+	for _, enrichment := range *enrichments {
+		if strings.EqualFold(*enrichment.Key, enrichmentKey) {
+			return utils.Bool(true), nil
 		}
 	}
-	return nil
+
+	return utils.Bool(false), nil
 }
 
-func testCheckIotHubEnrichmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		parsedIothubId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		iothubName := parsedIothubId.Path["IotHubs"]
-		enrichmentKey := parsedIothubId.Path["Enrichments"]
-		resourceGroup := parsedIothubId.ResourceGroup
-
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
-			}
-
-			return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
-		}
-
-		if iothub.Properties == nil || iothub.Properties.Routing == nil {
-			return fmt.Errorf("Bad: No Enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
-		}
-		enrichments := iothub.Properties.Routing.Enrichments
-
-		if enrichments == nil {
-			return fmt.Errorf("Bad: No enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
-		}
-
-		for _, enrichment := range *enrichments {
-			if strings.EqualFold(*enrichment.Key, enrichmentKey) {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("Bad: No enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
-	}
-}
-
-func testAccIotHubEnrichment_requiresImport(data acceptance.TestData) string {
-	template := testAccIotHubEnrichment_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_iothub_enrichment" "import" {
-  resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
-  key                 = "acctest"
-
-  value          = "$twin.tags.DeviceType"
-  endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
-}
-`, template)
-}
-
-func testAccIotHubEnrichment_basic(data acceptance.TestData) string {
+func (IotHubEnrichmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -244,7 +172,23 @@ resource "azurerm_iothub_enrichment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccIotHubEnrichment_update(data acceptance.TestData) string {
+func (r IotHubEnrichmentResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_enrichment" "import" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  key                 = "acctest"
+
+  value          = "$twin.tags.DeviceType"
+  endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
+}
+`, template)
+}
+
+func (IotHubEnrichmentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
