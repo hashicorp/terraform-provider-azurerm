@@ -228,7 +228,7 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 	resp, err := client.GetCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Cassandra Table %q (Account: %q, Keyspace: %q) - removing from state", id.TableName, id.DatabaseAccountName, id.CassandraKeyspaceName)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
