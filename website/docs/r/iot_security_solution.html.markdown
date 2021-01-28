@@ -60,9 +60,9 @@ The following arguments are supported:
 
 * `log_unmasked_ips_enabled` - (Optional) Should ip addressed be unmasked in the log? Defaults to `false`.
 
-* `recommendations_enabled` - (Optional) A `recommendations_enabled` block as defined below.
+* `recommendations_enabled` - (Optional) A `recommendations_enabled` block of options to enable or disable as defined below.
 
-* `query_for_resources` - (Optional) Azure Resource Graph query which represents the security solution's monitored resources.
+* `query_for_resources` - (Optional) An Azure Resource Graph query used to set the resources monitored.
 
 * `query_subscription_ids` - (Optional) A list of subscription Ids on which the user defined resources query should be executed.
 
@@ -72,37 +72,37 @@ The following arguments are supported:
 
 A `recommendations_enabled` block supports the following:
 
-* `events_to_exportacr_authentication` - (Optional) Could Service Principal Authentication be used with ACR repository? Defaults to `true`.
+* `acr_authentication` - (Optional) Is Principal Authentication enabled for the ACR repository? Defaults to `true`.
 
-* `events_to_exportagent_send_unutilized_msg` - (Optional) Could Agent send underutilized messages? Defaults to `true`.
+* `agent_send_unutilized_msg` - (Optional) Is Agent send underutilized messages enabled? Defaults to `true`.
 
-* `events_to_exportbaseline` - (Optional) Is Security related system configuration issues identified? Defaults to `true`.
+* `baseline` - (Optional) Is Security related system configuration issues identified? Defaults to `true`.
 
-* `events_to_exportedge_hub_mem_optimize` - (Optional) Is IoT Edge Hub memory optimized? Defaults to `true`.
+* `edge_hub_mem_optimize` - (Optional) Is IoT Edge Hub memory optimized? Defaults to `true`.
 
-* `events_to_exportedge_logging_option` - (Optional) Is logging configured for IoT Edge module? Defaults to `true`.
+* `edge_logging_option` - (Optional) Is logging configured for IoT Edge module? Defaults to `true`.
 
-* `events_to_exportinconsistent_module_settings` - (Optional) Does SecurityGroup has inconsistent module settings? Defaults to `true`.
+* `inconsistent_module_settings` - (Optional) Is inconsistent module settings enabled for SecurityGroup? Defaults to `true`.
 
-* `events_to_exportinstall_agent` - (Optional) is Azure IoT Security agent installed? Defaults to `true`.
+* `install_agent` - (Optional) is Azure IoT Security agent installed? Defaults to `true`.
 
-* `events_to_exportip_filter_deny_all` - (Optional) Is Default IP filter policy denied? Defaults to `true`.
+* `ip_filter_deny_all` - (Optional) Is Default IP filter policy denied? Defaults to `true`.
 
-* `events_to_exportip_filter_permissive_rule` - (Optional) Is IP filter rule source allowable IP range too large? Defaults to `true`.
+* `ip_filter_permissive_rule` - (Optional) Is IP filter rule source allowable IP range too large? Defaults to `true`.
 
-* `events_to_exportopen_ports` - (Optional) Is any ports open on the device? Defaults to `true`.
+* `open_ports` - (Optional) Is any ports open on the device? Defaults to `true`.
 
-* `events_to_exportpermissive_firewall_policy` - (Optional) Does firewall policy exist which allow necessary communication to/from the device? Defaults to `true`.
+* `permissive_firewall_policy` - (Optional) Does firewall policy exist which allow necessary communication to/from the device? Defaults to `true`.
 
-* `events_to_exportpermissive_input_firewall_rules` - (Optional) Is only necessary addresses or ports are permitted in? Defaults to `true`.
+* `permissive_input_firewall_rules` - (Optional) Is only necessary addresses or ports are permitted in? Defaults to `true`.
 
-* `events_to_exportpermissive_output_firewall_rules` - (Optional) Is only necessary addresses or ports are permitted out? Defaults to `true`.
+* `permissive_output_firewall_rules` - (Optional) Is only necessary addresses or ports are permitted out? Defaults to `true`.
 
-* `events_to_exportprivileged_docker_options` - (Optional) Is high level permissions are needed for the module? Defaults to `true`.
+* `privileged_docker_options` - (Optional) Is high level permissions are needed for the module? Defaults to `true`.
 
-* `events_to_exportshared_credentials` - (Optional) Is any credentials shared among devices? Defaults to `true`.
+* `shared_credentials` - (Optional) Is any credentials shared among devices? Defaults to `true`.
 
-* `events_to_exportvulnerable_tls_cipher_suite` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
+* `vulnerable_tls_cipher_suite` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
 
 ## Attributes Reference
 
