@@ -1,14 +1,14 @@
 ---
 subcategory: "Data Factory"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_azure_blob_storage"
+page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_azure_table_storage"
 description: |-
-  Manages a Linked Service (connection) between an Azure Blob Storage Account and Azure Data Factory.
+  Manages a Linked Service (connection) between an Azure Table Storage and Azure Data Factory.
 ---
 
-# azurerm_data_factory_linked_service_azure_blob_storage
+# azurerm_data_factory_linked_service_azure_table_storage
 
-Manages a Linked Service (connection) between an Azure Blob Storage Account and Azure Data Factory.
+Manages a Linked Service (connection) between an Azure Table Storage and Azure Data Factory.
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -31,12 +31,11 @@ resource "azurerm_data_factory" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
+resource "azurerm_data_factory_linked_service_azure_table_storage" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
   connection_string   = data.azurerm_storage_account.example.primary_connection_string
-
 }
 ```
 
@@ -60,9 +59,9 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 
-The following supported arguments are specific to Azure Blob Storage Linked Service:
+The following supported arguments are specific to Azure Table Storage Linked Service:
 
-* `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
+* `connection_string` - (Required) The connection string to an Azure Storage Account.
 
 ## Attributes Reference
 
@@ -84,5 +83,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Linked Service's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_linked_service_azure_blob_storage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
+terraform import azurerm_data_factory_linked_service_azure_table_storage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
 ```

@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureTableStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceBlobStorageRead,
-		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceBlobStorageDelete,
+		Create: resourceDataFactoryLinkedServiceTableStorageCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceTableStorageRead,
+		Update: resourceDataFactoryLinkedServiceTableStorageCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceTableStorageDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -98,7 +98,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,66 +111,66 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service BlobStorage Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service TableStorage Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_blob_storage", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_table_storage", *existing.ID)
 		}
 	}
 
-	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
+	tableStorageLinkedService := &datafactory.AzureTableStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
-		AzureBlobStorageLinkedServiceTypeProperties: &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
+		AzureStorageLinkedServiceTypeProperties: &datafactory.AzureStorageLinkedServiceTypeProperties{
 			ConnectionString: &datafactory.SecureString{
 				Value: utils.String(d.Get("connection_string").(string)),
 				Type:  datafactory.TypeSecureString,
 			},
 		},
-		Type: datafactory.TypeAzureBlobStorage,
+		Type: datafactory.TypeAzureTableStorage,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		blobStorageLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		tableStorageLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		blobStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+		tableStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		blobStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
+		tableStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		blobStorageLinkedService.Annotations = &annotations
+		tableStorageLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
-		Properties: blobStorageLinkedService,
+		Properties: tableStorageLinkedService,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceDataFactoryLinkedServiceBlobStorageRead(d, meta)
+	return resourceDataFactoryLinkedServiceTableStorageRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceTableStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,32 +190,32 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
+	tableStorage, ok := resp.Properties.AsAzureTableStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureTableStorage, *resp.Type)
 	}
 
-	d.Set("additional_properties", blobStorage.AdditionalProperties)
-	d.Set("description", blobStorage.Description)
+	d.Set("additional_properties", tableStorage.AdditionalProperties)
+	d.Set("description", tableStorage.Description)
 
-	annotations := flattenDataFactoryAnnotations(blobStorage.Annotations)
+	annotations := flattenDataFactoryAnnotations(tableStorage.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Blob Storage %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Table Storage %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
-	parameters := flattenDataFactoryParameters(blobStorage.Parameters)
+	parameters := flattenDataFactoryParameters(tableStorage.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	if connectVia := blobStorage.ConnectVia; connectVia != nil {
+	if connectVia := tableStorage.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
@@ -224,7 +224,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceTableStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, m
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service TableStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 
