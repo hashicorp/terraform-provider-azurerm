@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -433,19 +432,21 @@ func testAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 		{
 			Config: r.nodeLabelsConfig(data, labels1),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
+				check.That(data.ResourceName).Key("node_labels.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_labels.key").HasValue("value"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels2),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels2),
+				check.That(data.ResourceName).Key("node_labels.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_labels.key2").HasValue("value2"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels3),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels3),
+				check.That(data.ResourceName).Key("node_labels.#").HasValue("0"),
 			),
 		},
 	})
@@ -802,45 +803,6 @@ func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resour
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckKubernetesNodePoolNodeLabels(resourceName string, expectedLabels map[string]string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
-		if err != nil {
-			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
-		}
-
-		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
-		}
-
-		if agent_pool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
-		}
-
-		labels := make(map[string]string)
-		for k, v := range agent_pool.NodeLabels {
-			labels[k] = *v
-		}
-		if !reflect.DeepEqual(labels, expectedLabels) {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup, labels, expectedLabels)
 		}
 
 		return nil
