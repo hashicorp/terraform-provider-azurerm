@@ -190,7 +190,7 @@ func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface
 
 	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.DatabaseAccountName, id.TableName, table)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, err)
+			return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
