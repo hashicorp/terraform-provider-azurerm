@@ -36,11 +36,29 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 
 func (SearchServiceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
 
 data "azurerm_search_service" "test" {
   name                = azurerm_search_service.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, SearchServiceResource{}.basic(data))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
