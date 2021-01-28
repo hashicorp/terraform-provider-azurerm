@@ -115,7 +115,7 @@ A `column` block supports the following:
 
 A `cluster_key` block supports the following:
 
-* `name` - (Required) Name of the column to be created.
+* `name` - (Required) Name of the cluster key to be created.
 * `order_by` - (Required) Order of the key. Currently supported values are `Asc` and `Desc`.
 
 ---
