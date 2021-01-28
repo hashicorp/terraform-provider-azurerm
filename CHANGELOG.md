@@ -7,7 +7,7 @@ FEATURES:
 * **New Resource:** `azurerm_data_factory_linked_service_azure_table_storage` [GH-10305]
 * **New Resource:** `azurerm_iothub_enrichment` [GH-9239]
 * **New Resource:** `azurerm_iot_security_solution` [GH-10034]
-* **New Resource**: `azurerm_media_streaming_policy` [GH-10133]
+* **New Resource:** `azurerm_media_streaming_policy` [GH-10133]
 * **New Resource:** `azurerm_spring_cloud_active_deployment` [GH-9959]
 * **New Resource:** `azurerm_spring_cloud_java_deployment` [GH-9959]
 
@@ -42,8 +42,12 @@ BUG FIXES:
 
 * `azurerm_iot_time_series_insights_reference_data_set` - the field `data_string_comparison_behavior` is now `ForceNew` [GH-10343]
 * `azurerm_iot_time_series_insights_reference_data_set` - the `key_property` block is now `ForceNew` [GH-10343]
+* `azurerm_linux_virtual_machine_scale_set` - fixing an issue where `protected_settings` field within the `extension` block couldn't be empty [GH-10351]
+* `azurerm_linux_virtual_machine_scale_set` - fixing an issue where `settings` field within the `extension` block couldn't be empty [GH-10351]
 * `azurerm_media_streaming_endpoint` - stopping the streaming endpoint prior to deletion if the endpoint is in a running state [GH-10216]
 * `azurerm_role_definition` - don't add `scope` to `assignable_scopes` unless none are specified [GH-8624]
+* `azurerm_windows_virtual_machine_scale_set` - fixing an issue where `protected_settings` field within the `extension` block couldn't be empty [GH-10351]
+* `azurerm_windows_virtual_machine_scale_set` - fixing an issue where `settings` field within the `extension` block couldn't be empty [GH-10351]
 
 ## 2.44.0 (January 21, 2021)
 
