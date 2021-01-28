@@ -147,13 +147,13 @@ func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
+
 	name := id.Path["deployments"]
 	if name == "" {
 		name = id.Path["Deployments"]
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Resource.DeploymentsClient.Get(ctx, id.ResourceGroup, name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Template Deployment (%s): %+v", id, err)
 	}
@@ -166,26 +166,26 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, client *clients
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
+
 	name := id.Path["deployments"]
 	if name == "" {
 		name = id.Path["Deployments"]
 	}
 
 	templateClient := client.Resource.DeploymentsClient
-	_, err = templateClient.Delete(ctx, resourceGroup, name)
+	_, err = templateClient.Delete(ctx, id.ResourceGroup, name)
 	if err != nil {
 		return nil, fmt.Errorf("deleting template deployment %q: %+v", id, err)
 	}
 
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Timeout: 40 * time.Minute,
 		Refresh: func() (interface{}, string, error) {
-			res, err := templateClient.Get(ctx, resourceGroup, name)
+			res, err := templateClient.Get(ctx, id.ResourceGroup, name)
 
 			log.Printf("retrieving Template Deployment %q: %d", id, res.StatusCode)
 
