@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Data Factory Managed Integration Runtime.
 
+~> **NOTE:** The `azurerm_data_factory_integration_runtime_managed` resource has been superseded by the [`azurerm_data_factory_integration_runtime_azure_ssis`](resource_group_template_deployment.html) resource. The existing `azurerm_data_factory_integration_runtime_managed` resource will be deprecated (but still available) in version 3.0 of the AzureRM Terraform Provider - we recommend using the `azurerm_data_factory_integration_runtime_azure_ssis` resource for new deployments.
+
 ## Example Usage
 
 ```hcl
