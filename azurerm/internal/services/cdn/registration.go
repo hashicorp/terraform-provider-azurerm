@@ -28,8 +28,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_cdn_endpoint": resourceCdnEndpoint(),
+		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
 		"azurerm_cdn_endpoint_custom_domain": resourceArmCdnEndpointCustomDomain(),
-		"azurerm_cdn_profile":  resourceCdnProfile(),
+		"azurerm_cdn_profile":                resourceCdnProfile(),
 	}
 }
