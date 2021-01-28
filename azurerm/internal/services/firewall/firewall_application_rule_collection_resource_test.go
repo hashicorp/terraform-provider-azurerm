@@ -95,7 +95,6 @@ func TestAccFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 
 func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
-	data2 := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test_add")
 	r := FirewallApplicationRuleCollectionResource{}
 
 	secondRule := "azurerm_firewall_application_rule_collection.test_add"
