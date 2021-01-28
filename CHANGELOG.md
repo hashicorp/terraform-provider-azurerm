@@ -1,3 +1,9 @@
+## 2.45.1 (January 28, 2021)
+
+BUG FIXES:
+
+* `azurerm_app_service_environment` - prevent a panic when the API returns a nil cluster settings [GH-10365]
+
 ## 2.45.0 (January 28, 2021)
 
 FEATURES:
