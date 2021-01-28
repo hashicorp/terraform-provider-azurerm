@@ -3,6 +3,7 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -76,6 +77,15 @@ func (td TestData) ImportStep(ignore ...string) resource.TestStep {
 // optionally ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)
 func (td TestData) ImportStepFor(resourceName string, ignore ...string) resource.TestStep {
+	if strings.HasPrefix(resourceName, "data.") {
+		return resource.TestStep{
+			ResourceName: resourceName,
+			SkipFunc: func() (bool, error) {
+				return false, fmt.Errorf("Data Sources (%q) do not support import - remove the ImportStep / ImportStepFor`", resourceName)
+			},
+		}
+	}
+
 	step := resource.TestStep{
 		ResourceName:      resourceName,
 		ImportState:       true,

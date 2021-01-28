@@ -131,11 +131,6 @@ resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
     type = "String"
   }
 
-  key_property {
-    name = "keyProperty2"
-    type = "Bool"
-  }
-
   tags = {
     Environment = "Production"
   }
