@@ -160,7 +160,7 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 
 func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.CassandraTableID(d.Id())
