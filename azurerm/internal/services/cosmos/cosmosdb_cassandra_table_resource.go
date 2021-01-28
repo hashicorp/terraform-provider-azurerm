@@ -105,7 +105,9 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error generating import ID for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q)", name, account, keyspace)
 		}
 
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
+		}
 	}
 
 	table := documentdb.CassandraTableCreateUpdateParameters{
