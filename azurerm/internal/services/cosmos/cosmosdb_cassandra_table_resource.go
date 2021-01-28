@@ -98,7 +98,7 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 	existing, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of creating Cosmos Cassandra Table %q (Account: %q, Keyspace: %q): %+v", name, account, keyspace, err)
+			return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
