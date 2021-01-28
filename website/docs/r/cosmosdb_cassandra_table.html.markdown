@@ -137,7 +137,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Cassandra KeySpace.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Cassandra KeySpace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Cassandra KeySpace.
-* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Cassandra KeySpace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Cassandra Table.
 
 ## Import
 
@@ -146,4 +146,3 @@ Cosmos Cassandra Table can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_cassandra_table.ks1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/cassandraKeyspaces/ks1/tables/table1
 ```
-
