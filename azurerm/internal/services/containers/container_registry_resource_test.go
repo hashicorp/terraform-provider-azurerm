@@ -83,7 +83,7 @@ func TestAccContainerRegistry_basic_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic_basic(data),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -146,7 +146,7 @@ func TestAccContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic_basic(data),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
@@ -160,7 +160,7 @@ func TestAccContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basic_basic(data),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
@@ -400,7 +400,7 @@ func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (ContainerRegistryResource) basic_basic(data acceptance.TestData) string {
+func (ContainerRegistryResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
