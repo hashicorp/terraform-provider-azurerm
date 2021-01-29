@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `management_cluster` - A `management_cluster` block as defined below.
 
-* `network_subnet_cidr` - The subnet which should be unique across virtual network in your subscription as well as on-premise.
+* `network_subnet_cidr` - The subnet cidr of the Vmware Private Cloud.
 
 * `hcx_cloud_manager_endpoint` - The endpoint for the HCX Cloud Manager.
 

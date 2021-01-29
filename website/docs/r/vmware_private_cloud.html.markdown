@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new Vmware Private Cloud to be created.
 
-* `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet?
+* `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster.0.size` together.
 
 * `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new Vmware Private Cloud to be created.
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 A `management_cluster` block supports the following:
 
-* `size` - (Required) The size of the management cluster.
+* `size` - (Required) The size of the management cluster. This field can not updated with `internet_connection_enabled` together.
 
 ## Attributes Reference
 
