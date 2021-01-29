@@ -886,7 +886,7 @@ func TestAccFunctionApp_sourceControlUpdate(t *testing.T) {
 	})
 }
 
-func TestAccFunctionApp_scm1(t *testing.T) {
+func TestAccFunctionApp_scm(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
