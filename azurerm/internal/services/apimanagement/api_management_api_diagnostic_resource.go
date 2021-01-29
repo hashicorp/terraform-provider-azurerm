@@ -185,7 +185,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta
 		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
-	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists {
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 
