@@ -80,20 +80,20 @@ func TestAccSubnetRouteTableAssociation_deleted(t *testing.T) {
 	r := SubnetRouteTableAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		// intentional since this is a Virtual Resource
 		{
+			// NOTE: intentionally not using a DisappearsStep as this is a Virtual Resource
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckSubnetRouteTableAssociationDisappears(data.ResourceName),
-				testCheckSubnetHasNoRouteTable(data.ResourceName),
+				data.CheckWithClient(r.destroy),
+				data.CheckWithClientForResource(SubnetResource{}.hasNoRouteTable, "azurerm_subnet.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func (t SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -115,89 +115,35 @@ func (t SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients
 	return utils.Bool(props.RouteTable.ID != nil), nil
 }
 
-func testCheckSubnetRouteTableAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := parsedId.ResourceGroup
-		virtualNetworkName := parsedId.Path["virtualNetworks"]
-		subnetName := parsedId.Path["subnets"]
-
-		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(read.Response) {
-				return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-			}
-		}
-
-		read.SubnetPropertiesFormat.RouteTable = nil
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
-		if err != nil {
-			return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-		}
-
-		return nil
+func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	subnetId := state.Attributes["subnet_id"]
+	parsedId, err := azure.ParseAzureResourceID(subnetId)
+	if err != nil {
+		return err
 	}
-}
 
-func testCheckSubnetHasNoRouteTable(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	resourceGroup := parsedId.ResourceGroup
+	virtualNetworkName := parsedId.Path["virtualNetworks"]
+	subnetName := parsedId.Path["subnets"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	read, err := client.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(read.Response) {
+			return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 		}
-
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-
-		resourceGroupName := parsedId.ResourceGroup
-		virtualNetworkName := parsedId.Path["virtualNetworks"]
-		subnetName := parsedId.Path["subnets"]
-
-		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Subnet %q (Virtual Network %q / Resource Group: %q) does not exist", subnetName, virtualNetworkName, resourceGroupName)
-			}
-
-			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
-		}
-
-		props := resp.SubnetPropertiesFormat
-		if props == nil {
-			return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroupName)
-		}
-
-		if props.RouteTable != nil && ((props.RouteTable.ID == nil) || (props.RouteTable.ID != nil && *props.RouteTable.ID == "")) {
-			return fmt.Errorf("No Route Table should exist for Subnet %q (Virtual Network %q / Resource Group: %q) but got %q", subnetName, virtualNetworkName, resourceGroupName, *props.RouteTable.ID)
-		}
-
-		return nil
 	}
+
+	read.SubnetPropertiesFormat.RouteTable = nil
+
+	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
+	if err != nil {
+		return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func (r SubnetRouteTableAssociationResource) basic(data acceptance.TestData) string {

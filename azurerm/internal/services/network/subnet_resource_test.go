@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -294,6 +295,33 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 	}
 
 	return utils.Bool(true), nil
+}
+
+func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.SubnetID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Bad: Subnet %q (Virtual Network %q / Resource Group: %q) does not exist", id.Name, id.VirtualNetworkName, id.ResourceGroup)
+		}
+
+		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
+	}
+
+	props := resp.SubnetPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", id.Name, id.VirtualNetworkName, id.ResourceGroup)
+	}
+
+	if props.RouteTable != nil && ((props.RouteTable.ID == nil) || (props.RouteTable.ID != nil && *props.RouteTable.ID == "")) {
+		return fmt.Errorf("No Route Table should exist for Subnet %q (Virtual Network %q / Resource Group: %q) but got %q", id.Name, id.VirtualNetworkName, id.ResourceGroup, *props.RouteTable.ID)
+	}
+
+	return nil
 }
 
 func (r SubnetResource) basic(data acceptance.TestData) string {
