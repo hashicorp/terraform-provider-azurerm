@@ -75,14 +75,10 @@ func TestAccVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 	r := VirtualMachineResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicLinuxMachine(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicLinuxMachine,
+			TestResource: r,
+		}),
 	})
 }
 

@@ -296,36 +296,22 @@ func testCheckVirtualMachineVHDExistence(blobName string, shouldExist bool) reso
 	}
 }
 
-func testCheckVirtualMachineDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	vmName := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		vmName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
-		}
-
-		// this is a preview feature we don't want to use right now
-		var forceDelete *bool = nil
-		future, err := client.Delete(ctx, resourceGroup, vmName, forceDelete)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-		}
-
-		return nil
+	// this is a preview feature we don't want to use right now
+	var forceDelete *bool = nil
+	future, err := client.Compute.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
+	if err != nil {
+		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func testAccCheckVirtualMachineRecreated(t *testing.T, before, after *compute.VirtualMachine) resource.TestCheckFunc {
