@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAvailabilitySet() *schema.Resource {
+func resourceAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAvailabilitySetCreateUpdate,
-		Read:   resourceArmAvailabilitySetRead,
-		Update: resourceArmAvailabilitySetCreateUpdate,
-		Delete: resourceArmAvailabilitySetDelete,
+		Create: resourceAvailabilitySetCreateUpdate,
+		Read:   resourceAvailabilitySetRead,
+		Update: resourceAvailabilitySetCreateUpdate,
+		Delete: resourceAvailabilitySetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -92,7 +92,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 	}
 }
 
-func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,10 +151,10 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmAvailabilitySetRead(d, meta)
+	return resourceAvailabilitySetRead(d, meta)
 }
 
-func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +194,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

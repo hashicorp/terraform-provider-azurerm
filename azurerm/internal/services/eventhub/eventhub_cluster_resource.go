@@ -156,6 +156,9 @@ func resourceEventHubClusterDelete(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if future.Response().StatusCode == 404 {
+				return nil
+			}
 			return resource.NonRetryableError(fmt.Errorf("deleting EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 

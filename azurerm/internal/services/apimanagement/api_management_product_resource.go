@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -137,16 +139,16 @@ func resourceApiManagementProductCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("creating/updating Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serviceName, productId)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, productId)
 	if err != nil {
 		return fmt.Errorf("retrieving Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
-	if read.ID == nil {
+	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Product %q (API Management Service %q / Resource Group %q)", productId, serviceName, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementProductRead(d, meta)
 }
@@ -156,14 +158,14 @@ func resourceApiManagementProductRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	productId := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productId)
 	if err != nil {
@@ -198,13 +200,13 @@ func resourceApiManagementProductDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
+	serviceName := id.ServiceName
+	productId := id.Name
 
 	log.Printf("[DEBUG] Deleting Product %q (API Management Service %q / Resource Grouo %q)", productId, serviceName, resourceGroup)
 	deleteSubscriptions := true

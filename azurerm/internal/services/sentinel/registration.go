@@ -21,7 +21,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_sentinel_alert_rule": dataSourceSentinelAlertRule(),
+		"azurerm_sentinel_alert_rule":          dataSourceSentinelAlertRule(),
+		"azurerm_sentinel_alert_rule_template": dataSourceSentinelAlertRuleTemplate(),
 	}
 }
 

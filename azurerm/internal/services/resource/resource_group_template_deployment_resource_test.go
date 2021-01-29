@@ -1,385 +1,306 @@
 package resource_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type ResourceGroupTemplateDeploymentResource struct {
+}
 
 func TestAccResourceGroupTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_emptyConfig(data, "Complete"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// set some tags
-				Config: resourceGroupTemplateDeployment_emptyWithTagsConfig(data, "Complete"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyConfig(data, "Complete"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// set some tags
+			Config: r.emptyWithTagsConfig(data, "Complete"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_incremental(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_emptyConfig(data, "Incremental"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// set some tags
-				Config: resourceGroupTemplateDeployment_emptyWithTagsConfig(data, "Incremental"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyConfig(data, "Incremental"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			// set some tags
+			Config: r.emptyWithTagsConfig(data, "Incremental"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_singleItemWithParameterConfig(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_singleItemWithParameterConfig(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithParameterConfig(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.singleItemWithParameterConfig(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_singleItemUpdatingTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_singleItemWithPublicIPConfig(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_singleItemWithPublicIPConfig(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithPublicIPConfig(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.singleItemWithPublicIPConfig(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_withOutputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_withOutputsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "output_content", "{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withOutputsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\")"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_multipleItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_multipleItemsConfig(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_multipleItemsConfig(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleItemsConfig(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multipleItemsConfig(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_multipleNestedItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_multipleNestedItemsConfig(data, "first"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_multipleNestedItemsConfig(data, "second"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleNestedItemsConfig(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multipleNestedItemsConfig(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_childItemsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_childItemsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.childItemsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.childItemsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_updateExpressionEvaluationOption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data, "Inner"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			// The Azure API doesn't return the `expression_evaluation_option` property in the response.
-			// Bug: https://github.com/Azure/azure-rest-api-specs/issues/12326
-			data.ImportStep("expression_evaluation_option"),
-			{
-				Config: resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data, "Outer"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("expression_evaluation_option"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.updateExpressionEvaluationOptionConfig(data, "Inner"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		// The Azure API doesn't return the `expression_evaluation_option` property in the response.
+		// Bug: https://github.com/Azure/azure-rest-api-specs/issues/12326
+		data.ImportStep("expression_evaluation_option"),
+		{
+			Config: r.updateExpressionEvaluationOptionConfig(data, "Outer"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("expression_evaluation_option"),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_updateOnErrorDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_withLastSuccessfulDeploymentConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_withSpecificDeploymentConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.lastSuccessfulDeploymentConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.specificDeploymentConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_switchTemplateDeploymentBetweenLinkAndContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_withDeploymentContents(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateLinkAndParametersLinkConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.deploymentContents(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.templateLinkAndParametersLinkConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupTemplateDeployment_updateTemplateLinkAndParametersLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: resourceGroupTemplateDeployment_updateTemplateLinkAndParametersLinkConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateLinkAndParametersLinkConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateTemplateLinkAndParametersLinkConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckResourceGroupTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("bad: Get on deploymentsClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("bad: Resource Group Template Deployment %q does not exist", name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckResourceGroupTemplateDeploymentDestroyed(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_resource_group_template_deployment" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Resource Group Template Deployment still exists:\n%#v", resp.Properties)
-		}
+func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Resource.DeploymentsClient.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Management Lock (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func resourceGroupTemplateDeployment_emptyConfig(data acceptance.TestData, deploymentMode string) string {
+func (ResourceGroupTemplateDeploymentResource) emptyConfig(data acceptance.TestData, deploymentMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -408,7 +329,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, deploymentMode)
 }
 
-func resourceGroupTemplateDeployment_emptyWithTagsConfig(data acceptance.TestData, deploymentMode string) string {
+func (ResourceGroupTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData, deploymentMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -440,7 +361,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, deploymentMode)
 }
 
-func resourceGroupTemplateDeployment_singleItemWithParameterConfig(data acceptance.TestData, value string) string {
+func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -486,7 +407,7 @@ PARAM
 `, data.RandomInteger, data.Locations.Primary, value)
 }
 
-func resourceGroupTemplateDeployment_singleItemWithPublicIPConfig(data acceptance.TestData, tagValue string) string {
+func (ResourceGroupTemplateDeploymentResource) singleItemWithPublicIPConfig(data acceptance.TestData, tagValue string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -528,7 +449,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tagValue)
 }
 
-func resourceGroupTemplateDeployment_withOutputsConfig(data acceptance.TestData) string {
+func (ResourceGroupTemplateDeploymentResource) withOutputsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -563,7 +484,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func resourceGroupTemplateDeployment_multipleItemsConfig(data acceptance.TestData, value string) string {
+func (ResourceGroupTemplateDeploymentResource) multipleItemsConfig(data acceptance.TestData, value string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -617,7 +538,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value, data.RandomInteger, value)
 }
 
-func resourceGroupTemplateDeployment_multipleNestedItemsConfig(data acceptance.TestData, value string) string {
+func (ResourceGroupTemplateDeploymentResource) multipleNestedItemsConfig(data acceptance.TestData, value string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -690,7 +611,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, value)
 }
 
-func resourceGroupTemplateDeployment_childItemsConfig(data acceptance.TestData) string {
+func (ResourceGroupTemplateDeploymentResource) childItemsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -736,60 +657,49 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
-	template := resourceGroupTemplateDeployment_template(data)
+func (r ResourceGroupTemplateDeploymentResource) templateLinkAndParametersLinkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   template_link {
     uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.json"
     content_version = "1.0.0.0"
   }
-
   parameters_link {
     uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.parameters.json"
     content_version = "1.0.0.0"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func resourceGroupTemplateDeployment_updateTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
-	template := resourceGroupTemplateDeployment_template(data)
+func (r ResourceGroupTemplateDeploymentResource) updateTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   template_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
   }
-
   parameters_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.parameters.json"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func resourceGroupTemplateDeployment_withDeploymentContents(data acceptance.TestData) string {
-	template := resourceGroupTemplateDeployment_template(data)
+func (r ResourceGroupTemplateDeploymentResource) deploymentContents(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -808,7 +718,6 @@ resource "azurerm_resource_group_template_deployment" "test" {
   "resources": []
 }
 TEMPLATE
-
   parameters_content = <<PARAM
 {
   "someParam": {
@@ -817,19 +726,16 @@ TEMPLATE
 }
 PARAM
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func resourceGroupTemplateDeployment_withLastSuccessfulDeploymentConfig(data acceptance.TestData) string {
-	template := resourceGroupTemplateDeployment_template(data)
+func (r ResourceGroupTemplateDeploymentResource) lastSuccessfulDeploymentConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_resource_group_template_deployment" "test2" {
   name                = "acctest-Deployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -840,16 +746,13 @@ resource "azurerm_resource_group_template_deployment" "test2" {
 }
 TEMPLATE
 }
-
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   on_error_deployment {
     type = "LastSuccessful"
   }
-
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -859,22 +762,18 @@ resource "azurerm_resource_group_template_deployment" "test" {
   "resources": []
 }
 TEMPLATE
-
   depends_on = [azurerm_resource_group_template_deployment.test2]
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func resourceGroupTemplateDeployment_withSpecificDeploymentConfig(data acceptance.TestData) string {
-	template := resourceGroupTemplateDeployment_template(data)
+func (r ResourceGroupTemplateDeploymentResource) specificDeploymentConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_resource_group_template_deployment" "test2" {
   name                = "acctest-Deployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -885,17 +784,14 @@ resource "azurerm_resource_group_template_deployment" "test2" {
 }
 TEMPLATE
 }
-
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   on_error_deployment {
     deployment_name = azurerm_resource_group_template_deployment.test2.name
     type            = "SpecificDeployment"
   }
-
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -906,40 +802,34 @@ resource "azurerm_resource_group_template_deployment" "test" {
 }
 TEMPLATE
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data acceptance.TestData, scope string) string {
-	template := resourceGroupTemplateDeployment_template(data)
+func (r ResourceGroupTemplateDeploymentResource) updateExpressionEvaluationOptionConfig(data acceptance.TestData, scope string) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-
   template_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
   }
-
   parameters_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.parameters.json"
   }
-
   expression_evaluation_option {
     scope = "%s"
   }
 }
-`, template, data.RandomInteger, scope)
+`, r.template(data), data.RandomInteger, scope)
 }
 
-func resourceGroupTemplateDeployment_template(data acceptance.TestData) string {
+func (ResourceGroupTemplateDeploymentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-deployment-%d"
   location = "%s"

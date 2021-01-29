@@ -3,6 +3,7 @@ package loganalytics_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -18,8 +19,17 @@ type LogAnalyticsClusterCustomerManagedKeyResource struct {
 }
 
 func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to crash in go-autorest https://github.com/Azure/go-autorest/pull/605")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster_customer_managed_key", "test")
 	r := LogAnalyticsClusterCustomerManagedKeyResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{

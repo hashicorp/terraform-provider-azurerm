@@ -1,7 +1,6 @@
 package location
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -54,7 +53,7 @@ func DiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 
 func HashCode(location interface{}) int {
 	loc := location.(string)
-	return hashcode.String(Normalize(loc))
+	return schema.HashString(Normalize(loc))
 }
 
 func StateFunc(location interface{}) string {

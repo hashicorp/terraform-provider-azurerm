@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetJSON() *schema.Resource {
+func resourceDataFactoryDatasetJSON() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetJSONCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetJSONRead,
-		Update: resourceArmDataFactoryDatasetJSONCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetJSONDelete,
+		Create: resourceDataFactoryDatasetJSONCreateUpdate,
+		Read:   resourceDataFactoryDatasetJSONRead,
+		Update: resourceDataFactoryDatasetJSONCreateUpdate,
+		Delete: resourceDataFactoryDatasetJSONDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -201,7 +201,7 @@ func resourceArmDataFactoryDatasetJSON() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,10 +293,10 @@ func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetJSONRead(d, meta)
+	return resourceDataFactoryDatasetJSONRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -384,7 +384,7 @@ func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmDataFactoryDatasetJSONDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

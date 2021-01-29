@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -77,14 +76,10 @@ func TestAccPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckPostgreSQLVirtualNetworkRuleDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -115,7 +110,7 @@ func TestAccPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	})
 }
 
-func (t PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,43 +124,22 @@ func (t PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckPostgreSQLVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		ruleName := rs.Primary.Attributes["name"]
-
-		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
-		if err != nil {
-			// If the error is that the resource we want to delete does not exist in the first
-			// place (404), then just return with no error.
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-
-			return fmt.Errorf("Error deleting PostgreSQL Virtual Network Rule: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			// Same deal as before. Just in case.
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-
-			return fmt.Errorf("Error deleting PostgreSQL Virtual Network Rule: %+v", err)
-		}
-
-		return nil
+func (r PostgreSQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualNetworkRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	future, err := client.Postgres.VirtualNetworkRulesClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Postgres.VirtualNetworkRulesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion of Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (PostgreSQLVirtualNetworkRuleResource) basic(data acceptance.TestData) string {

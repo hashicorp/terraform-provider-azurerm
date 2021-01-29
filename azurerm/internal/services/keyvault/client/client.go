@@ -7,19 +7,19 @@ import (
 )
 
 type Client struct {
-	VaultsClient     *keyvault.VaultsClient
 	ManagementClient *keyvaultmgmt.BaseClient
+	VaultsClient     *keyvault.VaultsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	VaultsClient := keyvault.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VaultsClient.Client, o.ResourceManagerAuthorizer)
+	managementClient := keyvaultmgmt.New()
+	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
-	ManagementClient := keyvaultmgmt.New()
-	o.ConfigureClient(&ManagementClient.Client, o.KeyVaultAuthorizer)
+	vaultsClient := keyvault.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		VaultsClient:     &VaultsClient,
-		ManagementClient: &ManagementClient,
+		ManagementClient: &managementClient,
+		VaultsClient:     &vaultsClient,
 	}
 }

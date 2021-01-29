@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -92,6 +93,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceDat
 		}
 	}
 
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
+
 	parameters := eventhub.ArmDisasterRecovery{
 		ArmDisasterRecoveryProperties: &eventhub.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
@@ -137,6 +141,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceDat
 	name := id.Path["disasterRecoveryConfigs"]
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
+
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
 	if d.HasChange("partner_namespace_id") {
 		// break pairing
@@ -219,6 +226,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceDat
 	name := id.Path["disasterRecoveryConfigs"]
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
+
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
 	breakPair, err := client.BreakPairing(ctx, resourceGroup, namespaceName, name)
 	if err != nil {

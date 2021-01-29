@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceBlobStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceBlobStorageDelete,
+		Create: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceBlobStorageRead,
+		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceBlobStorageDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -98,7 +98,7 @@ func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,10 +167,10 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceBlobStorageRead(d, meta)
+	return resourceDataFactoryLinkedServiceBlobStorageRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 
 	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
 	}
 
 	d.Set("additional_properties", blobStorage.AdditionalProperties)
@@ -224,7 +224,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

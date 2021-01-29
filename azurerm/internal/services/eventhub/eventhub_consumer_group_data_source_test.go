@@ -33,9 +33,7 @@ func TestAccEventHubConsumerGroupDataSource_completeDefault(t *testing.T) {
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.completeDefault(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("user_metadata").HasValue("some-meta-data"),
-			),
+			Check:  resource.ComposeTestCheckFunc(),
 		},
 	})
 }

@@ -1,20 +1,21 @@
 package set
 
 import (
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func HashInt(v interface{}) int {
-	return hashcode.String(strconv.Itoa(v.(int)))
+	return schema.HashString(strconv.Itoa(v.(int)))
 }
 
 func HashStringIgnoreCase(v interface{}) int {
-	return hashcode.String(strings.ToLower(v.(string)))
+	return schema.HashString(strings.ToLower(v.(string)))
 }
 
 func FromStringSlice(slice []string) *schema.Set {
@@ -27,7 +28,7 @@ func FromStringSlice(slice []string) *schema.Set {
 
 // HashIPv6Address normalizes an IPv6 address and returns a hash for it
 func HashIPv6Address(ipv6 interface{}) int {
-	return hashcode.String(normalizeIPv6Address(ipv6))
+	return schema.HashString(normalizeIPv6Address(ipv6))
 }
 
 // NormalizeIPv6Address returns the normalized notation of an IPv6
@@ -40,4 +41,17 @@ func normalizeIPv6Address(ipv6 interface{}) string {
 		return ""
 	}
 	return r.String()
+}
+
+func HashIPv4AddressOrCIDR(ipv4 interface{}) int {
+	warnings, errors := validate.IPv4Address(ipv4, "")
+
+	// maybe cidr, just hash it
+	if len(warnings) > 0 || len(errors) > 0 {
+		return schema.HashString(ipv4)
+	}
+
+	// convert to cidr hash
+	cidr := fmt.Sprintf("%s/32", ipv4.(string))
+	return schema.HashString(cidr)
 }

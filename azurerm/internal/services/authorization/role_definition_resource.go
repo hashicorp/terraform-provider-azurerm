@@ -1,12 +1,14 @@
 package authorization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -134,7 +136,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	if roleDefinitionId == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
-			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
 		}
 
 		roleDefinitionId = uuid
@@ -151,7 +153,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		existing, err := client.Get(ctx, scope, roleDefinitionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Role Definition ID for %q (Scope %q)", name, scope)
+				return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", name, scope)
 			}
 		}
 
@@ -173,6 +175,30 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 
 	if _, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties); err != nil {
 		return err
+	}
+
+	// (@jackofallops) - Updates are subject to eventual consistency, and could be read as stale data
+	if !d.IsNewResource() {
+		id, err := parse.RoleDefinitionId(d.Id())
+		if err != nil {
+			return err
+		}
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{
+				"Pending",
+			},
+			Target: []string{
+				"OK",
+			},
+			Refresh:                   roleDefinitionUpdateStateRefreshFunc(ctx, client, id.ResourceID),
+			MinTimeout:                10 * time.Second,
+			ContinuousTargetOccurence: 6,
+			Timeout:                   d.Timeout(schema.TimeoutUpdate),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for update to Role Definition %q to finish replicating", name)
+		}
 	}
 
 	read, err := client.Get(ctx, scope, roleDefinitionId)
@@ -209,7 +235,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
+		return fmt.Errorf("loading Role Definition %q: %+v", d.Id(), err)
 	}
 
 	if props := resp.RoleDefinitionProperties; props != nil {
@@ -242,6 +268,24 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Role Definition %q at Scope %q: %+v", id.RoleID, id.Scope, err)
 		}
+	}
+	// Deletes are not instant and can take time to propagate
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"Pending",
+		},
+		Target: []string{
+			"Deleted",
+			"NotFound",
+		},
+		Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id.ResourceID),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 6,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for delete on Role Definition %q to complete", id.RoleID)
 	}
 
 	return nil
@@ -292,13 +336,12 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 	scopes := make([]string, 0)
 
-	// The first scope in the list must be the target scope as it it not returned in any API call
-	assignedScope := d.Get("scope").(string)
-	scopes = append(scopes, assignedScope)
 	assignableScopes := d.Get("assignable_scopes").([]interface{})
-	for _, scope := range assignableScopes {
-		// Ensure the assigned scope is not duplicated in the list if also specified in `assignable_scopes`
-		if scope != assignedScope {
+	if len(assignableScopes) == 0 {
+		assignedScope := d.Get("scope").(string)
+		scopes = append(scopes, assignedScope)
+	} else {
+		for _, scope := range assignableScopes {
 			scopes = append(scopes, scope.(string))
 		}
 	}
@@ -360,4 +403,30 @@ func flattenRoleDefinitionAssignableScopes(input *[]string) []interface{} {
 	}
 
 	return scopes
+}
+
+func roleDefinitionUpdateStateRefreshFunc(ctx context.Context, client *authorization.RoleDefinitionsClient, roleDefinitionId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByID(ctx, roleDefinitionId)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", err
+			}
+			return resp, "Error", err
+		}
+		return "OK", "OK", nil
+	}
+}
+
+func roleDefinitionDeleteStateRefreshFunc(ctx context.Context, client *authorization.RoleDefinitionsClient, roleDefinitionId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByID(ctx, roleDefinitionId)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
+			}
+			return nil, "Error", err
+		}
+		return "Pending", "Pending", nil
+	}
 }

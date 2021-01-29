@@ -6,13 +6,14 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,9 +70,9 @@ func TestAccFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rule.3765122797.name").HasValue("rule1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.updatedName(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -80,9 +81,9 @@ func TestAccFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rule.1700340761.name").HasValue("rule2"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -125,7 +126,7 @@ func TestAccFirewallNetworkRuleCollection_multipleRuleCollections(t *testing.T) 
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				testCheckFirewallNetworkRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
+				data.CheckWithClient(r.checkFirewallNetworkRuleCollectionDoesNotExist("acctestnrc_add")),
 			),
 		},
 	})
@@ -183,10 +184,12 @@ func TestAccFirewallNetworkRuleCollection_disappears(t *testing.T) {
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				testCheckFirewallNetworkRuleCollectionDisappears(data.ResourceName),
 			),
-			ExpectNonEmptyPlan: true,
 		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -360,21 +363,18 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 	return utils.Bool(false), nil
 }
 
-func testCheckFirewallNetworkRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
+func (r FirewallNetworkRuleCollectionResource) checkFirewallNetworkRuleCollectionDoesNotExist(collectionName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+		id, err := parse.FirewallNetworkRuleCollectionID(state.ID)
+		if err != nil {
+			return err
 		}
 
-		firewallName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		firewallName := id.AzureFirewallName
+		resourceGroup := id.ResourceGroup
 
-		read, err := client.Get(ctx, resourceGroup, firewallName)
+		read, err := clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
 		}
@@ -389,47 +389,42 @@ func testCheckFirewallNetworkRuleCollectionDoesNotExist(resourceName string, col
 	}
 }
 
-func testCheckFirewallNetworkRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		firewallName := rs.Primary.Attributes["azure_firewall_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		read, err := client.Get(ctx, resourceGroup, firewallName)
-		if err != nil {
-			return err
-		}
-
-		rules := make([]network.AzureFirewallNetworkRuleCollection, 0)
-		for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
-			if *collection.Name != name {
-				rules = append(rules, collection)
-			}
-		}
-
-		read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing Network Rule Collection from Firewall: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
-		}
-
-		_, err = client.Get(ctx, resourceGroup, firewallName)
-		return err
+func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FirewallNetworkRuleCollectionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	name := id.NetworkRuleCollectionName
+	firewallName := id.AzureFirewallName
+	resourceGroup := id.ResourceGroup
+
+	read, err := clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
+	if err != nil {
+		return utils.Bool(false), err
+	}
+
+	rules := make([]network.AzureFirewallNetworkRuleCollection, 0)
+	for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
+		if *collection.Name != name {
+			rules = append(rules, collection)
+		}
+	}
+
+	read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
+
+	future, err := clients.Firewall.AzureFirewallsClient.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
+	if err != nil {
+		return utils.Bool(false), fmt.Errorf("Error removing Network Rule Collection from Firewall: %+v", err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, clients.Firewall.AzureFirewallsClient.Client); err != nil {
+		return utils.Bool(false), fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
+	}
+
+	_, err = clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
+
+	return utils.Bool(err == nil), err
 }
 
 func (FirewallNetworkRuleCollectionResource) basic(data acceptance.TestData) string {
@@ -859,7 +854,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, FirewallResource{}.enableDNS(data))
+`, FirewallResource{}.enableDNS(data, "1.1.1.1", "8.8.8.8"))
 }
 
 func (r FirewallNetworkRuleCollectionResource) noSource(data acceptance.TestData) string {
