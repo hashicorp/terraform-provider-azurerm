@@ -91,8 +91,8 @@ func TestAccVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *testing.T)
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineVHDExistence("myosdisk1.vhd", true),
-				testCheckVirtualMachineVHDExistence("mirrorosdisk.vhd", true),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", true), "azurerm_storage_container.test"),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mirrorosdisk.vhd", true), "azurerm_storage_container.test"),
 				resource.TestMatchResourceAttr("azurerm_virtual_machine.mirror", "storage_os_disk.0.image_uri", regexp.MustCompile("myosdisk1.vhd$")),
 			),
 		},
@@ -251,8 +251,8 @@ func TestAccVirtualMachine_deleteVHDOptOut(t *testing.T) {
 		{
 			Config: r.basicLinuxMachineDeleteVM(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineVHDExistence("myosdisk1.vhd", true),
-				testCheckVirtualMachineVHDExistence("mydatadisk1.vhd", true),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", true), "azurerm_storage_container.test"),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mydatadisk1.vhd", true), "azurerm_storage_container.test"),
 			),
 		},
 	})
@@ -272,8 +272,8 @@ func TestAccVirtualMachine_deleteVHDOptIn(t *testing.T) {
 		{
 			Config: r.basicLinuxMachineDestroyDisksAfter(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineVHDExistence("myosdisk1.vhd", false),
-				testCheckVirtualMachineVHDExistence("mydatadisk1.vhd", false),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", false), "azurerm_storage_container.test"),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mydatadisk1.vhd", false), "azurerm_storage_container.test"),
 			),
 		},
 	})

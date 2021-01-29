@@ -239,49 +239,40 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 	return nil
 }
 
-func testCheckVirtualMachineVHDExistence(blobName string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, shouldExist bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		accountName := state.Attributes["storage_account_name"]
+		containerName := state.Attributes["name"]
 
-		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "azurerm_storage_container" {
-				continue
-			}
+		account, err := clients.Storage.FindAccount(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		}
 
-			accountName := rs.Primary.Attributes["storage_account_name"]
-			containerName := rs.Primary.Attributes["name"]
+		client, err := clients.Storage.BlobsClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Blobs Client: %s", err)
+		}
 
-			account, err := storageClient.FindAccount(ctx, accountName)
-			if err != nil {
-				return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
-			}
-			if account == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-			}
-
-			client, err := storageClient.BlobsClient(ctx, *account)
-			if err != nil {
-				return fmt.Errorf("Error building Blobs Client: %s", err)
-			}
-
-			input := blobs.GetPropertiesInput{}
-			props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
-			if err != nil {
-				if utils.ResponseWasNotFound(props.Response) {
-					if !shouldExist {
-						return nil
-					}
-
-					return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
+		input := blobs.GetPropertiesInput{}
+		props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
+		if err != nil {
+			if utils.ResponseWasNotFound(props.Response) {
+				if !shouldExist {
+					return nil
 				}
 
-				return fmt.Errorf("Error retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
+				return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
 			}
 
-			if !shouldExist {
-				return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
-			}
+			return fmt.Errorf("Error retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
+		}
+
+		if !shouldExist {
+			return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
 		}
 
 		return nil
