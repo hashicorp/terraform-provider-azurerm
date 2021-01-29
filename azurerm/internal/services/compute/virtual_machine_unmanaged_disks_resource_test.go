@@ -2,12 +2,10 @@ package compute_test
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -411,12 +409,9 @@ func TestAccVirtualMachine_optionalOSProfile(t *testing.T) {
 		{
 			Destroy: false,
 			Config:  r.basicLinuxMachine_destroy(data),
-			Check: func(s *terraform.State) error {
-				if err := testCheckVirtualMachineDestroy(s); err != nil {
-					log.Printf("[DEBUG] WARNING testCheckVirtualMachineDestroy error'd: %v", err)
-				}
-				return nil
-			},
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).DoesNotExistInAzure(r),
+			),
 		},
 		{
 			Config: r.basicLinuxMachine_attach_without_osProfile(data),
