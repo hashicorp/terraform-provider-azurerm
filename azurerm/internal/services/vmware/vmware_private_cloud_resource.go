@@ -321,6 +321,7 @@ func resourceVmwarePrivateCloudUpdate(d *schema.ResourceData, meta interface{}) 
 			ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.size").(int))),
 		}
 	}
+	
 	if d.HasChange("internet_connection_enabled") {
 		internet := avs.Disabled
 		if d.Get("internet_connection_enabled").(bool) {
