@@ -57,12 +57,12 @@ func TestAccNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	r := NetworkInterfaceNATRuleAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		// intentional as this is a Virtual Resource
+		// intentionally not using a DisappearsStep as this is a Virtual Resource
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkInterfaceNATRuleAssociationDisappears(data.ResourceName),
+				data.CheckWithClient(r.destroy),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -131,59 +131,48 @@ func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, 
 	return utils.Bool(found), nil
 }
 
-func testCheckNetworkInterfaceNATRuleAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (NetworkInterfaceNATRuleAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	nicID, err := azure.ParseAzureResourceID(state.Attributes["network_interface_id"])
+	if err != nil {
+		return err
+	}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
+	nicName := nicID.Path["networkInterfaces"]
+	resourceGroup := nicID.ResourceGroup
+	ipConfigurationName := state.Attributes["ip_configuration_name"]
+	natRuleId := state.Attributes["nat_rule_id"]
 
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
+	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
 
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
-		natRuleId := rs.Primary.Attributes["nat_rule_id"]
+	c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	if c == nil {
+		return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
+	}
+	config := *c
 
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if c == nil {
-			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
-		}
-		config := *c
-
-		updatedRules := make([]network.InboundNatRule, 0)
-		if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
-			for _, rule := range *config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules {
-				if *rule.ID != natRuleId {
-					updatedRules = append(updatedRules, rule)
-				}
+	updatedRules := make([]network.InboundNatRule, 0)
+	if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
+		for _, rule := range *config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules {
+			if *rule.ID != natRuleId {
+				updatedRules = append(updatedRules, rule)
 			}
 		}
-		config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules = &updatedRules
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, nicName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing NAT Rule Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for removal of NAT Rule Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		return nil
 	}
+	config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules = &updatedRules
+
+	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, resourceGroup, nicName, read)
+	if err != nil {
+		return fmt.Errorf("Error removing NAT Rule Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for removal of NAT Rule Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func (r NetworkInterfaceNATRuleAssociationResource) basic(data acceptance.TestData) string {
