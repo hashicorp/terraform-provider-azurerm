@@ -226,7 +226,6 @@ func TestAccVirtualMachine_attachSecondDataDiskWithAttachOption(t *testing.T) {
 			Config: r.basicLinuxMachine_managedDisk_attach(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testAccCheckVirtualMachineRecreated(t, &afterCreate, &afterUpdate),
 				check.That(data.ResourceName).Key("storage_data_disk.0.create_option").HasValue("Empty"),
 				check.That(data.ResourceName).Key("storage_data_disk.1.create_option").HasValue("Attach"),
 			),

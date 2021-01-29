@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -283,8 +282,6 @@ func TestAccVirtualMachine_deleteVHDOptIn(t *testing.T) {
 func TestAccVirtualMachine_ChangeComputerName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.machineNameBeforeUpdate(data),
@@ -292,13 +289,10 @@ func TestAccVirtualMachine_ChangeComputerName(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-
 		{
 			Config: r.updateMachineName(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
 			),
 		},
 	})
@@ -307,7 +301,6 @@ func TestAccVirtualMachine_ChangeComputerName(t *testing.T) {
 func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -321,8 +314,6 @@ func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 			Config: r.updateAvailabilitySet(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
 			),
 		},
 	})
@@ -331,7 +322,6 @@ func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 func TestAccVirtualMachine_changeStorageImageReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -340,13 +330,10 @@ func TestAccVirtualMachine_changeStorageImageReference(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-
 		{
 			Config: r.basicLinuxMachineStorageImageAfter(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
 			),
 		},
 	})
@@ -355,7 +342,6 @@ func TestAccVirtualMachine_changeStorageImageReference(t *testing.T) {
 func TestAccVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -369,8 +355,6 @@ func TestAccVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 			Config: r.basicLinuxMachineWithOSDiskVhdUriChanged(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
 			),
 		},
 	})

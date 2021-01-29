@@ -314,15 +314,6 @@ func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Clien
 	return utils.Bool(true), nil
 }
 
-func testAccCheckVirtualMachineRecreated(t *testing.T, before, after *compute.VirtualMachine) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if before.ID == after.ID {
-			t.Fatalf("Expected change of Virtual Machine IDs, but both were %v", before.ID)
-		}
-		return nil
-	}
-}
-
 func (VirtualMachineResource) winTimeZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
