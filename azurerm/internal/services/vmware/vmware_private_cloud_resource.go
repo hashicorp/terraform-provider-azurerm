@@ -312,18 +312,16 @@ func resourceVmwarePrivateCloudUpdate(d *schema.ResourceData, meta interface{}) 
 		PrivateCloudUpdateProperties: &avs.PrivateCloudUpdateProperties{},
 	}
 
-	clusterSizeChange := false
+	if d.HasChange("management_cluster") && d.HasChange("internet_connection_enabled") {
+		return fmt.Errorf("`management_cluster.0.size` and `internet_connection_enabled` could not be changed together")
+	}
+
 	if d.HasChange("management_cluster") {
 		privateCloudUpdate.PrivateCloudUpdateProperties.ManagementCluster = &avs.ManagementCluster{
 			ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.size").(int))),
 		}
-		clusterSizeChange = true
 	}
 	if d.HasChange("internet_connection_enabled") {
-		if clusterSizeChange {
-			return fmt.Errorf("`management_cluster.0.size` and `internet_connection_enabled` could not be changed together")
-		}
-
 		internet := avs.Disabled
 		if d.Get("internet_connection_enabled").(bool) {
 			internet = avs.Enabled
