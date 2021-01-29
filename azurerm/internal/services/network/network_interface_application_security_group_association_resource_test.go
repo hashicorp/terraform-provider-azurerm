@@ -73,7 +73,7 @@ func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_deleted(t *testi
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkInterfaceApplicationSecurityGroupAssociationDisappears(data.ResourceName),
+				data.CheckWithClient(r.destroy),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -135,57 +135,46 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 	return utils.Bool(found), nil
 }
 
-func testCheckNetworkInterfaceApplicationSecurityGroupAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
-
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
-
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		configs := *read.InterfacePropertiesFormat.IPConfigurations
-		for _, config := range configs {
-			if config.ApplicationSecurityGroups != nil {
-				groups := make([]network.ApplicationSecurityGroup, 0)
-				for _, group := range *config.ApplicationSecurityGroups {
-					if *group.ID != applicationSecurityGroupId {
-						groups = append(groups, group)
-					}
-				}
-				config.ApplicationSecurityGroups = &groups
-			}
-		}
-
-		read.InterfacePropertiesFormat.IPConfigurations = &configs
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, nicName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing Application Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for removal of Application Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		return nil
+func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	nicID, err := azure.ParseAzureResourceID(state.Attributes["network_interface_id"])
+	if err != nil {
+		return err
 	}
+
+	nicName := nicID.Path["networkInterfaces"]
+	resourceGroup := nicID.ResourceGroup
+	applicationSecurityGroupId := state.Attributes["application_security_group_id"]
+
+	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	configs := *read.InterfacePropertiesFormat.IPConfigurations
+	for _, config := range configs {
+		if config.ApplicationSecurityGroups != nil {
+			groups := make([]network.ApplicationSecurityGroup, 0)
+			for _, group := range *config.ApplicationSecurityGroups {
+				if *group.ID != applicationSecurityGroupId {
+					groups = append(groups, group)
+				}
+			}
+			config.ApplicationSecurityGroups = &groups
+		}
+	}
+
+	read.InterfacePropertiesFormat.IPConfigurations = &configs
+
+	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, resourceGroup, nicName, read)
+	if err != nil {
+		return fmt.Errorf("Error removing Application Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for removal of Application Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func (r NetworkInterfaceApplicationSecurityGroupAssociationResource) basic(data acceptance.TestData) string {
