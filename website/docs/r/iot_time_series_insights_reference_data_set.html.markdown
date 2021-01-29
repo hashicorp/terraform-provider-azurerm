@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `data_string_comparison_behavior` - (Optional) The comparison behavior that will be used to compare keys. Valid values include `Ordinal` and `OrdinalIgnoreCase`. Defaults to `Ordinal`.
+* `data_string_comparison_behavior` - (Optional) The comparison behavior that will be used to compare keys. Valid values include `Ordinal` and `OrdinalIgnoreCase`. Defaults to `Ordinal`. Changing this forces a new resource to be created.
 
-* `key_property` - (Optional) A `key_property` block as defined below.
+* `key_property` - (Optional) A `key_property` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -56,9 +56,9 @@ The following arguments are supported:
 
 A `key_property` block supports the following:
 
-* `name`- (Required) The name of the key property.
+* `name`- (Required) The name of the key property. Changing this forces a new resource to be created.
 
-* `type` - (Required) The data type of the key property. Valid values include `Bool`, `DateTime`, `Double`, `String`.
+* `type` - (Required) The data type of the key property. Valid values include `Bool`, `DateTime`, `Double`, `String`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

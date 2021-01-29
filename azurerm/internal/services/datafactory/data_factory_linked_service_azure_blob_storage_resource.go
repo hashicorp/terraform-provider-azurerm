@@ -199,7 +199,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 
 	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
 	}
 
 	d.Set("additional_properties", blobStorage.AdditionalProperties)
