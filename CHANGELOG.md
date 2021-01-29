@@ -1,3 +1,7 @@
+## 2.46.0 (Unreleased)
+
+* `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
+
 ## 2.45.1 (January 28, 2021)
 
 BUG FIXES:
