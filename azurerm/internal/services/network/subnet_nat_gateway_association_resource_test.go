@@ -57,13 +57,13 @@ func TestAccAzureRMSubnetNatGatewayAssociation_deleted(t *testing.T) {
 	r := SubnetNatGatewayAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		// intentional since this is virtual resource
+		// intentionally not using a DisappearsStep since this is virtual resource
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMSubnetNatGatewayAssociationDisappears(data.ResourceName),
-				testCheckAzureRMSubnetHasNoNatGateways(data.ResourceName),
+				data.CheckWithClient(r.destroy),
+				data.CheckWithClientForResource(SubnetResource{}.hasNoNatGateway, "azurerm_subnet.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -115,87 +115,40 @@ func (t SubnetNatGatewayAssociationResource) Exists(ctx context.Context, clients
 	return utils.Bool(props.NatGateway.ID != nil), nil
 }
 
-func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := parsedSubnetId.ResourceGroup
-		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
-		subnetName := parsedSubnetId.Path["subnets"]
-
-		subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(subnet.Response) {
-				return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-			}
-			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
-		}
-
-		props := subnet.SubnetPropertiesFormat
-		if props == nil {
-			return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroup)
-		}
-		props.NatGateway = nil
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
-		if err != nil {
-			return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-		}
-		return nil
+func (SubnetNatGatewayAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	subnetId := state.Attributes["subnet_id"]
+	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
+	if err != nil {
+		return err
 	}
-}
 
-func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	resourceGroup := parsedSubnetId.ResourceGroup
+	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
+	subnetName := parsedSubnetId.Path["subnets"]
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	subnet, err := client.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(subnet.Response) {
+			return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 		}
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-		resourceGroupName := parsedSubnetId.ResourceGroup
-		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
-		subnetName := parsedSubnetId.Path["subnets"]
-
-		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(subnet.Response) {
-				return fmt.Errorf("Bad: Subnet %q (Virtual Network %q / Resource Group: %q) does not exist", subnetName, virtualNetworkName, resourceGroupName)
-			}
-			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
-		}
-
-		props := subnet.SubnetPropertiesFormat
-		if props == nil {
-			return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroupName)
-		}
-
-		if props.NatGateway != nil && ((props.NatGateway.ID == nil) || (props.NatGateway.ID != nil && *props.NatGateway.ID == "")) {
-			return fmt.Errorf("No Route Table should exist for Subnet %q (Virtual Network %q / Resource Group: %q) but got %q", subnetName, virtualNetworkName, resourceGroupName, *props.RouteTable.ID)
-		}
-		return nil
+		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
 	}
+
+	props := subnet.SubnetPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroup)
+	}
+	props.NatGateway = nil
+
+	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
+	if err != nil {
+		return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	}
+	return nil
 }
 
 func (r SubnetNatGatewayAssociationResource) basic(data acceptance.TestData) string {
