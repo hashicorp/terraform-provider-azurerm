@@ -700,7 +700,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-  template_content = <<TEMPLATE
+  template_content    = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -718,7 +718,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
   "resources": []
 }
 TEMPLATE
-  parameters_content = <<PARAM
+  parameters_content  = <<PARAM
 {
   "someParam": {
    "value": "first"
@@ -736,7 +736,7 @@ resource "azurerm_resource_group_template_deployment" "test2" {
   name                = "acctest-Deployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-  template_content = <<TEMPLATE
+  template_content    = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -762,7 +762,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
   "resources": []
 }
 TEMPLATE
-  depends_on = [azurerm_resource_group_template_deployment.test2]
+  depends_on       = [azurerm_resource_group_template_deployment.test2]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -774,7 +774,7 @@ resource "azurerm_resource_group_template_deployment" "test2" {
   name                = "acctest-Deployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-  template_content = <<TEMPLATE
+  template_content    = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
