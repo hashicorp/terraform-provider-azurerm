@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
@@ -225,30 +226,25 @@ func testGetVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, err
 	return &d, nil
 }
 
-func testCheckAndStopVirtualMachine(vm *compute.VirtualMachine) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		vmID, err := azure.ParseAzureResourceID(*vm.ID)
-		if err != nil {
-			return fmt.Errorf("Unable to parse virtual machine ID %s, %+v", *vm.ID, err)
-		}
-
-		name := vmID.Path["virtualMachines"]
-		resourceGroup := vmID.ResourceGroup
-
-		future, err := client.Deallocate(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
-		}
-
-		return nil
+func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	vmID, err := parse.VirtualMachineID(state.ID)
+	if err != nil {
+		return err
 	}
+
+	name := vmID.Name
+	resourceGroup := vmID.ResourceGroup
+
+	future, err := client.Compute.VMClient.Deallocate(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
+	}
+
+	return nil
 }
 
 func testCheckVirtualMachineVHDExistence(blobName string, shouldExist bool) resource.TestCheckFunc {

@@ -385,8 +385,6 @@ func TestAccVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.hasDiskInfoWhenStopped(data),
@@ -399,7 +397,7 @@ func TestAccVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 		{
 			Config: r.hasDiskInfoWhenStopped(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAndStopVirtualMachine(&vm),
+				data.CheckWithClient(r.deallocate),
 				check.That(data.ResourceName).Key("storage_os_disk.0.managed_disk_type").HasValue("Standard_LRS"),
 				check.That(data.ResourceName).Key("storage_data_disk.0.disk_size_gb").HasValue("64"),
 			),
