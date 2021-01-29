@@ -64,7 +64,7 @@ func testAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
-				kubernetesClusterUpdateNodePoolCount(data.ResourceName, 2),
+				data.CheckWithClient(r.updateDefaultNodePoolAgentCount(2)),
 			),
 		},
 		{
