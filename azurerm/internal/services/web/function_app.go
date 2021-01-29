@@ -440,6 +440,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
+	result["scm_type"] = string(input.ScmType)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
