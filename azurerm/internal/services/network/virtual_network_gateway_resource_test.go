@@ -212,10 +212,57 @@ func TestAccVirtualNetworkGateway_enableBgp(t *testing.T) {
 			Config: r.enableBgp(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_bgp").HasValue("true"),
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.default_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.tunnel_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.ip_configuration_name").Exists(),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetworkGateway_enableBgpWithAPIPA(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.enableBgpWithAPIPA(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.default_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.tunnel_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.apipa_addresses.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetworkGateway_activeActiveEnableBgpWithAPIPA(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.activeActiveEnableBgpWithAPIPA(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.default_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.1.default_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.tunnel_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.1.tunnel_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.apipa_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.1.apipa_addresses.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -793,6 +840,66 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (VirtualNetworkGatewayResource) enableBgpWithAPIPA(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type       = "Vpn"
+  vpn_type   = "RouteBased"
+  sku        = "VpnGw1"
+  enable_bgp = true
+
+  ip_configuration {
+    name                          = "gw-ip"
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  bgp_settings {
+    asn = "65010"
+    peering_addresses {
+      ip_configuration_name = "gw-ip"
+      apipa_addresses       = ["169.254.21.1"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (VirtualNetworkGatewayResource) expressRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1002,4 +1109,90 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayResource) activeActiveEnableBgpWithAPIPA(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "first" {
+  name                = "acctestpip1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_public_ip" "second" {
+  name = "acctestpip2-%d"
+
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  depends_on = [
+    azurerm_public_ip.first,
+    azurerm_public_ip.second,
+  ]
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+  sku      = "VpnGw1"
+
+  active_active = true
+  enable_bgp    = true
+
+  ip_configuration {
+    name                 = "gw-ip1"
+    public_ip_address_id = azurerm_public_ip.first.id
+
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  ip_configuration {
+    name                          = "gw-ip2"
+    public_ip_address_id          = azurerm_public_ip.second.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  bgp_settings {
+    asn = "65010"
+    peering_addresses {
+      ip_configuration_name = "gw-ip1"
+      apipa_addresses       = ["169.254.21.1"]
+    }
+    peering_addresses {
+      ip_configuration_name = "gw-ip2"
+      apipa_addresses       = ["169.254.21.2"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

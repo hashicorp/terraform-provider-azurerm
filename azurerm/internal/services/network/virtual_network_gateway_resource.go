@@ -7,12 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -267,7 +270,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
 							},
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 
 						"radius_server_secret": {
@@ -311,16 +314,58 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 							Optional: true,
 						},
 
+						// TODO 3.0 - Remove this property
 						"peering_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
+							Type:       schema.TypeString,
+							Optional:   true,
+							Computed:   true,
+							ForceNew:   true,
+							Deprecated: "Deprecated in favor of `peering_addresses`",
 						},
 
 						"peer_weight": {
 							Type:     schema.TypeInt,
 							Optional: true,
+						},
+
+						"peering_addresses": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MinItems: 1,
+							MaxItems: 2,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_configuration_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"apipa_addresses": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.IPAddressInAzureReservedAPIPARange,
+										},
+									},
+									"default_addresses": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"tunnel_ip_addresses": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -359,6 +404,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 func resourceVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
@@ -366,23 +412,29 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewVirtualNetworkGatewayID(subscriptionId, resGroup, name)
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Network Gateway %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Virtual Network Gateway %q: %s", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", *existing.ID)
+			id, err := parse.VirtualNetworkGatewayID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	properties, err := getVirtualNetworkGatewayProperties(d)
+	properties, err := getVirtualNetworkGatewayProperties(id, d)
 	if err != nil {
 		return err
 	}
@@ -396,22 +448,14 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of AzureRM Virtual Network Gateway %q: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM Virtual Network Gateway %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualNetworkGatewayRead(d, meta)
 }
@@ -421,22 +465,22 @@ func resourceVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
+	id, err := parse.VirtualNetworkGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -468,7 +512,11 @@ func resourceVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
-		if err := d.Set("bgp_settings", flattenVirtualNetworkGatewayBgpSettings(gw.BgpSettings)); err != nil {
+		bgpSettings, err := flattenVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("bgp_settings", bgpSettings); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
 
@@ -485,24 +533,24 @@ func resourceVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
+	id, err := parse.VirtualNetworkGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	return nil
 }
 
-func getVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.VirtualNetworkGatewayPropertiesFormat, error) {
+func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *schema.ResourceData) (*network.VirtualNetworkGatewayPropertiesFormat, error) {
 	gatewayType := network.VirtualNetworkGatewayType(d.Get("type").(string))
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
@@ -534,7 +582,7 @@ func getVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Virtua
 	}
 
 	if _, ok := d.GetOk("bgp_settings"); ok {
-		props.BgpSettings = expandVirtualNetworkGatewayBgpSettings(d)
+		props.BgpSettings = expandVirtualNetworkGatewayBgpSettings(id, d)
 	}
 
 	// Sku validation for policy-based VPN gateways
@@ -568,7 +616,7 @@ func getVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Virtua
 	return props, nil
 }
 
-func expandVirtualNetworkGatewayBgpSettings(d *schema.ResourceData) *network.BgpSettings {
+func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d *schema.ResourceData) *network.BgpSettings {
 	bgpSets := d.Get("bgp_settings").([]interface{})
 	if len(bgpSets) == 0 {
 		return nil
@@ -581,10 +629,31 @@ func expandVirtualNetworkGatewayBgpSettings(d *schema.ResourceData) *network.Bgp
 	peerWeight := int32(bgp["peer_weight"].(int))
 
 	return &network.BgpSettings{
-		Asn:               &asn,
-		BgpPeeringAddress: &peeringAddress,
-		PeerWeight:        &peerWeight,
+		Asn:                 &asn,
+		BgpPeeringAddress:   &peeringAddress,
+		PeerWeight:          &peerWeight,
+		BgpPeeringAddresses: expandVirtualNetworkGatewayBgpPeeringAddresses(id, bgp["peering_addresses"].([]interface{})),
 	}
+}
+
+func expandVirtualNetworkGatewayBgpPeeringAddresses(id parse.VirtualNetworkGatewayId, input []interface{}) *[]network.IPConfigurationBgpPeeringAddress {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]network.IPConfigurationBgpPeeringAddress, 0)
+
+	for _, e := range input {
+		b := e.(map[string]interface{})
+
+		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroup, id.Name, b["ip_configuration_name"].(string))
+		result = append(result, network.IPConfigurationBgpPeeringAddress{
+			IpconfigurationID:    utils.String(ipConfigId.ID()),
+			CustomBgpIPAddresses: utils.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
+		})
+	}
+
+	return &result
 }
 
 func expandVirtualNetworkGatewayIPConfigurations(d *schema.ResourceData) *[]network.VirtualNetworkGatewayIPConfiguration {
@@ -709,7 +778,7 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *network.Addre
 	}
 }
 
-func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) []interface{} {
+func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]interface{}, error) {
 	output := make([]interface{}, 0)
 
 	if settings != nil {
@@ -725,10 +794,45 @@ func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) []in
 			flat["peer_weight"] = int(*weight)
 		}
 
+		var err error
+		flat["peering_addresses"], err = flattenVirtualNetworkGatewayBgpPeeringAddresses(settings.BgpPeeringAddresses)
+		if err != nil {
+			return nil, err
+		}
+
 		output = append(output, flat)
 	}
 
-	return output
+	return output, nil
+}
+
+func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]network.IPConfigurationBgpPeeringAddress) (interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var ipConfigName string
+		if e.IpconfigurationID != nil {
+			id, err := parse.VirtualNetworkGatewayIpConfigurationID(*e.IpconfigurationID)
+			if err != nil {
+				return nil, err
+			}
+			ipConfigName = id.IpConfigurationName
+		}
+
+		output = append(output, map[string]interface{}{
+			"ip_configuration_name": ipConfigName,
+			"apipa_addresses":       utils.FlattenStringSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     utils.FlattenStringSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   utils.FlattenStringSlice(e.TunnelIPAddresses),
+		})
+	}
+
+	return output, nil
+
 }
 
 func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
