@@ -159,13 +159,15 @@ func resourceStorageAccount() *schema.Resource {
 									},
 
 									"forest_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"net_bios_domain_name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -777,10 +779,10 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.Identity = storageAccountIdentity
 	}
 
-	if _, ok := d.GetOk("azure_files_identity_based_authentication"); ok {
-		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(d.Get("azure_files_identity_based_authentication").([]interface{}))
+	if v, ok := d.GetOk("azure_files_identity_based_authentication"); ok {
+		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(v.([]interface{}))
 		if err != nil {
-			return err
+			return fmt.Errorf("parsing `azure_files_identity_based_authentication`: %v", err)
 		}
 		parameters.AzureFilesIdentityBasedAuthentication = expandAADFilesAuthentication
 	}
@@ -824,8 +826,8 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if _, ok := d.GetOk("routing_preference"); ok {
-		parameters.RoutingPreference = expandArmStorageAccountRoutingPreference(d.Get("routing_preference").([]interface{}))
+	if v, ok := d.GetOk("routing_preference"); ok {
+		parameters.RoutingPreference = expandArmStorageAccountRoutingPreference(v.([]interface{}))
 	}
 
 	// Create
@@ -1125,16 +1127,19 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 	// azure_files_identity_based_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
 	if d.HasChange("azure_files_identity_based_authentication") {
 		// due to service issue: https://github.com/Azure/azure-rest-api-specs/issues/12473, we need to update to None before changing its DirectoryServiceOptions
-		dsNone := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AzureFilesIdentityBasedAuthentication: &storage.AzureFilesIdentityBasedAuthentication{
-					DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
+		old, new := d.GetChange("azure_files_identity_based_authentication.0.directory_service_options")
+		if old != new && new != string(storage.DirectoryServiceOptionsNone) {
+			log.Print("[DEBUG] Disabling AzureFilesIdentityBasedAuthentication prior to changing DirectoryServiceOptions")
+			dsNone := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					AzureFilesIdentityBasedAuthentication: &storage.AzureFilesIdentityBasedAuthentication{
+						DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
+					},
 				},
-			},
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, dsNone); err != nil {
-			return fmt.Errorf("updating Azure Storage Account azure_files_identity_based_authentication %q: %+v", storageAccountName, err)
+			}
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, dsNone); err != nil {
+				return fmt.Errorf("updating Azure Storage Account azure_files_identity_based_authentication %q: %+v", storageAccountName, err)
+			}
 		}
 
 		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(d.Get("azure_files_identity_based_authentication").([]interface{}))
@@ -1893,13 +1898,9 @@ func flattenArmStorageAccountAzureFilesIdentityBasedAuthentication(input *storag
 		return make([]interface{}, 0)
 	}
 
-	var directoryServiceOptions storage.DirectoryServiceOptions
-	if input.DirectoryServiceOptions != "" {
-		directoryServiceOptions = input.DirectoryServiceOptions
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"directory_service_options": directoryServiceOptions,
+			"directory_service_options": input.DirectoryServiceOptions,
 			"active_directory":          flattenArmStorageAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
 		},
 	}
@@ -1959,15 +1960,12 @@ func flattenArmStorageAccountRoutingPreference(input *storage.RoutingPreference)
 	if input.PublishMicrosoftEndpoints != nil {
 		publishMicrosoftEndpoints = *input.PublishMicrosoftEndpoints
 	}
-	var routingChoice storage.RoutingChoice
-	if input.RoutingChoice != "" {
-		routingChoice = input.RoutingChoice
-	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"publish_internet_endpoints":  publishInternetEndpoints,
 			"publish_microsoft_endpoints": publishMicrosoftEndpoints,
-			"routing_choice":              routingChoice,
+			"routing_choice":              input.RoutingChoice,
 		},
 	}
 }

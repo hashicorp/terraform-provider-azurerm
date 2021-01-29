@@ -237,9 +237,9 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 A `azure_files_identity_based_authentication` block supports the following:
 
-* `directory_service_options` - (Required) Specifies the directory service used. Possible values are `DirectoryServiceOptionsAADDS` and `DirectoryServiceOptionsAD`.
+* `directory_service_options` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
 
-* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_service_options` is `DirectoryServiceOptionsAD`.
+* `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_service_options` is `AD`.
 
 ---
 
@@ -253,7 +253,7 @@ A `active_directory` block supports the following:
 
 * `domain_guid` - (Required) Specifies the domain GUID.
 
-* `forest_name` - (Required) Specifies the Active Directory forest to get.
+* `forest_name` - (Required) Specifies the Active Directory forest.
 
 * `net_bios_domain_name` - (Required) Specifies the NetBIOS domain name.
 
@@ -261,9 +261,9 @@ A `active_directory` block supports the following:
 
 A `routing_preference` block supports the following:
 
-* `publish_internet_endpoints` - (Optional) Are internet routing storage endpoints to be published? Defaults to `false`.
+* `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
 
-* `publish_microsoft_endpoints` - (Optional) Are microsoft routing storage endpoints  to be published? Defaults to `false`.
+* `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
 
 * `routing_choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 

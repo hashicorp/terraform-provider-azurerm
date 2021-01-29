@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -742,18 +741,8 @@ func TestAccAzureRMStorageAccount_azureFilesIdentityBasedAuthentication(t *testi
 			),
 		},
 		data.ImportStep(),
-		// this test step requires a AAD Domain Service exists in the subscription, Else it returns error
 		{
-			Config: r.azureFilesIdentityBasedAuthenticationAADDS(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		// the serivce will update in AAD DS after returning response. Issue opened:https://github.com/Azure/azure-rest-api-specs/issues/11272
-		{
-			PreConfig: func() { time.Sleep(3 * time.Minute) },
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
