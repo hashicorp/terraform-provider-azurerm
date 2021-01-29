@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -131,7 +129,7 @@ func testCheckVirtualMachineDestroy(s *terraform.State) error {
 	return nil
 }
 
-func (t VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -147,83 +145,77 @@ func (t VirtualMachineResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckVirtualMachineManagedDiskExists(managedDiskID *string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		d, err := testGetVirtualMachineManagedDisk(managedDiskID)
+func (VirtualMachineResource) managedDiskExists(diskId string, shouldExist bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ManagedDiskID(diskId)
 		if err != nil {
-			return fmt.Errorf("Error trying to retrieve Managed Disk %s, %+v", *managedDiskID, err)
+			return err
 		}
-		if d.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Unable to find Managed Disk %s", *managedDiskID)
+
+		disk, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+		if err != nil {
+			if utils.ResponseWasNotFound(disk.Response) {
+				if !shouldExist {
+					return nil
+				}
+
+				return fmt.Errorf("disk %s does not exist", *id)
+			}
+			return err
 		}
-		if d.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Found unexpected Managed Disk %s", *managedDiskID)
+
+		if !shouldExist {
+			return fmt.Errorf("disk %s shouldn't exist but it does", *id)
 		}
 
 		return nil
 	}
 }
 
-func testLookupVirtualMachineManagedDiskID(vm *compute.VirtualMachine, diskName string, managedDiskID *string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if osd := vm.StorageProfile.OsDisk; osd != nil {
-			if strings.EqualFold(*osd.Name, diskName) {
-				if osd.ManagedDisk != nil {
-					id, err := findVirtualMachineManagedDiskID(osd.ManagedDisk)
-					if err != nil {
-						return fmt.Errorf("Unable to parse Managed Disk ID for OS Disk %s, %+v", diskName, err)
-					}
-					*managedDiskID = id
+func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.VirtualMachineID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		virtualMachine, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+		if err != nil {
+			return err
+		}
+		if virtualMachine.VirtualMachineProperties == nil {
+			return fmt.Errorf("`properties` was nil")
+		}
+		if virtualMachine.VirtualMachineProperties.StorageProfile == nil {
+			return fmt.Errorf("`properties.StorageProfile` was nil")
+		}
+
+		diskName := state.Attributes[field]
+
+		if osDisk := virtualMachine.VirtualMachineProperties.StorageProfile.OsDisk; osDisk != nil {
+			if osDisk.Name != nil && osDisk.ManagedDisk != nil && osDisk.ManagedDisk.ID != nil {
+				if *osDisk.Name == diskName {
+					*managedDiskID = *osDisk.ManagedDisk.ID
 					return nil
 				}
 			}
 		}
 
-		for _, dataDisk := range *vm.StorageProfile.DataDisks {
-			if strings.EqualFold(*dataDisk.Name, diskName) {
-				if dataDisk.ManagedDisk != nil {
-					id, err := findVirtualMachineManagedDiskID(dataDisk.ManagedDisk)
-					if err != nil {
-						return fmt.Errorf("Unable to parse Managed Disk ID for Data Disk %s, %+v", diskName, err)
-					}
-					*managedDiskID = id
+		if dataDisks := virtualMachine.VirtualMachineProperties.StorageProfile.DataDisks; dataDisks != nil {
+			for _, dataDisk := range *dataDisks {
+				if dataDisk.Name == nil || dataDisk.ManagedDisk == nil || dataDisk.ManagedDisk.ID == nil {
+					continue
+				}
+
+				if *dataDisk.Name == diskName {
+					*managedDiskID = *dataDisk.ManagedDisk.ID
 					return nil
 				}
 			}
 		}
 
-		return fmt.Errorf("Unable to locate disk %s on vm %s", diskName, *vm.Name)
+		return fmt.Errorf("unable to locate disk %q", diskName)
 	}
-}
-
-func findVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (string, error) {
-	if _, err := azure.ParseAzureResourceID(*md.ID); err != nil {
-		return "", err
-	}
-	return *md.ID, nil
-}
-
-func testGetVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, error) {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	armID, err := azure.ParseAzureResourceID(*managedDiskID)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
-	}
-	name := armID.Path["disks"]
-	resourceGroup := armID.ResourceGroup
-
-	d, err := client.Get(ctx, resourceGroup, name)
-	// check status first since sdk client returns error if not 200
-	if d.Response.StatusCode == http.StatusNotFound {
-		return &d, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return &d, nil
 }
 
 func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {

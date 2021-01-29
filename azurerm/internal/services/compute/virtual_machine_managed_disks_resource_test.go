@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -122,9 +121,8 @@ func TestAccVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-	var osd string
-	var dtd string
+	var osDiskId string
+	var dataDiskId string
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -132,15 +130,15 @@ func TestAccVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 			Config:  r.withDataDisk_managedDisk_implicit(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testLookupVirtualMachineManagedDiskID(&vm, "myosdisk1", &osd),
-				testLookupVirtualMachineManagedDiskID(&vm, "mydatadisk1", &dtd),
+				data.CheckWithClient(r.findManagedDiskID("storage_os_disk.0.name", &osDiskId)),
+				data.CheckWithClient(r.findManagedDiskID("storage_data_disk.0.name", &dataDiskId)),
 			),
 		},
 		{
 			Config: r.basicLinuxMachineDeleteVM_managedDisk(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineManagedDiskExists(&osd, true),
-				testCheckVirtualMachineManagedDiskExists(&dtd, true),
+				data.CheckWithClient(r.managedDiskExists(osDiskId, true)),
+				data.CheckWithClient(r.managedDiskExists(dataDiskId, true)),
 			),
 		},
 	})
@@ -150,9 +148,8 @@ func TestAccVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-	var osd string
-	var dtd string
+	var osDiskId string
+	var dataDiskId string
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -160,15 +157,15 @@ func TestAccVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 			Config:  r.basicLinuxMachine_managedDisk_DestroyDisksBefore(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testLookupVirtualMachineManagedDiskID(&vm, "myosdisk1", &osd),
-				testLookupVirtualMachineManagedDiskID(&vm, "mydatadisk1", &dtd),
+				data.CheckWithClient(r.findManagedDiskID("storage_os_disk.0.name", &osDiskId)),
+				data.CheckWithClient(r.findManagedDiskID("storage_data_disk.0.name", &dataDiskId)),
 			),
 		},
 		{
 			Config: r.basicLinuxMachine_managedDisk_DestroyDisksAfter(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineManagedDiskExists(&osd, false),
-				testCheckVirtualMachineManagedDiskExists(&dtd, false),
+				data.CheckWithClient(r.managedDiskExists(osDiskId, false)),
+				data.CheckWithClient(r.managedDiskExists(dataDiskId, false)),
 			),
 		},
 	})
@@ -210,7 +207,6 @@ func TestAccVirtualMachine_bug33(t *testing.T) {
 }
 
 func TestAccVirtualMachine_attachSecondDataDiskWithAttachOption(t *testing.T) {
-	var afterCreate, afterUpdate compute.VirtualMachine
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
