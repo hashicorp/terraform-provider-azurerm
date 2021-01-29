@@ -511,7 +511,7 @@ func (ContainerRegistryResource) geoReplication(data acceptance.TestData, sku st
 	regions := make([]string, 0)
 	for _, region := range replicationRegions {
 		// ensure they're quoted
-		regions = append(regions, fmt.Sprint("%q", region))
+		regions = append(regions, fmt.Sprintf("%q", region))
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
