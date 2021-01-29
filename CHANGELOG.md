@@ -1,5 +1,13 @@
 ## 2.46.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties [GH-10325]
+* `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-10325]
+
+BUG FIXES:
+
+* `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting [GH-10325]
 * `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
 
 ## 2.45.1 (January 28, 2021)
