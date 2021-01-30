@@ -234,27 +234,18 @@ func resourceCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
-	// if the cosmos Account is serverless, it could not call the get throughput api
-	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
-		serverless := false
-		for _, v := range *props.Capabilities {
-			if *v.Name == "EnableServerless" {
-				serverless = true
-			}
-		}
-
-		if !serverless {
-			throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(throughputResp.Response) {
-					return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
-				} else {
-					d.Set("throughput", nil)
-					d.Set("autoscale_settings", nil)
-				}
+	// if the cosmos account is serverless calling the get throughput api would yield an error
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 			} else {
-				common.SetResourceDataThroughputFromResponse(throughputResp, d)
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
 			}
+		} else {
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
 		}
 	}
 

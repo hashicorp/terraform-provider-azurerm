@@ -1009,6 +1009,17 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 	return false
 }
 
+func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool {
+	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
+		for _, v := range *props.Capabilities {
+			if *v.Name == "EnableServerless" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
 	s := schema.Set{
 		F: resourceAzureRMCosmosDBAccountCapabilitiesHash,
