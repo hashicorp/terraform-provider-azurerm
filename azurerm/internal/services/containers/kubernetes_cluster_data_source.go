@@ -25,6 +25,16 @@ func dataSourceKubernetesCluster() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"exclude_kube_admin_config": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"exclude_kube_config": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -636,7 +646,7 @@ func dataSourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD
-		if props.AadProfile != nil {
+		if props.AadProfile != nil && !d.Get("exclude_kube_admin_config").(bool) {
 			adminProfile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterAdmin")
 			if err != nil {
 				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -662,10 +672,15 @@ func dataSourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
-	d.Set("kube_config_raw", kubeConfigRaw)
-	if err := d.Set("kube_config", kubeConfig); err != nil {
-		return fmt.Errorf("Error setting `kube_config`: %+v", err)
+	if !d.Get("exclude_kube_config").(bool) {
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
+		d.Set("kube_config_raw", kubeConfigRaw)
+		if err := d.Set("kube_config", kubeConfig); err != nil {
+			return fmt.Errorf("Error setting `kube_config`: %+v", err)
+		}
+	} else {
+		d.Set("kube_config_raw", "")
+		d.Set("kube_config", []interface{}{})
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
