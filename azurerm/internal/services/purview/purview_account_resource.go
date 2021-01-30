@@ -42,7 +42,7 @@ func resourcePurviewAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PurviewAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -84,6 +84,33 @@ func resourcePurviewAccount() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"catalog_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"guardian_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"scan_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"atlas_kafka_endpoint_primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"atlas_kafka_endpoint_secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tags.Schema(),
@@ -181,14 +208,41 @@ func resourcePurviewAccountRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
+	if err := d.Set("identity", flattenPurviewAccountIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+
 	if props := resp.AccountProperties; props != nil {
 		if err := d.Set("public_network_enabled", props.PublicNetworkAccess == purview.Enabled); err != nil {
 			return fmt.Errorf("Error setting `public_network_enabled`: %+v", err)
 		}
+
+		if endpoints := resp.Endpoints; endpoints != nil {
+			if err := d.Set("catalog_endpoint", *endpoints.Catalog); err != nil {
+				return fmt.Errorf("Error setting `catalog_endpoint`: %+v", err)
+			}
+			if err := d.Set("guardian_endpoint", *endpoints.Guardian); err != nil {
+				return fmt.Errorf("Error setting `guardian_endpoint`: %+v", err)
+			}
+			if err := d.Set("scan_endpoint", *endpoints.Scan); err != nil {
+				return fmt.Errorf("Error setting `scan_endpoint`: %+v", err)
+			}
+		}
 	}
 
-	if err := d.Set("identity", flattenPurviewAccountIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Purview Account keys %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if primary := keys.AtlasKafkaPrimaryEndpoint; primary != nil {
+		if err := d.Set("atlas_kafka_endpoint_primary_connection_string", *primary); err != nil {
+			return fmt.Errorf("Error setting `atlas_kafka_endpoint_primary_connection_string`: %+v", err)
+		}
+	}
+	if secondary := keys.AtlasKafkaSecondaryEndpoint; secondary != nil {
+		if err := d.Set("atlas_kafka_endpoint_secondary_connection_string", *secondary); err != nil {
+			return fmt.Errorf("Error setting `atlas_kafka_endpoint_secondary_connection_string`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
