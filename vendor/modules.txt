@@ -55,8 +55,8 @@ github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media
 github.com/Azure/azure-sdk-for-go/services/msi/mgmt/2018-11-30/msi
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
@@ -116,7 +116,7 @@ github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 github.com/Azure/go-autorest
-# github.com/Azure/go-autorest/autorest v0.11.16
+# github.com/Azure/go-autorest/autorest v0.11.17
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 # github.com/Azure/go-autorest/autorest/adal v0.9.10

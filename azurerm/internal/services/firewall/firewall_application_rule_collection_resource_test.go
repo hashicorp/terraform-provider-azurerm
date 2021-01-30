@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
@@ -95,7 +95,6 @@ func TestAccFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 
 func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
-	data2 := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "acctestarc_add")
 	r := FirewallApplicationRuleCollectionResource{}
 
 	secondRule := "azurerm_firewall_application_rule_collection.test_add"
@@ -134,7 +133,6 @@ func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				data2.CheckWithClient(r.doesNotExist),
 			),
 		},
 	})
@@ -523,7 +521,7 @@ resource "azurerm_firewall_application_rule_collection" "import" {
     }
   }
 }
-`, FirewallResource{}.basic(data))
+`, FirewallApplicationRuleCollectionResource{}.basic(data))
 }
 
 func (FirewallApplicationRuleCollectionResource) updatedName(data acceptance.TestData) string {

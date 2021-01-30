@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -71,14 +70,9 @@ func TestAccRouteFilter_disappears(t *testing.T) {
 	r := RouteFilterResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckRouteFilterDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config: r.basic,
+		}),
 	})
 }
 
@@ -151,35 +145,22 @@ func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckRouteFilterDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route filter: %q", name)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteFiltersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("Error deleting Route Filter %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of Route Filter %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		return nil
+func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.RouteFilterID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	future, err := client.Network.RouteFiltersClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Route Filter %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.RouteFiltersClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion of Route Filter %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (RouteFilterResource) basic(data acceptance.TestData) string {

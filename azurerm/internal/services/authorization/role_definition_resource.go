@@ -336,13 +336,12 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 	scopes := make([]string, 0)
 
-	// The first scope in the list must be the target scope as it it not returned in any API call
-	assignedScope := d.Get("scope").(string)
-	scopes = append(scopes, assignedScope)
 	assignableScopes := d.Get("assignable_scopes").([]interface{})
-	for _, scope := range assignableScopes {
-		// Ensure the assigned scope is not duplicated in the list if also specified in `assignable_scopes`
-		if scope != assignedScope {
+	if len(assignableScopes) == 0 {
+		assignedScope := d.Get("scope").(string)
+		scopes = append(scopes, assignedScope)
+	} else {
+		for _, scope := range assignableScopes {
 			scopes = append(scopes, scope.(string))
 		}
 	}

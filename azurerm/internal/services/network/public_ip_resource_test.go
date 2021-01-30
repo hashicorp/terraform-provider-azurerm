@@ -182,14 +182,10 @@ func TestAccPublicIpStatic_disappears(t *testing.T) {
 	r := PublicIPResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.static_basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckPublicIpDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.static_basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -361,34 +357,24 @@ func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, s
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckPublicIpDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		publicIpName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIpName)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, publicIpName)
-		if err != nil {
-			return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
-		}
-
-		return nil
+func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	name := id.Path["publicIPAddresses"]
+
+	future, err := client.Network.PublicIPsClient.Delete(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Public IP %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPsClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion of Public IP %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (PublicIPResource) static_basic(data acceptance.TestData) string {

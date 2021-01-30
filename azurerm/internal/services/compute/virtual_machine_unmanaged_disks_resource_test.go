@@ -2,30 +2,23 @@ package compute_test
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
 func TestAccVirtualMachine_basicLinuxMachine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var vm compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
@@ -39,14 +32,12 @@ func TestAccVirtualMachine_basicLinuxMachine_storageBlob_attach(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config:  r.basicLinuxMachine(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
@@ -56,7 +47,7 @@ func TestAccVirtualMachine_basicLinuxMachine_storageBlob_attach(t *testing.T) {
 		{
 			Config: r.basicLinuxMachine_storageBlob_attach(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -66,13 +57,11 @@ func TestAccVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachineSSHOnly(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -82,17 +71,11 @@ func TestAccVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicLinuxMachine(data),
-			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
-				testCheckVirtualMachineDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicLinuxMachine,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -100,16 +83,14 @@ func TestAccVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm, mirrorVm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachineUseExistingOsDiskImage(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
-				testCheckVirtualMachineExists("azurerm_virtual_machine.mirror", &mirrorVm),
-				testCheckVirtualMachineVHDExistence("myosdisk1.vhd", true),
-				testCheckVirtualMachineVHDExistence("mirrorosdisk.vhd", true),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", true), "azurerm_storage_container.test"),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mirrorosdisk.vhd", true), "azurerm_storage_container.test"),
 				resource.TestMatchResourceAttr("azurerm_virtual_machine.mirror", "storage_os_disk.0.image_uri", regexp.MustCompile("myosdisk1.vhd$")),
 			),
 		},
@@ -120,13 +101,11 @@ func TestAccVirtualMachine_withDataDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withDataDisk(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -136,13 +115,11 @@ func TestAccVirtualMachine_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 				check.That(data.ResourceName).Key("tags.cost-center").HasValue("Ops"),
@@ -152,7 +129,7 @@ func TestAccVirtualMachine_tags(t *testing.T) {
 		{
 			Config: r.basicLinuxMachineUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
@@ -166,20 +143,18 @@ func TestAccVirtualMachine_updateMachineSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("Standard_D1_v2"),
 			),
 		},
 		{
 			Config: r.updatedLinuxMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("Standard_D2_v2"),
 			),
 		},
@@ -190,13 +165,11 @@ func TestAccVirtualMachine_basicWindowsMachine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicWindowsMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -206,13 +179,11 @@ func TestAccVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.windowsUnattendedConfig(data, "Standard_D1_v2"),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -221,20 +192,17 @@ func TestAccVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 func TestAccVirtualMachine_windowsMachineResize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.windowsUnattendedConfig(data, "Standard_D1_v2"),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.windowsUnattendedConfig(data, "Standard_D2_v2"),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -244,13 +212,11 @@ func TestAccVirtualMachine_diagnosticsProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.diagnosticsProfile(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -260,13 +226,11 @@ func TestAccVirtualMachine_winRMConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.winRMConfig(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -275,21 +239,18 @@ func TestAccVirtualMachine_winRMConfig(t *testing.T) {
 func TestAccVirtualMachine_deleteVHDOptOut(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withDataDisk(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicLinuxMachineDeleteVM(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineVHDExistence("myosdisk1.vhd", true),
-				testCheckVirtualMachineVHDExistence("mydatadisk1.vhd", true),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", true), "azurerm_storage_container.test"),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mydatadisk1.vhd", true), "azurerm_storage_container.test"),
 			),
 		},
 	})
@@ -299,20 +260,18 @@ func TestAccVirtualMachine_deleteVHDOptIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachineDestroyDisksBefore(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.basicLinuxMachineDestroyDisksAfter(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineVHDExistence("myosdisk1.vhd", false),
-				testCheckVirtualMachineVHDExistence("mydatadisk1.vhd", false),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", false), "azurerm_storage_container.test"),
+				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mydatadisk1.vhd", false), "azurerm_storage_container.test"),
 			),
 		},
 	})
@@ -321,22 +280,17 @@ func TestAccVirtualMachine_deleteVHDOptIn(t *testing.T) {
 func TestAccVirtualMachine_ChangeComputerName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.machineNameBeforeUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterCreate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-
 		{
 			Config: r.updateMachineName(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterUpdate),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -345,22 +299,19 @@ func TestAccVirtualMachine_ChangeComputerName(t *testing.T) {
 func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withAvailabilitySet(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterCreate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 
 		{
 			Config: r.updateAvailabilitySet(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterUpdate),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -369,22 +320,18 @@ func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 func TestAccVirtualMachine_changeStorageImageReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachineStorageImageBefore(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterCreate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-
 		{
 			Config: r.basicLinuxMachineStorageImageAfter(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterUpdate),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -393,22 +340,19 @@ func TestAccVirtualMachine_changeStorageImageReference(t *testing.T) {
 func TestAccVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	var afterCreate, afterUpdate compute.VirtualMachine
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinuxMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterCreate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 
 		{
 			Config: r.basicLinuxMachineWithOSDiskVhdUriChanged(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &afterUpdate),
-				testAccCheckVirtualMachineRecreated(
-					t, &afterCreate, &afterUpdate),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -420,13 +364,11 @@ func TestAccVirtualMachine_plan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.plan(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -436,19 +378,17 @@ func TestAccVirtualMachine_changeSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.linuxMachineWithSSH(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.linuxMachineWithSSHRemoved(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -458,30 +398,25 @@ func TestAccVirtualMachine_optionalOSProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Destroy: false,
 			Config:  r.basicLinuxMachine(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Destroy: false,
 			Config:  r.basicLinuxMachine_destroy(data),
-			Check: func(s *terraform.State) error {
-				if err := testCheckVirtualMachineDestroy(s); err != nil {
-					log.Printf("[DEBUG] WARNING testCheckVirtualMachineDestroy error'd: %v", err)
-				}
-				return nil
-			},
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).DoesNotExistInAzure(r),
+			),
 		},
 		{
 			Config: r.basicLinuxMachine_attach_without_osProfile(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -491,13 +426,11 @@ func TestAccVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	var vm compute.VirtualMachine
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.primaryNetworkInterfaceId(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineExists(data.ResourceName, &vm),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -2982,94 +2915,4 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testCheckVirtualMachineVHDExistence(blobName string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "azurerm_storage_container" {
-				continue
-			}
-
-			accountName := rs.Primary.Attributes["storage_account_name"]
-			containerName := rs.Primary.Attributes["name"]
-
-			account, err := storageClient.FindAccount(ctx, accountName)
-			if err != nil {
-				return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
-			}
-			if account == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-			}
-
-			client, err := storageClient.BlobsClient(ctx, *account)
-			if err != nil {
-				return fmt.Errorf("Error building Blobs Client: %s", err)
-			}
-
-			input := blobs.GetPropertiesInput{}
-			props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
-			if err != nil {
-				if utils.ResponseWasNotFound(props.Response) {
-					if !shouldExist {
-						return nil
-					}
-
-					return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
-				}
-
-				return fmt.Errorf("Error retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
-			}
-
-			if !shouldExist {
-				return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
-			}
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		vmName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
-		}
-
-		// this is a preview feature we don't want to use right now
-		var forceDelete *bool = nil
-		future, err := client.Delete(ctx, resourceGroup, vmName, forceDelete)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckVirtualMachineRecreated(t *testing.T, before, after *compute.VirtualMachine) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if before.ID == after.ID {
-			t.Fatalf("Expected change of Virtual Machine IDs, but both were %v", before.ID)
-		}
-		return nil
-	}
 }

@@ -82,14 +82,10 @@ func TestAccNetworkProfile_disappears(t *testing.T) {
 	r := NetworkProfileResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkProfileDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -109,29 +105,20 @@ func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNetworkProfileDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
-		}
-
-		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
-			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
-		}
-
-		return nil
+func (NetworkProfileResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["networkProfiles"]
+
+	_, err = client.Network.ProfileClient.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting on Network Profile %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (NetworkProfileResource) basic(data acceptance.TestData) string {

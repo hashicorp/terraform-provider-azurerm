@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -106,14 +105,10 @@ func TestAccNetworkSecurityGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkSecurityGroupDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -231,31 +226,22 @@ func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clien
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNetworkSecurityGroupDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		sgName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, sgName)
-		if err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("Error deleting NSG %q (Resource Group %q): %+v", sgName, resourceGroup, err)
-			}
-		}
-
-		return nil
+func (NetworkSecurityGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := network.ParseNetworkSecurityGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	future, err := client.Network.SecurityGroupClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Network Security Group %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.SecurityGroupClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion of Network Security Group: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (NetworkSecurityGroupResource) basic(data acceptance.TestData) string {

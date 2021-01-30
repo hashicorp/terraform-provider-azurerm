@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	ContactsClient                      *security.ContactsClient
+	IotSecuritySolutionClient           *security.IotSecuritySolutionClient
 	PricingClient                       *security.PricingsClient
 	WorkspaceClient                     *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient      *security.AdvancedThreatProtectionClient
@@ -21,6 +22,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&ContactsClient.Client, o.ResourceManagerAuthorizer)
+
+	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
 
 	PricingClient := security.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&PricingClient.Client, o.ResourceManagerAuthorizer)
@@ -45,6 +49,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		ContactsClient:                      &ContactsClient,
+		IotSecuritySolutionClient:           &IotSecuritySolutionClient,
 		PricingClient:                       &PricingClient,
 		WorkspaceClient:                     &WorkspaceClient,
 		AdvancedThreatProtectionClient:      &AdvancedThreatProtectionClient,

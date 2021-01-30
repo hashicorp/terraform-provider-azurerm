@@ -55,14 +55,10 @@ func TestAccTemplateDeployment_disappears(t *testing.T) {
 	r := TemplateDeploymentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicSingle(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckTemplateDeploymentDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicSingle,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -151,13 +147,13 @@ func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
+
 	name := id.Path["deployments"]
 	if name == "" {
 		name = id.Path["Deployments"]
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.Resource.DeploymentsClient.Get(ctx, id.ResourceGroup, name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Template Deployment (%s): %+v", id, err)
 	}
@@ -165,55 +161,50 @@ func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckTemplateDeploymentDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		deploymentName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
-		}
-
-		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
-			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
-		}
-
-		// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-		log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", deploymentName, resourceGroup)
-		stateConf := &resource.StateChangeConf{
-			Pending: []string{"200"},
-			Target:  []string{"404"},
-			Timeout: 40 * time.Minute,
-			Refresh: func() (interface{}, string, error) {
-				res, err := client.Get(ctx, resourceGroup, deploymentName)
-
-				log.Printf("Retrieving Template Deployment %q (Resource Group %q) returned Status %d", resourceGroup, deploymentName, res.StatusCode)
-
-				if err != nil {
-					if utils.ResponseWasNotFound(res.Response) {
-						return res, strconv.Itoa(res.StatusCode), nil
-					}
-					return nil, "", fmt.Errorf("Error polling for the status of the Template Deployment %q (RG: %q): %+v", deploymentName, resourceGroup, err)
-				}
-
-				return res, strconv.Itoa(res.StatusCode), nil
-			},
-		}
-
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", deploymentName, resourceGroup, err)
-		}
-
-		return nil
+func (r TemplateDeploymentResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	name := id.Path["deployments"]
+	if name == "" {
+		name = id.Path["Deployments"]
+	}
+
+	templateClient := client.Resource.DeploymentsClient
+	_, err = templateClient.Delete(ctx, id.ResourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting template deployment %q: %+v", id, err)
+	}
+
+	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
+	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, id.ResourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"200"},
+		Target:  []string{"404"},
+		Timeout: 40 * time.Minute,
+		Refresh: func() (interface{}, string, error) {
+			res, err := templateClient.Get(ctx, id.ResourceGroup, name)
+
+			log.Printf("retrieving Template Deployment %q: %d", id, res.StatusCode)
+
+			if err != nil {
+				if utils.ResponseWasNotFound(res.Response) {
+					return res, strconv.Itoa(res.StatusCode), nil
+				}
+				return nil, "", fmt.Errorf("polling for the status of the Template Deployment %q: %+v", id, err)
+			}
+
+			return res, strconv.Itoa(res.StatusCode), nil
+		},
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return nil, fmt.Errorf("waiting for Template Deployment %q to be deleted: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (TemplateDeploymentResource) basicSingle(data acceptance.TestData) string {

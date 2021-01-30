@@ -159,13 +159,45 @@ func TestAccAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 	})
 }
 
-func (r AppServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clusterSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.clusterSettingsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.clusterSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServiceEnvironmentsClient.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	resp, err := client.Web.AppServiceEnvironmentsClient.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -184,6 +216,55 @@ func (r AppServiceEnvironmentResource) basic(data acceptance.TestData) string {
 resource "azurerm_app_service_environment" "test" {
   name      = "acctest-ase-%d"
   subnet_id = azurerm_subnet.ase.id
+}
+`, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentResource) clusterSettings(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%d"
+  subnet_id = azurerm_subnet.ase.id
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentResource) clusterSettingsUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%d"
+  subnet_id = azurerm_subnet.ase.id
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384_P256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA_P256"
+  }
 }
 `, template, data.RandomInteger)
 }

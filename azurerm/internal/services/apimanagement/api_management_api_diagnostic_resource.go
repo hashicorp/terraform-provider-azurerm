@@ -182,29 +182,15 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		switch verbosity.(string) {
-		case string(apimanagement.Verbose):
-			parameters.Verbosity = apimanagement.Verbose
-		case string(apimanagement.Information):
-			parameters.Verbosity = apimanagement.Information
-		case string(apimanagement.Error):
-			parameters.Verbosity = apimanagement.Error
-		}
+		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
-	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		switch httpCorrelationProtocol.(string) {
-		case string(apimanagement.HTTPCorrelationProtocolNone):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
-		case string(apimanagement.HTTPCorrelationProtocolLegacy):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
-		case string(apimanagement.HTTPCorrelationProtocolW3C):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
-		}
+		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")

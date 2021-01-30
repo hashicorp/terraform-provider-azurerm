@@ -36,14 +36,10 @@ func TestAccNetworkInterface_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkInterfaceDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -333,31 +329,24 @@ func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckNetworkInterfaceDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		return nil
+func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	name := id.Path["networkInterfaces"]
+
+	future, err := client.Network.InterfacesClient.Delete(ctx, resGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Network Interface %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion of Network Interface %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r NetworkInterfaceResource) basic(data acceptance.TestData) string {

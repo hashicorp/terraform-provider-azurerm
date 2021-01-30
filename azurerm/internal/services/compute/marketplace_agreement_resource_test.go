@@ -45,7 +45,7 @@ func testAccMarketplaceAgreement_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicConfig(),
+			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("license_text_link").Exists(),
@@ -62,13 +62,13 @@ func testAccMarketplaceAgreement_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basicConfig(),
+			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:      r.requiresImportConfig(),
+			Config:      r.requiresImportConfig(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_marketplace_agreement"),
 		},
 	})
@@ -79,14 +79,10 @@ func testAccMarketplaceAgreement_agreementCanceled(t *testing.T) {
 	r := MarketplaceAgreementResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicConfig(),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckMarketplaceAgreementCanceled(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicConfig,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -107,33 +103,27 @@ func (t MarketplaceAgreementResource) Exists(ctx context.Context, clients *clien
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckMarketplaceAgreementCanceled(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		offer := rs.Primary.Attributes["offer"]
-		plan := rs.Primary.Attributes["plan"]
-		publisher := rs.Primary.Attributes["publisher"]
-
-		resp, err := client.Cancel(ctx, publisher, offer, plan)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Marketplace Agreement for Publisher %q / Offer %q / Plan %q does not exist", publisher, offer, plan)
-			}
-			return fmt.Errorf("Bad: Get on MarketplaceAgreementsClient: %+v", err)
-		}
-
-		return nil
+func (MarketplaceAgreementResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	publisher := id.Path["agreements"]
+	offer := id.Path["offers"]
+	plan := id.Path["plans"]
+
+	resp, err := client.Compute.MarketplaceAgreementsClient.Cancel(ctx, publisher, offer, plan)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil, fmt.Errorf("marketplace agreement %q does not exist", id)
+		}
+		return nil, fmt.Errorf("canceling Marketplace Agreement : %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func (MarketplaceAgreementResource) basicConfig() string {
+func (MarketplaceAgreementResource) basicConfig(_ acceptance.TestData) string {
 	return `
 provider "azurerm" {
   features {}
@@ -147,7 +137,7 @@ resource "azurerm_marketplace_agreement" "test" {
 `
 }
 
-func (r MarketplaceAgreementResource) requiresImportConfig() string {
+func (r MarketplaceAgreementResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,5 +146,5 @@ resource "azurerm_marketplace_agreement" "import" {
   offer     = azurerm_marketplace_agreement.test.offer
   plan      = azurerm_marketplace_agreement.test.plan
 }
-`, r.basicConfig())
+`, r.basicConfig(data))
 }

@@ -155,7 +155,7 @@ func FirewallDataSourcePolicyRead(d *schema.ResourceData, meta interface{}) erro
 		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
 			return fmt.Errorf(`setting "child_policies": %+v`, err)
 		}
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(prop.DNSSettings)); err != nil {
 			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 		if err := d.Set("firewalls", flattenNetworkSubResourceID(prop.Firewalls)); err != nil {
