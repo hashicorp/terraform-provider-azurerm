@@ -9,12 +9,14 @@ import (
 type DataboxEdgeOrderId struct {
 	ResourceGroup string
 	DeviceName    string
+	OrderName     string
 }
 
 func NewDataboxEdgeOrderID(resourcegroup string, deviceName string) DataboxEdgeOrderId {
 	return DataboxEdgeOrderId{
 		ResourceGroup: resourcegroup,
 		DeviceName:    deviceName,
+		OrderName:     "default",
 	}
 }
 
@@ -31,9 +33,15 @@ func DataboxEdgeOrderID(input string) (*DataboxEdgeOrderId, error) {
 	databoxedgeOrder := DataboxEdgeOrderId{
 		ResourceGroup: id.ResourceGroup,
 	}
+
 	if databoxedgeOrder.DeviceName, err = id.PopSegment("dataBoxEdgeDevices"); err != nil {
 		return nil, err
 	}
+
+	if databoxedgeOrder.OrderName, err = id.PopSegment("orders"); err != nil {
+		return nil, err
+	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}

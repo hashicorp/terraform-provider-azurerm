@@ -17,15 +17,15 @@ func TestDataboxEdgeCounty(t *testing.T) {
 		},
 		{
 			input:    "United Kingdom",
-			expected: false,
+			expected: true,
 		},
 		{
 			input:    "US",
-			expected: true,
+			expected: false,
 		},
 		{
 			input:    "UsA",
-			expected: true,
+			expected: false,
 		},
 	}
 

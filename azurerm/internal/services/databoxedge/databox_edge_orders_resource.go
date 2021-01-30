@@ -132,8 +132,9 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 						},
 
 						"country": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataboxEdgeCountry,
 						},
 
 						"state": {
