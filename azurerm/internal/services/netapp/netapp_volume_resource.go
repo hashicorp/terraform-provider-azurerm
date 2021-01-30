@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/netapputils"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -194,6 +195,41 @@ func resourceNetAppVolume() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"data_protection_replication": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"dst",
+								"src",
+							}, true),
+						},
+
+						"remote_volume_location": azure.SchemaLocation(),
+
+						"remote_volume_resource_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"replication_schedule": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"_10minutely",
+								"daily",
+								"hourly",
+							}, true),
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -223,24 +259,38 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
-	subnetId := d.Get("subnet_id").(string)
+	subnetID := d.Get("subnet_id").(string)
 	protocols := d.Get("protocols").(*schema.Set).List()
 	if len(protocols) == 0 {
 		protocols = append(protocols, "NFSv3")
 	}
 
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-	exportPolicyRule := d.Get("export_policy_rule").([]interface{})
+
+	exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
+	exportPolicyRule := expandNetAppVolumeExportPolicyRule(exportPolicyRuleRaw)
+
+	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
+	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+	authorizeReplication := false
+	volumeType := ""
+	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType == "dst" {
+		authorizeReplication = true
+		volumeType = "DataProtection"
+	}
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
 			CreationToken:  utils.String(volumePath),
 			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
-			SubnetID:       utils.String(subnetId),
+			SubnetID:       utils.String(subnetID),
 			ProtocolTypes:  utils.ExpandStringSlice(protocols),
 			UsageThreshold: utils.Int64(storageQuotaInGB),
-			ExportPolicy:   expandNetAppVolumeExportPolicyRule(exportPolicyRule),
+			ExportPolicy:   exportPolicyRule,
+			VolumeType:     utils.String(volumeType),
+			DataProtection: dataProtectionReplication,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -260,6 +310,41 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NetApp Volume %q (Resource Group %q) ID", name, resourceGroup)
 	}
+
+	// Performs a series of gets with one minute interval, up to 50 minutes which is when NetApp RP will time out
+	// This is to overcome a current limitation where volume or replication object is still being provisioned
+	// but ARM already reported as succeeded
+	if err = netapputils.WaitForANFResource(ctx, meta, *resp.ID, 60, 50, false); err != nil {
+		return fmt.Errorf("Cannot read NetApp resource %q (Resource Group %q) using get method in the alloted time", name, resourceGroup)
+	}
+
+	// If this is a data replication secondary volume, authorize replication on primary volume
+	if authorizeReplication {
+		future, err := client.AuthorizeReplication(
+			ctx,
+			netapputils.GetResourceGroup(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
+			netapputils.GetAnfAccount(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
+			netapputils.GetAnfCapacityPool(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
+			netapputils.GetAnfVolume(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
+			netapp.AuthorizeRequest{
+				RemoteVolumeResourceID: resp.ID,
+			},
+		)
+
+		if err != nil {
+			return fmt.Errorf("Cannot authorize volume replication: %v", err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Cannot get authorize volume replication future response: %v", err)
+		}
+
+		// Wait for volume replication authorization to complete
+		if err = netapputils.WaitForANFResource(ctx, meta, *dataProtectionReplication.Replication.RemoteVolumeResourceID, 60, 50, true); err != nil {
+			return fmt.Errorf("Cannot read NetApp resource %q (Resource Group %q) using get method in the alloted time", name, resourceGroup)
+		}
+	}
+
 	d.SetId(*resp.ID)
 
 	return resourceNetAppVolumeRead(d, meta)
@@ -305,6 +390,11 @@ func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
+		}
+		if props.DataProtection.Replication != nil {
+			if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
+				return fmt.Errorf("setting `data_protection_replication`: %+v", err)
+			}
 		}
 	}
 
@@ -418,6 +508,34 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 	}
 }
 
+func expandNetAppVolumeDataProtectionReplication(input []interface{}) *netapp.VolumePropertiesDataProtection {
+
+	if len(input) == 0 || input[0] == nil {
+		return &netapp.VolumePropertiesDataProtection{}
+	}
+
+	replicationObject := netapp.ReplicationObject{}
+
+	replicationRaw := input[0].(map[string]interface{})
+
+	if v, ok := replicationRaw["endpoint_type"]; ok {
+		replicationObject.EndpointType = netapp.EndpointType(v.(string))
+	}
+	if v, ok := replicationRaw["remote_volume_location"]; ok {
+		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
+	}
+	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
+		replicationObject.RemoteVolumeResourceID = utils.String(v.(string))
+	}
+	if v, ok := replicationRaw["replication_schedule"]; ok {
+		replicationObject.ReplicationSchedule = netapp.ReplicationSchedule(v.(string))
+	}
+
+	return &netapp.VolumePropertiesDataProtection{
+		Replication: &replicationObject,
+	}
+}
+
 func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.Rules == nil {
@@ -495,4 +613,20 @@ func flattenNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) 
 	}
 
 	return results
+}
+
+func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumePropertiesDataProtection) []interface{} {
+	if input == nil || input.Replication == nil || input.Replication.EndpointType != "dst" {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"endpoint_type":             string(input.Replication.EndpointType),
+			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
+			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
+			"replication_schedule":      input.Replication.ReplicationSchedule,
+		},
+	}
+
 }
