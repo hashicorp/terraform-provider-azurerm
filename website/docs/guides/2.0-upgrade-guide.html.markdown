@@ -46,7 +46,7 @@ provider "azurerm" {
 }
 ```
 
-When using the AzureRM Provider with Terraform 0.13 and later, the recommended approach is to declare Provider versions in the Terraform configuration for the root module, using a `required_providers` block as per the following example:
+When using the AzureRM Provider with Terraform 0.13 and later, the recommended approach is to declare Provider versions in the root module Terraform configuration, using a `required_providers` block as per the following example:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
