@@ -9,13 +9,22 @@ Version 2.x of the AzureRM Provider requires Terraform 0.12.x and later.
 
 ## Usage Example
 
-```
+> When using the AzureRM Provider with Terraform 0.13 and later, the recommended approach is to declare Provider versions in the Terraform configuration for the root module, using a `required_providers` block as per the following example. For previous versions, please continue to pin the version within the provider block.
+
+```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "=2.40.1"
+    }
+  }
+}
+
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # We recommend pinning to the specific version of the Azure Provider you're using
-  # since new versions are released frequently
-  version = "=2.40.0"
-
   features {}
 
   # More information on the authentication methods supported by

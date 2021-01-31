@@ -36,11 +36,32 @@ provider "azurerm" {
 
 More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/docs/configuration/providers.html#provider-versions).
 
-Once version 2.0 of the AzureRM Provider is released - you can then upgrade to it by updating the version specified in the Provider block, like so:
+To use version 2.0 and newer of the AzureRM Provider - you can upgrade to it in a controlled manner by updating the version specified in the Provider block, like so:
 
 ```hcl
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
   version = "=2.0.0"
+  features {}
+}
+```
+
+When using the AzureRM Provider with Terraform 0.13 and later, the recommended approach is to declare Provider versions in the Terraform configuration for the root module, using a `required_providers` block as per the following example:
+
+```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "=2.40.1"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
   features {}
 }
 ```

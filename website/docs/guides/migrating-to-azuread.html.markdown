@@ -20,21 +20,49 @@ This guide covers how to migrate from using the following Data Sources and Resou
 
 ## Updating the Provider block
 
-As the AzureAD and AzureRM Provider support the same authentication methods - it's possible to update the Provider block by setting the new Provider name and version, for example:
+As the AzureAD and AzureRM Provider support the same authentication methods, it's possible to simply add the AzureAD Provider to the `required_providers` block and declare the configuration in a Provider block as per the following example:
 
 ```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "=2.40.1"
+    }
+  }
+}
+
 provider "azurerm" {
-  version = "=1.44.0"
+  features {}
 }
 ```
 
 can become:
 
 ```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "=2.40.1"
+    }
+    azuread = {
+      source = "hashicorp/azuread"
+      version = "=1.3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
 provider "azuread" {
-  version = "=0.10.0"
+  features {}
 }
 ```
+
+> For modules containing only resources from the AzureAD Provider, we recommend that you also remove the AzureRM Provider settings.
 
 ## Updating the Terraform Configurations
 
