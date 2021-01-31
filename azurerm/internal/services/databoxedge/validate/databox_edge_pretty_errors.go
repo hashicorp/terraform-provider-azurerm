@@ -14,7 +14,11 @@ func prettyErrorString(strs []string) string {
 
 	for i, str := range strs {
 		if i < (len(strs) - 1) {
-			sb.WriteString(fmt.Sprint("\"", str, "\", "))
+			if i == (len(strs) - 2) {
+				sb.WriteString(fmt.Sprint("\"", str, "\""))
+			} else {
+				sb.WriteString(fmt.Sprint("\"", str, "\", "))
+			}
 		} else {
 			sb.WriteString(fmt.Sprint(" or \"", str, "\""))
 		}

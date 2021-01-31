@@ -16,6 +16,10 @@ func TestDataboxEdgePrettyErrorString(t *testing.T) {
 			expected: `"Din Djarin"`,
 		},
 		{
+			input:    []string{"Baby Yoda", "Grogu"},
+			expected: `"Baby Yoda" or "Grogu"`,
+		},
+		{
 			input:    []string{"This", "is", "the", "way"},
 			expected: `"This", "is", "the" or "way"`,
 		},

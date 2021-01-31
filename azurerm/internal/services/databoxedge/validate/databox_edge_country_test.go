@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestDataboxEdgeCounty(t *testing.T) {
+func TestDataboxEdgeCountry(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool

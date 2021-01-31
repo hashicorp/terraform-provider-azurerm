@@ -52,7 +52,7 @@ func TestDataboxEdgeCompanyName(t *testing.T) {
 			expected: true,
 		},
 		{
-			input:    "This is Company Name is just to long",
+			input:    "This Company Name is just too looong",
 			expected: false,
 		},
 	}

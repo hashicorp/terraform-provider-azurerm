@@ -16,6 +16,10 @@ func TestDataboxEdgeCity(t *testing.T) {
 			expected: true,
 		},
 		{
+			input:    "La Cañada Flintridge",
+			expected: true,
+		},
+		{
 			input:    "Taumatawhakatangihangakoauauotamateaturipukakapikimaungahoronukupokaiwhenuakitanatahu",
 			expected: false,
 		},
