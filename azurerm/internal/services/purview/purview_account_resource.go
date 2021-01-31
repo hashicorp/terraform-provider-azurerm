@@ -148,7 +148,7 @@ func resourcePurviewAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 		},
 		Location: &location,
 		Sku: &purview.AccountSku{
-			Capacity: utils.Int32(d.Get("sku_capacity").(int32)),
+			Capacity: utils.Int32(int32(d.Get("sku_capacity").(int))),
 			Name:     purview.Standard,
 		},
 		Tags: tags.Expand(t),
@@ -160,8 +160,13 @@ func resourcePurviewAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 		account.AccountProperties.PublicNetworkAccess = purview.Disabled
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, account); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
+	if err != nil {
 		return fmt.Errorf("Error creating/updating Purview Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting creation of Purview Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)

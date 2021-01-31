@@ -68,6 +68,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
@@ -166,6 +167,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		postgres.Registration{},
 		powerbi.Registration{},
 		privatedns.Registration{},
+		purview.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
 		relay.Registration{},
