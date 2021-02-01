@@ -19,6 +19,15 @@ func NewDeviceSecurityGroupId(targetResourceId string, name string) DeviceSecuri
 	}
 }
 
+func (id DeviceSecurityGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Target Resource Id %q", id.TargetResourceID),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Device Security Group", segmentsStr)
+}
+
 func (id DeviceSecurityGroupId) ID() string {
 	fmtString := "%s/providers/Microsoft.Security/deviceSecurityGroups/%s"
 	return fmt.Sprintf(fmtString, id.TargetResourceID, id.Name)

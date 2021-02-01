@@ -17,51 +17,38 @@ func TestDeviceSecurityGroupID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Name:  "No Security resource provider",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1",
+			Error: true,
+		},
+
+		{
+			Name:  "No target resource Segment",
+			Input: "/providers/Microsoft.Security/deviceSecurityGroups/group1",
 			Error: true,
 		},
 		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			Name:  "No Device Security Group Segment",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/",
 			Error: true,
 		},
 		{
-			Name:  "No target resource type",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/",
+			Name:  "No Device Security Group name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/",
 			Error: true,
 		},
 		{
-			Name:  "No target resource name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/",
-			Error: true,
+			Name:  "ID of Device Security Group",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/group1",
+			Error: false,
+			Expect: &DeviceSecurityGroupId{
+				TargetResourceID: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1",
+				Name:             "group1",
+			},
 		},
-		{
-			Name:  "No Maintenance Assignment Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1/providers/Microsoft.Maintenance/",
-			Error: true,
-		},
-		{
-			Name:  "No Maintenance Assignment name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/",
-			Error: true,
-		},
-		//{
-		//	Name:  "ID of Maintenance Assignment to vm",
-		//	Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/assign1",
-		//	Error: false,
-		//	Expect: &DeviceSecurityGroupID{
-		//		VirtualMachineId: &parseCompute.VirtualMachineId{
-		//			SubscriptionId: "00000000-0000-0000-0000-000000000000",
-		//			ResourceGroup:  "resGroup1",
-		//			Name:           "vm1",
-		//		},
-		//		Name: "assign1",
-		//	},
-		//},
 		{
 			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1/providers/Microsoft.Maintenance/ConfigurationAssignments/assign1",
+			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/HUB1/PROVIDERS/MICROSOFT.SECURITY/DEVICESECURITYGROUPS/GROUP1",
 			Error: true,
 		},
 	}
@@ -80,13 +67,8 @@ func TestDeviceSecurityGroupID(t *testing.T) {
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
-
-		//if actual.VirtualMachineIdRaw != v.Expect.VirtualMachineIdRaw {
-		//	t.Fatalf("Expected %q but got %q for VirtualMachineIdRaw", v.Expect.VirtualMachineIdRaw, actual.VirtualMachineIdRaw)
-		//}
-		//
-		//if !reflect.DeepEqual(v.Expect.VirtualMachineId, actual.VirtualMachineId) {
-		//	t.Fatalf("Expected %+v but got %+v", v.Expect.VirtualMachineId, actual.VirtualMachineId)
-		//}
+		if actual.TargetResourceID != v.Expect.TargetResourceID {
+			t.Fatalf("Expected %q but got %q for TargetResourceID", v.Expect.TargetResourceID, actual.TargetResourceID)
+		}
 	}
 }

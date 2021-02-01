@@ -108,5 +108,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Device Security Group can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_device_security_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/cwz/providers/Microsoft.Security/DeviceSecurityGroups/group1
+terraform import azurerm_device_security_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/group1
 ```
