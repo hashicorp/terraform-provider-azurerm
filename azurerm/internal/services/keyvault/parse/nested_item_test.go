@@ -122,6 +122,10 @@ func TestParseNestedItemID(t *testing.T) {
 		if tc.Expected.Version != secretId.Version {
 			t.Fatalf("Expected 'Version' to be '%s', got '%s' for ID '%s'", tc.Expected.Version, secretId.Version, tc.Input)
 		}
+
+		if tc.Input != secretId.ID() {
+			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
+		}
 	}
 }
 
@@ -205,6 +209,10 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 
 		if tc.Expected.Version != secretId.Version {
 			t.Fatalf("Expected 'Version' to be '%s', got '%s' for ID '%s'", tc.Expected.Version, secretId.Version, tc.Input)
+		}
+
+		if tc.Input != secretId.ID() {
+			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
 	}
 }

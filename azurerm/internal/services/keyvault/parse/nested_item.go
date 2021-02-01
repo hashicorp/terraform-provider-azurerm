@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var _ resourceid.Formatter = NestedItemId{}
@@ -37,7 +38,8 @@ func NewNestedItemID(keyVaultBaseUrl, nestedItemType, name, version string) (*Ne
 
 func (n NestedItemId) ID() string {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
-	return fmt.Sprintf("%s/%s/%s/%s", n.KeyVaultBaseUrl, n.NestedItemType, n.Name, n.Version)
+	elements := []string{strings.TrimSuffix(n.KeyVaultBaseUrl, "/"), n.NestedItemType, n.Name, n.Version}
+	return strings.Join(utils.RemoveFromStringArray(elements, ""), "/")
 }
 
 // ParseNestedItemID parses a Key Vault Nested Item ID (such as a Certificate, Key or Secret)
