@@ -221,7 +221,7 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
 
-      subject            = join("", ["CN=*.", data.azurerm_dns_zone.test.name])
+      subject = join("", ["CN=*.", data.azurerm_dns_zone.test.name])
 
       subject_alternative_names {
         dns_names = [join(".", [azurerm_dns_cname_record.test.name, azurerm_dns_cname_record.test.zone_name])]

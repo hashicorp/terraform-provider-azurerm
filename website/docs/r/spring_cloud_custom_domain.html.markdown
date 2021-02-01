@@ -18,7 +18,7 @@ provider "azurerm" {
 }
 
 data "azurerm_resource_group" "example" {
-  name     = "example-resources"
+  name = "example-resources"
 }
 
 data "azurerm_dns_zone" "example" {
