@@ -659,15 +659,14 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Blob Data Owner"
-  principal_id         = data.azurerm_client_config.current.object_id
+ scope                = azurerm_storage_account.test.id
+ role_definition_name = "Storage Blob Data Owner"
+ principal_id         = data.azurerm_client_config.current.object_id
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -704,9 +703,6 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than    = 10
         tier_to_archive_after_days_since_modification_greater_than = 50
         delete_after_days_since_modification_greater_than          = 100
-      }
-      snapshot {
-        delete_after_days_since_creation_greater_than = 30
       }
     }
   }

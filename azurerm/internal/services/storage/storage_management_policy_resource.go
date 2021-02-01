@@ -448,11 +448,11 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 }
 
 func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]storage.TagFilter {
-	results := make([]storage.TagFilter, 0)
-
 	if len(blobIndexMatches) == 0 {
-		return &results
+		return nil
 	}
+
+	results := make([]storage.TagFilter, 0)
 	for _, v := range blobIndexMatches {
 		blobIndexMatch := v.(map[string]interface{})
 
