@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"log"
 	"strings"
 	"time"
@@ -44,6 +45,15 @@ func resourceMonitorLogProfile() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"location": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     location.EnhancedValidate,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
+
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -93,6 +103,7 @@ func resourceMonitorLogProfile() *schema.Resource {
 					},
 				},
 			},
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -139,6 +150,11 @@ func resourceLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	parameters := insights.LogProfileResource{
 		Name:                 utils.String(name),
 		LogProfileProperties: logProfileProperties,
+		Tags:                 tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v := d.Get("location").(string); v != "" {
+		parameters.Location = utils.String(v)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
@@ -194,6 +210,8 @@ func resourceLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("location", resp.Location)
+	d.Set("tags", tags.Flatten(resp.Tags))
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
 		d.Set("servicebus_rule_id", props.ServiceBusRuleID)

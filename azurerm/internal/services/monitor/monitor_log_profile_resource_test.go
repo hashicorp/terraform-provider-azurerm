@@ -32,6 +32,7 @@ func TestAccMonitorLogProfile(t *testing.T) {
 			"servicebus":     testAccMonitorLogProfile_servicebus,
 			"complete":       testAccMonitorLogProfile_complete,
 			"disappears":     testAccMonitorLogProfile_disappears,
+			"update":         testAccMonitorLogProfile_update,
 		},
 		"datasource": {
 			"eventhub":       testAccDataSourceMonitorLogProfile_eventhub,
@@ -110,6 +111,29 @@ func testAccMonitorLogProfile_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func testAccMonitorLogProfile_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
+	r := MonitorLogProfileResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -265,12 +289,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -278,7 +302,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctestehns-%s"
+  name                = "acctestehns-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
@@ -286,8 +310,8 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_monitor_log_profile" "test" {
-  name = "acctestlp-%d"
-
+  name     = "acctestlp-%[1]d"
+  location = azurerm_resource_group.test.location
   categories = [
     "Action",
     "Delete",
@@ -295,8 +319,8 @@ resource "azurerm_monitor_log_profile" "test" {
   ]
 
   locations = [
-    "%s",
-    "%s",
+    "%[2]s",
+    "%[4]s",
   ]
 
   # RootManageSharedAccessKey is created by default with listen, send, manage permissions
@@ -307,6 +331,10 @@ resource "azurerm_monitor_log_profile" "test" {
     enabled = true
     days    = 7
   }
+
+  tags = {
+    ENV = "Test"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }

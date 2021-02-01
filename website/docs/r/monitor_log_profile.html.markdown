@@ -37,7 +37,8 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_monitor_log_profile" "example" {
-  name = "default"
+  name     = "default"
+  location = azurerm_resource_group.example.location
 
   categories = [
     "Action",
@@ -58,6 +59,10 @@ resource "azurerm_monitor_log_profile" "example" {
     enabled = true
     days    = 7
   }
+
+  tags = {
+    "foo" = "bar"
+  }
 }
 ```
 
@@ -77,6 +82,10 @@ The following arguments are supported:
 * `servicebus_rule_id` - (Optional) The service bus (or event hub) rule ID of the service bus (or event hub) namespace in which the Activity Log is streamed to. At least one of `storage_account_id` or `servicebus_rule_id` must be set.
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below. A retention policy for how long Activity Logs are retained in the storage account.
+
+* `location` - (Optional) The location of the Log Profile.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
