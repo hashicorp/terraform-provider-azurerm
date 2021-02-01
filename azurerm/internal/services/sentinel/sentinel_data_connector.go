@@ -23,11 +23,7 @@ func dataConnectorID(dc securityinsight.BasicDataConnector) *string {
 		return dc.ID
 	case securityinsight.TIDataConnector:
 		return dc.ID
-	case securityinsight.TiTaxiiDataConnector:
-		return dc.ID
 	case securityinsight.OfficeDataConnector:
-		return dc.ID
-	case securityinsight.OfficeATPDataConnector:
 		return dc.ID
 	case securityinsight.AwsCloudTrailDataConnector:
 		return dc.ID
@@ -74,12 +70,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindMicrosoftCloudAppSecurity
 	case securityinsight.TIDataConnector:
 		kind = securityinsight.DataConnectorKindThreatIntelligence
-	case securityinsight.TiTaxiiDataConnector:
-		kind = securityinsight.DataConnectorKindThreatIntelligenceTaxii
 	case securityinsight.OfficeDataConnector:
 		kind = securityinsight.DataConnectorKindOffice365
-	case securityinsight.OfficeATPDataConnector:
-		kind = securityinsight.DataConnectorKindOfficeATP
 	case securityinsight.AwsCloudTrailDataConnector:
 		kind = securityinsight.DataConnectorKindAmazonWebServicesCloudTrail
 	case securityinsight.AATPDataConnector:
