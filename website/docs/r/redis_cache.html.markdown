@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this Redis Cache. Defaults to `true`.
 
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 

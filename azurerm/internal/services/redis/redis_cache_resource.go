@@ -320,7 +320,7 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	publicNetworkAccess := redis.Enabled
-	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = redis.Disabled
 	}
 
@@ -444,7 +444,7 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("public_network_access_enabled") {
 		publicNetworkAccess := redis.Enabled
-		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		if !d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccess = redis.Disabled
 		}
 		parameters.PublicNetworkAccess = publicNetworkAccess
