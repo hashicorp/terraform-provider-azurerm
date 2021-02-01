@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,12 +58,12 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
 	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		// intentional as this is a Virtual Resource
+		// intentionally not using a DisappearsStep since this is a Virtual Resource
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkInterfaceSecurityGroupAssociationDisappears(data.ResourceName),
+				data.CheckWithClient(r.destroy),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -120,43 +121,32 @@ func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx cont
 	return utils.Bool(found), nil
 }
 
-func testCheckNetworkInterfaceSecurityGroupAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
-
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		read.InterfacePropertiesFormat.NetworkSecurityGroup = nil
-
-		future, err := azuresdkhacks.UpdateNetworkInterfaceAllowingRemovalOfNSG(ctx, client, resourceGroup, nicName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing Network Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for removal of Network Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		return nil
+func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
+	if err != nil {
+		return err
 	}
+
+	resourceGroup := nicID.ResourceGroup
+	nicName := nicID.Name
+
+	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	read.InterfacePropertiesFormat.NetworkSecurityGroup = nil
+
+	future, err := azuresdkhacks.UpdateNetworkInterfaceAllowingRemovalOfNSG(ctx, client.Network.InterfacesClient, resourceGroup, nicName, read)
+	if err != nil {
+		return fmt.Errorf("Error removing Network Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for removal of Network Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) basic(data acceptance.TestData) string {
