@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -94,13 +94,13 @@ func TestAccSubnetRouteTableAssociation_deleted(t *testing.T) {
 }
 
 func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -116,15 +116,14 @@ func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *
 }
 
 func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-	subnetId := state.Attributes["subnet_id"]
-	parsedId, err := azure.ParseAzureResourceID(subnetId)
+	parsedId, err := parse.SubnetID(state.Attributes["subnet_id"])
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := parsedId.ResourceGroup
-	virtualNetworkName := parsedId.Path["virtualNetworks"]
-	subnetName := parsedId.Path["subnets"]
+	virtualNetworkName := parsedId.VirtualNetworkName
+	subnetName := parsedId.Name
 
 	read, err := client.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
