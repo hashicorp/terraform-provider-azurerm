@@ -96,7 +96,7 @@ A provider block is _technically_ optional when using environment variables. Eve
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
@@ -118,7 +118,7 @@ It's also possible to configure a managed identity within the provider block:
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
@@ -141,7 +141,7 @@ If you intend to configure a remote backend in the provider block, put `use_msi`
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }

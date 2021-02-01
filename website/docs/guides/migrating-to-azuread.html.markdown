@@ -26,7 +26,7 @@ As the AzureAD and AzureRM Provider support the same authentication methods, it'
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
@@ -43,11 +43,11 @@ can become:
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
     azuread = {
-      source = "hashicorp/azuread"
+      source  = "hashicorp/azuread"
       version = "=1.3.0"
     }
   }

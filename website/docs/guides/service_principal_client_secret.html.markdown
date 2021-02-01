@@ -183,7 +183,7 @@ The following Terraform and Provider blocks can be specified - where `2.40.1` is
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
@@ -214,7 +214,7 @@ variable "client_secret" {
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }

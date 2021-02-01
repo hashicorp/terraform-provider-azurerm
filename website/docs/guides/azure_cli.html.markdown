@@ -88,7 +88,7 @@ To configure Terraform to use the Default Subscription defined in the Azure CLI 
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
@@ -114,7 +114,7 @@ It's also possible to configure Terraform to use a specific Subscription - for e
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
@@ -142,7 +142,7 @@ If you're looking to use Terraform across Tenants - it's possible to do this by 
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }

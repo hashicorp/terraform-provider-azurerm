@@ -33,7 +33,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "=2.40.1"
     }
   }
