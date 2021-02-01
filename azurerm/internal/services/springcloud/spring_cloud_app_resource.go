@@ -94,6 +94,11 @@ func resourceSpringCloudApp() *schema.Resource {
 				},
 			},
 
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -231,6 +236,7 @@ func resourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error 
 	if prop := resp.Properties; prop != nil {
 		d.Set("is_public", prop.Public)
 		d.Set("https_only", prop.HTTPSOnly)
+		d.Set("fqdn", prop.Fqdn)
 		d.Set("url", prop.URL)
 
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {

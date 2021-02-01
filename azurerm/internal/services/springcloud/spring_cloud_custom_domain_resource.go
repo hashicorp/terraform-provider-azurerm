@@ -41,7 +41,7 @@ func resourceSpringCloudCustomDomain() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.SpringCloudCustomDomainName,
 			},
 
 			"spring_cloud_app_id": {

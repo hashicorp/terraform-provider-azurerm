@@ -3,6 +3,7 @@ package springcloud_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -18,6 +19,11 @@ type SpringCloudCustomDomainResource struct {
 }
 
 func TestAccSpringCloudCustomDomain_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_custom_domain", "test")
 	r := SpringCloudCustomDomainResource{}
 
@@ -33,6 +39,11 @@ func TestAccSpringCloudCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccSpringCloudCustomDomain_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_custom_domain", "test")
 	r := SpringCloudCustomDomainResource{}
 
@@ -48,6 +59,11 @@ func TestAccSpringCloudCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccSpringCloudCustomDomain_complete(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_custom_domain", "test")
 	r := SpringCloudCustomDomainResource{}
 
@@ -63,6 +79,11 @@ func TestAccSpringCloudCustomDomain_complete(t *testing.T) {
 }
 
 func TestAccSpringCloudCustomDomain_update(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_custom_domain", "test")
 	r := SpringCloudJavaDeploymentResource{}
 
@@ -110,7 +131,7 @@ func (r SpringCloudCustomDomainResource) basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_spring_cloud_custom_domain" "test" {
-  name                = "contoso.com"
+  name                = join(".", [azurerm_dns_cname_record.test.name, azurerm_dns_cname_record.test.zone_name])
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
 }
 `, r.template(data))
@@ -200,22 +221,36 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
 
-      subject            = "CN=contoso.com"
+      subject            = join("", ["CN=*.", data.azurerm_dns_zone.test.name])
+
+      subject_alternative_names {
+        dns_names = [join(".", [azurerm_dns_cname_record.test.name, azurerm_dns_cname_record.test.zone_name])]
+      }
+
       validity_in_months = 12
     }
   }
 }
 
-resource "azurerm_spring_cloud_custom_domain" "test" {
-  name                = azurerm_spring_cloud_custom_domain.test.name
-  spring_cloud_app_id = azurerm_spring_cloud_custom_domain.test.spring_cloud_app_id
-  cert_name           = azurerm_key_vault_certificate.test.name
-  thumbprint          = azurerm_key_vault_certificate.test.thumbprint
+resource "azurerm_spring_cloud_certificate" "test" {
+  name                     = "acctest-scc-%d"
+  resource_group_name      = azurerm_spring_cloud_service.test.resource_group_name
+  service_name             = azurerm_spring_cloud_service.test.name
+  key_vault_certificate_id = azurerm_key_vault_certificate.test.id
 }
-`, r.template(data), data.RandomString, data.RandomString)
+
+resource "azurerm_spring_cloud_custom_domain" "test" {
+  name                = join(".", [azurerm_dns_cname_record.test.name, azurerm_dns_cname_record.test.zone_name])
+  spring_cloud_app_id = azurerm_spring_cloud_custom_domain.test.spring_cloud_app_id
+  cert_name           = azurerm_spring_cloud_certificate.test.name
+  thumbprint          = azurerm_spring_cloud_certificate.test.thumbprint
+}
+`, r.template(data), data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (SpringCloudCustomDomainResource) template(data acceptance.TestData) string {
+	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
+	dataResourceGroup := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -237,5 +272,18 @@ resource "azurerm_spring_cloud_app" "test" {
   resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
   service_name        = azurerm_spring_cloud_service.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+
+data "azurerm_dns_zone" "test" {
+  name                = "%s"
+  resource_group_name = "%s"
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "%s"
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 300
+  record              = azurerm_spring_cloud_app.test.fqdn
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, dnsZone, dataResourceGroup, data.RandomString)
 }
