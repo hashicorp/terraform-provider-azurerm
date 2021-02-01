@@ -431,7 +431,6 @@ func flattenDeviceSecurityGroupAllowListRule(input *[]security.BasicAllowlistCus
 			"type":   t,
 			"values": utils.FlattenStringSlice(values),
 		})
-
 	}
 	return result
 }
@@ -567,7 +566,6 @@ func flattenDeviceSecurityGroupTimeWindowRule(input *[]security.BasicTimeWindowC
 			"min_threshold":    minThreshold,
 			"max_threshold":    maxThreshold,
 		})
-
 	}
 	return result
 }
