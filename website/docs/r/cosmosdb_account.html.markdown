@@ -99,6 +99,7 @@ The following arguments are supported:
 * `key_vault_key_id` - (Optional) A Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The CosmosDB service always uses the latest version of the specified key, so terraform ignores the version specified in the Key Vault Key ID.
+
 ~> **NOTE:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instuctions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
