@@ -37,6 +37,11 @@ resource "azurerm_storage_management_policy" "example" {
     filters {
       prefix_match = ["container1/prefix1"]
       blob_types   = ["blockBlob"]
+blob_index_match {
+        tag_name  = "tag1"
+        tag_op    = "=="
+        tag_value = "val1"
+      }
     }
     actions {
       base_blob {
@@ -93,7 +98,8 @@ The following arguments are supported:
 
 * `prefix_match` - An array of strings for prefixes to be matched.
 * `blob_types` - An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
-
+* `blob_index_match` - A `blob_index_match` block as defined below.
+~> **NOTE:** Please enable `blobIndex` feature by [PSH or Cli commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/) before setting the block `blob_index_match`. 
 ---
 
 `actions` supports the following:
@@ -114,6 +120,14 @@ The following arguments are supported:
 `snapshot` supports the following:
 
 * `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot. Must be at least 0.
+
+---
+
+`blob_index_match` supports the following:
+
+* `tag_name` - The age in days after create to delete the snaphot. Must be at least 0.
+* `tag_op` - The age in days after create to delete the snaphot. Must be at least 0.
+* `tag_value` - The age in days after create to delete the snaphot. Must be at least 0.
 
 ## Attributes Reference
 

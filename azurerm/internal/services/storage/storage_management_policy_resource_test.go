@@ -290,6 +290,35 @@ func TestAccStorageManagementPolicy_blobTypes(t *testing.T) {
 	})
 }
 
+func TestAccStorageManagementPolicy_blobIndexMatch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
+	r := StorageManagementPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.blobIndexMatchDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blobIndexMatch(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blobIndexMatchDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageManagementPolicyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	storageAccountId := state.Attributes["storage_account_id"]
 	id, err := parse.StorageAccountID(storageAccountId)
@@ -610,4 +639,110 @@ resource "azurerm_storage_management_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageManagementPolicyResource) blobIndexMatchTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "BlobStorage"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageManagementPolicyResource) blobIndexMatch(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  rule {
+    name    = "rule1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+
+      blob_index_match {
+        tag_name  = "tag1"
+        tag_op    = "=="
+        tag_value = "val1"
+      }
+
+      blob_index_match {
+        tag_name  = "tag2"
+        tag_op    = "=="
+        tag_value = "val2"
+      }
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 30
+      }
+    }
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, r.blobIndexMatchTemplate(data))
+}
+
+func (r StorageManagementPolicyResource) blobIndexMatchDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  rule {
+    name    = "rule1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 30
+      }
+    }
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, r.blobIndexMatchTemplate(data))
 }

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"time"
@@ -80,6 +81,33 @@ func resourceStorageManagementPolicy() *schema.Resource {
 											}, false),
 										},
 										Set: schema.HashString,
+									},
+
+									"blob_index_match": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Set:      resourceStorageManagementPolicyBlobIndexMatchHash,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"tag_name": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+
+												"tag_op": {
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														"==",
+													}, false),
+												},
+
+												"tag_value": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -288,6 +316,8 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) st
 				}
 			}
 			definition.Filters.BlobTypes = &blobTypes
+
+			definition.Filters.BlobIndexMatch = expandAzureRmStorageBlobIndexMatch(filterRef["blob_index_match"].(*schema.Set).List())
 		}
 	}
 	if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions", ruleIndex)); ok {
@@ -370,6 +400,9 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					}
 					filter["blob_types"] = blobTypes
 				}
+
+				filter["blob_index_match"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
+
 				rule["filters"] = [1]interface{}{filter}
 			}
 
@@ -412,4 +445,77 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 	}
 
 	return rules
+}
+
+func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]storage.TagFilter {
+	results := make([]storage.TagFilter, 0)
+
+	if len(blobIndexMatches) == 0 {
+		return &results
+	}
+	for _, v := range blobIndexMatches {
+		blobIndexMatch := v.(map[string]interface{})
+
+		filter := storage.TagFilter{
+			Name:  utils.String(blobIndexMatch["tag_name"].(string)),
+			Op:    utils.String(blobIndexMatch["tag_op"].(string)),
+			Value: utils.String(blobIndexMatch["tag_value"].(string)),
+		}
+
+		results = append(results, filter)
+	}
+
+	return &results
+}
+
+func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) *schema.Set {
+	result := &schema.Set{
+		F: resourceStorageManagementPolicyBlobIndexMatchHash,
+	}
+
+	if blobIndexMatches == nil || len(*blobIndexMatches) == 0 {
+		return result
+	}
+
+	for _, blobIndexMatch := range *blobIndexMatches {
+		var name, op, value string
+		if blobIndexMatch.Name != nil {
+			name = *blobIndexMatch.Name
+		}
+		if blobIndexMatch.Op != nil {
+			op = *blobIndexMatch.Op
+		}
+		if blobIndexMatch.Value != nil {
+			value = *blobIndexMatch.Value
+		}
+		result.Add(map[string]interface{}{
+			"tag_name":  name,
+			"tag_op":    op,
+			"tag_value": value,
+		})
+	}
+	return result
+}
+
+func resourceStorageManagementPolicyBlobIndexMatchHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(storage.TagFilter); ok {
+		var name, op, value string
+		if m.Name != nil {
+			name = *m.Name
+		}
+
+		if m.Op != nil {
+			op = *m.Op
+		}
+
+		if m.Value != nil {
+			value = *m.Value
+		}
+
+		buf.WriteString(fmt.Sprintf("%s-%s-%s", name, op, value))
+	}
+
+	return schema.HashString(buf.String())
 }
