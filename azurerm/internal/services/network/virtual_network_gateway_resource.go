@@ -832,7 +832,6 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]network.IPConfigur
 	}
 
 	return output, nil
-
 }
 
 func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
@@ -952,17 +951,6 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
 
 	return schema.HashString(buf.String())
-}
-
-func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string) (string, string, error) {
-	id, err := azure.ParseAzureResourceID(virtualNetworkGatewayId)
-	if err != nil {
-		return "", "", err
-	}
-	name := id.Path["virtualNetworkGateways"]
-	resGroup := id.ResourceGroup
-
-	return resGroup, name, nil
 }
 
 func validateVirtualNetworkGatewaySubnetId(i interface{}, k string) (warnings []string, errors []error) {
