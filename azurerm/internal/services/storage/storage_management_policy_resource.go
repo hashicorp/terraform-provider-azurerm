@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"regexp"
 	"time"
 
@@ -90,8 +91,9 @@ func resourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tag_name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validate.StorageBlobIndexTagName,
 												},
 
 												"tag_op": {
@@ -103,8 +105,9 @@ func resourceStorageManagementPolicy() *schema.Resource {
 												},
 
 												"tag_value": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validate.StorageBlobIndexTagValue,
 												},
 											},
 										},

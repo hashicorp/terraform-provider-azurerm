@@ -664,9 +664,9 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_role_assignment" "test" {
- scope                = azurerm_storage_account.test.id
- role_definition_name = "Storage Blob Data Owner"
- principal_id         = data.azurerm_client_config.current.object_id
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
