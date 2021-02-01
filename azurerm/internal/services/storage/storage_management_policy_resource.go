@@ -3,9 +3,10 @@ package storage
 import (
 	"bytes"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 

@@ -37,7 +37,7 @@ resource "azurerm_storage_management_policy" "example" {
     filters {
       prefix_match = ["container1/prefix1"]
       blob_types   = ["blockBlob"]
-blob_index_match {
+      blob_index_match {
         tag_name  = "tag1"
         tag_op    = "=="
         tag_value = "val1"
