@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -273,6 +273,12 @@ func resourceRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -313,6 +319,11 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("parsing Redis Configuration: %+v", err)
 	}
 
+	publicNetworkAccess := redis.Enabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = redis.Disabled
+	}
+
 	parameters := redis.CreateParameters{
 		Location: utils.String(location),
 		CreateProperties: &redis.CreateProperties{
@@ -322,8 +333,9 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 				Family:   family,
 				Name:     sku,
 			},
-			MinimumTLSVersion:  redis.TLSVersion(d.Get("minimum_tls_version").(string)),
-			RedisConfiguration: redisConfiguration,
+			MinimumTLSVersion:   redis.TLSVersion(d.Get("minimum_tls_version").(string)),
+			RedisConfiguration:  redisConfiguration,
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 		Tags: expandedTags,
 	}
@@ -428,6 +440,14 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 			shardCount := int32(v.(int))
 			parameters.ShardCount = &shardCount
 		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := redis.Enabled
+		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+			publicNetworkAccess = redis.Disabled
+		}
+		parameters.PublicNetworkAccess = publicNetworkAccess
 	}
 
 	if d.HasChange("redis_configuration") {
@@ -540,6 +560,8 @@ func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 			subnetId = parsed.ID()
 		}
 		d.Set("subnet_id", subnetId)
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.Enabled)
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)

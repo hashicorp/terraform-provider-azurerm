@@ -92,7 +92,7 @@ func (client LinkedServerClient) CreatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -101,7 +101,7 @@ func (client LinkedServerClient) CreatePreparer(ctx context.Context, resourceGro
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{name}/linkedServers/{linkedServerName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{name}/linkedServers/{linkedServerName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -178,7 +178,7 @@ func (client LinkedServerClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -186,7 +186,7 @@ func (client LinkedServerClient) DeletePreparer(ctx context.Context, resourceGro
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{name}/linkedServers/{linkedServerName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{name}/linkedServers/{linkedServerName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -202,7 +202,7 @@ func (client LinkedServerClient) DeleteSender(req *http.Request) (*http.Response
 func (client LinkedServerClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -255,7 +255,7 @@ func (client LinkedServerClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -263,7 +263,7 @@ func (client LinkedServerClient) GetPreparer(ctx context.Context, resourceGroupN
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{name}/linkedServers/{linkedServerName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{name}/linkedServers/{linkedServerName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -322,6 +322,7 @@ func (client LinkedServerClient) List(ctx context.Context, resourceGroupName str
 	}
 	if result.lswpl.hasNextLink() && result.lswpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -335,7 +336,7 @@ func (client LinkedServerClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -343,7 +344,7 @@ func (client LinkedServerClient) ListPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{name}/linkedServers", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{name}/linkedServers", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -383,7 +384,6 @@ func (client LinkedServerClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.LinkedServerClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
