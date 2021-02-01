@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -129,15 +130,19 @@ func ExpandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 	return &identity, nil
 }
 
-func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) []interface{} {
+func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
 	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -152,7 +157,7 @@ func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSet
 			"identity_ids": identityIds,
 			"principal_id": principalId,
 		},
-	}
+	}, nil
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
@@ -1432,20 +1437,18 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		settings, ok := extensionRaw["settings"].(string)
-		if ok && settings != "" {
-			settings, err := structure.ExpandJsonFromString(settings)
+		if val, ok := extensionRaw["settings"]; ok {
+			settings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.Settings = settings
 		}
 
-		protectedSettings, ok := extensionRaw["protected_settings"].(string)
-		if ok && protectedSettings != "" {
-			protectedSettings, err := structure.ExpandJsonFromString(protectedSettings)
+		if val, ok := extensionRaw["protected_settings"]; ok {
+			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}

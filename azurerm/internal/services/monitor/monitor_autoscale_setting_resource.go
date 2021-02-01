@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -170,6 +170,44 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 												"threshold": {
 													Type:     schema.TypeFloat,
 													Required: true,
+												},
+
+												"metric_namespace": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"dimensions": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"name": {
+																Type:         schema.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+
+															"operator": {
+																Type:     schema.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(insights.ScaleRuleMetricDimensionOperationTypeEquals),
+																	string(insights.ScaleRuleMetricDimensionOperationTypeNotEquals),
+																}, false),
+															},
+
+															"values": {
+																Type:     schema.TypeList,
+																Required: true,
+																Elem: &schema.Schema{
+																	Type:         schema.TypeString,
+																	ValidateFunc: validation.StringIsNotEmpty,
+																},
+															},
+														},
+													},
 												},
 											},
 										},
@@ -544,6 +582,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 		triggerRaw := triggersRaw[0].(map[string]interface{})
 		metricTrigger := insights.MetricTrigger{
 			MetricName:        utils.String(triggerRaw["metric_name"].(string)),
+			MetricNamespace:   utils.String(triggerRaw["metric_namespace"].(string)),
 			MetricResourceURI: utils.String(triggerRaw["metric_resource_id"].(string)),
 			TimeGrain:         utils.String(triggerRaw["time_grain"].(string)),
 			Statistic:         insights.MetricStatisticType(triggerRaw["statistic"].(string)),
@@ -551,6 +590,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 			TimeAggregation:   insights.TimeAggregationType(triggerRaw["time_aggregation"].(string)),
 			Operator:          insights.ComparisonOperationType(triggerRaw["operator"].(string)),
 			Threshold:         utils.Float(triggerRaw["threshold"].(float64)),
+			Dimensions:        expandAzureRmMonitorAutoScaleSettingRuleDimensions(triggerRaw["dimensions"].([]interface{})),
 		}
 
 		actionsRaw := ruleRaw["scale_action"].([]interface{})
@@ -709,6 +749,27 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	return &webhooks
 }
 
+func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]insights.ScaleRuleMetricDimension {
+	dimensions := make([]insights.ScaleRuleMetricDimension, 0)
+
+	for _, v := range input {
+		if v == nil {
+			continue
+		}
+		dimensionRaw := v.(map[string]interface{})
+
+		dimension := insights.ScaleRuleMetricDimension{
+			DimensionName: utils.String(dimensionRaw["name"].(string)),
+			Operator:      insights.ScaleRuleMetricDimensionOperationType(dimensionRaw["operator"].(string)),
+			Values:        utils.ExpandStringSlice(dimensionRaw["values"].([]interface{})),
+		}
+
+		dimensions = append(dimensions, dimension)
+	}
+
+	return &dimensions
+}
+
 func flattenAzureRmMonitorAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
 	if profiles == nil {
 		return []interface{}{}, nil
@@ -787,33 +848,44 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 
 		metricTriggers := make([]interface{}, 0)
 		if trigger := rule.MetricTrigger; trigger != nil {
-			output := make(map[string]interface{})
-
-			output["operator"] = string(trigger.Operator)
-			output["statistic"] = string(trigger.Statistic)
-			output["time_aggregation"] = string(trigger.TimeAggregation)
-
+			var metricName, metricNamespace, metricId, timeGrain, timeWindow string
+			var threshold float64
 			if trigger.MetricName != nil {
-				output["metric_name"] = *trigger.MetricName
+				metricName = *trigger.MetricName
+			}
+
+			if v := trigger.MetricNamespace; v != nil {
+				metricNamespace = *v
 			}
 
 			if trigger.MetricResourceURI != nil {
-				output["metric_resource_id"] = *trigger.MetricResourceURI
+				metricId = *trigger.MetricResourceURI
 			}
 
 			if trigger.TimeGrain != nil {
-				output["time_grain"] = *trigger.TimeGrain
+				timeGrain = *trigger.TimeGrain
 			}
 
 			if trigger.TimeWindow != nil {
-				output["time_window"] = *trigger.TimeWindow
+				timeWindow = *trigger.TimeWindow
 			}
 
 			if trigger.Threshold != nil {
-				output["threshold"] = *trigger.Threshold
+				threshold = *trigger.Threshold
 			}
 
-			metricTriggers = append(metricTriggers, output)
+			metricTriggers = append(metricTriggers, map[string]interface{}{
+				"metric_name":        metricName,
+				"metric_namespace":   metricNamespace,
+				"metric_resource_id": metricId,
+				"time_grain":         timeGrain,
+				"statistic":          string(trigger.Statistic),
+				"time_window":        timeWindow,
+				"time_aggregation":   string(trigger.TimeAggregation),
+				"operator":           string(trigger.Operator),
+				"threshold":          threshold,
+				"dimensions":         flattenAzureRmMonitorAutoScaleSettingRulesDimensions(trigger.Dimensions),
+			})
 		}
 
 		result["metric_trigger"] = metricTriggers
@@ -1081,4 +1153,27 @@ func validateMonitorAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
 		"Line Islands Standard Time",
 	}
 	return validation.StringInSlice(timeZones, false)
+}
+
+func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights.ScaleRuleMetricDimension) []interface{} {
+	results := make([]interface{}, 0)
+
+	if dimensions == nil {
+		return results
+	}
+
+	for _, dimension := range *dimensions {
+		var name string
+
+		if v := dimension.DimensionName; v != nil {
+			name = *v
+		}
+
+		results = append(results, map[string]interface{}{
+			"name":     name,
+			"operator": string(dimension.Operator),
+			"values":   utils.FlattenStringSlice(dimension.Values),
+		})
+	}
+	return results
 }

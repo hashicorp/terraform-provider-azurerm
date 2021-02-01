@@ -160,7 +160,7 @@ resource "azurerm_api_management_api_operation_policy" "test" {
 XML
 
 }
-`, r.basic(data))
+`, ApiManagementApiOperationResource{}.basic(data))
 }
 
 func (r ApiManagementApiOperationPolicyResource) rawXml(data acceptance.TestData) string {
@@ -175,5 +175,5 @@ resource "azurerm_api_management_api_operation_policy" "test" {
 
   xml_content = file("testdata/api_management_api_operation_policy.xml")
 }
-`, r.basic(data))
+`, ApiManagementApiOperationResource{}.basic(data))
 }

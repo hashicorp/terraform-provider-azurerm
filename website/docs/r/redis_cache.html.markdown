@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A list of a single item of the Availability Zone which the Redis Cache should be allocated in.
+* `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated.
 
 -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 

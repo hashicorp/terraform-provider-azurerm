@@ -61,6 +61,13 @@ func resourceApiManagementApiDiagnostic() *schema.Resource {
 				ValidateFunc: validate.LoggerID,
 			},
 
+			"sampling_percentage": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatBetween(0.0, 100.0),
+			},
+
 			"always_log_errors": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -161,34 +168,29 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
+	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+		parameters.Sampling = &apimanagement.SamplingSettings{
+			SamplingType: apimanagement.Fixed,
+			Percentage:   utils.Float(samplingPercentage.(float64)),
+		}
+	} else {
+		parameters.Sampling = nil
+	}
+
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
 		parameters.AlwaysLog = apimanagement.AllErrors
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		switch verbosity.(string) {
-		case string(apimanagement.Verbose):
-			parameters.Verbosity = apimanagement.Verbose
-		case string(apimanagement.Information):
-			parameters.Verbosity = apimanagement.Information
-		case string(apimanagement.Error):
-			parameters.Verbosity = apimanagement.Error
-		}
+		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
-	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		switch httpCorrelationProtocol.(string) {
-		case string(apimanagement.HTTPCorrelationProtocolNone):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
-		case string(apimanagement.HTTPCorrelationProtocolLegacy):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
-		case string(apimanagement.HTTPCorrelationProtocolW3C):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
-		}
+		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -258,6 +260,9 @@ func resourceApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interfa
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	if props := resp.DiagnosticContractProperties; props != nil {
 		d.Set("api_management_logger_id", props.LoggerID)
+		if props.Sampling != nil && props.Sampling.Percentage != nil {
+			d.Set("sampling_percentage", props.Sampling.Percentage)
+		}
 		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
 		d.Set("verbosity", props.Verbosity)
 		d.Set("log_client_ip", props.LogClientIP)

@@ -10,21 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPublicIp() *schema.Resource {
+func resourcePublicIp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPublicIpCreateUpdate,
-		Read:   resourceArmPublicIpRead,
-		Update: resourceArmPublicIpCreateUpdate,
-		Delete: resourceArmPublicIpDelete,
+		Create: resourcePublicIpCreateUpdate,
+		Read:   resourcePublicIpRead,
+		Update: resourcePublicIpCreateUpdate,
+		Delete: resourcePublicIpDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -134,7 +134,7 @@ func resourceArmPublicIp() *schema.Resource {
 	}
 }
 
-func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,10 +235,10 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmPublicIpRead(d, meta)
+	return resourcePublicIpRead(d, meta)
 }
 
-func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +292,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

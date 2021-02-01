@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -122,13 +124,13 @@ func resourceApiManagementProductPolicyRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
@@ -159,13 +161,13 @@ func resourceApiManagementProductPolicyDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productID, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

@@ -3,6 +3,7 @@ package loganalytics_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -87,6 +88,11 @@ func TestAccLogAnalyticsLinkedService_legacy(t *testing.T) {
 func TestAccLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 	r := LogAnalyticsLinkedServiceResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{

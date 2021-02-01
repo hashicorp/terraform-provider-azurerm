@@ -3,7 +3,6 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
@@ -12,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +35,7 @@ func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				// Then ensure the encryption settings on the storage account
 				// have been reverted to their default state
-				testCheckStorageAccountExistsWithDefaultSettings("azurerm_storage_account.test"),
+				data.CheckWithClient(r.accountHasDefaultSettings),
 			),
 		},
 	})
@@ -100,58 +100,71 @@ func TestAccStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
 	})
 }
 
-func testCheckStorageAccountExistsWithDefaultSettings(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		storageAccount := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
-
-		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", storageAccount, resourceGroup)
-		}
-
-		if props := resp.AccountProperties; props != nil {
-			if encryption := props.Encryption; encryption != nil {
-				if services := encryption.Services; services != nil {
-					if !*services.Blob.Enabled {
-						return fmt.Errorf("enable_blob_encryption not set to default: %s", resourceName)
-					}
-					if !*services.File.Enabled {
-						return fmt.Errorf("enable_file_encryption not set to default: %s", resourceName)
-					}
-				}
-
-				if encryption.KeySource != storage.KeySourceMicrosoftStorage {
-					return fmt.Errorf("%s keySource not set to default(storage.KeySourceMicrosoftStorage): %s", resourceName, encryption.KeySource)
-				}
-			} else {
-				return fmt.Errorf("storage account encryption properties not found: %s", resourceName)
-			}
-		}
-
-		return nil
+func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	accountId, err := storageParse.StorageAccountID(state.Attributes["storage_account_id"])
+	if err != nil {
+		return err
 	}
+
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroup, accountId.Name, "")
+	if err != nil {
+		return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
+	}
+
+	if utils.ResponseWasNotFound(resp.Response) {
+		return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", accountId.Name, accountId.ResourceGroup)
+	}
+
+	if props := resp.AccountProperties; props != nil {
+		if encryption := props.Encryption; encryption != nil {
+			if services := encryption.Services; services != nil {
+				if !*services.Blob.Enabled {
+					return fmt.Errorf("enable_blob_encryption not set to default")
+				}
+				if !*services.File.Enabled {
+					return fmt.Errorf("enable_file_encryption not set to default")
+				}
+			}
+
+			if encryption.KeySource != storage.KeySourceMicrosoftStorage {
+				return fmt.Errorf("%q should be %q", encryption.KeySource, string(storage.KeySourceMicrosoftStorage))
+			}
+		} else {
+			return fmt.Errorf("storage account encryption properties not found")
+		}
+	}
+
+	return nil
 }
 
 func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	if storageAccountId := state.Attributes["storage_account_id"]; storageAccountId == "" {
-		return nil, fmt.Errorf("cannot read storage account ID from Storage Account Customer Managed Key resource")
+	accountId, err := storageParse.StorageAccountID(state.Attributes["storage_account_id"])
+	if err != nil {
+		return nil, err
 	}
-	return utils.Bool(true), nil
+
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroup, accountId.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
+	}
+
+	if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), nil
+	}
+
+	if resp.AccountProperties == nil {
+		return nil, fmt.Errorf("storage account encryption properties not found")
+	}
+	props := *resp.AccountProperties
+	if encryption := props.Encryption; encryption != nil {
+		if encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
+			return utils.Bool(true), nil
+		}
+
+		return nil, fmt.Errorf("%q should be %q", encryption.KeySource, string(storage.KeySourceMicrosoftKeyvault))
+	}
+
+	return utils.Bool(false), nil
 }
 
 func (r StorageAccountCustomerManagedKeyResource) basic(data acceptance.TestData) string {

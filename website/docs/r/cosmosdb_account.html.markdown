@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
+* `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account.
@@ -120,7 +122,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableAnalyticalStorage`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 

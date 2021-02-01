@@ -10,23 +10,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmManagedDisk() *schema.Resource {
+func resourceManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedDiskCreateUpdate,
-		Read:   resourceArmManagedDiskRead,
-		Update: resourceArmManagedDiskUpdate,
-		Delete: resourceArmManagedDiskDelete,
+		Create: resourceManagedDiskCreateUpdate,
+		Read:   resourceManagedDiskRead,
+		Update: resourceManagedDiskUpdate,
+		Delete: resourceManagedDiskDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagedDiskID(id)
@@ -148,7 +148,7 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,10 +286,10 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmManagedDiskRead(d, meta)
+	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -490,10 +490,10 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceArmManagedDiskRead(d, meta)
+	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -559,7 +559,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmManagedDisk() *schema.Resource {
+func dataSourceManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmManagedDiskRead,
+		Read: dataSourceManagedDiskRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -91,7 +91,7 @@ func dataSourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

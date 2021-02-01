@@ -9,8 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -152,15 +153,19 @@ func expandArmBlueprintAssignmentIdentity(input []interface{}) (*blueprint.Manag
 	return &identity, nil
 }
 
-func flattenArmBlueprintAssignmentIdentity(input *blueprint.ManagedServiceIdentity) []interface{} {
+func flattenArmBlueprintAssignmentIdentity(input *blueprint.ManagedServiceIdentity) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -181,7 +186,7 @@ func flattenArmBlueprintAssignmentIdentity(input *blueprint.ManagedServiceIdenti
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 		},
-	}
+	}, nil
 }
 
 func flattenArmBlueprintAssignmentParameters(input map[string]*blueprint.ParameterValue) (string, error) {
