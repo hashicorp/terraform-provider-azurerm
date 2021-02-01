@@ -1,13 +1,18 @@
 package compute_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
@@ -19,7 +24,7 @@ func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
 			// create the original VM
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
-				generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine, "azurerm_windows_virtual_machine.source"),
 			),
 		},
 		{
@@ -61,7 +66,7 @@ func TestAccWindowsVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 			// create the original VM
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
-				generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine, "azurerm_windows_virtual_machine.source"),
 			),
 		},
 		{
@@ -355,16 +360,44 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func generalizeWindowsVirtualMachine(resourceName string) func(s *terraform.State) error {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
-
-		return testGeneralizeWindowsVMImage(resourceGroup, name)(s)
+func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.VirtualMachineID(state.ID)
+	if err != nil {
+		return err
 	}
+
+	command := []string{
+		"$cmd = \"$Env:SystemRoot\\system32\\sysprep\\sysprep.exe\"",
+		"$args = \"/generalize /oobe /mode:vm /quit\"",
+		"Start-Process powershell -Argument \"$cmd $args\" -Wait",
+	}
+	runCommand := compute.RunCommandInput{
+		CommandID: utils.String("RunPowerShellScript"),
+		Script:    &command,
+	}
+
+	future, err := client.Compute.VMClient.RunCommand(ctx, id.ResourceGroup, id.Name, runCommand)
+	if err != nil {
+		return fmt.Errorf("Bad: Error in running sysprep: %+v", err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
+	}
+
+	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Bad: Deallocation error: %+v", err)
+	}
+
+	if err := daFuture.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return fmt.Errorf("Bad: Deallocation error: %+v", err)
+	}
+
+	_, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Bad: Generalizing error: %+v", err)
+	}
+
+	return nil
 }
