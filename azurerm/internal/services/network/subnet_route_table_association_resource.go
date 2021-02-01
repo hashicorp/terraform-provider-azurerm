@@ -65,7 +65,7 @@ func resourceSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	parsedRouteTableId, err := ParseRouteTableID(routeTableId)
+	parsedRouteTableId, err := parse.RouteTableID(routeTableId)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func resourceSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta inte
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := ParseRouteTableID(*props.RouteTable.ID)
+	parsedRouteTableId, err := parse.RouteTableID(*props.RouteTable.ID)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -213,7 +213,7 @@ func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
 }
 
 func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := network.ParseNetworkSecurityGroupID(state.ID)
+	id, err := parse.NetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clien
 }
 
 func (NetworkSecurityGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := network.ParseNetworkSecurityGroupID(state.ID)
+	id, err := parse.NetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}

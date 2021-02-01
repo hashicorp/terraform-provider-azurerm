@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -225,7 +225,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 }
 
 func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := network.ParseRouteTableID(state.ID)
+	id, err := parse.RouteTableID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client,
 }
 
 func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := network.ParseRouteTableID(state.ID)
+	id, err := parse.RouteTableID(state.ID)
 	if err != nil {
 		return nil, err
 	}
