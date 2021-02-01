@@ -9,6 +9,8 @@ BUG FIXES:
 
 * `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting [GH-10325]
 * `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
+* `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
+* `azurerm_storage_data_lake_gen2_path` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
 
 ## 2.45.1 (January 28, 2021)
 
