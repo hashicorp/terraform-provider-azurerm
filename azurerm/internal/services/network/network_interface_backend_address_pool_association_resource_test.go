@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -137,12 +138,12 @@ func (t NetworkInterfaceBackendAddressPoolResource) Exists(ctx context.Context, 
 }
 
 func (NetworkInterfaceBackendAddressPoolResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-	nicID, err := azure.ParseAzureResourceID(state.Attributes["network_interface_id"])
+	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
 	if err != nil {
 		return err
 	}
 
-	nicName := nicID.Path["networkInterfaces"]
+	nicName := nicID.Name
 	resourceGroup := nicID.ResourceGroup
 	backendAddressPoolId := state.Attributes["backend_address_pool_id"]
 	ipConfigurationName := state.Attributes["ip_configuration_name"]
