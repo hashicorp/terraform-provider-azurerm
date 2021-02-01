@@ -20,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmGuestConfigurationAssignment() *schema.Resource {
+func resourceGuestConfigurationAssignment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceGuestConfigurationAssignmentCreateUpdate,
 		Read:   resourceGuestConfigurationAssignmentRead,
@@ -136,7 +136,7 @@ func resourceArmGuestConfigurationAssignment() *schema.Resource {
 										Default:  false,
 									},
 
-									"refresh_frequency_mins": {
+									"refresh_frequency_in_minute": {
 										Type:     schema.TypeFloat,
 										Optional: true,
 										Default:  30,
@@ -210,7 +210,7 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
 			Context:            utils.String(d.Get("context").(string)),
-			GuestConfiguration: expandArmGuestConfigurationAssignmentNavigation(d.Get("guest_configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigurationAssignmentNavigation(d.Get("guest_configuration").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.Name, parameter, id.ResourceGroup, id.VMName)
@@ -262,7 +262,7 @@ func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta inter
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.Properties; props != nil {
 		d.Set("context", props.Context)
-		if err := d.Set("guest_configuration", flattenArmGuestConfigurationAssignmentNavigation(props.GuestConfiguration)); err != nil {
+		if err := d.Set("guest_configuration", flattenGuestConfigurationAssignmentNavigation(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `guest_configuration`: %+v", err)
 		}
 		d.Set("assignment_hash", props.AssignmentHash)
@@ -293,7 +293,7 @@ func resourceGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta int
 	return nil
 }
 
-func expandArmGuestConfigurationAssignmentNavigation(input []interface{}) *guestconfiguration.Navigation {
+func expandGuestConfigurationAssignmentNavigation(input []interface{}) *guestconfiguration.Navigation {
 	if len(input) == 0 {
 		return nil
 	}
@@ -302,12 +302,12 @@ func expandArmGuestConfigurationAssignmentNavigation(input []interface{}) *guest
 		Kind:                   guestconfiguration.DSC, // hard-code here since this is the only valid value
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandArmGuestConfigurationAssignmentConfigurationParameterArray(v["configuration_parameter"].(*schema.Set).List()),
-		ConfigurationSetting:   expandArmGuestConfigurationAssignmentConfigurationSetting(v["configuration_setting"].([]interface{})),
+		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameterArray(v["configuration_parameter"].(*schema.Set).List()),
+		ConfigurationSetting:   expandGuestConfigurationAssignmentConfigurationSetting(v["configuration_setting"].([]interface{})),
 	}
 }
 
-func expandArmGuestConfigurationAssignmentConfigurationParameterArray(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
+func expandGuestConfigurationAssignmentConfigurationParameterArray(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
 	results := make([]guestconfiguration.ConfigurationParameter, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -319,7 +319,7 @@ func expandArmGuestConfigurationAssignmentConfigurationParameterArray(input []in
 	return &results
 }
 
-func expandArmGuestConfigurationAssignmentConfigurationSetting(input []interface{}) *guestconfiguration.ConfigurationSetting {
+func expandGuestConfigurationAssignmentConfigurationSetting(input []interface{}) *guestconfiguration.ConfigurationSetting {
 	if len(input) == 0 {
 		return nil
 	}
@@ -332,13 +332,13 @@ func expandArmGuestConfigurationAssignmentConfigurationSetting(input []interface
 		ConfigurationMode:              guestconfiguration.ConfigurationMode(v["configuration_mode"].(string)),
 		AllowModuleOverwrite:           guestconfiguration.AllowModuleOverwrite(v["allow_module_overwrite"].(string)),
 		ActionAfterReboot:              guestconfiguration.ActionAfterReboot(v["action_after_reboot"].(string)),
-		RefreshFrequencyMins:           utils.Float(v["refresh_frequency_mins"].(float64)),
+		RefreshFrequencyMins:           utils.Float(v["refresh_frequency_in_minute"].(float64)),
 		RebootIfNeeded:                 rebootIfNeeded,
 		ConfigurationModeFrequencyMins: utils.Float(v["configuration_mode_frequency_mins"].(float64)),
 	}
 }
 
-func flattenArmGuestConfigurationAssignmentNavigation(input *guestconfiguration.Navigation) []interface{} {
+func flattenGuestConfigurationAssignmentNavigation(input *guestconfiguration.Navigation) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -362,8 +362,8 @@ func flattenArmGuestConfigurationAssignmentNavigation(input *guestconfiguration.
 	return []interface{}{
 		map[string]interface{}{
 			"name":                    name,
-			"configuration_parameter": flattenArmGuestConfigurationAssignmentConfigurationParameterArray(input.ConfigurationParameter),
-			"configuration_setting":   flattenArmGuestConfigurationAssignmentConfigurationSetting(input.ConfigurationSetting),
+			"configuration_parameter": flattenGuestConfigurationAssignmentConfigurationParameterArray(input.ConfigurationParameter),
+			"configuration_setting":   flattenGuestConfigurationAssignmentConfigurationSetting(input.ConfigurationSetting),
 			"version":                 version,
 			"content_hash":            contentHash,
 			"content_uri":             contentUri,
@@ -371,7 +371,7 @@ func flattenArmGuestConfigurationAssignmentNavigation(input *guestconfiguration.
 	}
 }
 
-func flattenArmGuestConfigurationAssignmentConfigurationParameterArray(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
+func flattenGuestConfigurationAssignmentConfigurationParameterArray(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -394,7 +394,7 @@ func flattenArmGuestConfigurationAssignmentConfigurationParameterArray(input *[]
 	return results
 }
 
-func flattenArmGuestConfigurationAssignmentConfigurationSetting(input *guestconfiguration.ConfigurationSetting) []interface{} {
+func flattenGuestConfigurationAssignmentConfigurationSetting(input *guestconfiguration.ConfigurationSetting) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -412,9 +412,9 @@ func flattenArmGuestConfigurationAssignmentConfigurationSetting(input *guestconf
 
 	rebootIfNeeded := input.RebootIfNeeded
 
-	var refreshFrequencyMins float64
+	var refreshFrequencyMinute float64
 	if input.RefreshFrequencyMins != nil {
-		refreshFrequencyMins = *input.RefreshFrequencyMins
+		refreshFrequencyMinute = *input.RefreshFrequencyMins
 	}
 	return []interface{}{
 		map[string]interface{}{
@@ -423,7 +423,7 @@ func flattenArmGuestConfigurationAssignmentConfigurationSetting(input *guestconf
 			"configuration_mode":                configurationMode,
 			"configuration_mode_frequency_mins": configurationModeFrequencyMins,
 			"reboot_if_needed":                  rebootIfNeeded == guestconfiguration.RebootIfNeededTrue,
-			"refresh_frequency_mins":            refreshFrequencyMins,
+			"refresh_frequency_in_minute":       refreshFrequencyMinute,
 		},
 	}
 }

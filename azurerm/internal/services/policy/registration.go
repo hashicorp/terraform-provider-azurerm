@@ -33,6 +33,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_policy_definition":              resourceArmPolicyDefinition(),
 		"azurerm_policy_set_definition":          resourceArmPolicySetDefinition(),
 		"azurerm_policy_remediation":             resourceArmPolicyRemediation(),
-		"azurerm_guest_configuration_assignment": resourceArmGuestConfigurationAssignment(),
+		"azurerm_guest_configuration_assignment": resourceGuestConfigurationAssignment(),
 	}
 }
