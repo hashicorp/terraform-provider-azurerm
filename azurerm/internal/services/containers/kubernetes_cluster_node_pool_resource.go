@@ -87,6 +87,11 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_host_encryption": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"enable_node_public_ip": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -285,16 +290,18 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
+	enableHostEncryption := d.Get("enable_host_encryption").(bool)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
-		OsType:             containerservice.OSType(osType),
-		EnableAutoScaling:  utils.Bool(enableAutoScaling),
-		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
-		Mode:               mode,
-		ScaleSetPriority:   containerservice.ScaleSetPriority(priority),
-		Tags:               tags.Expand(t),
-		Type:               containerservice.VirtualMachineScaleSets,
-		VMSize:             containerservice.VMSizeTypes(vmSize),
+		OsType:                 containerservice.OSType(osType),
+		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Mode:                   mode,
+		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
+		Tags:                   tags.Expand(t),
+		Type:                   containerservice.VirtualMachineScaleSets,
+		VMSize:                 containerservice.VMSizeTypes(vmSize),
+		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
@@ -462,6 +469,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interf
 		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
 	}
 
+	if d.HasChange("enable_host_encryption") {
+		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
+	}
+
 	if d.HasChange("enable_node_public_ip") {
 		props.EnableNodePublicIP = utils.Bool(d.Get("enable_node_public_ip").(bool))
 	}
@@ -593,6 +604,7 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {

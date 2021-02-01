@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Defaults to `false`.
 
+* `enable_host_encryption` - (Optional) Whether to enable host encryption or not. Defaults to `false`.
+
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
 * `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.
