@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
@@ -47,11 +48,11 @@ func resourceApiManagementSubscription() *schema.Resource {
 			},
 
 			// 3.0 this seems to have been renamed to owner id?
-			"user_id": azure.SchemaApiManagementChildID(),
+			"user_id": schemaz.SchemaApiManagementChildID(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"display_name": {
 				Type:         schema.TypeString,
