@@ -90,6 +90,7 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 			"enable_host_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"enable_node_public_ip": {
