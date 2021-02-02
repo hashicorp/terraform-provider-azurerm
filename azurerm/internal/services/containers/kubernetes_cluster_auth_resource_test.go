@@ -18,6 +18,7 @@ var kubernetesAuthTests = map[string]func(t *testing.T){
 	"AADUpdateToManaged":          testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
 	"AADManaged":                  testAccKubernetesCluster_roleBasedAccessControlAADManaged,
 	"AADManagedChange":            testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
+	"roleBasedAccessControlAzure": testAccKubernetesCluster_roleBasedAccessControlAzure,
 	"servicePrincipal":            testAccKubernetesCluster_servicePrincipal,
 }
 
@@ -236,7 +237,6 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.managed").Exists(),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.azure_rbac_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
 			),
@@ -777,6 +777,30 @@ resource "azurerm_kubernetes_cluster" "test" {
       azure_rbac_enabled = true
     }
   }
+}
+
+resource "azurerm_role_assignment" "test_role1" {
+  scope                = azurerm_kubernetes_cluster.test.id
+  role_definition_name = "Azure Kubernetes Service RBAC Reader"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test_role2" {
+  scope                = "${azurerm_kubernetes_cluster.test.id}/namespaces/default"
+  role_definition_name = "Azure Kubernetes Service RBAC Admin"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test_role3" {
+  scope                = "${azurerm_kubernetes_cluster.test.id}"
+  role_definition_name = "Azure Kubernetes Service RBAC Writer"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test_role4" {
+  scope                = "${azurerm_kubernetes_cluster.test.id}"
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
 }
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

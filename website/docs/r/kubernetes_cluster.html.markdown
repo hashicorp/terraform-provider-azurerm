@@ -197,6 +197,10 @@ When `managed` is set to `true` the following properties can be specified:
 
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
+* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled? Changing this forces a new resource to be created.
+
+~> **Note:** Azure AD based RBAC is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac).
+
 When `managed` is set to `false` the following properties can be specified:
 
 * `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
@@ -371,10 +375,6 @@ A `role_based_access_control` block supports the following:
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
 
 * `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
-
-* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
-
-~> **Note:** Azure AD based RBAC is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac).
 
 ---
 

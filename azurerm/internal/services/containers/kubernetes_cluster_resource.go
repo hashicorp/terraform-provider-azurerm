@@ -503,6 +503,9 @@ func resourceKubernetesCluster() *schema.Resource {
 									"azure_rbac_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										// ForceNew can be removed after GA:
+										// https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac#limitations
+										ForceNew: true,
 									},
 
 									"admin_group_object_ids": {
