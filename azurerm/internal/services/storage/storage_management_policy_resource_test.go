@@ -685,16 +685,15 @@ resource "azurerm_storage_management_policy" "test" {
       prefix_match = ["container1/prefix1"]
       blob_types   = ["blockBlob"]
 
-      blob_index_match {
-        tag_name  = "tag1"
-        tag_op    = "=="
-        tag_value = "val1"
+      blob_index_match_tag {
+        name  = "tag1"
+        value = "val1"
       }
 
-      blob_index_match {
-        tag_name  = "tag2"
-        tag_op    = "=="
-        tag_value = "val2"
+      blob_index_match_tag {
+        name      = "tag2"
+        operation = "=="
+        value     = "val2"
       }
     }
     actions {

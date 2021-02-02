@@ -85,27 +85,28 @@ func resourceStorageManagementPolicy() *schema.Resource {
 										Set: schema.HashString,
 									},
 
-									"blob_index_match": {
+									"blob_index_match_tag": {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Set:      resourceStorageManagementPolicyBlobIndexMatchHash,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"tag_name": {
+												"name": {
 													Type:         schema.TypeString,
 													Required:     true,
 													ValidateFunc: validate.StorageBlobIndexTagName,
 												},
 
-												"tag_op": {
+												"operation": {
 													Type:     schema.TypeString,
-													Required: true,
+													Optional: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														"==",
 													}, false),
+													Default: "==",
 												},
 
-												"tag_value": {
+												"value": {
 													Type:         schema.TypeString,
 													Required:     true,
 													ValidateFunc: validate.StorageBlobIndexTagValue,
@@ -321,7 +322,7 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) st
 			}
 			definition.Filters.BlobTypes = &blobTypes
 
-			definition.Filters.BlobIndexMatch = expandAzureRmStorageBlobIndexMatch(filterRef["blob_index_match"].(*schema.Set).List())
+			definition.Filters.BlobIndexMatch = expandAzureRmStorageBlobIndexMatch(filterRef["blob_index_match_tag"].(*schema.Set).List())
 		}
 	}
 	if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions", ruleIndex)); ok {
@@ -405,7 +406,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					filter["blob_types"] = blobTypes
 				}
 
-				filter["blob_index_match"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
+				filter["blob_index_match_tag"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
 
 				rule["filters"] = [1]interface{}{filter}
 			}
@@ -461,9 +462,9 @@ func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]stora
 		blobIndexMatch := v.(map[string]interface{})
 
 		filter := storage.TagFilter{
-			Name:  utils.String(blobIndexMatch["tag_name"].(string)),
-			Op:    utils.String(blobIndexMatch["tag_op"].(string)),
-			Value: utils.String(blobIndexMatch["tag_value"].(string)),
+			Name:  utils.String(blobIndexMatch["name"].(string)),
+			Op:    utils.String(blobIndexMatch["operation"].(string)),
+			Value: utils.String(blobIndexMatch["value"].(string)),
 		}
 
 		results = append(results, filter)
@@ -493,9 +494,9 @@ func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) 
 			value = *blobIndexMatch.Value
 		}
 		result.Add(map[string]interface{}{
-			"tag_name":  name,
-			"tag_op":    op,
-			"tag_value": value,
+			"name":      name,
+			"operation": op,
+			"value":     value,
 		})
 	}
 	return result
