@@ -1,6 +1,8 @@
 package validate
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestValidateStorageShareDirectoryName(t *testing.T) {
 	testCases := []struct {
