@@ -47,6 +47,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"windows":                        testAccKubernetesClusterNodePool_windows,
 	"windowsAndLinux":                testAccKubernetesClusterNodePool_windowsAndLinux,
 	"zeroSize":                       testAccKubernetesClusterNodePool_zeroSize,
+	"hostEncryption":                 testAccKubernetesClusterNodePool_hostEncryption,
 }
 
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
@@ -703,6 +704,26 @@ func testAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_hostEncryption(t)
+}
+
+func testAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.hostEncryption(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_host_encryption").HasValue("true"),
+			),
+		},
 	})
 }
 
@@ -1535,6 +1556,24 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 0
   max_count             = 3
   node_count            = 0
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) hostEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+	%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                   = "internal"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_DS2_v2"
+  enable_host_encryption = true
+  node_count             = 1
 }
 `, r.templateConfig(data))
 }
