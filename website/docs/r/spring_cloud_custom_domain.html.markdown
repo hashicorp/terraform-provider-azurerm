@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `spring_cloud_app_id` - (Required) Specifies the resource ID of the Spring Cloud Application. Changing this forces a new resource to be created.
 
-* `cert_name` - (Optional) Specifies the name of the Spring Cloud Certificate that binds to the Spring Cloud Custom Domain.
+* `certificate_name` - (Optional) Specifies the name of the Spring Cloud Certificate that binds to the Spring Cloud Custom Domain.
 
 * `thumbprint` - (Optional) Specifies the thumbprint of the Spring Cloud Certificate that binds to the Spring Cloud Custom Domain.
 

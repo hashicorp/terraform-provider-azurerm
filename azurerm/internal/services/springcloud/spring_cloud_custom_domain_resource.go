@@ -51,7 +51,7 @@ func resourceSpringCloudCustomDomain() *schema.Resource {
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
-			"cert_name": {
+			"certificate_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -93,7 +93,7 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *schema.ResourceData, meta in
 	domain := appplatform.CustomDomainResource{
 		Properties: &appplatform.CustomDomainProperties{
 			Thumbprint: utils.String(d.Get("thumbprint").(string)),
-			CertName:   utils.String(d.Get("cert_name").(string)),
+			CertName:   utils.String(d.Get("certificate_name").(string)),
 		},
 	}
 
@@ -127,7 +127,7 @@ func resourceSpringCloudCustomDomainRead(d *schema.ResourceData, meta interface{
 	d.Set("name", id.DomainName)
 	d.Set("spring_cloud_app_id", parse.NewSpringCloudAppID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName).ID())
 	if props := resp.Properties; props != nil {
-		d.Set("cert_name", props.CertName)
+		d.Set("certificate_name", props.CertName)
 		d.Set("thumbprint", props.Thumbprint)
 	}
 
