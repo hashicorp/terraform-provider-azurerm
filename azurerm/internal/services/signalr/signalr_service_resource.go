@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
+	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
