@@ -1203,8 +1203,7 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 			}
 			identityIds = append(identityIds, parsedId.ID())
 		}
-		// not casting to a Set since this is a List in the DS and a Set in the Resource
-		result["identity_ids"] = identityIds
+		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
 	}
 
 	return []interface{}{result}, nil
