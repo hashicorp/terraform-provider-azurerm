@@ -60,31 +60,17 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 				}, false),
 			},
 
+			"template_content": {
+				Type:      schema.TypeString,
+				Required:  true,
+				StateFunc: utils.NormalizeJson,
+			},
+
 			// Optional
 			"debug_level": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(templateDeploymentDebugLevels, false),
-			},
-
-			"expression_evaluation_option": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"scope": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  resources.ExpressionEvaluationOptionsScopeTypeOuter,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(resources.ExpressionEvaluationOptionsScopeTypeNotSpecified),
-								string(resources.ExpressionEvaluationOptionsScopeTypeOuter),
-								string(resources.ExpressionEvaluationOptionsScopeTypeInner),
-							}, false),
-						},
-					},
-				},
 			},
 
 			"on_error_deployment": {
@@ -142,37 +128,6 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 				},
 			},
 
-			"template_content": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				StateFunc:     utils.NormalizeJson,
-				ConflictsWith: []string{"template_link"},
-			},
-
-			"template_link": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"template_content"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"uri": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-						},
-
-						"content_version": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.TemplateDeploymentContentVersion,
-						},
-					},
-				},
-			},
-
 			"tags": tags.Schema(),
 
 			// Computed
@@ -205,33 +160,21 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
 	}
 
+	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `template_content`: %+v", err)
+	}
 	deployment := resources.Deployment{
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentMode(d.Get("deployment_mode").(string)),
+			Template:     template,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("template_content"); ok {
-		template, err := expandTemplateDeploymentBody(v.(string))
-		if err != nil {
-			return fmt.Errorf("expanding `template_content`: %+v", err)
-		}
-
-		deployment.Properties.Template = template
-	}
-
-	if v, ok := d.GetOk("expression_evaluation_option"); ok {
-		deployment.Properties.ExpressionEvaluationOptions = expandArmTemplateDeploymentResourceGroupExpressionEvaluationOption(v.([]interface{}))
-	}
-
 	if v, ok := d.GetOk("on_error_deployment"); ok {
 		deployment.Properties.OnErrorDeployment = expandArmTemplateDeploymentResourceGroupOnErrorDeployment(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("template_link"); ok {
-		deployment.Properties.TemplateLink = expandArmTemplateDeploymentResourceGroupTemplateLink(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters_content"); ok && v != "" {
@@ -295,10 +238,6 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		Tags: template.Tags,
 	}
 
-	if v, ok := d.GetOk("expression_evaluation_option"); ok {
-		deployment.Properties.ExpressionEvaluationOptions = expandArmTemplateDeploymentResourceGroupExpressionEvaluationOption(v.([]interface{}))
-	}
-
 	if d.HasChange("on_error_deployment") {
 		deployment.Properties.OnErrorDeployment = expandArmTemplateDeploymentResourceGroupOnErrorDeployment(d.Get("on_error_deployment").([]interface{}))
 	} else if v := template.Properties.OnErrorDeployment; v != nil {
@@ -344,7 +283,7 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		}
 
 		deployment.Properties.Template = templateContents
-	} else if _, ok := d.GetOk("template_link"); !ok {
+	} else {
 		// retrieve the existing content and reuse that
 		exportedTemplate, err := client.ExportTemplate(ctx, id.ResourceGroup, id.DeploymentName)
 		if err != nil {
@@ -352,12 +291,6 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
-	}
-
-	if d.HasChange("template_link") {
-		deployment.Properties.TemplateLink = expandArmTemplateDeploymentResourceGroupTemplateLink(d.Get("template_link").([]interface{}))
-	} else {
-		deployment.Properties.TemplateLink = template.Properties.TemplateLink
 	}
 
 	if d.HasChange("tags") {
@@ -421,10 +354,6 @@ func resourceGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta in
 			return fmt.Errorf("setting `on_error_deployment`: %+v", err)
 		}
 
-		if err := d.Set("template_link", flattenArmTemplateDeploymentResourceGroupTemplateLink(props.TemplateLink)); err != nil {
-			return fmt.Errorf("setting `template_link`: %+v", err)
-		}
-
 		filteredParams := filterOutTemplateDeploymentParameters(props.Parameters)
 		flattenedParams, err := flattenTemplateDeploymentBody(filteredParams)
 		if err != nil {
@@ -443,14 +372,11 @@ func resourceGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta in
 		d.Set("output_content", flattenedOutputs)
 	}
 
-	if templateContents.Template != nil {
-		flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)
-		if err != nil {
-			return fmt.Errorf("flattening `template_content`: %+v", err)
-		}
-
-		d.Set("template_content", flattenedTemplate)
+	flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)
+	if err != nil {
+		return fmt.Errorf("flattening `template_content`: %+v", err)
 	}
+	d.Set("template_content", flattenedTemplate)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -527,18 +453,6 @@ func validateResourceGroupTemplateDeployment(ctx context.Context, id parse.Resou
 	return nil
 }
 
-func expandArmTemplateDeploymentResourceGroupExpressionEvaluationOption(input []interface{}) *resources.ExpressionEvaluationOptions {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	return &resources.ExpressionEvaluationOptions{
-		Scope: resources.ExpressionEvaluationOptionsScopeType(v["scope"].(string)),
-	}
-}
-
 func expandArmTemplateDeploymentResourceGroupOnErrorDeployment(input []interface{}) *resources.OnErrorDeployment {
 	if len(input) == 0 {
 		return nil
@@ -552,24 +466,6 @@ func expandArmTemplateDeploymentResourceGroupOnErrorDeployment(input []interface
 
 	if deploymentName := v["deployment_name"].(string); deploymentName != "" {
 		result.DeploymentName = utils.String(deploymentName)
-	}
-
-	return &result
-}
-
-func expandArmTemplateDeploymentResourceGroupTemplateLink(input []interface{}) *resources.TemplateLink {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	result := resources.TemplateLink{
-		URI: utils.String(v["uri"].(string)),
-	}
-
-	if contentVersion := v["content_version"].(string); contentVersion != "" {
-		result.ContentVersion = utils.String(contentVersion)
 	}
 
 	return &result
@@ -612,29 +508,6 @@ func flattenArmTemplateDeploymentResourceGroupOnErrorDeployment(input *resources
 		map[string]interface{}{
 			"deployment_name": deploymentName,
 			"type":            onErrorDeploymentType,
-		},
-	}
-}
-
-func flattenArmTemplateDeploymentResourceGroupTemplateLink(input *resources.TemplateLink) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var contentVersion string
-	if input.ContentVersion != nil {
-		contentVersion = *input.ContentVersion
-	}
-
-	var uri string
-	if input.URI != nil {
-		uri = *input.URI
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"content_version": contentVersion,
-			"uri":             uri,
 		},
 	}
 }

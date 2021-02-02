@@ -116,7 +116,7 @@ func TestAccResourceGroupTemplateDeployment_withOutputs(t *testing.T) {
 			Config: r.withOutputsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\")"),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
 		},
 		data.ImportStep(),
@@ -189,30 +189,6 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroupTemplateDeployment_updateExpressionEvaluationOption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
-	r := ResourceGroupTemplateDeploymentResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.updateExpressionEvaluationOptionConfig(data, "Inner"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// The Azure API doesn't return the `expression_evaluation_option` property in the response.
-		// Bug: https://github.com/Azure/azure-rest-api-specs/issues/12326
-		data.ImportStep("expression_evaluation_option"),
-		{
-			Config: r.updateExpressionEvaluationOptionConfig(data, "Outer"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("expression_evaluation_option"),
-	})
-}
-
 func TestAccResourceGroupTemplateDeployment_updateOnErrorDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
@@ -235,49 +211,27 @@ func TestAccResourceGroupTemplateDeployment_updateOnErrorDeployment(t *testing.T
 	})
 }
 
-func TestAccResourceGroupTemplateDeployment_switchTemplateDeploymentBetweenLinkAndContent(t *testing.T) {
+func TestAccResourceGroupTemplateDeployment_switchBetweenParametersLinkAndParametersContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.templateLinkAndParametersLinkConfig(data),
+			Config: r.withParametersContentConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.deploymentContents(data),
+			Config: r.withParametersLinkConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.templateLinkAndParametersLinkConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccResourceGroupTemplateDeployment_updateTemplateLinkAndParametersLink(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
-	r := ResourceGroupTemplateDeploymentResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.templateLinkAndParametersLinkConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateTemplateLinkAndParametersLinkConfig(data),
+			Config: r.withParametersContentConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -657,71 +611,46 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r ResourceGroupTemplateDeploymentResource) templateLinkAndParametersLinkConfig(data acceptance.TestData) string {
+func (r ResourceGroupTemplateDeploymentResource) withParametersContentConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_resource_group_template_deployment" "test" {
-  name                = "acctest-UpdatedDeployment-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  deployment_mode     = "Complete"
-  template_link {
-    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.json"
-    content_version = "1.0.0.0"
-  }
-  parameters_link {
-    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.parameters.json"
-    content_version = "1.0.0.0"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
 
-func (r ResourceGroupTemplateDeploymentResource) updateTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-  template_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
-  }
-  parameters_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.parameters.json"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
 
-func (r ResourceGroupTemplateDeploymentResource) deploymentContents(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_resource_group_template_deployment" "test" {
-  name                = "acctest-UpdatedDeployment-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  deployment_mode     = "Complete"
-  template_content    = <<TEMPLATE
+  template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "someParam": {
+    "rgName": {
       "type": "String",
-      "allowedValues": [
-        "first",
-        "second",
-        "third"
-      ]
+      "metadata": {
+        "description": "Test Description"
+      }
     }
   },
   "variables": {},
-  "resources": []
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2015-06-15",
+      "name": "[parameters('rgName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    }
+  ]
 }
 TEMPLATE
-  parameters_content  = <<PARAM
+
+  parameters_content = <<PARAM
 {
-  "someParam": {
-   "value": "first"
+  "rgName": {
+      "value": "acctest-deployment"
   }
 }
 PARAM
@@ -729,30 +658,59 @@ PARAM
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ResourceGroupTemplateDeploymentResource) lastSuccessfulDeploymentConfig(data acceptance.TestData) string {
+func (r ResourceGroupTemplateDeploymentResource) withParametersLinkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_resource_group_template_deployment" "test2" {
-  name                = "acctest-Deployment-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  deployment_mode     = "Complete"
-  template_content    = <<TEMPLATE
-{
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": []
-}
-TEMPLATE
-}
+
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-  on_error_deployment {
-    type = "LastSuccessful"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgName": {
+      "type": "String",
+      "metadata": {
+        "description": "Test Description"
+      }
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2015-06-15",
+      "name": "[parameters('rgName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    }
+  ]
+}
+TEMPLATE
+
+  parameters_link {
+    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/subscription-deployments/create-rg/azuredeploy.parameters.json"
+    content_version = "1.0.0.0"
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ResourceGroupTemplateDeploymentResource) lastSuccessfulDeploymentConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test2" {
+  name                = "acctest-Deployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -762,7 +720,28 @@ resource "azurerm_resource_group_template_deployment" "test" {
   "resources": []
 }
 TEMPLATE
-  depends_on       = [azurerm_resource_group_template_deployment.test2]
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  on_error_deployment {
+    type = "LastSuccessful"
+  }
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {},
+  "resources": []
+}
+TEMPLATE
+
+  depends_on = [azurerm_resource_group_template_deployment.test2]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -770,11 +749,13 @@ TEMPLATE
 func (r ResourceGroupTemplateDeploymentResource) specificDeploymentConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_resource_group_template_deployment" "test2" {
   name                = "acctest-Deployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
-  template_content    = <<TEMPLATE
+
+  template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -784,14 +765,17 @@ resource "azurerm_resource_group_template_deployment" "test2" {
 }
 TEMPLATE
 }
+
 resource "azurerm_resource_group_template_deployment" "test" {
   name                = "acctest-UpdatedDeployment-%d"
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = "Complete"
+
   on_error_deployment {
     deployment_name = azurerm_resource_group_template_deployment.test2.name
     type            = "SpecificDeployment"
   }
+
   template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -805,31 +789,12 @@ TEMPLATE
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r ResourceGroupTemplateDeploymentResource) updateExpressionEvaluationOptionConfig(data acceptance.TestData, scope string) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_resource_group_template_deployment" "test" {
-  name                = "acctest-UpdatedDeployment-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  deployment_mode     = "Complete"
-  template_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
-  }
-  parameters_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.parameters.json"
-  }
-  expression_evaluation_option {
-    scope = "%s"
-  }
-}
-`, r.template(data), data.RandomInteger, scope)
-}
-
 func (ResourceGroupTemplateDeploymentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-deployment-%d"
   location = "%s"
