@@ -123,56 +123,6 @@ func TestAccDataboxEdgeOrder_updateContactInformation(t *testing.T) {
 	})
 }
 
-func TestAccDataboxEdgeOrder_updateCurrentStatus(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataboxEdgeOrderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataboxEdgeOrder_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataboxEdgeOrderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccDataboxEdgeOrder_updateCurrentStatus(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataboxEdgeOrderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccDataboxEdgeOrder_updateShippingAddress(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataboxEdgeOrderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataboxEdgeOrder_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataboxEdgeOrderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccDataboxEdgeOrder_updateShippingAddress(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataboxEdgeOrderExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func testCheckDataboxEdgeOrderExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataboxEdge.OrderClient
@@ -217,6 +167,7 @@ func testCheckDataboxEdgeOrderDestroy(s *terraform.State) error {
 	return nil
 }
 
+// Location has to be hard coded due to limited support of locations for this resource
 func testAccDataboxEdgeOrder_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -224,16 +175,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-databoxedge-%d"
+  name     = "acctestRG-databoxedge-%d"
   location = "%s"
 }
 
 resource "azurerm_databox_edge_device" "test" {
-  name                = "acctest-dd-%d"
+  name                = "acctest-dd-%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  sku_name = "Edge-Standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, "eastus", data.RandomString)
 }
 
 func testAccDataboxEdgeOrder_basic(data acceptance.TestData) string {
@@ -244,6 +197,21 @@ func testAccDataboxEdgeOrder_basic(data acceptance.TestData) string {
 resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
   device_name         = azurerm_databox_edge_device.test.name
+
+  contact_information {
+    name           = "TerraForm Test"
+    emails         = ["creator4983@FlynnsArcade.com"]
+    company_name   = "Microsoft"
+    phone_number   = "425-882-8080"
+  }
+
+  shipping_address {
+    address_line1 = "One Microsoft Way"
+    city          = "Redmond"
+    postal_code   = "98052"
+    state         = "WA"
+    country       = "United States"
+  }
 }
 `, template)
 }
@@ -254,8 +222,8 @@ func testAccDataboxEdgeOrder_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_databox_edge_order" "import" {
-	name                = azurerm_databox_edge_order.test.device_name
-	resource_group_name = azurerm_databox_edge_order.test.resource_group_name
+  resource_group_name = azurerm_databox_edge_order.test.resource_group_name
+  device_name         = azurerm_databox_edge_device.test.name
 }
 `, config)
 }
@@ -266,18 +234,14 @@ func testAccDataboxEdgeOrder_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_databox_edge_order" "test" {
-  name                = azurerm_databox_edge_device.test.name
   resource_group_name = azurerm_resource_group.test.name
+  device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
     name           = "TerraForm Test"
-    emails         = ["test@foo.com"]
-    company_name   = "Microsoft"
+    emails         = ["creator4983@FlynnsArcade.com"]
+    company_name   = "Flynn's Arcade"
     phone_number   = "(800) 555-1234"
-  }
-
-  current_status {
-    comments = ""
   }
 
   shipping_address {
@@ -285,7 +249,7 @@ resource "azurerm_databox_edge_order" "test" {
     city          = "Redmond"
     postal_code   = "98052"
     state         = "WA"
-    country       = "USA"
+    country       = "United States"
   }
 }
 `, template)
@@ -301,84 +265,18 @@ resource "azurerm_databox_edge_order" "test" {
   device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
-    company_name   = "Microsoft"
-    contact_person = "John Mcclane"
-    email_lists    = ["john@microsoft.com"]
-    phone          = "(800) 426-9400"
-  }
-
-  current_status {
-    comments = ""
-  }
-
-  shipping_address {
-    address_line1 = "Microsoft Corporation"
-    city          = "WA"
-    country       = "USA"
-    postal_code   = "98052"
-    state         = "WA"
-    address_line2 = "One Microsoft Way"
-    address_line3 = "Redmond"
-  }
-}
-`, template)
-}
-
-func testAccDataboxEdgeOrder_updateCurrentStatus(data acceptance.TestData) string {
-	template := testAccDataboxEdgeOrder_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_databox_edge_order" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  device_name = azurerm_databox_edge_device.test.name
-
-  contact_information {
-    company_name   = "Microsoft"
-    contact_person = "John Mcclane"
-    email_lists    = ["john@microsoft.com"]
-    phone          = "(800) 426-9400"
-  }
-
-  current_status {
-    comments = ""
-  }
-
-  shipping_address {
-    address_line1 = "Microsoft Corporation"
-    city          = "WA"
-    country       = "USA"
-    postal_code   = "98052"
-    state         = "WA"
-    address_line2 = "One Microsoft Way"
-    address_line3 = "Redmond"
-  }
-}
-`, template)
-}
-
-func testAccDataboxEdgeOrder_updateShippingAddress(data acceptance.TestData) string {
-	template := testAccDataboxEdgeOrder_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_databox_edge_order" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  device_name         = azurerm_databox_edge_device.test.name
-
-  contact_information {
     name           = "TerraForm Test"
-    company_name   = "Microsoft"
-    emails         = ["creator4983@FlynnsArcade.com"]
-    phone_number   = "(425) 882-8080"
+    emails         = ["EN12-82@ENCOM.com"]
+    company_name   = "ENCOM International"
+    phone_number   = "(800) 555-4321"
   }
 
   shipping_address {
     address_line1 = "One Microsoft Way"
     city          = "Redmond"
+    country       = "United States"
     postal_code   = "98052"
     state         = "WA"
-    country       = "USA"
   }
 }
 `, template)

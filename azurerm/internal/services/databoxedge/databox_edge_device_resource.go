@@ -50,24 +50,6 @@ func resourceDataboxEdgeDevice() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"friendly_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"model_description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"sku_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -159,13 +141,8 @@ func resourceDataboxEdgeDeviceCreate(d *schema.ResourceData, meta interface{}) e
 
 	dataBoxEdgeDevice := databoxedge.Device{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		DeviceProperties: &databoxedge.DeviceProperties{
-			Description:      utils.String(d.Get("description").(string)),
-			FriendlyName:     utils.String(d.Get("friendly_name").(string)),
-			ModelDescription: utils.String(d.Get("model_description").(string)),
-		},
-		Sku:  expandDeviceSku(d.Get("sku_name").(string)),
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:      expandDeviceSku(d.Get("sku_name").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	future, err := client.CreateOrUpdate(ctx, name, dataBoxEdgeDevice, resourceGroup)
 	if err != nil {
@@ -220,9 +197,6 @@ func resourceDataboxEdgeDeviceRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.DeviceProperties; props != nil {
 		d.Set("device_status", props.DataBoxEdgeDeviceStatus)
-		d.Set("description", props.Description)
-		d.Set("friendly_name", props.FriendlyName)
-		d.Set("model_description", props.ModelDescription)
 
 		configuredRoleTypes := make([]string, 0)
 		if props.ConfiguredRoleTypes != nil {

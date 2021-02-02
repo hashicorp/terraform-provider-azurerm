@@ -51,6 +51,7 @@ func dataSourceDataboxEdgeDeviceRead(d *schema.ResourceData, meta interface{}) e
 		}
 		return fmt.Errorf("retrieving Databox Edge Device %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Databox Edge Device %q (Resource Group %q) ID", name, resourceGroup)
 	}
@@ -59,5 +60,6 @@ func dataSourceDataboxEdgeDeviceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
