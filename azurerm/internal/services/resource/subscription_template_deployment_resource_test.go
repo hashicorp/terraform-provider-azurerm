@@ -355,7 +355,7 @@ resource "azurerm_subscription_template_deployment" "test" {
 TEMPLATE
 
   parameters_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/subscription-deployments/create-rg/azuredeploy.parameters.json"
+    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/subscription-deployments/create-rg/azuredeploy.parameters.json"
     content_version = "1.0.0.0"
   }
 }
