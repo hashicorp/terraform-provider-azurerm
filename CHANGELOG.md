@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_api_management` fix an exception with User Assigned Managed Identities [GH-10429]
 * `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting [GH-10325]
 * `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
 * `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
