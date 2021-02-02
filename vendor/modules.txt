@@ -93,7 +93,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-previ
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
-github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery
+github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup
 github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis
 github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay

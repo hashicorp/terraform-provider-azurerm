@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -64,7 +64,8 @@ func resourceSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
+			if !utils.ResponseWasNotFound(existing.Response) || !utils.ResponseWasBadRequest(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
