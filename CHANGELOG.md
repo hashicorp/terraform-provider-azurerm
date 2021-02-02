@@ -5,6 +5,8 @@ ENHANCEMENTS:
 * dependencies: updating `recoveryservices` to API version `2018-07-10` [GH-10373]
 * `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties [GH-10325]
 * `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-10325]
+* `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block [GH-10398]
+* `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` [GH-10398]
 * `azurerm_redis_cache` - support for the `public_network_access_enabled` property [GH-10410]
 * `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block [GH-10367]
 
