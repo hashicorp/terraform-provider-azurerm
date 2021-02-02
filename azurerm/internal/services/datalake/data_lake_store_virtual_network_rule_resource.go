@@ -69,6 +69,8 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	virtualNetworkSubnetId := d.Get("subnet_id").(string)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewVirtualNetworkRuleID(subscriptionId, resourceGroup, accountName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
@@ -93,16 +95,7 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("Error creating Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", name, accountName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", name, accountName, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q)", name, accountName, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataLakeStoreVirtualNetworkRuleRead(d, meta)
 }
