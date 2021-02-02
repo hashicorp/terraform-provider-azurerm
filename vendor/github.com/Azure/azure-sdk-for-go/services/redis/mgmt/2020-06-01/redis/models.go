@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
 
 // AccessKeys redis cache access keys.
 type AccessKeys struct {
@@ -54,12 +54,16 @@ type CommonProperties struct {
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
+	// ReplicasPerMaster - The number of replicas to be created per master.
+	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
 	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CommonProperties.
@@ -71,6 +75,9 @@ func (cp CommonProperties) MarshalJSON() ([]byte, error) {
 	if cp.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = cp.EnableNonSslPort
 	}
+	if cp.ReplicasPerMaster != nil {
+		objectMap["replicasPerMaster"] = cp.ReplicasPerMaster
+	}
 	if cp.TenantSettings != nil {
 		objectMap["tenantSettings"] = cp.TenantSettings
 	}
@@ -79,6 +86,9 @@ func (cp CommonProperties) MarshalJSON() ([]byte, error) {
 	}
 	if cp.MinimumTLSVersion != "" {
 		objectMap["minimumTlsVersion"] = cp.MinimumTLSVersion
+	}
+	if cp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = cp.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
@@ -204,12 +214,16 @@ type CreateProperties struct {
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
+	// ReplicasPerMaster - The number of replicas to be created per master.
+	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
 	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CreateProperties.
@@ -230,6 +244,9 @@ func (cp CreateProperties) MarshalJSON() ([]byte, error) {
 	if cp.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = cp.EnableNonSslPort
 	}
+	if cp.ReplicasPerMaster != nil {
+		objectMap["replicasPerMaster"] = cp.ReplicasPerMaster
+	}
 	if cp.TenantSettings != nil {
 		objectMap["tenantSettings"] = cp.TenantSettings
 	}
@@ -238,6 +255,9 @@ func (cp CreateProperties) MarshalJSON() ([]byte, error) {
 	}
 	if cp.MinimumTLSVersion != "" {
 		objectMap["minimumTlsVersion"] = cp.MinimumTLSVersion
+	}
+	if cp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = cp.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
@@ -262,6 +282,35 @@ func (future *DeleteFuture) Result(client Client) (ar autorest.Response, err err
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+}
+
+// ErrorDetail the error detail.
+type ErrorDetail struct {
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]ErrorDetail `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
+// failed operations. (This also follows the OData error response format.).
+type ErrorResponse struct {
+	// Error - The error object.
+	Error *ErrorDetail `json:"error,omitempty"`
 }
 
 // ExportDataFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -620,6 +669,20 @@ type ImportRDBParameters struct {
 	Format *string `json:"format,omitempty"`
 	// Files - files to import.
 	Files *[]string `json:"files,omitempty"`
+}
+
+// InstanceDetails details of single instance of redis.
+type InstanceDetails struct {
+	// SslPort - READ-ONLY; Redis instance SSL port.
+	SslPort *int32 `json:"sslPort,omitempty"`
+	// NonSslPort - READ-ONLY; If enableNonSslPort is true, provides Redis instance Non-SSL port.
+	NonSslPort *int32 `json:"nonSslPort,omitempty"`
+	// Zone - READ-ONLY; If the Cache uses availability zones, specifies availability zone where this instance is located.
+	Zone *string `json:"zone,omitempty"`
+	// ShardID - READ-ONLY; If clustering is enabled, the Shard ID of Redis Instance
+	ShardID *int32 `json:"shardId,omitempty"`
+	// IsMaster - READ-ONLY; Specifies whether the instance is a master node.
+	IsMaster *bool `json:"isMaster,omitempty"`
 }
 
 // LinkedServer linked server Id
@@ -1591,11 +1654,246 @@ func NewPatchScheduleListResultPage(cur PatchScheduleListResult, getNextPage fun
 	}
 }
 
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResult list of private endpoint connection associated with the specified
+// storage account
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Failed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateEndpointConnectionsPutFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsPutFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateEndpointConnectionsPutFuture) Result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsPutFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("redis.PrivateEndpointConnectionsPutFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.PutResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsPutFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plrp.RequiredZoneNames != nil {
+		objectMap["requiredZoneNames"] = plrp.RequiredZoneNames
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
 // Properties properties of the redis cache.
 type Properties struct {
 	// RedisVersion - READ-ONLY; Redis version.
 	RedisVersion *string `json:"redisVersion,omitempty"`
-	// ProvisioningState - READ-ONLY; Redis instance provisioning status. Possible values include: 'Creating', 'Deleting', 'Disabled', 'Failed', 'Linking', 'Provisioning', 'RecoveringScaleFailure', 'Scaling', 'Succeeded', 'Unlinking', 'Unprovisioning', 'Updating'
+	// ProvisioningState - READ-ONLY; Redis instance provisioning status. Possible values include: 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateDisabled', 'ProvisioningStateFailed', 'ProvisioningStateLinking', 'ProvisioningStateProvisioning', 'ProvisioningStateRecoveringScaleFailure', 'ProvisioningStateScaling', 'ProvisioningStateSucceeded', 'ProvisioningStateUnlinking', 'ProvisioningStateUnprovisioning', 'ProvisioningStateUpdating'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// HostName - READ-ONLY; Redis host name.
 	HostName *string `json:"hostName,omitempty"`
@@ -1607,6 +1905,10 @@ type Properties struct {
 	AccessKeys *AccessKeys `json:"accessKeys,omitempty"`
 	// LinkedServers - READ-ONLY; List of the linked servers associated with the cache
 	LinkedServers *[]LinkedServer `json:"linkedServers,omitempty"`
+	// Instances - READ-ONLY; List of the Redis instances associated with the cache
+	Instances *[]InstanceDetails `json:"instances,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connection associated with the specified redis cache
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// Sku - The SKU of the Redis cache to deploy.
 	Sku *Sku `json:"sku,omitempty"`
 	// SubnetID - The full resource ID of a subnet in a virtual network to deploy the Redis cache in. Example format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/Microsoft.{Network|ClassicNetwork}/VirtualNetworks/vnet1/subnets/subnet1
@@ -1617,12 +1919,16 @@ type Properties struct {
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
+	// ReplicasPerMaster - The number of replicas to be created per master.
+	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
 	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Properties.
@@ -1643,6 +1949,9 @@ func (p Properties) MarshalJSON() ([]byte, error) {
 	if p.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = p.EnableNonSslPort
 	}
+	if p.ReplicasPerMaster != nil {
+		objectMap["replicasPerMaster"] = p.ReplicasPerMaster
+	}
 	if p.TenantSettings != nil {
 		objectMap["tenantSettings"] = p.TenantSettings
 	}
@@ -1651,6 +1960,9 @@ func (p Properties) MarshalJSON() ([]byte, error) {
 	}
 	if p.MinimumTLSVersion != "" {
 		objectMap["minimumTlsVersion"] = p.MinimumTLSVersion
+	}
+	if p.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = p.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
@@ -1672,6 +1984,8 @@ type RebootParameters struct {
 	RebootType RebootType `json:"rebootType,omitempty"`
 	// ShardID - If clustering is enabled, the ID of the shard to be rebooted.
 	ShardID *int32 `json:"shardId,omitempty"`
+	// Ports - A list of redis instances to reboot, specified by per-instance SSL ports or non-SSL ports.
+	Ports *[]int32 `json:"ports,omitempty"`
 }
 
 // RegenerateKeyParameters specifies which Redis access keys to reset.
@@ -1811,7 +2125,7 @@ type ScheduleEntries struct {
 	ScheduleEntries *[]ScheduleEntry `json:"scheduleEntries,omitempty"`
 }
 
-// ScheduleEntry patch schedule entry for a Redis Cache.
+// ScheduleEntry patch schedule entry for a Premium Redis Cache.
 type ScheduleEntry struct {
 	// DayOfWeek - Day of the week when a cache can be patched. Possible values include: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Everyday', 'Weekend'
 	DayOfWeek DayOfWeek `json:"dayOfWeek,omitempty"`
@@ -1827,7 +2141,7 @@ type Sku struct {
 	Name SkuName `json:"name,omitempty"`
 	// Family - The SKU family to use. Valid values: (C, P). (C = Basic/Standard, P = Premium). Possible values include: 'C', 'P'
 	Family SkuFamily `json:"family,omitempty"`
-	// Capacity - The size of the Redis cache to deploy. Valid values: for C (Basic/Standard) family (0, 1, 2, 3, 4, 5, 6), for P (Premium) family (1, 2, 3, 4, 5).
+	// Capacity - The size of the Redis cache to deploy. Valid values: for C (Basic/Standard) family (0, 1, 2, 3, 4, 5, 6), for P (Premium) family (1, 2, 3, 4).
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
@@ -1918,12 +2232,16 @@ type UpdateProperties struct {
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
+	// ReplicasPerMaster - The number of replicas to be created per master.
+	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
 	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for UpdateProperties.
@@ -1938,6 +2256,9 @@ func (up UpdateProperties) MarshalJSON() ([]byte, error) {
 	if up.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = up.EnableNonSslPort
 	}
+	if up.ReplicasPerMaster != nil {
+		objectMap["replicasPerMaster"] = up.ReplicasPerMaster
+	}
 	if up.TenantSettings != nil {
 		objectMap["tenantSettings"] = up.TenantSettings
 	}
@@ -1946,6 +2267,9 @@ func (up UpdateProperties) MarshalJSON() ([]byte, error) {
 	}
 	if up.MinimumTLSVersion != "" {
 		objectMap["minimumTlsVersion"] = up.MinimumTLSVersion
+	}
+	if up.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = up.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
