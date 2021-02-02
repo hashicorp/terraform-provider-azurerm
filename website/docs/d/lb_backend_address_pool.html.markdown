@@ -65,8 +65,6 @@ A `backend_address` block exports the following:
 
 * `ip_address` - The IP address pre-allocated for this Backend Address with in the Virtual Network of `virtual_network_id`.
 
-* `network_interface_ip_configuration` - The Network Interface's ip configuration reference of this Backend Address.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

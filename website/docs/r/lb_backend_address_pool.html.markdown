@@ -50,13 +50,11 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backend Address Pool.
   
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the resource.
-  
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
 
 * `backend_address` - (Optional) An array of `backend_address` block as defined below.
 
--> **NOTE**: The `backend_address` is only allowed when the Load Balancer in which this Backend Address Pool resides is of `Standard` sku. See [the Azure document](https://docs.microsoft.com/en-us/azure/load-balancer/backend-pool-management#limitations) for more details.
+-> **NOTE**: The `backend_address` can only be configured when the Backend Address Pool Load Balancer's SKU is `Standard`. See [the Azure document](https://docs.microsoft.com/en-us/azure/load-balancer/backend-pool-management#limitations) for more details.
 
 ---
 
@@ -81,12 +79,6 @@ The following attributes are exported:
 * `load_balancing_rules` - The Load Balancing Rules associated with this Backend Address Pool.
 
 * `outbound_rules` - An array of the Load Balancing Outbound Rules associated with this Backend Address Pool.
-
----
-
-A `backend_address` block exports the following:
-
-* `network_interface_ip_configuration` - The Network Interface's ip configuration reference of this Backend Address.
 
 ## Timeouts
 

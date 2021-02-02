@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -51,11 +50,6 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 						},
 
 						"ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"network_interface_ip_configuration": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -118,7 +112,7 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 	d.SetId(id.ID())
 
 	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		if err := d.Set("backend_address", flattenArmLoadBalancerBackendAddressesForDataSource(props.LoadBalancerBackendAddresses)); err != nil {
+		if err := d.Set("backend_address", flattenArmLoadBalancerBackendAddresses(props.LoadBalancerBackendAddresses)); err != nil {
 			return fmt.Errorf("setting `backend_address`: %v", err)
 		}
 
@@ -164,46 +158,4 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 	}
 
 	return nil
-}
-
-func flattenArmLoadBalancerBackendAddressesForDataSource(input *[]network.LoadBalancerBackendAddress) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, e := range *input {
-		var name string
-		if e.Name != nil {
-			name = *e.Name
-		}
-
-		var (
-			ipAddress string
-			vnetId    string
-			ipConfig  string
-		)
-		if prop := e.LoadBalancerBackendAddressPropertiesFormat; prop != nil {
-			if prop.IPAddress != nil {
-				ipAddress = *prop.IPAddress
-			}
-			if prop.VirtualNetwork != nil && prop.VirtualNetwork.ID != nil {
-				vnetId = *prop.VirtualNetwork.ID
-			}
-			if prop.NetworkInterfaceIPConfiguration != nil && prop.NetworkInterfaceIPConfiguration.ID != nil {
-				ipConfig = *prop.NetworkInterfaceIPConfiguration.ID
-			}
-		}
-
-		v := map[string]interface{}{
-			"name":                               name,
-			"virtual_network_id":                 vnetId,
-			"ip_address":                         ipAddress,
-			"network_interface_ip_configuration": ipConfig,
-		}
-		output = append(output, v)
-	}
-
-	return output
 }

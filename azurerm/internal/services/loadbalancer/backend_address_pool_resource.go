@@ -52,7 +52,7 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			},
 
 			// TODO 3.0: remove this as it can be inferred from "loadbalancer_id"
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
