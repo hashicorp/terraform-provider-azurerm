@@ -114,7 +114,6 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   severity                = "Low"
   description             = "Test Description"
   implementation_effort   = "Low"
-  is_preview              = false
   remediation_description = "Test Remediation Description"
   threats                 = ["DataExfiltration", "DataSpillage", "MaliciousInsider"]
   user_impact             = "Low"
@@ -134,7 +133,6 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   severity                = "Medium"
   description             = "Updated Test Description"
   implementation_effort   = "Moderate"
-  is_preview              = true
   remediation_description = "Updated Test Remediation Description"
   threats                 = ["DataExfiltration", "DataSpillage"]
   user_impact             = "Moderate"

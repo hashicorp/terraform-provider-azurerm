@@ -79,11 +79,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 				}, false),
 			},
 
-			"is_preview": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"remediation_description": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -172,10 +167,6 @@ func resourceArmSecurityCenterAssessmentMetadataCreate(d *schema.ResourceData, m
 		params.AssessmentMetadataProperties.ImplementationEffort = security.ImplementationEffort(v.(string))
 	}
 
-	if v, ok := d.GetOk("is_preview"); ok {
-		params.AssessmentMetadataProperties.Preview = utils.Bool(v.(bool))
-	}
-
 	if v, ok := d.GetOk("remediation_description"); ok {
 		params.AssessmentMetadataProperties.RemediationDescription = utils.String(v.(string))
 	}
@@ -221,7 +212,6 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 		d.Set("display_name", props.DisplayName)
 		d.Set("severity", string(props.Severity))
 		d.Set("implementation_effort", string(props.ImplementationEffort))
-		d.Set("is_preview", props.Preview)
 		d.Set("remediation_description", props.RemediationDescription)
 		d.Set("user_impact", string(props.UserImpact))
 
@@ -281,10 +271,6 @@ func resourceArmSecurityCenterAssessmentMetadataUpdate(d *schema.ResourceData, m
 
 	if d.HasChange("implementation_effort") {
 		existing.AssessmentMetadataProperties.ImplementationEffort = security.ImplementationEffort(d.Get("implementation_effort").(string))
-	}
-
-	if d.HasChange("is_preview") {
-		existing.AssessmentMetadataProperties.Preview = utils.Bool(d.Get("is_preview").(bool))
 	}
 
 	if d.HasChange("remediation_description") {

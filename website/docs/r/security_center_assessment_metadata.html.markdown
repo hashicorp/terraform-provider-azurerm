@@ -37,8 +37,6 @@ The following arguments are supported:
 
 * `implementation_effort` - (Optional) The implementation effort which is used to remediate the Security Center Assessment. Possible values are `Low`, `Moderate` and `High`.
 
-* `is_preview` - (Optional) Is the Security Center Assessment in preview release status?
-
 * `remediation_description` - (Optional) The description which is used to mitigate the security issue.
 
 * `threats` - (Optional) A list of the threat impacts for the Security Center Assessment. Possible values are `AccountBreach`, `DataExfiltration`, `DataSpillage`, `DenialOfService`, `ElevationOfPrivilege`, `MaliciousInsider`, `MissingCoverage` and `ThreatResistance`.
