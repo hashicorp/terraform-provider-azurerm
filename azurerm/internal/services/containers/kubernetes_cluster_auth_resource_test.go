@@ -773,8 +773,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
     azure_active_directory {
       tenant_id          = var.tenant_id
-	  managed            = true
-	  azure_rbac_enabled = true
+      managed            = true
+      azure_rbac_enabled = true
     }
   }
 }
