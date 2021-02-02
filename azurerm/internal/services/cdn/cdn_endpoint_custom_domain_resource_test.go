@@ -1,4 +1,4 @@
-package tests
+package cdn_test
 
 import (
 	"fmt"
@@ -233,12 +233,12 @@ func testCheckAzureRMCdnEndpointCustomDomainExists(resourceName string) resource
 			return fmt.Errorf("Cdn Endpoint Custom Domain not found: %s", resourceName)
 		}
 
-		id, err := parse.EndpointCustomDomainID(rs.Primary.ID)
+		id, err := parse.CustomDomainID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Cdn Endpoint Custom Domain %q does not exist", id)
 			}
@@ -258,12 +258,12 @@ func testCheckAzureRMCdnEndpointCustomDomainDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.EndpointCustomDomainID(rs.Primary.ID)
+		id, err := parse.CustomDomainID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.CustomdomainName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 		if err == nil {
 			return fmt.Errorf("CDN.CustomDomains still exists")
 		}

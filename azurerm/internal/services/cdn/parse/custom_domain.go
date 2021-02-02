@@ -9,45 +9,48 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type EndpointId struct {
+type CustomDomainId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	ProfileName    string
+	EndpointName   string
 	Name           string
 }
 
-func NewEndpointID(subscriptionId, resourceGroup, profileName, name string) EndpointId {
-	return EndpointId{
+func NewCustomDomainID(subscriptionId, resourceGroup, profileName, endpointName, name string) CustomDomainId {
+	return CustomDomainId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		ProfileName:    profileName,
+		EndpointName:   endpointName,
 		Name:           name,
 	}
 }
 
-func (id EndpointId) String() string {
+func (id CustomDomainId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Endpoint Name %q", id.EndpointName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Endpoint", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Custom Domain", segmentsStr)
 }
 
-func (id EndpointId) ID() string {
-	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.Name)
+func (id CustomDomainId) ID() string {
+	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s/customdomains/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 }
 
-// EndpointID parses a Endpoint ID into an EndpointId struct
-func EndpointID(input string) (*EndpointId, error) {
+// CustomDomainID parses a CustomDomain ID into an CustomDomainId struct
+func CustomDomainID(input string) (*CustomDomainId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := EndpointId{
+	resourceId := CustomDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +66,10 @@ func EndpointID(input string) (*EndpointId, error) {
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("endpoints"); err != nil {
+	if resourceId.EndpointName, err = id.PopSegment("endpoints"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("customdomains"); err != nil {
 		return nil, err
 	}
 
