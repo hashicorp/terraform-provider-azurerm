@@ -93,85 +93,39 @@ func TestAccSubscriptionTemplateDeployment_withOutputs(t *testing.T) {
 			Config: r.withOutputsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\""),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccSubscriptionTemplateDeployment_switchTemplateDeploymentBetweenLinkAndContent(t *testing.T) {
+func TestAccSubscriptionTemplateDeployment_switchBetweenParametersLinkAndParametersContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
 	r := SubscriptionTemplateDeploymentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.withTemplateLinkAndParametersLinkConfig(data),
+			Config: r.withParametersContentConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withDeploymentContents(data),
+			Config: r.withParametersLinkConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withTemplateLinkAndParametersLinkConfig(data),
+			Config: r.withParametersContentConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccSubscriptionTemplateDeployment_updateTemplateLinkAndParametersLink(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
-	r := SubscriptionTemplateDeploymentResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.withTemplateLinkAndParametersLinkConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateTemplateLinkAndParametersLinkConfig(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccSubscriptionTemplateDeployment_updateExpressionEvaluationOption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
-	r := SubscriptionTemplateDeploymentResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.withExpressionEvaluationOptionConfig(data, "Inner"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// The Azure API doesn't return the `expression_evaluation_option` property in the response.
-		// Bug: https://github.com/Azure/azure-rest-api-specs/issues/12326
-		data.ImportStep("expression_evaluation_option"),
-		{
-			Config: r.withExpressionEvaluationOptionConfig(data, "Outer"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("expression_evaluation_option"),
 	})
 }
 
@@ -341,100 +295,69 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (SubscriptionTemplateDeploymentResource) withTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
+func (SubscriptionTemplateDeploymentResource) withParametersContentConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_subscription_template_deployment" "test" {
   name     = "acctest-SubDeploy-%d"
   location = "%s"
-  template_link {
-    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/100-blank-template/azuredeploy.json"
-    content_version = "1.0.0.0"
-  }
-  parameters_link {
-    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/100-blank-template/azuredeploy.parameters.json"
-    content_version = "1.0.0.0"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
 
-func (SubscriptionTemplateDeploymentResource) updateTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_subscription_template_deployment" "test" {
-  name     = "acctest-SubDeploy-%d"
-  location = "%s"
-  template_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/subscription-deployments/create-rg/azuredeploy.json"
-  }
-  parameters_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/subscription-deployments/create-rg/azuredeploy.parameters.json"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (SubscriptionTemplateDeploymentResource) withExpressionEvaluationOptionConfig(data acceptance.TestData, scope string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_subscription_template_deployment" "test" {
-  name     = "acctest-SubDeploy-%d"
-  location = "%s"
-  template_link {
-    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/100-blank-template/azuredeploy.json"
-    content_version = "1.0.0.0"
-  }
-  parameters_link {
-    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/100-blank-template/azuredeploy.parameters.json"
-    content_version = "1.0.0.0"
-  }
-  expression_evaluation_option {
-    scope = "%s"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, scope)
-}
-
-func (SubscriptionTemplateDeploymentResource) withDeploymentContents(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_subscription_template_deployment" "test" {
-  name               = "acctest-SubDeploy-%d"
-  location           = "%s"
-  template_content   = <<TEMPLATE
+  template_content = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "someParam": {
-      "type": "String",
-      "allowedValues": [
-        "first",
-        "second",
-        "third"
-      ]
+    "rgName": {
+      "type": "String"
     }
   },
   "variables": {},
   "resources": []
 }
 TEMPLATE
+
   parameters_content = <<PARAM
 {
-  "someParam": {
-   "value": "first"
+  "rgName": {
+      "value": "acctest-rg"
   }
 }
 PARAM
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SubscriptionTemplateDeploymentResource) withParametersLinkConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctest-SubDeploy-%d"
+  location = "%s"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgName": {
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": []
+}
+TEMPLATE
+
+  parameters_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/subscription-deployments/create-rg/azuredeploy.parameters.json"
+    content_version = "1.0.0.0"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

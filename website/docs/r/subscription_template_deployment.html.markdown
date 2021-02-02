@@ -47,27 +47,17 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Subscription Template Deployment. Changing this forces a new Subscription Template Deployment to be created.
 
+* `template_content` - (Required) The contents of the ARM Template which should be deployed into this Subscription.
+
 ---
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Subscription Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
-
-* `expression_evaluation_option` - (Optional) An `expression_evaluation_option` block as defined below.
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 
 * `parameters_link` - (Optional)  A `parameters_link` block as defined below.
 
-* `template_content` - (Optional) The contents of the ARM Template which should be deployed into this Subscription.
-
-* `template_link` - (Optional)  A `template_link` block as defined below.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Subscription Template Deployment.
-
----
-
-An `expression_evaluation_option` block exports the following:
-
-* `scope` - (Optional) The scope to be used for evaluation of parameters, variables and functions in the nested ARM Template. Possible values are `Inner`, `Outer` and `NotSpecified`. Defaults to `Outer`.
 
 ---
 
@@ -76,14 +66,6 @@ An `parameters_link` block exports the following:
 * `uri` - (Required) The URI of the ARM Template parameters file.
 
 * `content_version` - (Optional) The content version of the ARM Template parameters file.
-
----
-
-An `template_link` block exports the following:
-
-* `uri` - (Required) The URI of the ARM Template file.
-
-* `content_version` - (Optional) The content version of the ARM Template file.
 
 ## Attributes Reference
 
