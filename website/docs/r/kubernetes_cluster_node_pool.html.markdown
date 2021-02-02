@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Defaults to `false`.
 
-* `enable_host_encryption` - (Optional) Whether to enable host encryption or not. Defaults to `false`.
+* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to `false`.
 
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
