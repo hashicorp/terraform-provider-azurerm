@@ -88,11 +88,23 @@ $ export ARM_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary for
 $ export ARM_MSI_ENDPOINT=$MSI_ENDPOINT # only necessary when the msi endpoint is different than the well-known one
 ```
 
-A provider block is _technically_ optional when using environment variables. Even so, we recommend defining a provider block so that you can pin or constrain the version of the provider being used:
+A provider block is _technically_ optional when using environment variables. Even so, we recommend defining provider blocks so that you can pin or constrain the version of the provider being used, and configure other optional settings:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  version = "~> 1.23"
+  features {}
 }
 ```
 
@@ -101,8 +113,20 @@ provider "azurerm" {
 It's also possible to configure a managed identity within the provider block:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  version = "~> 1.23"
+  features {}
 
   use_msi = true
   #...
@@ -112,8 +136,21 @@ provider "azurerm" {
 If you intend to configure a remote backend in the provider block, put `use_msi` outside of the backend block:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  version = "~> 1.23"
+  features {}
+
   use_msi = true
 
   backend "azurerm" {
