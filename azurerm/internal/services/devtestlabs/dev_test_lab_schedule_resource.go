@@ -12,7 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+  devTestValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,7 +54,7 @@ func resourceDevTestLabSchedules() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.DevTestLabName(),
+				ValidateFunc: devTestValidate.DevTestLabName(),
 			},
 
 			"status": {
@@ -142,7 +143,7 @@ func resourceDevTestLabSchedules() *schema.Resource {
 			"time_zone_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualMachineTimeZoneCaseInsensitive(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZoneCaseInsensitive(),
 			},
 
 			"notification_settings": {
