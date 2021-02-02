@@ -357,14 +357,14 @@ resource "azurerm_monitor_metric_alert" "test" {
   scopes              = azurerm_linux_virtual_machine.test.*.id
   dynamic_criteria {
     metric_namespace = "Microsoft.Compute/virtualMachines"
-    metric_name      = "Network In"
-    aggregation      = "Total"
+    metric_name      = "CPU Credits Consumed"
+    aggregation      = "Average"
 
     operator               = "GreaterOrLessThan"
     alert_sensitivity      = "Medium"
     skip_metric_validation = true
   }
-  window_size              = "PT1H"
+  window_size              = "PT5M"
   frequency                = "PT5M"
   target_resource_type     = "Microsoft.Compute/virtualMachines"
   target_resource_location = "%s"
