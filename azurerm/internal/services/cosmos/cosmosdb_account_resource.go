@@ -443,7 +443,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.LatestVersionID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
@@ -551,7 +551,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.LatestVersionID())
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
