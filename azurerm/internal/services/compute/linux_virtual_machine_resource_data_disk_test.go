@@ -165,13 +165,6 @@ func TestAccLinuxVirtualMachine_dataDisksAddExistingDataDisk(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.dataDisksAbsent(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -728,7 +721,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 
     local {
       name                 = "acctest-localdisk2"
-      lun                  = 1
+      lun                  = 2
       caching              = "ReadOnly"
       storage_account_type = "Standard_LRS"
       disk_size_gb         = 1

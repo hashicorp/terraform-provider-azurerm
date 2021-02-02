@@ -163,13 +163,6 @@ func TestAccWindowsVirtualMachine_dataDisksAddExistingDataDisk(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password"),
-		{
-			Config: r.dataDisksAbsent(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
 	})
 }
 
@@ -336,7 +329,7 @@ resource "azurerm_managed_disk" "test2" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -441,7 +434,7 @@ resource "azurerm_managed_disk" "test2" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -553,7 +546,7 @@ func (r WindowsVirtualMachineResource) dataDisksBasicWithEncryption(data accepta
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -588,7 +581,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 
-`, template, data.RandomInteger)
+`, template)
 }
 
 func (r WindowsVirtualMachineResource) dataDisksBasicWithEncryptionUpdate(data acceptance.TestData) string {
@@ -623,7 +616,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
 
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -698,7 +691,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 
     local {
       name                 = "acctest-localdisk2"
-      lun                  = 1
+      lun                  = 2
       caching              = "ReadOnly"
       storage_account_type = "Standard_LRS"
       disk_size_gb         = 1
