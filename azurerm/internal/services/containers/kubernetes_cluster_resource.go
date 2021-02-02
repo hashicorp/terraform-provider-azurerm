@@ -70,7 +70,7 @@ func resourceKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesDNSPrefix,
+				ValidateFunc: containerValidate.KubernetesDNSPrefix,
 			},
 
 			"kubernetes_version": {
@@ -238,7 +238,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesAdminUserName,
+							ValidateFunc: containerValidate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
 							Type:     schema.TypeList,
