@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
@@ -65,7 +66,7 @@ func resourceApiManagementService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementName(),
+			"name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -1028,7 +1029,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 			if valsRaw, ok := v[configType]; ok {
 				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 	}

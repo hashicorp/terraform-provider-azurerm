@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
@@ -44,7 +45,7 @@ func resourceApiManagementBackend() *schema.Resource {
 				ValidateFunc: validate.ApiManagementBackendName,
 			},
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 

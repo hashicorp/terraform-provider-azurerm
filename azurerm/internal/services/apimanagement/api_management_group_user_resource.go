@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -32,13 +33,13 @@ func resourceApiManagementGroupUser() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"user_id": azure.SchemaApiManagementChildName(),
+			"user_id": schemaz.SchemaApiManagementChildName(),
 
-			"group_name": azure.SchemaApiManagementChildName(),
+			"group_name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 		},
 	}
 }
