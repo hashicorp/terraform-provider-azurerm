@@ -372,6 +372,10 @@ A `role_based_access_control` block supports the following:
 
 * `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 
+* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
+
+~> **Note:** Azure AD based RBAC is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac).
+
 ---
 
 A `service_principal` block supports the following:
