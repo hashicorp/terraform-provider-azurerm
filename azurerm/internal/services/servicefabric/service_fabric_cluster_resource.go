@@ -180,9 +180,10 @@ func resourceServiceFabricCluster() *schema.Resource {
 			},
 
 			"reverse_proxy_certificate": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"reverse_proxy_certificate_common_names"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"thumbprint": {
@@ -196,6 +197,41 @@ func resourceServiceFabricCluster() *schema.Resource {
 						"x509_store_name": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+					},
+				},
+			},
+
+			"reverse_proxy_certificate_common_names": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"reverse_proxy_certificate"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"common_names": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"certificate_common_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"certificate_issuer_thumbprint": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"x509_store_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -433,9 +469,6 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 	azureActiveDirectoryRaw := d.Get("azure_active_directory").([]interface{})
 	azureActiveDirectory := expandServiceFabricClusterAzureActiveDirectory(azureActiveDirectoryRaw)
 
-	reverseProxyCertificateRaw := d.Get("reverse_proxy_certificate").([]interface{})
-	reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw)
-
 	diagnosticsRaw := d.Get("diagnostics_config").([]interface{})
 	diagnostics := expandServiceFabricClusterDiagnosticsConfig(diagnosticsRaw)
 
@@ -449,23 +482,28 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		ClusterProperties: &servicefabric.ClusterProperties{
-			AddOnFeatures:                   addOnFeatures,
-			AzureActiveDirectory:            azureActiveDirectory,
-			CertificateCommonNames:          expandServiceFabricClusterCertificateCommonNames(d),
-			ReverseProxyCertificate:         reverseProxyCertificate,
-			DiagnosticsStorageAccountConfig: diagnostics,
-			FabricSettings:                  fabricSettings,
-			ManagementEndpoint:              utils.String(managementEndpoint),
-			NodeTypes:                       nodeTypes,
-			ReliabilityLevel:                servicefabric.ReliabilityLevel(reliabilityLevel),
-			UpgradeMode:                     servicefabric.UpgradeMode(upgradeMode),
-			VMImage:                         utils.String(vmImage),
+			AddOnFeatures:                      addOnFeatures,
+			AzureActiveDirectory:               azureActiveDirectory,
+			CertificateCommonNames:             expandServiceFabricClusterCertificateCommonNames(d),
+			ReverseProxyCertificateCommonNames: expandServiceFabricClusterReverseProxyCertificateCommonNames(d),
+			DiagnosticsStorageAccountConfig:    diagnostics,
+			FabricSettings:                     fabricSettings,
+			ManagementEndpoint:                 utils.String(managementEndpoint),
+			NodeTypes:                          nodeTypes,
+			ReliabilityLevel:                   servicefabric.ReliabilityLevel(reliabilityLevel),
+			UpgradeMode:                        servicefabric.UpgradeMode(upgradeMode),
+			VMImage:                            utils.String(vmImage),
 		},
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
 		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 		cluster.ClusterProperties.Certificate = certificate
+	}
+
+	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
+		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
+		cluster.ClusterProperties.ReverseProxyCertificate = reverseProxyCertificate
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
@@ -562,6 +600,11 @@ func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) 
 		reverseProxyCertificate := flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)
 		if err := d.Set("reverse_proxy_certificate", reverseProxyCertificate); err != nil {
 			return fmt.Errorf("Error setting `reverse_proxy_certificate`: %+v", err)
+		}
+
+		reverseProxyCertificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)
+		if err := d.Set("reverse_proxy_certificate_common_names", reverseProxyCertificateCommonNames); err != nil {
+			return fmt.Errorf("Error setting `reverse_proxy_certificate_common_names`: %+v", err)
 		}
 
 		clientCertificateThumbprints := flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)
@@ -725,6 +768,39 @@ func flattenServiceFabricClusterCertificate(input *servicefabric.CertificateDesc
 
 func expandServiceFabricClusterCertificateCommonNames(d *schema.ResourceData) *servicefabric.ServerCertificateCommonNames {
 	i := d.Get("certificate_common_names").([]interface{})
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+	input := i[0].(map[string]interface{})
+
+	commonNamesRaw := input["common_names"].(*schema.Set).List()
+	commonNames := make([]servicefabric.ServerCertificateCommonName, 0)
+
+	for _, commonName := range commonNamesRaw {
+		commonNameDetails := commonName.(map[string]interface{})
+		certificateCommonName := commonNameDetails["certificate_common_name"].(string)
+		certificateIssuerThumbprint := commonNameDetails["certificate_issuer_thumbprint"].(string)
+
+		commonName := servicefabric.ServerCertificateCommonName{
+			CertificateCommonName:       &certificateCommonName,
+			CertificateIssuerThumbprint: &certificateIssuerThumbprint,
+		}
+
+		commonNames = append(commonNames, commonName)
+	}
+
+	x509StoreName := input["x509_store_name"].(string)
+
+	output := servicefabric.ServerCertificateCommonNames{
+		CommonNames:   &commonNames,
+		X509StoreName: servicefabric.X509StoreName1(x509StoreName),
+	}
+
+	return &output
+}
+
+func expandServiceFabricClusterReverseProxyCertificateCommonNames(d *schema.ResourceData) *servicefabric.ServerCertificateCommonNames {
+	i := d.Get("reverse_proxy_certificate_common_names").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}

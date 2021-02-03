@@ -10,8 +10,11 @@ description: |-
 
 Manages a Service Fabric Mesh Secret Value.
 
-## Example Usage
+!> **Note:** Service Fabric Mesh is being retired on `2021-04-28` and **new Clusters can no longer be provisioned**. More information about [the retirement can be found here](https://azure.microsoft.com/en-us/updates/azure-service-fabric-mesh-preview-retirement/). Azure recommends migrating to either a [Azure Container Instances](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_group), [Azure Kubernetes Service](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster) or [a Service Fabric Managed Cluster](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_fabric_cluster).
 
+!> **Note:** **This resource is deprecated** and will be removed in version 3.0 of the Azure Provider.
+
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {

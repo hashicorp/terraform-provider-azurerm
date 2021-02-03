@@ -51,9 +51,9 @@ func TestAccFirewallDataSource_withManagementIp(t *testing.T) {
 		{
 			Config: r.withManagementIp(data),
 			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
 				check.That(data.ResourceName).Key("management_ip_configuration.0.name").HasValue("management_configuration"),
-				check.That(data.ResourceName).Key("management_ip_configuration.0.private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("management_ip_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("management_ip_configuration.0.public_ip_address_id").Exists(),
 			),
 		},

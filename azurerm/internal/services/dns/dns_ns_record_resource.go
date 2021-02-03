@@ -133,22 +133,18 @@ func resourceDnsNsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NsRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["NS"]
-	zoneName := id.Path["dnszones"]
-
-	existing, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
 	if err != nil {
-		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): %+v", id.NSName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	if existing.RecordSetProperties == nil {
-		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): `properties` was nil", name, zoneName, resGroup)
+		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): `properties` was nil", id.NSName, id.DnszoneName, id.ResourceGroup)
 	}
 
 	if d.HasChange("records") {
@@ -168,8 +164,8 @@ func resourceDnsNsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, existing, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error updating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS, existing, eTag, ifNoneMatch); err != nil {
+		return fmt.Errorf("Error updating DNS NS Record %q (Zone %q / Resource Group %q): %s", id.NSName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	return resourceDnsNsRecordRead(d, meta)

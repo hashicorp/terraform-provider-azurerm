@@ -107,7 +107,7 @@ func resourceStorageDataLakeGen2Path() *schema.Resource {
 			},
 
 			"ace": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -183,7 +183,7 @@ func resourceStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta interfac
 	default:
 		return fmt.Errorf("Unhandled resource type %q", resourceString)
 	}
-	aceRaw := d.Get("ace").([]interface{})
+	aceRaw := d.Get("ace").(*schema.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
@@ -247,7 +247,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta interfac
 
 	path := d.Get("path").(string)
 
-	aceRaw := d.Get("ace").([]interface{})
+	aceRaw := d.Get("ace").(*schema.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)

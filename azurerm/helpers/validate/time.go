@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	iso8601 "github.com/btubbs/datetime"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/rickb777/date/period"
@@ -63,29 +62,6 @@ func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error
 	}
 
 	return warnings, errors
-}
-
-// RFC3339 date is duration d or greater into the future
-func RFC3339DateInFutureBy(d time.Duration) schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
-		v, ok := i.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-			return
-		}
-
-		t, err := date.ParseTime(time.RFC3339, v)
-		if err != nil {
-			errors = append(errors, fmt.Errorf("%q has the invalid RFC3339 date format %q: %+v", k, i, err))
-			return
-		}
-
-		if time.Until(t) < d {
-			errors = append(errors, fmt.Errorf("%q is %q and should be at least %q in the future", k, i, d))
-		}
-
-		return warnings, errors
-	}
 }
 
 func AzureTimeZoneString() schema.SchemaValidateFunc {

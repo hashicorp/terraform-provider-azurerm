@@ -31,6 +31,8 @@ func resourceServiceFabricMeshLocalNetwork() *schema.Resource {
 			return err
 		}),
 
+		DeprecationMessage: deprecationMessage("azurerm_service_fabric_mesh_local_network"),
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
