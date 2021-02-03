@@ -398,7 +398,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
     secret_version      = azurerm_key_vault_certificate.test.version
   }
 }
-`, template, data.RandomInteger, certificate)
+`, template, data.RandomIntOfLength(8), certificate)
 }
 
 func testAccAzureRMCdnEndpointCustomDomain_template(data acceptance.TestData, dnsZoneRg, dnsZoneName, subdomain string) string {
