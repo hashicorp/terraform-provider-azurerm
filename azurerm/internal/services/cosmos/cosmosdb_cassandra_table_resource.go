@@ -12,7 +12,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -48,8 +47,6 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"cassandra_keyspace_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -84,13 +81,13 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	keyspaceId, err := parse.CassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Cassandra Keyspace ID: %+v", err)
 	}
 	account := keyspaceId.DatabaseAccountName
 	keyspace := keyspaceId.Name
+	resourceGroup := keyspaceId.ResourceGroup
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := parse.NewCassandraTableID(subscriptionId, resourceGroup, account, keyspace, name)
@@ -100,10 +97,6 @@ func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface
 			return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
 		}
 	} else {
-		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("Error generating import ID for Cosmos Cassandra Table %q (Account: %q, Keyspace: %q)", name, account, keyspace)
-		}
-
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
 		}
@@ -229,7 +222,6 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 
 	keyspaceId := parse.NewCassandraKeyspaceID(subscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName)
 
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("cassandra_keyspace_id", keyspaceId.ID())
 	if props := resp.CassandraTableGetProperties; props != nil {

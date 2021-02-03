@@ -45,10 +45,8 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
 }
 
 resource "azurerm_cosmosdb_cassandra_table" "example" {
-  name                = "testtable"
-  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
-  account_name        = azurerm_cosmosdb_account.example.name
-  keyspace_name       = azurerm_cosmosdb_cassandra_keyspace.example.name
+  name                  = "testtable"
+  cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.example.id
 
   schema {
     column {
@@ -73,8 +71,6 @@ resource "azurerm_cosmosdb_cassandra_table" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cosmos DB Cassandra Table. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Account exists. Changing this forces a new resource to be created.
 
 * `cassandra_keyspace_id` - (Required) The ID of the Cosmos DB Cassandra Keyspace to create the table within. Changing this forces a new resource to be created.
 
