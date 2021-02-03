@@ -288,8 +288,13 @@ func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, st
 		return nil, err
 	}
 
-	if _, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, id.ResourceGroup, id.AzureFirewallName); err != nil {
+	future, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
+	if err != nil {
 		return nil, fmt.Errorf("deleting Azure Firewall %q: %+v", id.AzureFirewallName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, clients.Firewall.AzureFirewallsClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for Deletion on azureFirewallsClient: %+v", err)
 	}
 
 	return utils.Bool(true), nil

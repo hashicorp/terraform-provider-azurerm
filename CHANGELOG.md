@@ -1,3 +1,23 @@
+## 2.46.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating `recoveryservices` to API version `2018-07-10` [GH-10373]
+* `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties [GH-10325]
+* `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-10325]
+* `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block [GH-10398]
+* `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` [GH-10398]
+* `azurerm_redis_cache` - support for the `public_network_access_enabled` property [GH-10410]
+* `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block [GH-10367]
+
+BUG FIXES:
+
+* Data Source: `azurerm_api_management` fix an exception with User Assigned Managed Identities [GH-10429]
+* `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting [GH-10325]
+* `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
+* `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
+* `azurerm_storage_data_lake_gen2_path` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
+
 ## 2.45.1 (January 28, 2021)
 
 BUG FIXES:

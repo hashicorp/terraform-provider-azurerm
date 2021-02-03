@@ -138,7 +138,7 @@ func TestAccSharedImageVersion_specializedImageVersionBySnapshot(t *testing.T) {
 				// the share image version will generate a shared access signature (SAS) on the referenced snapshot and keep it active until the replication is complete
 				// in the meantime, the service will return success of creation before the replication complete.
 				// therefore in this test, we have to revoke the access on the snapshot in order to do the cleaning work
-				revokeSASOnSnapshotForCleanup("azurerm_snapshot.test"),
+				data.CheckWithClientForResource(r.revokeSnapshot, "azurerm_snapshot.test"),
 			),
 		},
 		data.ImportStep(),
@@ -213,30 +213,19 @@ func (t SharedImageVersionResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func revokeSASOnSnapshotForCleanup(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	snapShotName := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Get the snapshot resource
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		snapShotName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		future, err := client.RevokeAccess(ctx, resourceGroup, snapShotName)
-		if err != nil {
-			return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
-		}
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("bad: waiting the revoke of SAS on the snapshot: %+v", err)
-		}
-
-		return nil
+	future, err := client.Compute.SnapshotsClient.RevokeAccess(ctx, resourceGroup, snapShotName)
+	if err != nil {
+		return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
 	}
+	if err := future.WaitForCompletionRef(ctx, client.Compute.SnapshotsClient.Client); err != nil {
+		return fmt.Errorf("bad: waiting the revoke of SAS on the snapshot: %+v", err)
+	}
+
+	return nil
 }
 
 // nolint: unparam

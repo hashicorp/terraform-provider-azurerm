@@ -78,7 +78,7 @@ func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 			"properties": MetaDataSchema(),
 
 			"ace": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -123,7 +123,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 		return err
 	}
 
-	aceRaw := d.Get("ace").([]interface{})
+	aceRaw := d.Get("ace").(*schema.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
@@ -200,7 +200,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return err
 	}
 
-	aceRaw := d.Get("ace").([]interface{})
+	aceRaw := d.Get("ace").(*schema.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)

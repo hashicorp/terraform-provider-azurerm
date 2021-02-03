@@ -411,6 +411,26 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.reverseProxyCertificateCommonNames(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate_common_names.0.common_names.2962847220.certificate_common_name").HasValue("example"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate_common_names.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
@@ -1173,6 +1193,61 @@ resource "azurerm_service_fabric_cluster" "test" {
   management_endpoint = "https://example:80"
 
   certificate_common_names {
+    common_names {
+      certificate_common_name = "example"
+    }
+
+    x509_store_name = "My"
+  }
+
+  fabric_settings {
+    name = "Security"
+
+    parameters = {
+      "ClusterProtectionLevel" = "EncryptAndSign"
+    }
+  }
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ServiceFabricClusterResource) reverseProxyCertificateCommonNames(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "https://example:80"
+
+  certificate_common_names {
+    common_names {
+      certificate_common_name = "example"
+    }
+
+    x509_store_name = "My"
+  }
+
+  reverse_proxy_certificate_common_names {
     common_names {
       certificate_common_name = "example"
     }

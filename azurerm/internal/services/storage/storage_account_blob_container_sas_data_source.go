@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 )
 
 func dataSourceStorageAccountBlobContainerSharedAccessSignature() *schema.Resource {
@@ -42,7 +43,7 @@ func dataSourceStorageAccountBlobContainerSharedAccessSignature() *schema.Resour
 			"ip_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.SharedAccessSignatureIP,
+				ValidateFunc: validate2.SharedAccessSignatureIP,
 			},
 
 			"start": {
