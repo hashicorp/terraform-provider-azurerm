@@ -464,7 +464,7 @@ func resourceKubernetesCluster() *schema.Resource {
 					validation.StringInSlice([]string{
 						"None",
 						"System",
-					}, true),
+					}, false),
 				),
 			},
 
