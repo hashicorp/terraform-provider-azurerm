@@ -28,7 +28,7 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"privateClusterPrivateDNS": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
 }
 
-func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
+func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_basicAvailabilitySet(t)
 }
