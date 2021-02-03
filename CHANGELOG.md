@@ -1,5 +1,9 @@
 ## 2.46.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_cosmosdb_cassandra_table` [GH-10328]
+
 ENHANCEMENTS:
 
 * dependencies: updating `recoveryservices` to API version `2018-07-10` [GH-10373]
