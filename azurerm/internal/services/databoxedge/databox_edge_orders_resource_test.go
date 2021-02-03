@@ -112,10 +112,10 @@ resource "azurerm_databox_edge_order" "test" {
   device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
-    name           = "TerraForm Test"
-    emails         = ["creator4983@FlynnsArcade.com"]
-    company_name   = "Microsoft"
-    phone_number   = "425-882-8080"
+    name         = "TerraForm Test"
+    emails       = ["creator4983@FlynnsArcade.com"]
+    company_name = "Microsoft"
+    phone_number = "425-882-8080"
   }
 
   shipping_address {
@@ -138,10 +138,10 @@ resource "azurerm_databox_edge_order" "import" {
   device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
-    name           = "TerraForm Test"
-    emails         = ["creator4983@FlynnsArcade.com"]
-    company_name   = "Microsoft"
-    phone_number   = "425-882-8080"
+    name         = "TerraForm Test"
+    emails       = ["creator4983@FlynnsArcade.com"]
+    company_name = "Microsoft"
+    phone_number = "425-882-8080"
   }
 
   shipping_address {
@@ -164,10 +164,10 @@ resource "azurerm_databox_edge_order" "test" {
   device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
-    name           = "TerraForm Test"
-    emails         = ["creator4983@FlynnsArcade.com"]
-    company_name   = "Flynn's Arcade"
-    phone_number   = "(800) 555-1234"
+    name         = "TerraForm Test"
+    emails       = ["creator4983@FlynnsArcade.com"]
+    company_name = "Flynn's Arcade"
+    phone_number = "(800) 555-1234"
   }
 
   shipping_address {
@@ -190,10 +190,10 @@ resource "azurerm_databox_edge_order" "test" {
   device_name         = azurerm_databox_edge_device.test.name
 
   contact_information {
-    name           = "TerraForm Test"
-    emails         = ["EN12-82@ENCOM.com"]
-    company_name   = "ENCOM International"
-    phone_number   = "(800) 555-4321"
+    name         = "TerraForm Test"
+    emails       = ["EN12-82@ENCOM.com"]
+    company_name = "ENCOM International"
+    phone_number = "(800) 555-4321"
   }
 
   shipping_address {
