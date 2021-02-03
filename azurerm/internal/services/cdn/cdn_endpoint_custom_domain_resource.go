@@ -456,7 +456,7 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 	deadline, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{string(cdn.Enabling)},
-		Target:     []string{string(cdn.Enabled), string(cdn.Failed)},
+		Target:     []string{string(cdn.Enabled), string(cdn.Failed), string(cdn.Disabled)},
 		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, resgrp, profile, endpoint, name),
 		MinTimeout: 10 * time.Second,
 		Timeout:    time.Until(deadline),
@@ -468,6 +468,9 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 	}
 	if state == cdn.Failed {
 		return errors.New("HTTPS provision state is Failed")
+	}
+	if state == cdn.Disabled {
+		return errors.New("HTTPS provision state is back to Disabled")
 	}
 
 	return nil
@@ -484,7 +487,7 @@ func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cus
 	deadline, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{string(cdn.Disabling)},
-		Target:     []string{string(cdn.Disabled), string(cdn.Failed)},
+		Target:     []string{string(cdn.Disabled), string(cdn.Failed), string(cdn.Enabled)},
 		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, resgrp, profile, endpoint, name),
 		MinTimeout: 10 * time.Second,
 		Timeout:    time.Until(deadline),
@@ -496,6 +499,9 @@ func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cus
 	}
 	if state == cdn.Failed {
 		return errors.New("HTTPS provision state is Failed")
+	}
+	if state == cdn.Enabled {
+		return errors.New("HTTPS provision state is back to Enabled")
 	}
 
 	return nil

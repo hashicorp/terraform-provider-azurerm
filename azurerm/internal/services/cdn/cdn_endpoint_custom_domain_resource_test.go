@@ -47,7 +47,7 @@ func TestAccAzureRMCdnEndpointCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t); preCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
@@ -69,7 +69,7 @@ func TestAccAzureRMCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t); preCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMCdnEndpointCustomDomain_httpsCdnUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t); preCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
@@ -131,7 +131,7 @@ func TestAccAzureRMCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 	dnsZoneRg, dnsZoneName, subdomain, certificate := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha), os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t); preCheckUserManagedCertificate(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
@@ -153,7 +153,7 @@ func TestAccAzureRMCdnEndpointCustomDomain_httpsUserManagedUpdate(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 	dnsZoneRg, dnsZoneName, subdomain, certificate := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha), os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t); preCheckUserManagedCertificate(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
@@ -213,7 +213,7 @@ func TestAccAzureRMCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 %s
 
 resource "azurerm_cdn_endpoint_custom_domain" "import" {
-  name            = azurerm_cdn_endpoint_custom_domain.test.id
+  name            = azurerm_cdn_endpoint_custom_domain.test.name
   cdn_endpoint_id = azurerm_cdn_endpoint_custom_domain.test.cdn_endpoint_id
   host_name       = azurerm_cdn_endpoint_custom_domain.test.host_name
 }
@@ -329,6 +329,7 @@ resource "azurerm_key_vault" "test" {
       "get",
       "delete",
       "import",
+	  "purge",
     ]
 
     key_permissions = [
