@@ -462,7 +462,6 @@ func resourceKubernetesCluster() *schema.Resource {
 				ValidateFunc: validation.Any(
 					privateDnsValidate.PrivateDnsZoneID,
 					validation.StringInSlice([]string{
-						"None",
 						"System",
 					}, false),
 				),
@@ -826,8 +825,8 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if parameters.Identity == nil || parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned {
-			return fmt.Errorf("a user assigned identity must be used when using a private dns zone")
+		if parameters.Identity == nil || (v.(string) != "System" && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned) {
+			return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}

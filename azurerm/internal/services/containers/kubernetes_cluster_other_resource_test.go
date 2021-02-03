@@ -11,21 +11,22 @@ import (
 )
 
 var kubernetesOtherTests = map[string]func(t *testing.T){
-	"basicAvailabilitySet":     testAccKubernetesCluster_basicAvailabilitySet,
-	"basicVMSS":                testAccKubernetesCluster_basicVMSS,
-	"requiresImport":           testAccKubernetesCluster_requiresImport,
-	"criticalAddonsTaint":      testAccKubernetesCluster_criticalAddonsTaint,
-	"linuxProfile":             testAccKubernetesCluster_linuxProfile,
-	"nodeLabels":               testAccKubernetesCluster_nodeLabels,
-	"nodeResourceGroup":        testAccKubernetesCluster_nodeResourceGroup,
-	"paidSku":                  testAccKubernetesCluster_paidSku,
-	"upgradeConfig":            testAccKubernetesCluster_upgrade,
-	"tags":                     testAccKubernetesCluster_tags,
-	"windowsProfile":           testAccKubernetesCluster_windowsProfile,
-	"outboundTypeLoadBalancer": testAccKubernetesCluster_outboundTypeLoadBalancer,
-	"privateClusterOn":         testAccKubernetesCluster_privateClusterOn,
-	"privateClusterOff":        testAccKubernetesCluster_privateClusterOff,
-	"privateClusterPrivateDNS": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
+	"basicAvailabilitySet":           testAccKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                      testAccKubernetesCluster_basicVMSS,
+	"requiresImport":                 testAccKubernetesCluster_requiresImport,
+	"criticalAddonsTaint":            testAccKubernetesCluster_criticalAddonsTaint,
+	"linuxProfile":                   testAccKubernetesCluster_linuxProfile,
+	"nodeLabels":                     testAccKubernetesCluster_nodeLabels,
+	"nodeResourceGroup":              testAccKubernetesCluster_nodeResourceGroup,
+	"paidSku":                        testAccKubernetesCluster_paidSku,
+	"upgradeConfig":                  testAccKubernetesCluster_upgrade,
+	"tags":                           testAccKubernetesCluster_tags,
+	"windowsProfile":                 testAccKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer":       testAccKubernetesCluster_outboundTypeLoadBalancer,
+	"privateClusterOn":               testAccKubernetesCluster_privateClusterOn,
+	"privateClusterOff":              testAccKubernetesCluster_privateClusterOff,
+	"privateClusterPrivateDNS":       testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
+	"privateClusterPrivateDNSSystem": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
 }
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
