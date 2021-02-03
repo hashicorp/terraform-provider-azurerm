@@ -1,4 +1,4 @@
-package tests
+package databoxedge_test
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func TestAccDataSourceDataboxEdgeDevice_basic(t *testing.T) {
 }
 
 func (DataboxEdgeDeviceDataSource) basic(data acceptance.TestData) string {
-	config := testAccDataboxEdgeDevice_complete(data)
+	r := DataboxEdgeDeviceResource{}
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +37,5 @@ data "azurerm_databox_edge_device" "test" {
   name                = azurerm_databox_edge_device.test.name
   resource_group_name = azurerm_databox_edge_device.test.resource_group_name
 }
-`, config)
+`, r.complete(data))
 }

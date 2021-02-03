@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Databox Edge Order exists.
 
-* `device_name` - (Required) The device name.
+* `device_name` - (Required) The Databox Edge Device name.
 
 ## Attributes Reference
 

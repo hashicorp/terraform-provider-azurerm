@@ -55,18 +55,21 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 						"company_name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeCompanyName,
 						},
 
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeContactName,
 						},
 
 						"emails": {
 							Type:     schema.TypeSet,
 							Required: true,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -75,6 +78,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgePhoneNumber,
 						},
 					},
@@ -122,42 +126,49 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 						"address_line1": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeStreetAddress,
 						},
 
 						"city": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeCity,
 						},
 
 						"country": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeCountry,
 						},
 
 						"state": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeState,
 						},
 
 						"postal_code": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgePostalCode,
 						},
 
 						"address_line2": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeStreetAddress,
 						},
 
 						"address_line3": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgeStreetAddress,
 						},
 					},
