@@ -31,10 +31,10 @@ resource "azurerm_databox_edge_order" "example" {
   device_name         = azurerm_databox_edge_device.example.name
 
   contact_information {
-    company_name   = "Contoso Corporation"
-    name           = "Bart"
-    email_lists    = ["bart@example.com"]
-    phone          = "(800) 867-5309"
+    company_name = "Contoso Corporation"
+    name         = "Bart"
+    email_lists  = ["bart@example.com"]
+    phone        = "(800) 867-5309"
   }
 
   shipping_address {
