@@ -115,8 +115,12 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Type:     schema.TypeList,
 					ForceNew: true,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
+						ValidateFunc: validation.StringInSlice([]string{
+							"CriticalAddonsOnly=true:PreferNoSchedule",
+						}, false),
 					},
 				},
 
@@ -205,8 +209,8 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 
-	if len(*nodeTaints) != 0 {
-		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one")
+	if len(*nodeTaints) > 1 {
+		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. The only accepted value for a default node pool is `CriticalAddonsOnly=true:PreferNoSchedule`. To taint a node pool with other taints, create a separate one.")
 	}
 
 	t := raw["tags"].(map[string]interface{})
@@ -217,6 +221,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
 		Name:                   utils.String(raw["name"].(string)),
 		NodeLabels:             nodeLabels,
+		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
 		Type:                   containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:                 containerservice.VMSizeTypes(raw["vm_size"].(string)),
@@ -384,6 +389,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
+	var nodeTaints []string
+	if agentPool.NodeTaints != nil {
+		nodeTaints = *agentPool.NodeTaints
+	}
+
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
@@ -421,7 +431,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                         name,
 			"node_count":                   count,
 			"node_labels":                  nodeLabels,
-			"node_taints":                  []string{},
+			"node_taints":                  nodeTaints,
 			"os_disk_size_gb":              osDiskSizeGB,
 			"os_disk_type":                 string(osDiskType),
 			"tags":                         tags.Flatten(agentPool.Tags),
