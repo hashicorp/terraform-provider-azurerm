@@ -196,9 +196,9 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   }
 
   network_interface {
-    source_network_interface_id           = azurerm_network_interface.vm.id
-    target_subnet_name                    = "network2-subnet"
-    recovery_public_ip_address_id         = azurerm_public_ip.secondary.id
+    source_network_interface_id   = azurerm_network_interface.vm.id
+    target_subnet_name            = "network2-subnet"
+    recovery_public_ip_address_id = azurerm_public_ip.secondary.id
   }
 }
 ```

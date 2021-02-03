@@ -243,9 +243,9 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
 
   network_interface {
-    source_network_interface_id           = azurerm_network_interface.test.id
-    target_subnet_name                    = "snet-%[1]d_2"
-    recovery_public_ip_address_id         = azurerm_public_ip.test-recovery.id
+    source_network_interface_id   = azurerm_network_interface.test.id
+    target_subnet_name            = "snet-%[1]d_2"
+    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
   }
 
   depends_on = [
