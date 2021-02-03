@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) A identity block.
+* `identity` - (Optional) An identity block.
 
 * `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
 
@@ -95,15 +95,11 @@ A `virtual_network_configuration` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned` (where Azure will generate a Service Principal for you).
+* `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) The list of user identities associated with the Kusto cluster.
+* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, the Principal ID can be retrieved after the cluster has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
-
-* `principal_id` - (Computed) Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Kusto Cluster.
-
-* `tenant_id` - (Computed) Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Kusto Cluster.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -122,6 +118,16 @@ The following attributes are exported:
 * `uri` - The FQDN of the Azure Kusto Cluster.
 
 * `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ## Timeouts
 
