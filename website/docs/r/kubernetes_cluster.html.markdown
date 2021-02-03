@@ -100,7 +100,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_cluster_enabled` - Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `private_dns_zone_id` - (Optional) ID of Private DNS zone to use or one of `System` or `None`.
+* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, or `System` to have AKS manage this.
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
