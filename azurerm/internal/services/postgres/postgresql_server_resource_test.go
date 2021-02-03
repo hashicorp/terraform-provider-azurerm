@@ -123,6 +123,20 @@ func TestAccPostgreSQLServer_basicEleven(t *testing.T) {
 	})
 }
 
+func TestAccPostgreSQLServer_basicTwelve(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "12"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccPostgreSQLServer_basicWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
