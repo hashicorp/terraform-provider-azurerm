@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties [GH-10325]
 * `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-10325]
 * `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block [GH-10398]
+* `azurerm_kubernetes_cluster` - added length validation to the `admin_password` field within the `windows_profile` block [GH-10452]
 * `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` [GH-10398]
 * `azurerm_redis_cache` - support for the `public_network_access_enabled` property [GH-10410]
 * `azurerm_role_assignment` - adding validation for that the `scope` is either a Management Group, Subscription, Resource Group or Resource ID [GH-10438]
