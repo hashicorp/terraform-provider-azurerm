@@ -1160,6 +1160,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
   }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
 }
