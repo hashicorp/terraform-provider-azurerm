@@ -178,24 +178,6 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTran
 	})
 }
 
-func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeBridge(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "bridge"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
-				check.That(data.ResourceName).Key("network_profile.0.network_mode").HasValue("bridge"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
