@@ -104,6 +104,7 @@ func resourcePostgreSQLServer() *schema.Resource {
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
 					string(postgresql.OneOne),
+					string(postgresql.OneTwo),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
 				}, true),
