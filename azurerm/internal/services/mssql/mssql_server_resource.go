@@ -46,7 +46,7 @@ func resourceMsSqlServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServerName,
+				ValidateFunc: helper.ValidateMsSqlServerName,
 			},
 
 			"location": azure.SchemaLocation(),

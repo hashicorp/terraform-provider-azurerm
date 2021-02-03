@@ -49,25 +49,25 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: azure.EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: EventHubAuthorizationRuleCustomizeDiff,
 	}
 }
 
@@ -101,7 +101,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceDa
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
-			Rights: azure.ExpandEventHubAuthorizationRuleRights(d),
+			Rights: ExpandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
@@ -147,7 +147,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if properties := resp.AuthorizationRuleProperties; properties != nil {
-		listen, send, manage := azure.FlattenEventHubAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := FlattenEventHubAuthorizationRuleRights(properties.Rights)
 		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)

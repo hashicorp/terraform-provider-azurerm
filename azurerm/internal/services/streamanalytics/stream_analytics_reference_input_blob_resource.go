@@ -90,7 +90,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": SchemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }
@@ -198,7 +198,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, meta 
 			d.Set("storage_account_name", account.AccountName)
 		}
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
@@ -235,7 +235,7 @@ func getBlobReferenceInputProps(d *schema.ResourceData) (streamanalytics.Input, 
 	timeFormat := d.Get("time_format").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return streamanalytics.Input{}, fmt.Errorf("expanding `serialization`: %+v", err)
 	}

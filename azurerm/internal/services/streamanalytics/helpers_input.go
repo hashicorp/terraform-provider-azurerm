@@ -1,17 +1,15 @@
-package azure
+package streamanalytics
 
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaStreamAnalyticsOutputSerialization() *schema.Schema {
+func SchemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -47,39 +45,20 @@ func SchemaStreamAnalyticsOutputSerialization() *schema.Schema {
 						string(streamanalytics.UTF8),
 					}, false),
 				},
-
-				"format": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(streamanalytics.Array),
-						string(streamanalytics.LineSeparated),
-					}, false),
-				},
 			},
 		},
 	}
 }
 
-func ExpandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
+func ExpandStreamAnalyticsStreamInputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
 	v := input[0].(map[string]interface{})
 
-	outputType := streamanalytics.Type(v["type"].(string))
+	inputType := streamanalytics.Type(v["type"].(string))
 	encoding := v["encoding"].(string)
 	fieldDelimiter := v["field_delimiter"].(string)
-	format := v["format"].(string)
 
-	switch outputType {
+	switch inputType {
 	case streamanalytics.TypeAvro:
-		if encoding != "" {
-			return nil, fmt.Errorf("`encoding` cannot be set when `type` is set to `Avro`")
-		}
-		if fieldDelimiter != "" {
-			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Avro`")
-		}
-		if format != "" {
-			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Avro`")
-		}
 		return streamanalytics.AvroSerialization{
 			Type:       streamanalytics.TypeAvro,
 			Properties: map[string]interface{}{},
@@ -91,9 +70,6 @@ func ExpandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 		}
 		if fieldDelimiter == "" {
 			return nil, fmt.Errorf("`field_delimiter` must be set when `type` is set to `Csv`")
-		}
-		if format != "" {
-			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Csv`")
 		}
 		return streamanalytics.CsvSerialization{
 			Type: streamanalytics.TypeCsv,
@@ -107,59 +83,51 @@ func ExpandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 		if encoding == "" {
 			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Json`")
 		}
-		if format == "" {
-			return nil, fmt.Errorf("`format` must be specified when `type` is set to `Json`")
-		}
-		if fieldDelimiter != "" {
-			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Json`")
-		}
 
 		return streamanalytics.JSONSerialization{
 			Type: streamanalytics.TypeJSON,
 			JSONSerializationProperties: &streamanalytics.JSONSerializationProperties{
 				Encoding: streamanalytics.Encoding(encoding),
-				Format:   streamanalytics.JSONOutputSerializationFormat(format),
 			},
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
+	return nil, fmt.Errorf("Unsupported Input Type %q", inputType)
 }
 
-func FlattenStreamAnalyticsOutputSerialization(input streamanalytics.BasicSerialization) []interface{} {
+func FlattenStreamAnalyticsStreamInputSerialization(input streamanalytics.BasicSerialization) []interface{} {
 	var encoding string
-	var outputType string
 	var fieldDelimiter string
-	var format string
+	var inputType string
 
 	if _, ok := input.AsAvroSerialization(); ok {
-		outputType = string(streamanalytics.TypeAvro)
+		inputType = string(streamanalytics.TypeAvro)
 	}
 
 	if v, ok := input.AsCsvSerialization(); ok {
 		if props := v.CsvSerializationProperties; props != nil {
 			encoding = string(props.Encoding)
+
 			if props.FieldDelimiter != nil {
 				fieldDelimiter = *props.FieldDelimiter
 			}
 		}
 
-		outputType = string(streamanalytics.TypeCsv)
+		inputType = string(streamanalytics.TypeCsv)
 	}
 
 	if v, ok := input.AsJSONSerialization(); ok {
 		if props := v.JSONSerializationProperties; props != nil {
 			encoding = string(props.Encoding)
-			format = string(props.Format)
 		}
 
-		outputType = string(streamanalytics.TypeJSON)
+		inputType = string(streamanalytics.TypeJSON)
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"encoding":        encoding,
-			"type":            outputType,
-			"format":          format,
+			"type":            inputType,
 			"field_delimiter": fieldDelimiter,
 		},
 	}

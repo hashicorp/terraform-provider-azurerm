@@ -23,13 +23,13 @@ func EventHubNamespaceDataSourceAuthorizationRule() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -115,7 +115,7 @@ func EventHubNamespaceDataSourceAuthorizationRuleRead(d *schema.ResourceData, me
 	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.AuthorizationRuleProperties; props != nil {
-		listen, send, manage := azure.FlattenEventHubAuthorizationRuleRights(props.Rights)
+		listen, send, manage := FlattenEventHubAuthorizationRuleRights(props.Rights)
 		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)

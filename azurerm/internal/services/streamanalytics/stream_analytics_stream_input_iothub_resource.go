@@ -84,7 +84,7 @@ func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": SchemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }
@@ -118,7 +118,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
@@ -195,7 +195,7 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta i
 		d.Set("iothub_namespace", eventHub.IotHubNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}

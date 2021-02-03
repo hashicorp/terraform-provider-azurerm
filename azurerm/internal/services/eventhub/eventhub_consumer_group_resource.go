@@ -39,21 +39,21 @@ func (r ConsumerGroupResource) Arguments() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateEventHubConsumerName(),
+			ValidateFunc: ValidateEventHubConsumerName(),
 		},
 
 		"namespace_name": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateEventHubNamespaceName(),
+			ValidateFunc: ValidateEventHubNamespaceName(),
 		},
 
 		"eventhub_name": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateEventHubName(),
+			ValidateFunc: ValidateEventHubName(),
 		},
 
 		"resource_group_name": azure.SchemaResourceGroupName(),

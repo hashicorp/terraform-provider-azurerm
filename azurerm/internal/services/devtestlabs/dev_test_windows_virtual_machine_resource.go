@@ -110,9 +110,9 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"gallery_image_reference": azure.SchemaDevTestVirtualMachineGalleryImageReference(),
+			"gallery_image_reference": SchemaDevTestVirtualMachineGalleryImageReference(),
 
-			"inbound_nat_rule": azure.SchemaDevTestVirtualMachineInboundNatRule(),
+			"inbound_nat_rule": SchemaDevTestVirtualMachineInboundNatRule(),
 
 			"notes": {
 				Type:     schema.TypeString,
@@ -172,10 +172,10 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 	username := d.Get("username").(string)
 
 	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]interface{})
-	galleryImageReference := azure.ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, "Windows")
+	galleryImageReference := ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, "Windows")
 
 	natRulesRaw := d.Get("inbound_nat_rule").(*schema.Set)
-	natRules := azure.ExpandDevTestLabVirtualMachineNatRules(natRulesRaw)
+	natRules := ExpandDevTestLabVirtualMachineNatRules(natRulesRaw)
 
 	if len(natRules) > 0 && !disallowPublicIPAddress {
 		return fmt.Errorf("If `inbound_nat_rule` is specified then `disallow_public_ip_address` must be set to true.")
@@ -270,7 +270,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 		d.Set("storage_type", props.StorageType)
 		d.Set("username", props.UserName)
 
-		flattenedImage := azure.FlattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
+		flattenedImage := FlattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
 		if err := d.Set("gallery_image_reference", flattenedImage); err != nil {
 			return fmt.Errorf("Error setting `gallery_image_reference`: %+v", err)
 		}

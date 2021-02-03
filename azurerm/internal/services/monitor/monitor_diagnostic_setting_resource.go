@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	eventhubParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	eventhubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	logAnalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
@@ -62,7 +63,7 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: eventhub.ValidateEventHubName(),
 			},
 
 			"eventhub_authorization_rule_id": {

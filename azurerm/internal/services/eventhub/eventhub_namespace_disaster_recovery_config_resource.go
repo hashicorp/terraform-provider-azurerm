@@ -42,14 +42,14 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -63,7 +63,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 			"alternate_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: ValidateEventHubNamespaceName(),
 			},
 		},
 	}

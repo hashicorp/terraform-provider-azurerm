@@ -19,23 +19,23 @@ func EventHubAuthorizationRuleDataSource() *schema.Resource {
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: azure.EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: ValidateEventHubName(),
 			},
 
 			"primary_key": {

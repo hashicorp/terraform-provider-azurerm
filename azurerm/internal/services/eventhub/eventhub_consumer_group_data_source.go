@@ -25,7 +25,7 @@ func EventHubConsumerGroupDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.Any(
-					azure.ValidateEventHubConsumerName(),
+					ValidateEventHubConsumerName(),
 					validation.StringInSlice([]string{"$Default"}, false),
 				),
 			},
@@ -33,13 +33,13 @@ func EventHubConsumerGroupDataSource() *schema.Resource {
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: ValidateEventHubName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
