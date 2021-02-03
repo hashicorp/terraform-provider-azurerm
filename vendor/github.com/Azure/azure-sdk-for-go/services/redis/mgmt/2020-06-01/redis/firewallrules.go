@@ -99,7 +99,7 @@ func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -108,7 +108,7 @@ func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{cacheName}/firewallRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{cacheName}/firewallRules/{ruleName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -179,7 +179,7 @@ func (client FirewallRulesClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,7 +187,7 @@ func (client FirewallRulesClient) DeletePreparer(ctx context.Context, resourceGr
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{cacheName}/firewallRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{cacheName}/firewallRules/{ruleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -256,7 +256,7 @@ func (client FirewallRulesClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -264,7 +264,7 @@ func (client FirewallRulesClient) GetPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{cacheName}/firewallRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{cacheName}/firewallRules/{ruleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -287,13 +287,13 @@ func (client FirewallRulesClient) GetResponder(resp *http.Response) (result Fire
 	return
 }
 
-// ListByRedisResource gets all firewall rules in the specified redis cache.
+// List gets all firewall rules in the specified redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // cacheName - the name of the Redis cache.
-func (client FirewallRulesClient) ListByRedisResource(ctx context.Context, resourceGroupName string, cacheName string) (result FirewallRuleListResultPage, err error) {
+func (client FirewallRulesClient) List(ctx context.Context, resourceGroupName string, cacheName string) (result FirewallRuleListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.ListByRedisResource")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.List")
 		defer func() {
 			sc := -1
 			if result.frlr.Response.Response != nil {
@@ -302,41 +302,42 @@ func (client FirewallRulesClient) ListByRedisResource(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.listByRedisResourceNextResults
-	req, err := client.ListByRedisResourcePreparer(ctx, resourceGroupName, cacheName)
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, resourceGroupName, cacheName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "ListByRedisResource", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByRedisResourceSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.frlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "ListByRedisResource", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.frlr, err = client.ListByRedisResourceResponder(resp)
+	result.frlr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "ListByRedisResource", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "List", resp, "Failure responding to request")
 		return
 	}
 	if result.frlr.hasNextLink() && result.frlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
-// ListByRedisResourcePreparer prepares the ListByRedisResource request.
-func (client FirewallRulesClient) ListByRedisResourcePreparer(ctx context.Context, resourceGroupName string, cacheName string) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client FirewallRulesClient) ListPreparer(ctx context.Context, resourceGroupName string, cacheName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"cacheName":         autorest.Encode("path", cacheName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -344,20 +345,20 @@ func (client FirewallRulesClient) ListByRedisResourcePreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/Redis/{cacheName}/firewallRules", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cache/redis/{cacheName}/firewallRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByRedisResourceSender sends the ListByRedisResource request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client FirewallRulesClient) ListByRedisResourceSender(req *http.Request) (*http.Response, error) {
+func (client FirewallRulesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListByRedisResourceResponder handles the response to the ListByRedisResource request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client FirewallRulesClient) ListByRedisResourceResponder(resp *http.Response) (result FirewallRuleListResult, err error) {
+func (client FirewallRulesClient) ListResponder(resp *http.Response) (result FirewallRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -367,32 +368,31 @@ func (client FirewallRulesClient) ListByRedisResourceResponder(resp *http.Respon
 	return
 }
 
-// listByRedisResourceNextResults retrieves the next set of results, if any.
-func (client FirewallRulesClient) listByRedisResourceNextResults(ctx context.Context, lastResults FirewallRuleListResult) (result FirewallRuleListResult, err error) {
+// listNextResults retrieves the next set of results, if any.
+func (client FirewallRulesClient) listNextResults(ctx context.Context, lastResults FirewallRuleListResult) (result FirewallRuleListResult, err error) {
 	req, err := lastResults.firewallRuleListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listByRedisResourceNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListByRedisResourceSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listByRedisResourceNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListByRedisResourceResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listByRedisResourceNextResults", resp, "Failure responding to next results request")
-		return
+		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListByRedisResourceComplete enumerates all values, automatically crossing page boundaries as required.
-func (client FirewallRulesClient) ListByRedisResourceComplete(ctx context.Context, resourceGroupName string, cacheName string) (result FirewallRuleListResultIterator, err error) {
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client FirewallRulesClient) ListComplete(ctx context.Context, resourceGroupName string, cacheName string) (result FirewallRuleListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.ListByRedisResource")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -401,6 +401,6 @@ func (client FirewallRulesClient) ListByRedisResourceComplete(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByRedisResource(ctx, resourceGroupName, cacheName)
+	result.page, err = client.List(ctx, resourceGroupName, cacheName)
 	return
 }

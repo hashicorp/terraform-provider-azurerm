@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -67,7 +66,7 @@ func resourceDevTestGlobalVMShutdownSchedule() *schema.Resource {
 			"timezone": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualMachineTimeZoneCaseInsensitive(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZoneCaseInsensitive(),
 			},
 
 			"notification_settings": {

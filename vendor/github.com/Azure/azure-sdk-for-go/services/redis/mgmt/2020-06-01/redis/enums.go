@@ -61,39 +61,91 @@ func PossibleKeyTypeValues() []KeyType {
 	return []KeyType{Primary, Secondary}
 }
 
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// Creating ...
+	Creating PrivateEndpointConnectionProvisioningState = "Creating"
+	// Deleting ...
+	Deleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// Failed ...
+	Failed PrivateEndpointConnectionProvisioningState = "Failed"
+	// Succeeded ...
+	Succeeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{Creating, Deleting, Failed, Succeeded}
+}
+
+// PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointServiceConnectionStatus = "Approved"
+	// Pending ...
+	Pending PrivateEndpointServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
+func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
+	return []PrivateEndpointServiceConnectionStatus{Approved, Pending, Rejected}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
 const (
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Disabled ...
-	Disabled ProvisioningState = "Disabled"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Linking ...
-	Linking ProvisioningState = "Linking"
-	// Provisioning ...
-	Provisioning ProvisioningState = "Provisioning"
-	// RecoveringScaleFailure ...
-	RecoveringScaleFailure ProvisioningState = "RecoveringScaleFailure"
-	// Scaling ...
-	Scaling ProvisioningState = "Scaling"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Unlinking ...
-	Unlinking ProvisioningState = "Unlinking"
-	// Unprovisioning ...
-	Unprovisioning ProvisioningState = "Unprovisioning"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
+	// ProvisioningStateCreating ...
+	ProvisioningStateCreating ProvisioningState = "Creating"
+	// ProvisioningStateDeleting ...
+	ProvisioningStateDeleting ProvisioningState = "Deleting"
+	// ProvisioningStateDisabled ...
+	ProvisioningStateDisabled ProvisioningState = "Disabled"
+	// ProvisioningStateFailed ...
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStateLinking ...
+	ProvisioningStateLinking ProvisioningState = "Linking"
+	// ProvisioningStateProvisioning ...
+	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
+	// ProvisioningStateRecoveringScaleFailure ...
+	ProvisioningStateRecoveringScaleFailure ProvisioningState = "RecoveringScaleFailure"
+	// ProvisioningStateScaling ...
+	ProvisioningStateScaling ProvisioningState = "Scaling"
+	// ProvisioningStateSucceeded ...
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	// ProvisioningStateUnlinking ...
+	ProvisioningStateUnlinking ProvisioningState = "Unlinking"
+	// ProvisioningStateUnprovisioning ...
+	ProvisioningStateUnprovisioning ProvisioningState = "Unprovisioning"
+	// ProvisioningStateUpdating ...
+	ProvisioningStateUpdating ProvisioningState = "Updating"
 )
 
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Creating, Deleting, Disabled, Failed, Linking, Provisioning, RecoveringScaleFailure, Scaling, Succeeded, Unlinking, Unprovisioning, Updating}
+	return []ProvisioningState{ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateDisabled, ProvisioningStateFailed, ProvisioningStateLinking, ProvisioningStateProvisioning, ProvisioningStateRecoveringScaleFailure, ProvisioningStateScaling, ProvisioningStateSucceeded, ProvisioningStateUnlinking, ProvisioningStateUnprovisioning, ProvisioningStateUpdating}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// Disabled ...
+	Disabled PublicNetworkAccess = "Disabled"
+	// Enabled ...
+	Enabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{Disabled, Enabled}
 }
 
 // RebootType enumerates the values for reboot type.

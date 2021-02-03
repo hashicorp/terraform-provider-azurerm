@@ -99,7 +99,6 @@ func TestAccFirewallNatRuleCollection_multipleRuleCollections(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data2.CheckWithClient(r.doesNotExist),
 			),
 		},
 		data.ImportStep(),

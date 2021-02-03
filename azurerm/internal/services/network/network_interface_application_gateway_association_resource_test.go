@@ -58,12 +58,12 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_dele
 	r := NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		// intentional as this is a Virtual Resource
+		// intentionally not using a DisappearsStep as this is a Virtual Resource
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDisappears(data.ResourceName),
+				data.CheckWithClient(r.destroy),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -92,7 +92,7 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_upda
 	})
 }
 
-func (t NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	splitId := strings.Split(state.ID, "|")
 	if len(splitId) != 2 {
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
@@ -148,59 +148,48 @@ func (t NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource)
 	return utils.Bool(found), nil
 }
 
-func testCheckNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	nicID, err := azure.ParseAzureResourceID(state.Attributes["network_interface_id"])
+	if err != nil {
+		return err
+	}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
+	nicName := nicID.Path["networkInterfaces"]
+	resourceGroup := nicID.ResourceGroup
+	backendAddressPoolId := state.Attributes["backend_address_pool_id"]
+	ipConfigurationName := state.Attributes["ip_configuration_name"]
 
-		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
-		if err != nil {
-			return err
-		}
+	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
 
-		nicName := nicID.Path["networkInterfaces"]
-		resourceGroup := nicID.ResourceGroup
-		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
-		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
+	c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	if c == nil {
+		return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
+	}
+	config := *c
 
-		read, err := client.Get(ctx, resourceGroup, nicName, "")
-		if err != nil {
-			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if c == nil {
-			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
-		}
-		config := *c
-
-		updatedPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
-		if config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools != nil {
-			for _, pool := range *config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools {
-				if *pool.ID != backendAddressPoolId {
-					updatedPools = append(updatedPools, pool)
-				}
+	updatedPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
+	if config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools != nil {
+		for _, pool := range *config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools {
+			if *pool.ID != backendAddressPoolId {
+				updatedPools = append(updatedPools, pool)
 			}
 		}
-		config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools = &updatedPools
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, nicName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing Application Gateway Backend Address Pool Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for removal of Application Gateway Backend Address Pool Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-		}
-
-		return nil
 	}
+	config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools = &updatedPools
+
+	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, resourceGroup, nicName, read)
+	if err != nil {
+		return fmt.Errorf("Error removing Application Gateway Backend Address Pool Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for removal of Application Gateway Backend Address Pool Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func (r NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) basic(data acceptance.TestData) string {

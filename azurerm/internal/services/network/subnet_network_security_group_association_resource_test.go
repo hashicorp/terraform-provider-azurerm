@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -80,20 +81,20 @@ func TestAccSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 	r := SubnetNetworkSecurityGroupAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		// intentional as this is a Virtual Resource
+		// intentional not using a DisappearsStep as this is a Virtual Resource
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckSubnetNetworkSecurityGroupAssociationDisappears(data.ResourceName),
-				testCheckSubnetHasNoNetworkSecurityGroup(data.ResourceName),
+				data.CheckWithClient(r.destroy),
+				data.CheckWithClientForResource(SubnetResource{}.hasNoNetworkSecurityGroup, "azurerm_subnet.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func (t SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -115,89 +116,31 @@ func (t SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Contex
 	return utils.Bool(props.NetworkSecurityGroup.ID != nil), nil
 }
 
-func testCheckSubnetNetworkSecurityGroupAssociationDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := parsedId.ResourceGroup
-		virtualNetworkName := parsedId.Path["virtualNetworks"]
-		subnetName := parsedId.Path["subnets"]
-
-		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(read.Response) {
-				return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-			}
-		}
-
-		read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
-		if err != nil {
-			return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-		}
-
-		return nil
+func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	subnetId := state.Attributes["subnet_id"]
+	id, err := parse.SubnetID(subnetId)
+	if err != nil {
+		return err
 	}
-}
 
-func testCheckSubnetHasNoNetworkSecurityGroup(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(read.Response) {
+			return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 		}
-
-		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := azure.ParseAzureResourceID(subnetId)
-		if err != nil {
-			return err
-		}
-
-		resourceGroupName := parsedId.ResourceGroup
-		virtualNetworkName := parsedId.Path["virtualNetworks"]
-		subnetName := parsedId.Path["subnets"]
-
-		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Subnet %q (Virtual Network %q / Resource Group: %q) does not exist", subnetName, virtualNetworkName, resourceGroupName)
-			}
-
-			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
-		}
-
-		props := resp.SubnetPropertiesFormat
-		if props == nil {
-			return fmt.Errorf("Properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroupName)
-		}
-
-		if props.NetworkSecurityGroup != nil && ((props.NetworkSecurityGroup.ID == nil) || (props.NetworkSecurityGroup.ID != nil && *props.NetworkSecurityGroup.ID == "")) {
-			return fmt.Errorf("No Network Security Group should exist for Subnet %q (Virtual Network %q / Resource Group: %q) but got %q", subnetName, virtualNetworkName, resourceGroupName, *props.NetworkSecurityGroup.ID)
-		}
-
-		return nil
 	}
+
+	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+
+	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, read)
+	if err != nil {
+		return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+	}
+
+	return nil
 }
 
 func (r SubnetNetworkSecurityGroupAssociationResource) basic(data acceptance.TestData) string {
