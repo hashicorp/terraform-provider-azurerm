@@ -1,6 +1,10 @@
 package helper
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+)
 
 // Your server name can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.
 func TestValidateMsSqlServerName(t *testing.T) {
@@ -51,7 +55,7 @@ func TestValidateMsSqlServerName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateMsSqlServerName(tc.Value, "name")
+		_, errors := validate.ValidateMsSqlServerName(tc.Value, "name")
 
 		if len(errors) > 0 != tc.Errors {
 			if tc.Errors {
@@ -128,7 +132,7 @@ func TestValidateMsSqlDatabaseName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateMsSqlDatabaseName(tc.Value, "name")
+		_, errors := validate.ValidateMsSqlDatabaseName(tc.Value, "name")
 
 		if len(errors) > 0 != tc.Errors {
 			if tc.Errors {
@@ -202,7 +206,7 @@ func TestValidateMsSqlElasticPoolName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateMsSqlElasticPoolName(tc.Value, "name")
+		_, errors := validate.ValidateMsSqlElasticPoolName(tc.Value, "name")
 
 		if len(errors) > 0 != tc.Errors {
 			if tc.Errors {

@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,25 +50,25 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: EventHubAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: eventHubAuthorizationRuleCustomizeDiff,
 	}
 }
 
@@ -101,7 +102,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceDa
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
-			Rights: ExpandEventHubAuthorizationRuleRights(d),
+			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
@@ -147,7 +148,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if properties := resp.AuthorizationRuleProperties; properties != nil {
-		listen, send, manage := FlattenEventHubAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := flattenEventHubAuthorizationRuleRights(properties.Rights)
 		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)

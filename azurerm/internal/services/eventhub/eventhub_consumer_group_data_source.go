@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,7 +26,7 @@ func EventHubConsumerGroupDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.Any(
-					ValidateEventHubConsumerName(),
+					validate.ValidateEventHubConsumerName(),
 					validation.StringInSlice([]string{"$Default"}, false),
 				),
 			},
@@ -33,13 +34,13 @@ func EventHubConsumerGroupDataSource() *schema.Resource {
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateEventHubName(),
+				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

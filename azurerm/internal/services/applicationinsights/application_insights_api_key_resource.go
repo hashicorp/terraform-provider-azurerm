@@ -131,8 +131,8 @@ func resourceApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interf
 
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), appInsightsID),
-		LinkedWriteProperties: ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), appInsightsID),
+		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), appInsightsID),
+		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), appInsightsID),
 	}
 
 	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
@@ -181,11 +181,11 @@ func resourceApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interfac
 	d.Set("application_insights_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName))
 
 	d.Set("name", result.Name)
-	readProps := FlattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
+	readProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
 	if err := d.Set("read_permissions", readProps); err != nil {
 		return fmt.Errorf("Error flattening `read_permissions `: %s", err)
 	}
-	writeProps := FlattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
+	writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
 	if err := d.Set("write_permissions", writeProps); err != nil {
 		return fmt.Errorf("Error flattening `write_permissions `: %s", err)
 	}
