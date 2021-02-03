@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/netapputils"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -229,6 +229,7 @@ func resourceNetAppVolume() *schema.Resource {
 						},
 					},
 				},
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
@@ -275,7 +276,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	authorizeReplication := false
 	volumeType := ""
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType == "dst" {
+	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) == "dst" {
 		authorizeReplication = true
 		volumeType = "DataProtection"
 	}
@@ -303,31 +304,40 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error waiting for creation of NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read NetApp Volume %q (Resource Group %q) ID", name, resourceGroup)
+	// Waiting for volume be completely provisioned
+	id := parse.NewVolumeID(client.SubscriptionID, resourceGroup, accountName, poolName, name)
+
+	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
+	stateConf := &resource.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404", "400"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
-	// Performs a series of gets with one minute interval, up to 50 minutes which is when NetApp RP will time out
-	// This is to overcome a current limitation where volume or replication object is still being provisioned
-	// but ARM already reported as succeeded
-	if err = netapputils.WaitForANFResource(ctx, meta, *resp.ID, 60, 50, false); err != nil {
-		return fmt.Errorf("Cannot read NetApp resource %q (Resource Group %q) using get method in the alloted time", name, resourceGroup)
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// If this is a data replication secondary volume, authorize replication on primary volume
 	if authorizeReplication {
+
+		replicationVolumeID, err := parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
+		if err != nil {
+			return err
+		}
+
 		future, err := client.AuthorizeReplication(
 			ctx,
-			netapputils.GetResourceGroup(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
-			netapputils.GetAnfAccount(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
-			netapputils.GetAnfCapacityPool(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
-			netapputils.GetAnfVolume(*dataProtectionReplication.Replication.RemoteVolumeResourceID),
+			replicationVolumeID.ResourceGroup,
+			replicationVolumeID.NetAppAccountName,
+			replicationVolumeID.CapacityPoolName,
+			replicationVolumeID.Name,
 			netapp.AuthorizeRequest{
-				RemoteVolumeResourceID: resp.ID,
+				RemoteVolumeResourceID: utils.String(id.ID()),
 			},
 		)
 
@@ -340,12 +350,24 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		// Wait for volume replication authorization to complete
-		if err = netapputils.WaitForANFResource(ctx, meta, *dataProtectionReplication.Replication.RemoteVolumeResourceID, 60, 50, true); err != nil {
-			return fmt.Errorf("Cannot read NetApp resource %q (Resource Group %q) using get method in the alloted time", name, resourceGroup)
+		log.Printf("[DEBUG] Waiting for replication authorization on NetApp Volume Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
+		stateConf := &resource.StateChangeConf{
+			ContinuousTargetOccurence: 5,
+			Delay:                     10 * time.Second,
+			MinTimeout:                10 * time.Second,
+			Pending:                   []string{"204", "404", "400"},
+			Target:                    []string{"200", "202"},
+			Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name),
+			Timeout:                   d.Timeout(schema.TimeoutDelete),
 		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for replication authorization NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
+		}
+
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(string(id.ID()))
 
 	return resourceNetAppVolumeRead(d, meta)
 }
@@ -411,15 +433,83 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	// Removing replication if present
+	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
+	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+
+		replVolumeID := id
+
+		if strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) != "dst" {
+			// This is the case where primary volume started the deletion, in this case we need to remove replication from secondary first
+			replVolumeID, err = parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Checking replication status before deletion, it need to be broken before proceeding with deletion
+		if res, err := client.ReplicationStatusMethod(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err == nil {
+			if strings.ToLower(string(res.MirrorState)) == "mirrored" || strings.ToLower(string(res.MirrorState)) == "uninitialized" {
+				_, err = client.BreakReplication(
+					ctx,
+					replVolumeID.ResourceGroup,
+					replVolumeID.NetAppAccountName,
+					replVolumeID.CapacityPoolName,
+					replVolumeID.Name,
+					&netapp.BreakReplicationRequest{
+						ForceBreakReplication: utils.Bool(true),
+					})
+				if err != nil {
+					return fmt.Errorf("Error deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+				}
+			}
+
+			// Waiting for replication be in broke state
+			log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be in broken state", replVolumeID.Name, replVolumeID.ResourceGroup)
+			stateConf := &resource.StateChangeConf{
+				ContinuousTargetOccurence: 5,
+				Delay:                     10 * time.Second,
+				MinTimeout:                10 * time.Second,
+				Pending:                   []string{"200"}, // 200 means mirror state is still Mirrored
+				Target:                    []string{"204"}, // 204 means mirror state is <> than Mirrored
+				Refresh:                   netappVolumeReplicationMirrorStateRefreshFunc(ctx, client, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name),
+				Timeout:                   d.Timeout(schema.TimeoutDelete),
+			}
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("Error waiting for NetApp Volume %q (Resource Group %q) to be in broken mirroring state: %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+			}
+
+		}
+
+		// Deleting replication and waiting for it to fully complete the operation
+		if _, err = client.DeleteReplication(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err != nil {
+			return fmt.Errorf("Error deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+		}
+
+		log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", replVolumeID.Name, replVolumeID.ResourceGroup)
+		stateConf := &resource.StateChangeConf{
+			ContinuousTargetOccurence: 5,
+			Delay:                     10 * time.Second,
+			MinTimeout:                10 * time.Second,
+			Pending:                   []string{"200", "202"},
+			Target:                    []string{"400", "404"},
+			Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name),
+			Timeout:                   d.Timeout(schema.TimeoutDelete),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for NetApp Volume replication %q (Resource Group %q) to be deleted: %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+		}
+	}
+
+	// Deleting volume and waiting for it fo fully complete the operation
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
 		return fmt.Errorf("Error deleting NetApp Volume %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	// The resource NetApp Volume depends on the resource NetApp Pool.
-	// Although the delete API returns 404 which means the NetApp Volume resource has been deleted.
-	// Then it tries to immediately delete NetApp Pool but it still throws error `Can not delete resource before nested resources are deleted.`
-	// In this case we're going to re-check status code again.
-	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6485
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -427,7 +517,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
-		Refresh:                   netappVolumeDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name),
+		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name),
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
@@ -438,12 +528,46 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func netappVolumeDeleteStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, resourceGroupName string, accountName string, poolName string, name string) resource.StateRefreshFunc {
+func netappVolumeStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, resourceGroupName string, accountName string, poolName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, accountName, poolName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
 				return nil, "", fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
+}
+
+func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, resourceGroupName string, accountName string, poolName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		// Setting 200 as default response meaning that the mirror is not yet broken
+		response := 200
+
+		res, err := client.ReplicationStatusMethod(ctx, resourceGroupName, accountName, poolName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Error retrieving replication status information from NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
+			}
+		}
+
+		if strings.ToLower(string(res.MirrorState)) == "broken" {
+			// If not mirrored, return 204 to signal that replication can now be deleted
+			response = 204
+		}
+
+		return res, strconv.Itoa(response), nil
+	}
+}
+
+func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, resourceGroupName string, accountName string, poolName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.ReplicationStatusMethod(ctx, resourceGroupName, accountName, poolName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Error retrieving replication status from NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
 		}
 
@@ -616,7 +740,7 @@ func flattenNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) 
 }
 
 func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Replication == nil || input.Replication.EndpointType != "dst" {
+	if input == nil || input.Replication == nil || strings.ToLower(string(input.Replication.EndpointType)) != "dst" {
 		return []interface{}{}
 	}
 
