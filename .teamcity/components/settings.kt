@@ -23,7 +23,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "appplatform" to testConfiguration(5, defaultStartHour),
 
         // these tests all conflict with one another
-        "authorization": to testConfiguration(1, defaultStartHour),
+        "authorization" to testConfiguration(1, defaultStartHour),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(5, defaultStartHour),
