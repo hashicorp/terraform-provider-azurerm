@@ -304,7 +304,9 @@ A `network_profile` block supports the following:
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
 
-* `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible value is `transparent`, which is also the AKS default for Azure CNI. Changing this forces a new resource to be created. `network_mode` will probably be deprecated by Azure.
+* `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible values are `bridge` and `transparent`. Changing this forces a new resource to be created.
+
+~> **Note:** `network_mode` can only be set to `bridge` for existing Kubernetes Clusters and cannot be used to provision new Clusters - this will be removed by Azure in the future.
 
 ~> **NOTE:** This property can only be set when `network_plugin` is set to `azure`.
 
