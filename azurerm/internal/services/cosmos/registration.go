@@ -30,6 +30,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_cosmosdb_account":              resourceCosmosDbAccount(),
 		"azurerm_cosmosdb_cassandra_keyspace":   resourceCosmosDbCassandraKeyspace(),
+		"azurerm_cosmosdb_cassandra_table":      resourceCosmosDbCassandraTable(),
 		"azurerm_cosmosdb_gremlin_database":     resourceCosmosGremlinDatabase(),
 		"azurerm_cosmosdb_gremlin_graph":        resourceCosmosDbGremlinGraph(),
 		"azurerm_cosmosdb_mongo_collection":     resourceCosmosDbMongoCollection(),
