@@ -84,7 +84,7 @@ func resourceStreamAnalyticsStreamInputEventHub() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }
@@ -117,7 +117,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.ResourceDa
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
@@ -194,7 +194,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, meta
 		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 
-		if err := d.Set("serialization", FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}

@@ -89,7 +89,7 @@ func resourceStreamAnalyticsOutputBlob() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": SchemaStreamAnalyticsOutputSerialization(),
+			"serialization": schemaStreamAnalyticsOutputSerialization(),
 		},
 	}
 }
@@ -125,7 +125,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta 
 	timeFormat := d.Get("time_format").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := ExpandStreamAnalyticsOutputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `serialization`: %+v", err)
 	}
@@ -214,7 +214,7 @@ func resourceStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interfac
 			d.Set("storage_account_name", account.AccountName)
 		}
 
-		if err := d.Set("serialization", FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
