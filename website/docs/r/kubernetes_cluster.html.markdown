@@ -392,7 +392,7 @@ A `windows_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for Windows VMs.
 
-* `admin_password` - (Required) The Admin Password for Windows VMs.
+* `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
 
 ## Attributes Reference
