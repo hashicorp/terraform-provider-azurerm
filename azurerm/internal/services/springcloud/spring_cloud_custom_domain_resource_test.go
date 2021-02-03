@@ -85,7 +85,7 @@ func TestAccSpringCloudCustomDomain_update(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_custom_domain", "test")
-	r := SpringCloudJavaDeploymentResource{}
+	r := SpringCloudCustomDomainResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -241,7 +241,7 @@ resource "azurerm_spring_cloud_certificate" "test" {
 
 resource "azurerm_spring_cloud_custom_domain" "test" {
   name                = join(".", [azurerm_dns_cname_record.test.name, azurerm_dns_cname_record.test.zone_name])
-  spring_cloud_app_id = azurerm_spring_cloud_custom_domain.test.spring_cloud_app_id
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   certificate_name    = azurerm_spring_cloud_certificate.test.name
   thumbprint          = azurerm_spring_cloud_certificate.test.thumbprint
 }

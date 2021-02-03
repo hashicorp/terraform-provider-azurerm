@@ -12,7 +12,7 @@ func SpringCloudCustomDomainName(input interface{}, key string) (warnings []stri
 		return
 	}
 
-	if !regexp.MustCompile(`^(([a-zA-Z])|([a-zA-Z][a-zA-Z])|([a-zA-Z][0-9])|([0-9][a-zA-Z])|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`).MatchString(v) {
+	if !regexp.MustCompile(`^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s should be a valid domain name", v))
 	}
 

@@ -16,6 +16,18 @@ func TestSpringCloudCustomDomainName(t *testing.T) {
 			Valid: true,
 		},
 		{
+			Input: "golang-ci.org",
+			Valid: true,
+		},
+		{
+			Input: "golang.vip",
+			Valid: true,
+		},
+		{
+			Input: "golang.tokyo",
+			Valid: true,
+		},
+		{
 			Input: "www.golang.org",
 			Valid: true,
 		},
@@ -24,11 +36,27 @@ func TestSpringCloudCustomDomainName(t *testing.T) {
 			Valid: true,
 		},
 		{
-			Input: "golang-ci.org",
+			Input: "www.golang.vip",
+			Valid: true,
+		},
+		{
+			Input: "www.golang.tokyo",
+			Valid: true,
+		},
+		{
+			Input: "host.subdomain.golang.org",
 			Valid: true,
 		},
 		{
 			Input: ".golang-ci.org",
+			Valid: false,
+		},
+		{
+			Input: "golang",
+			Valid: false,
+		},
+		{
+			Input: "golang.org.",
 			Valid: false,
 		},
 	}
