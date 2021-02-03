@@ -44,7 +44,7 @@ func resourceSiteRecoveryReplicationPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"recovery_point_retention_in_minutes": {
 				Type:         schema.TypeInt,
@@ -80,7 +80,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -109,7 +109,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
@@ -148,7 +148,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }

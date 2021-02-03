@@ -66,7 +66,7 @@ func resourceBackupProtectionPolicyVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 
 			"timezone": {

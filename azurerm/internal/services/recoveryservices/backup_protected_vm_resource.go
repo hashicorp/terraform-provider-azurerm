@@ -44,7 +44,7 @@ func resourceRecoveryServicesBackupProtectedVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 
 			"source_vm_id": {

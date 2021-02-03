@@ -44,7 +44,7 @@ func resourceSiteRecoveryProtectionContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"recovery_fabric_name": {
 				Type:         schema.TypeString,
@@ -75,7 +75,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -96,7 +96,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error retrieving site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryProtectionContainerRead(d, meta)
 }

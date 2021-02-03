@@ -44,7 +44,7 @@ func resourceSiteRecoveryFabric() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"location": azure.SchemaLocation(),
 		},
@@ -71,7 +71,7 @@ func resourceSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -97,7 +97,7 @@ func resourceSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryFabricRead(d, meta)
 }

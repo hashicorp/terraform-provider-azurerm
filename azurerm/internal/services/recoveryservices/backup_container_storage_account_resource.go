@@ -40,7 +40,7 @@ func resourceBackupProtectionContainerStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"storage_account_id": {
 				Type:         schema.TypeString,
@@ -82,7 +82,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceDat
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_backup_protection_container_storage", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_backup_protection_container_storage", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -105,7 +105,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceDat
 		return fmt.Errorf("Unable to determine operation URL for protection container registration status for %s. (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
@@ -122,7 +122,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceDat
 		return fmt.Errorf("Error retrieving site recovery protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceBackupProtectionContainerStorageAccountRead(d, meta)
 }
@@ -187,7 +187,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *schema.ResourceDat
 		return fmt.Errorf("Error unregistering backup protection container %s (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
