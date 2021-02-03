@@ -5,8 +5,6 @@ import (
 	"log"
 	"time"
 
-	packageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
@@ -51,7 +49,7 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: packageValidate.CassandraKeyspaceID,
+				ValidateFunc: validate.CassandraKeyspaceID,
 			},
 
 			"default_ttl": {
