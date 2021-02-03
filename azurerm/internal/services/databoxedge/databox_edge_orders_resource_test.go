@@ -180,29 +180,3 @@ resource "azurerm_databox_edge_order" "test" {
 }
 `, r.template(data))
 }
-
-func (r DataboxEdgeOrderResource) updateContactInformation(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_databox_edge_order" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  device_name         = azurerm_databox_edge_device.test.name
-
-  contact_information {
-    name         = "TerraForm Test"
-    emails       = ["EN12-82@ENCOM.com"]
-    company_name = "ENCOM International"
-    phone_number = "(800) 555-4321"
-  }
-
-  shipping_address {
-    address_line1 = "One Microsoft Way"
-    city          = "Redmond"
-    country       = "United States"
-    postal_code   = "98052"
-    state         = "WA"
-  }
-}
-`, r.template(data))
-}
