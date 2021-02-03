@@ -20,6 +20,10 @@ BUG FIXES:
 
 * Data Source: `azurerm_api_management` fix an exception with User Assigned Managed Identities [GH-10429]
 * `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting [GH-10325]
+* `azurerm_key_vault` - fixing a race condition when setting the cache [GH-10447]
+* `azurerm_key_vault_certificate` - fixing a race condition when setting the cache [GH-10447]
+* `azurerm_key_vault_key` - fixing a race condition when setting the cache [GH-10447]
+* `azurerm_key_vault_secret` - fixing a race condition when setting the cache [GH-10447]
 * `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
 * `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
 * `azurerm_storage_data_lake_gen2_path` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
