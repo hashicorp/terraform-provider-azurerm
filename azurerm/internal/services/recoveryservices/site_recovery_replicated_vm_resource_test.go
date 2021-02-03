@@ -116,7 +116,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefix       = "192.168.1.0/24"
+  address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_virtual_network" "test2" {
@@ -130,21 +130,14 @@ resource "azurerm_subnet" "test2_1" {
   name                 = "acctest-snet-%[1]d_1"
   resource_group_name  = "${azurerm_resource_group.test2.name}"
   virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "192.168.2.0/27"
+  address_prefixes     = ["192.168.2.0/27"]
 }
 
 resource "azurerm_subnet" "test2_2" {
   name                 = "snet-%[1]d_2"
   resource_group_name  = "${azurerm_resource_group.test2.name}"
   virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "192.168.2.32/27"
-}
-
-resource "azurerm_subnet" "test2_3" {
-  name                 = "snet-%[1]d_3"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "192.168.2.64/27"
+  address_prefixes     = ["192.168.2.32/27"]
 }
 
 resource "azurerm_site_recovery_network_mapping" "test" {
@@ -166,6 +159,7 @@ resource "azurerm_network_interface" "test" {
     name                          = "vm-%[1]d"
     subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test-source.id
   }
 }
 
@@ -203,6 +197,22 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
 }
 
+resource "azurerm_public_ip" "test-source" {
+  name                = "pubip%[1]d-source"
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_public_ip" "test-recovery" {
+  name                = "pubip%[1]d-recovery"
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+  sku                 = "Basic"
+}
+
 resource "azurerm_storage_account" "test" {
   name                     = "acct%[1]d"
   location                 = azurerm_resource_group.test.location
@@ -233,8 +243,9 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
 
   network_interface {
-    source_network_interface_id = azurerm_network_interface.test.id
-    target_subnet_name          = "snet-%[1]d_2"
+    source_network_interface_id           = azurerm_network_interface.test.id
+    target_subnet_name                    = "snet-%[1]d_2"
+    recovery_public_ip_address_id         = azurerm_public_ip.test-recovery.id
   }
 
   depends_on = [
