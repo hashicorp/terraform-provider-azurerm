@@ -153,6 +153,11 @@ func resourceMonitorMetricAlert() *schema.Resource {
 							Type:     schema.TypeFloat,
 							Required: true,
 						},
+						"skip_metric_validation": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -254,6 +259,10 @@ func resourceMonitorMetricAlert() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsRFC3339Time,
+						},
+						"skip_metric_validation": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -592,13 +601,14 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
 		criteria = append(criteria, insights.MetricCriteria{
-			Name:            utils.String(fmt.Sprintf("Metric%d", i+1)),
-			MetricNamespace: utils.String(v["metric_namespace"].(string)),
-			MetricName:      utils.String(v["metric_name"].(string)),
-			TimeAggregation: v["aggregation"].(string),
-			Dimensions:      &dimensions,
-			Operator:        insights.Operator(v["operator"].(string)),
-			Threshold:       utils.Float(v["threshold"].(float64)),
+			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
+			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
+			MetricName:           utils.String(v["metric_name"].(string)),
+			TimeAggregation:      v["aggregation"].(string),
+			Dimensions:           &dimensions,
+			Operator:             insights.Operator(v["operator"].(string)),
+			Threshold:            utils.Float(v["threshold"].(float64)),
+			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
 		})
 	}
 	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
@@ -613,13 +623,14 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
 		criteria = append(criteria, insights.MetricCriteria{
-			Name:            utils.String(fmt.Sprintf("Metric%d", i+1)),
-			MetricNamespace: utils.String(v["metric_namespace"].(string)),
-			MetricName:      utils.String(v["metric_name"].(string)),
-			TimeAggregation: v["aggregation"].(string),
-			Dimensions:      &dimensions,
-			Operator:        insights.Operator(v["operator"].(string)),
-			Threshold:       utils.Float(v["threshold"].(float64)),
+			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
+			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
+			MetricName:           utils.String(v["metric_name"].(string)),
+			TimeAggregation:      v["aggregation"].(string),
+			Dimensions:           &dimensions,
+			Operator:             insights.Operator(v["operator"].(string)),
+			Threshold:            utils.Float(v["threshold"].(float64)),
+			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
 		})
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
@@ -651,7 +662,8 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 				NumberOfEvaluationPeriods: utils.Float(float64(v["evaluation_total_count"].(int))),
 				MinFailingPeriodsToAlert:  utils.Float(float64(v["evaluation_failure_count"].(int))),
 			},
-			IgnoreDataBefore: ignoreDataBefore,
+			IgnoreDataBefore:     ignoreDataBefore,
+			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
 		})
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
@@ -760,14 +772,20 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]insight
 		threshold = *criteria.Threshold
 	}
 
+	var skipMetricValidation bool
+	if criteria.SkipMetricValidation != nil {
+		skipMetricValidation = *criteria.SkipMetricValidation
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"metric_namespace": metricNamespace,
-			"metric_name":      metricName,
-			"aggregation":      timeAggregation,
-			"dimension":        dimResult,
-			"operator":         operator,
-			"threshold":        threshold,
+			"metric_namespace":       metricNamespace,
+			"metric_name":            metricName,
+			"aggregation":            timeAggregation,
+			"dimension":              dimResult,
+			"operator":               operator,
+			"threshold":              threshold,
+			"skip_metric_validation": skipMetricValidation,
 		},
 	}
 }
@@ -781,10 +799,11 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 	for _, criteria := range *input {
 		v := make(map[string]interface{})
 		var (
-			metricName      string
-			metricNamespace string
-			timeAggregation interface{}
-			dimensions      []insights.MetricDimension
+			metricName           string
+			metricNamespace      string
+			timeAggregation      interface{}
+			dimensions           []insights.MetricDimension
+			skipMetricValidation bool
 		)
 
 		switch criteria := criteria.(type) {
@@ -808,6 +827,9 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 				threshold = *criteria.Threshold
 			}
 			v["threshold"] = threshold
+			if criteria.SkipMetricValidation != nil {
+				skipMetricValidation = *criteria.SkipMetricValidation
+			}
 		case insights.DynamicMetricCriteria:
 			if criteria.MetricName != nil {
 				metricName = *criteria.MetricName
@@ -818,6 +840,9 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 			timeAggregation = criteria.TimeAggregation
 			if criteria.Dimensions != nil {
 				dimensions = *criteria.Dimensions
+			}
+			if criteria.SkipMetricValidation != nil {
+				skipMetricValidation = *criteria.SkipMetricValidation
 			}
 			// DynamicMetricCriteria specific properties
 			v["operator"] = string(criteria.Operator)
@@ -848,6 +873,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 		v["metric_name"] = metricName
 		v["metric_namespace"] = metricNamespace
 		v["aggregation"] = timeAggregation
+		v["skip_metric_validation"] = skipMetricValidation
 		if dimensions != nil {
 			dimResult := make([]map[string]interface{}, 0)
 			for _, dimension := range dimensions {
