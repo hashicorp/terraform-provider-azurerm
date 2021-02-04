@@ -510,6 +510,9 @@ func TestAccApiManagement_tenantAccess(t *testing.T) {
 			Config: r.tenantAccess(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tenant_access.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tenant_access.0.primary_key").Exists(),
+				check.That(data.ResourceName).Key("tenant_access.0.secondary_key").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -1283,10 +1286,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-
-  sign_in {
-    enabled = true
-  }
 
   tenant_access {
     enabled = true

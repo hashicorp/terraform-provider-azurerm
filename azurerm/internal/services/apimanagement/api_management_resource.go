@@ -531,13 +531,22 @@ func resourceApiManagementService() *schema.Resource {
 			"tenant_access": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
+						},
+						"primary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secondary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -849,7 +858,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("sign_up", []interface{}{})
 	}
 
-	tenantAccessInformationContract, err := tenantAccessClient.Get(ctx, resourceGroup, name)
+	tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -1651,13 +1660,20 @@ func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.
 func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
 	enabled := false
 
+	result := make(map[string]interface{})
+
 	if input.Enabled != nil {
 		enabled = *input.Enabled
 	}
+	result["enabled"] = enabled
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled": enabled,
-		},
+	if input.PrimaryKey != nil {
+		result["primary_key"] = *input.PrimaryKey
 	}
+
+	if input.SecondaryKey != nil {
+		result["secondary_key"] = *input.SecondaryKey
+	}
+
+	return []interface{}{result}
 }
