@@ -216,7 +216,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
 	}
 
-	if acl != nil && (storageAccount.IsHnsEnabled == nil || *storageAccount.IsHnsEnabled == false) {
+	if acl != nil && (storageAccount.IsHnsEnabled == nil || !*storageAccount.IsHnsEnabled) {
 		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
 	}
 
