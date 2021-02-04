@@ -40,6 +40,21 @@ func TestAccSubscriptionTemplateDeployment_empty(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionTemplateDeployment_templateSpecVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateSpecVersionConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubscriptionTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
 	r := SubscriptionTemplateDeploymentResource{}
@@ -135,6 +150,41 @@ resource "azurerm_subscription_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SubscriptionTemplateDeploymentResource) templateSpecVersionConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-for-sub"
+  resource_group_name = "stedev-201130"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctestsubdeploy-%d"
+  location = %[2]q
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+
+  parameters_content = <<PARAM
+{
+  "rgName": {
+   "value": "acctest-rg-tspec-%d"
+  },
+  "rgLocation": {
+   "value": %[2]q
+  },
+  "tags": {
+   "value": {}
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (SubscriptionTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData) string {
