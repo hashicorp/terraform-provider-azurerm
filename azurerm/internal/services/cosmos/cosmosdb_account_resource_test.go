@@ -1221,7 +1221,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-  key_vault_key_id    = azurerm_key_vault_key.test.id
+  key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
 
   consistency_policy {
     consistency_level = "%s"

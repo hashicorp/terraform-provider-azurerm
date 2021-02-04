@@ -136,7 +136,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: diffSuppressIgnoreKeyVaultKeyVersion,
-				ValidateFunc:     keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
 			},
 
 			"consistency_policy": {
