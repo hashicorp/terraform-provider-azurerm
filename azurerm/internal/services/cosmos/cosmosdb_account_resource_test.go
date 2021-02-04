@@ -1223,6 +1223,10 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "%s"
   key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
 
+  capabilities {
+    name = "EnableMongo"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }
