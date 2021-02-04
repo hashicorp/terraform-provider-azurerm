@@ -190,19 +190,19 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
 
-	properties := &signalr.CreateOrUpdateProperties{
+	properties := &signalr.Properties{
 		Cors:     expandSignalRCors(cors),
 		Features: expandSignalRFeatures(featureFlags),
 	}
 
-	parameters := &signalr.CreateParameters{
+	resourceType := &signalr.ResourceType{
 		Location:   utils.String(location),
 		Sku:        expandSignalRServiceSku(sku),
 		Tags:       expandedTags,
 		Properties: properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resourceType)
 	if err != nil {
 		return fmt.Errorf("Error creating or updating SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -291,33 +291,33 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	parameters := &signalr.UpdateParameters{}
+	resourceType := &signalr.ResourceType{}
 
 	if d.HasChanges("cors", "features") {
-		parameters.Properties = &signalr.CreateOrUpdateProperties{}
+		resourceType.Properties = &signalr.Properties{}
 
 		if d.HasChange("cors") {
 			corsRaw := d.Get("cors").([]interface{})
-			parameters.Properties.Cors = expandSignalRCors(corsRaw)
+			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
 		if d.HasChange("features") {
 			featuresRaw := d.Get("features").(*schema.Set).List()
-			parameters.Properties.Features = expandSignalRFeatures(featuresRaw)
+			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 	}
 
 	if d.HasChange("sku") {
 		sku := d.Get("sku").([]interface{})
-		parameters.Sku = expandSignalRServiceSku(sku)
+		resourceType.Sku = expandSignalRServiceSku(sku)
 	}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		parameters.Tags = tags.Expand(tagsRaw)
+		resourceType.Tags = tags.Expand(tagsRaw)
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.SignalRName, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.SignalRName, resourceType)
 	if err != nil {
 		return fmt.Errorf("updating SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 	}
