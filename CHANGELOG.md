@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_api_management_identity_provider_aadb2c` [GH-10240]
 * **New Resource:** `azurerm_cosmosdb_cassandra_table` [GH-10328]
 
 ENHANCEMENTS:
