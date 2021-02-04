@@ -67,7 +67,7 @@ func TestAccApiManagementProperty_update(t *testing.T) {
 	})
 }
 
-func (t ApiManagementPropertyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementPropertyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

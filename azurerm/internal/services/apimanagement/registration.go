@@ -49,6 +49,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_group":                       resourceApiManagementGroup(),
 		"azurerm_api_management_group_user":                  resourceApiManagementGroupUser(),
 		"azurerm_api_management_identity_provider_aad":       resourceApiManagementIdentityProviderAAD(),
+		"azurerm_api_management_identity_provider_aadb2c":    resourceArmApiManagementIdentityProviderAADB2C(),
 		"azurerm_api_management_identity_provider_facebook":  resourceApiManagementIdentityProviderFacebook(),
 		"azurerm_api_management_identity_provider_google":    resourceApiManagementIdentityProviderGoogle(),
 		"azurerm_api_management_identity_provider_microsoft": resourceApiManagementIdentityProviderMicrosoft(),
