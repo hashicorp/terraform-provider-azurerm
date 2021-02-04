@@ -1,8 +1,10 @@
-package azure
+package eventhub
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 )
 
 func TestValidateEventHubName(t *testing.T) {
@@ -52,7 +54,7 @@ func TestValidateEventHubName(t *testing.T) {
 			valid: false,
 		},
 	}
-	validationFunction := ValidateEventHubName()
+	validationFunction := validate.ValidateEventHubName()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "")

@@ -1,4 +1,4 @@
-package azure
+package streamanalytics
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
+func schemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -50,7 +50,7 @@ func SchemaStreamAnalyticsStreamInputSerialization() *schema.Schema {
 	}
 }
 
-func ExpandStreamAnalyticsStreamInputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
+func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
 	v := input[0].(map[string]interface{})
 
 	inputType := streamanalytics.Type(v["type"].(string))
@@ -95,7 +95,7 @@ func ExpandStreamAnalyticsStreamInputSerialization(input []interface{}) (streama
 	return nil, fmt.Errorf("Unsupported Input Type %q", inputType)
 }
 
-func FlattenStreamAnalyticsStreamInputSerialization(input streamanalytics.BasicSerialization) []interface{} {
+func flattenStreamAnalyticsStreamInputSerialization(input streamanalytics.BasicSerialization) []interface{} {
 	var encoding string
 	var fieldDelimiter string
 	var inputType string

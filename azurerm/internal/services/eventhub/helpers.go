@@ -1,46 +1,16 @@
-package azure
+package eventhub
 
 import (
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-// validation
-func ValidateEventHubNamespaceName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
-	)
-}
-
-func ValidateEventHubName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
-		"The event hub name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
-	)
-}
-
-func ValidateEventHubConsumerName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
-		"The consumer group name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
-	)
-}
-
-func ValidateEventHubAuthorizationRuleName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
-		"The authorization rule name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be up to 50 characters long.",
-	)
-}
-
 // schema
-func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
+func expandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
 	rights := make([]eventhub.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
@@ -58,7 +28,7 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 	return &rights
 }
 
-func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
+func flattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
@@ -79,7 +49,7 @@ func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (li
 	return listen, send, manage
 }
 
-func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
+func eventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
 	authSchema := map[string]*schema.Schema{
 		"listen": {
 			Type:     schema.TypeBool,
@@ -135,10 +105,10 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Default:  false,
 		},
 	}
-	return MergeSchema(s, authSchema)
+	return azure.MergeSchema(s, authSchema)
 }
 
-func EventHubAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func eventHubAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

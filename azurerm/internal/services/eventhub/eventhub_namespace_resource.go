@@ -55,7 +55,7 @@ func resourceEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"location": azure.SchemaLocation(),

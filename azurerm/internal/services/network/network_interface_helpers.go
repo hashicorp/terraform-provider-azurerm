@@ -1,4 +1,4 @@
-package azure
+package network
 
 import "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
@@ -20,7 +20,7 @@ func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfigurati
 	return nil
 }
 
-func UpdateNetworkInterfaceIPConfiguration(config network.InterfaceIPConfiguration, configs *[]network.InterfaceIPConfiguration) *[]network.InterfaceIPConfiguration {
+func updateNetworkInterfaceIPConfiguration(config network.InterfaceIPConfiguration, configs *[]network.InterfaceIPConfiguration) *[]network.InterfaceIPConfiguration {
 	output := make([]network.InterfaceIPConfiguration, 0)
 	if configs == nil {
 		return &output

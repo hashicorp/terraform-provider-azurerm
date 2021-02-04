@@ -1,4 +1,4 @@
-package azure
+package devtestlabs
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaDevTestVirtualMachineInboundNatRule() *schema.Schema {
+func schemaDevTestVirtualMachineInboundNatRule() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
@@ -41,7 +41,7 @@ func SchemaDevTestVirtualMachineInboundNatRule() *schema.Schema {
 	}
 }
 
-func ExpandDevTestLabVirtualMachineNatRules(input *schema.Set) []dtl.InboundNatRule {
+func expandDevTestLabVirtualMachineNatRules(input *schema.Set) []dtl.InboundNatRule {
 	rules := make([]dtl.InboundNatRule, 0)
 	if input == nil {
 		return rules
@@ -63,7 +63,7 @@ func ExpandDevTestLabVirtualMachineNatRules(input *schema.Set) []dtl.InboundNatR
 	return rules
 }
 
-func ExpandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *dtl.GalleryImageReference {
+func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *dtl.GalleryImageReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -83,7 +83,7 @@ func ExpandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, os
 	}
 }
 
-func SchemaDevTestVirtualMachineGalleryImageReference() *schema.Schema {
+func schemaDevTestVirtualMachineGalleryImageReference() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -115,7 +115,7 @@ func SchemaDevTestVirtualMachineGalleryImageReference() *schema.Schema {
 	}
 }
 
-func FlattenDevTestVirtualMachineGalleryImage(input *dtl.GalleryImageReference) []interface{} {
+func flattenDevTestVirtualMachineGalleryImage(input *dtl.GalleryImageReference) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil {

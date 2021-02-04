@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	network2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 )
 
 type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct {
@@ -123,7 +124,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 		return nil, fmt.Errorf("`properties.IPConfigurations` was nil for Network Interface (%s): %+v", id, err)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return nil, fmt.Errorf("IP configuration was nil for Network Interface (%s): %+v", id, err)
 	}
@@ -164,7 +165,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
 	}

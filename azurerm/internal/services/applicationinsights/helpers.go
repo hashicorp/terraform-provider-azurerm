@@ -1,4 +1,4 @@
-package azure
+package applicationinsights
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {
+func expandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {
 	if v == nil {
 		return &[]string{}
 	}
@@ -19,7 +19,7 @@ func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsI
 	return &result
 }
 
-func FlattenApplicationInsightsAPIKeyLinkedProperties(props *[]string) *[]string {
+func flattenApplicationInsightsAPIKeyLinkedProperties(props *[]string) *[]string {
 	if props == nil {
 		return &[]string{}
 	}

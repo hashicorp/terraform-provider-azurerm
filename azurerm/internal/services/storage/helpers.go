@@ -1,11 +1,11 @@
-package azure
+package storage
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func SchemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
+func schemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
 	// CorsRule "PATCH" method is only supported by blob
 	allowedMethods := []string{
 		"DELETE",

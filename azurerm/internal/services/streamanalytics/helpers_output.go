@@ -1,4 +1,4 @@
-package azure
+package streamanalytics
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func SchemaStreamAnalyticsOutputSerialization() *schema.Schema {
+func schemaStreamAnalyticsOutputSerialization() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -61,7 +61,7 @@ func SchemaStreamAnalyticsOutputSerialization() *schema.Schema {
 	}
 }
 
-func ExpandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
+func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
 	v := input[0].(map[string]interface{})
 
 	outputType := streamanalytics.Type(v["type"].(string))
@@ -126,7 +126,7 @@ func ExpandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
 }
 
-func FlattenStreamAnalyticsOutputSerialization(input streamanalytics.BasicSerialization) []interface{} {
+func flattenStreamAnalyticsOutputSerialization(input streamanalytics.BasicSerialization) []interface{} {
 	var encoding string
 	var outputType string
 	var fieldDelimiter string

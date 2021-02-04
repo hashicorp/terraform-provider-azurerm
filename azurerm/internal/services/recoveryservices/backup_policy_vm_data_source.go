@@ -31,7 +31,7 @@ func dataSourceBackupPolicyVm() *schema.Resource {
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

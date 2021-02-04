@@ -50,7 +50,7 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
 				Type:         schema.TypeString,
@@ -232,7 +232,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta inter
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_replicated_vm", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_replicated_vm", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -280,7 +280,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error retrieving replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
 	// we can reconfigure. Hence this call to update when we create.
