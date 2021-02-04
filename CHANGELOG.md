@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block [GH-10398]
 * `azurerm_kubernetes_cluster` - added length validation to the `admin_password` field within the `windows_profile` block [GH-10452]
 * `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` [GH-10398]
+* `azurerm_lb_backend_address_pool` - support for the `backend_address` block [GH-10291]
 * `azurerm_redis_cache` - support for the `public_network_access_enabled` property [GH-10410]
 * `azurerm_role_assignment` - adding validation for that the `scope` is either a Management Group, Subscription, Resource Group or Resource ID [GH-10438]
 * `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block [GH-10367]
