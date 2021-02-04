@@ -278,7 +278,6 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmCdnEndpointCustomDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
-	epClient := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -297,13 +296,11 @@ func resourceArmCdnEndpointCustomDomainRead(d *schema.ResourceData, meta interfa
 
 		return fmt.Errorf("retrieving Cdn Endpoint Custom Domain %q: %+v", id, err)
 	}
-	cdnEndpointResp, err := epClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName)
-	if err != nil {
-		return fmt.Errorf("retrieving Cdn Endpoint %q (Resource Group %q / Profile %q): %+v", id.EndpointName, id.ResourceGroup, id.ProfileName, err)
-	}
+
+	cdnEndpointId := parse.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
 
 	d.Set("name", resp.Name)
-	d.Set("cdn_endpoint_id", cdnEndpointResp.ID)
+	d.Set("cdn_endpoint_id", cdnEndpointId.ID())
 	if props := resp.CustomDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
 
