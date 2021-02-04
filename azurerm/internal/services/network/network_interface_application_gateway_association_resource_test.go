@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	network2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -124,7 +123,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 		return nil, fmt.Errorf("`properties.IPConfigurations` was nil for Network Interface (%s): %+v", id, err)
 	}
 
-	c := network2.findNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return nil, fmt.Errorf("IP configuration was nil for Network Interface (%s): %+v", id, err)
 	}
@@ -165,7 +164,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
-	c := network2.findNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
 	}

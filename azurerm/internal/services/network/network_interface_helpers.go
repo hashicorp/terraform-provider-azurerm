@@ -2,7 +2,7 @@ package network
 
 import "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
-func findNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
+func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
 	if input == nil {
 		return nil
 	}

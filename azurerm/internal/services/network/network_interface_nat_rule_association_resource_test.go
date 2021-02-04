@@ -114,7 +114,7 @@ func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("retrieving Network Interface %q: %+v", nicID, err)
 	}
 
-	c := network2.findNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return nil, fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -149,7 +149,7 @@ func (NetworkInterfaceNATRuleAssociationResource) destroy(ctx context.Context, c
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
-	c := network2.findNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
 	}
