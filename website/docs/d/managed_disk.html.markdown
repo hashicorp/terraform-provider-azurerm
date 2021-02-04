@@ -55,7 +55,7 @@ output "id" {
 
 * `zones` - A list of Availability Zones where the Managed Disk exists.
 
-* `network_access_policy` - Policy for accessing the disk via network. Accepted values: AllowAll, AllowPrivate, DenyAll
+* `network_access_policy` - Policy for accessing the disk via network.
 
 * `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
 

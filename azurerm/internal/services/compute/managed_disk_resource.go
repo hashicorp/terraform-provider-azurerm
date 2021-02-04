@@ -150,7 +150,7 @@ func resourceManagedDisk() *schema.Resource {
 					string(compute.AllowAll),
 					string(compute.AllowPrivate),
 					string(compute.DenyAll),
-				}, true),
+				}, false),
 			},
 
 			"disk_access_id": {

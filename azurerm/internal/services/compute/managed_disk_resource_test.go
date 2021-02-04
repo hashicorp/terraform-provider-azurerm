@@ -3,7 +3,6 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
@@ -331,7 +330,7 @@ func TestAccAzureRMManagedDisk_create_withNetworkPolicy(t *testing.T) {
 		{
 			Config: testAccAzureRMManagedDisk_create_withNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -345,14 +344,14 @@ func TestAccAzureRMManagedDisk_update_withNetworkPolicy(t *testing.T) {
 		{
 			Config: testAccAzureRMManagedDisk_create_withNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "DenyAll"),
 			),
 		},
 		{
 			Config: testAccAzureRMManagedDisk_update_withNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "DenyAll"),
 			),
 		},
@@ -367,7 +366,7 @@ func TestAccAzureRMManagedDisk_import_withNetworkPolicy(t *testing.T) {
 		{
 			Config: testAccAzureRMManagedDisk_create_withNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
@@ -385,9 +384,10 @@ func TestAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(t *testing.T
 		{
 			Config: testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -399,17 +399,19 @@ func TestAccAzureRMManagedDisk_update_withAllowPrivateNetworkPolicy(t *testing.T
 		{
 			Config: testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "AllowPrivate"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: testAccAzureRMManagedDisk_update_withAllowPrivateNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "AllowPrivate"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -421,7 +423,7 @@ func TestAccAzureRMManagedDisk_import_withAllowPrivateNetworkPolicy(t *testing.T
 		{
 			Config: testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
@@ -429,39 +431,6 @@ func TestAccAzureRMManagedDisk_import_withAllowPrivateNetworkPolicy(t *testing.T
 			ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
 		},
 	})
-}
-
-// nolint unparam
-func testCheckManagedDiskExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		dName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on diskClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Bad: ManagedDisk %q (resource group %q) does not exist", dName, resourceGroup)
-		}
-		if resp.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Bad: ManagedDisk %q (resource group %q) still exists", dName, resourceGroup)
-		}
-
-		return nil
-	}
 }
 
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
