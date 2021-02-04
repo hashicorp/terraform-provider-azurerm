@@ -420,14 +420,14 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 	}
 }
 
-func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
-	if keyVault == nil || !*keyVault.Enable {
+func flattenSqlVirtualMachineKeyVaultCredential(input *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
+	if input == nil || input.Enable == nil || !*input.Enable {
 		return []interface{}{}
 	}
 
 	name := ""
-	if keyVault.CredentialName != nil {
-		name = *keyVault.CredentialName
+	if input.CredentialName != nil {
+		name = *input.CredentialName
 	}
 
 	keyVaultUrl := ""
