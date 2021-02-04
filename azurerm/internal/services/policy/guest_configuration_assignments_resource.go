@@ -103,15 +103,13 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 											string(guestconfiguration.ContinueConfiguration),
 											string(guestconfiguration.StopConfiguration),
 										}, false),
+										Default: string(guestconfiguration.ContinueConfiguration),
 									},
 
 									"allow_module_overwrite": {
-										Type:     schema.TypeString,
+										Type:     schema.TypeBool,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(guestconfiguration.True),
-											string(guestconfiguration.False),
-										}, false),
+										Default: false,
 									},
 
 									"configuration_mode": {
@@ -122,6 +120,7 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 											string(guestconfiguration.ApplyAndMonitor),
 											string(guestconfiguration.ApplyAndAutoCorrect),
 										}, false),
+										Default: string(guestconfiguration.ApplyOnly),
 									},
 
 									"configuration_mode_frequency_mins": {
@@ -180,6 +179,7 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 		},
 	}
 }
+
 func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
@@ -328,9 +328,13 @@ func expandGuestConfigurationAssignmentConfigurationSetting(input []interface{})
 	if v["reboot_if_needed"].(bool) {
 		rebootIfNeeded = guestconfiguration.RebootIfNeededTrue
 	}
+	allowModuleOverwrite := guestconfiguration.False
+	if v["allow_module_overwrite"].(bool) {
+		allowModuleOverwrite = guestconfiguration.True
+	}
 	return &guestconfiguration.ConfigurationSetting{
 		ConfigurationMode:              guestconfiguration.ConfigurationMode(v["configuration_mode"].(string)),
-		AllowModuleOverwrite:           guestconfiguration.AllowModuleOverwrite(v["allow_module_overwrite"].(string)),
+		AllowModuleOverwrite:           allowModuleOverwrite,
 		ActionAfterReboot:              guestconfiguration.ActionAfterReboot(v["action_after_reboot"].(string)),
 		RefreshFrequencyMins:           utils.Float(v["refresh_frequency_in_minute"].(float64)),
 		RebootIfNeeded:                 rebootIfNeeded,
@@ -399,10 +403,6 @@ func flattenGuestConfigurationAssignmentConfigurationSetting(input *guestconfigu
 		return make([]interface{}, 0)
 	}
 
-	actionAfterReboot := input.ActionAfterReboot
-
-	allowModuleOverwrite := input.AllowModuleOverwrite
-
 	configurationMode := input.ConfigurationMode
 
 	var configurationModeFrequencyMins float64
@@ -410,19 +410,17 @@ func flattenGuestConfigurationAssignmentConfigurationSetting(input *guestconfigu
 		configurationModeFrequencyMins = *input.ConfigurationModeFrequencyMins
 	}
 
-	rebootIfNeeded := input.RebootIfNeeded
-
 	var refreshFrequencyMinute float64
 	if input.RefreshFrequencyMins != nil {
 		refreshFrequencyMinute = *input.RefreshFrequencyMins
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"action_after_reboot":               actionAfterReboot,
-			"allow_module_overwrite":            allowModuleOverwrite,
+			"action_after_reboot":               input.ActionAfterReboot,
+			"allow_module_overwrite":            input.AllowModuleOverwrite == guestconfiguration.True,
 			"configuration_mode":                configurationMode,
 			"configuration_mode_frequency_mins": configurationModeFrequencyMins,
-			"reboot_if_needed":                  rebootIfNeeded == guestconfiguration.RebootIfNeededTrue,
+			"reboot_if_needed":                  input.RebootIfNeeded == guestconfiguration.RebootIfNeededTrue,
 			"refresh_frequency_in_minute":       refreshFrequencyMinute,
 		},
 	}
