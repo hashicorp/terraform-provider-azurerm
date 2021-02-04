@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -212,6 +214,7 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 			"features": schemaFeatures(supportLegacyTestSuite),
 
+			// Advanced feature flags
 			"skip_provider_registration": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -229,6 +232,16 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 		DataSourcesMap: dataSources,
 		ResourcesMap:   resources,
+	}
+
+	if !features.ThreePointOh() {
+		p.Schema["skip_credentials_validation"] = &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
+			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
+			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
+		}
 	}
 
 	p.ConfigureFunc = providerConfigure(p)
@@ -318,8 +331,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		if !skipProviderRegistration {
-			// List all the available providers and their registration state to avoid unnecessary
-			// requests.
+			// List all the available providers and their registration state to avoid unnecessary requests.
 			ctx := client.StopContext
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
