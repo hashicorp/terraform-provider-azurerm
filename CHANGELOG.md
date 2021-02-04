@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_redis_cache` - support for the `public_network_access_enabled` property [GH-10410]
 * `azurerm_role_assignment` - adding validation for that the `scope` is either a Management Group, Subscription, Resource Group or Resource ID [GH-10438]
 * `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block [GH-10367]
+* `azurerm_monitor_metric_alert` - support for the `skip_metric_validation` property [GH-10422]
 
 BUG FIXES:
 
