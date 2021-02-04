@@ -1,36 +1,36 @@
-## 2.46.0 (Unreleased)
+## 2.46.0 (February 04, 2021)
 
 FEATURES:
 
-* **New Resource:** `azurerm_api_management_identity_provider_aadb2c` [GH-10240]
-* **New Resource:** `azurerm_cosmosdb_cassandra_table` [GH-10328]
+* **New Resource:** `azurerm_api_management_identity_provider_aadb2c` ([#10240](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10240))
+* **New Resource:** `azurerm_cosmosdb_cassandra_table` ([#10328](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10328))
 
 ENHANCEMENTS:
 
-* dependencies: updating `recoveryservices` to API version `2018-07-10` [GH-10373]
-* `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties [GH-10325]
-* `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-10325]
-* `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block [GH-10398]
-* `azurerm_kubernetes_cluster` - added length validation to the `admin_password` field within the `windows_profile` block [GH-10452]
-* `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` [GH-10398]
-* `azurerm_lb_backend_address_pool` - support for the `backend_address` block [GH-10291]
-* `azurerm_redis_cache` - support for the `public_network_access_enabled` property [GH-10410]
-* `azurerm_role_assignment` - adding validation for that the `scope` is either a Management Group, Subscription, Resource Group or Resource ID [GH-10438]
-* `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block [GH-10367]
-* `azurerm_monitor_metric_alert` - support for the `skip_metric_validation` property [GH-10422]
+* dependencies: updating `recoveryservices` to API version `2018-07-10` ([#10373](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10373))
+* `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties ([#10325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10325))
+* `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks ([#10325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10325))
+* `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block ([#10398](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10398))
+* `azurerm_kubernetes_cluster` - added length validation to the `admin_password` field within the `windows_profile` block ([#10452](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10452))
+* `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` ([#10398](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10398))
+* `azurerm_lb_backend_address_pool` - support for the `backend_address` block ([#10291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10291))
+* `azurerm_redis_cache` - support for the `public_network_access_enabled` property ([#10410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10410))
+* `azurerm_role_assignment` - adding validation for that the `scope` is either a Management Group, Subscription, Resource Group or Resource ID ([#10438](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10438))
+* `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block ([#10367](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10367))
+* `azurerm_monitor_metric_alert` - support for the `skip_metric_validation` property ([#10422](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10422))
 
 BUG FIXES:
 
-* Data Source: `azurerm_api_management` fix an exception with User Assigned Managed Identities [GH-10429]
-* `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting [GH-10325]
-* `azurerm_key_vault` - fixing a race condition when setting the cache [GH-10447]
-* `azurerm_key_vault_certificate` - fixing a race condition when setting the cache [GH-10447]
-* `azurerm_key_vault_key` - fixing a race condition when setting the cache [GH-10447]
-* `azurerm_key_vault_secret` - fixing a race condition when setting the cache [GH-10447]
-* `azurerm_mssql_virtual_machine` - fixing a crash where the KeyVault was nil in the API response [GH-10469]
-* `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` [GH-10370]
-* `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
-* `azurerm_storage_data_lake_gen2_path` - change the `ace` property to a TypeSet to ensure consistent ordering [GH-10372]
+* Data Source: `azurerm_api_management` fix an exception with User Assigned Managed Identities ([#10429](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10429))
+* `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting ([#10325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10325))
+* `azurerm_key_vault` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_key_vault_certificate` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_key_vault_key` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_key_vault_secret` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_mssql_virtual_machine` - fixing a crash where the KeyVault was nil in the API response ([#10469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10469))
+* `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` ([#10370](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10370))
+* `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering ([#10372](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10372))
+* `azurerm_storage_data_lake_gen2_path` - change the `ace` property to a TypeSet to ensure consistent ordering ([#10372](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10372))
 
 ## 2.45.1 (January 28, 2021)
 
