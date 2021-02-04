@@ -57,6 +57,8 @@ The following attributes are exported:
 
 * `version` - The current version of the Key Vault Key.
 
+* `versionless_id` - The Base ID of the Key Vault Key.
+
 
 ## Timeouts
 

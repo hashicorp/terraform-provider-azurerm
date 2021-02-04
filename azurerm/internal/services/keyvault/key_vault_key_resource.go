@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -126,6 +127,11 @@ func resourceKeyVaultKey() *schema.Resource {
 
 			// Computed
 			"version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"versionless_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -413,6 +419,7 @@ func resourceKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Computed
 	d.Set("version", id.Version)
+	d.Set("versionless_id", fmt.Sprintf("%s/%s/%s", strings.TrimSuffix(id.KeyVaultBaseUrl, "/"), id.NestedItemType, id.Name))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
