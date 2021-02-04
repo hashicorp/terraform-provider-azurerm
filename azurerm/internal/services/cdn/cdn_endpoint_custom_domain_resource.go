@@ -273,7 +273,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *schema.ResourceData, meta inter
 			}
 		}
 	}
-	return nil
+	return resourceArmCdnEndpointCustomDomainRead(d, meta)
 }
 
 func resourceArmCdnEndpointCustomDomainRead(d *schema.ResourceData, meta interface{}) error {
