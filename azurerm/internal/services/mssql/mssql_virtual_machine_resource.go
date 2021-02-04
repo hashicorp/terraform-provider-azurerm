@@ -421,23 +421,25 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 
 	// Wait for the auto backup settings to take effect
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
-	log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoBackupSettings to take effect", d.Id())
-	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{"Retry", "Pending"},
-		Target:                    []string{"Updated"},
-		Refresh:                   resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx, client, d),
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 2,
-	}
+	if autoBackup := d.Get("auto_backup"); (d.IsNewResource() && len(autoBackup.([]interface{})) > 0) || (!d.IsNewResource() && d.HasChange("auto_backup")) {
+		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoBackupSettings to take effect", d.Id())
+		stateConf := &resource.StateChangeConf{
+			Pending:                   []string{"Retry", "Pending"},
+			Target:                    []string{"Updated"},
+			Refresh:                   resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx, client, d),
+			MinTimeout:                1 * time.Minute,
+			ContinuousTargetOccurence: 2,
+		}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-	}
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for SQL Virtual Machine %q AutoBackupSettings to take effect: %+v", d.Id(), err)
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for SQL Virtual Machine %q AutoBackupSettings to take effect: %+v", d.Id(), err)
+		}
 	}
 
 	return resourceMsSqlVirtualMachineRead(d, meta)
