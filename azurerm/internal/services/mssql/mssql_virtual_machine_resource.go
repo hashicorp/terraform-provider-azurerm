@@ -421,7 +421,7 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 }
 
 func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
-	if keyVault == nil || !*keyVault.Enable {
+	if keyVault == nil || keyVault.Enable == nil || !*keyVault.Enable {
 		return []interface{}{}
 	}
 
