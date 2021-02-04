@@ -216,6 +216,10 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
 	}
 
+	if acl != nil && (storageAccount.IsHnsEnabled == nil || *storageAccount.IsHnsEnabled == false) {
+		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
+	}
+
 	propertiesRaw := d.Get("properties").(map[string]interface{})
 	properties := ExpandMetaData(propertiesRaw)
 
@@ -292,24 +296,19 @@ func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
-	// The above `getStatus` API request doesn't return the ACLs
-	// Have to make a `getAccessControl` request, but that doesn't return all fields either!
-	pathResponse, err := pathClient.GetProperties(ctx, id.AccountName, id.DirectoryName, "/", paths.GetPropertiesActionGetAccessControl)
-	if err != nil {
-		if utils.ResponseWasNotFound(pathResponse.Response) {
-			log.Printf("[INFO] Root path does not exist in File System %q in Storage Account %q - removing from state...", id.DirectoryName, id.AccountName)
-			d.SetId("")
-			return nil
+	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
+	if storageAccount.IsHnsEnabled != nil && *storageAccount.IsHnsEnabled {
+		// The above `getStatus` API request doesn't return the ACLs
+		// Have to make a `getAccessControl` request, but that doesn't return all fields either!
+		pathResponse, err := pathClient.GetProperties(ctx, id.AccountName, id.DirectoryName, "/", paths.GetPropertiesActionGetAccessControl)
+		if err == nil {
+			acl, err := accesscontrol.ParseACL(pathResponse.ACL)
+			if err != nil {
+				return fmt.Errorf("Error parsing response ACL %q: %s", pathResponse.ACL, err)
+			}
+			d.Set("ace", FlattenDataLakeGen2AceList(acl))
 		}
-
-		return fmt.Errorf("Error retrieving ACLs for Root path in File System %q in Storage Account %q: %+v", id.DirectoryName, id.AccountName, err)
 	}
-
-	acl, err := accesscontrol.ParseACL(pathResponse.ACL)
-	if err != nil {
-		return fmt.Errorf("Error parsing response ACL %q: %s", pathResponse.ACL, err)
-	}
-	d.Set("ace", FlattenDataLakeGen2AceList(acl))
 
 	return nil
 }

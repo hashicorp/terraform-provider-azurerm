@@ -57,7 +57,7 @@ func TestAccStorageDataLakeGen2FileSystem_withDefaultACL(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
 	})
 }
 
@@ -144,15 +144,30 @@ func (r StorageDataLakeGen2FileSystemResource) Destroy(ctx context.Context, clie
 }
 
 func (r StorageDataLakeGen2FileSystemResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "BlobStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   name               = "acctest-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r StorageDataLakeGen2FileSystemResource) requiresImport(data acceptance.TestData) string {
