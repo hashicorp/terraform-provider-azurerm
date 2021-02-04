@@ -139,6 +139,12 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
 	}
 
+	if acl != nil && (storageAccount.AccountProperties == nil ||
+		storageAccount.AccountProperties.IsHnsEnabled == nil ||
+		!*storageAccount.AccountProperties.IsHnsEnabled) {
+		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
+	}
+
 	fileSystemName := d.Get("name").(string)
 	propertiesRaw := d.Get("properties").(map[string]interface{})
 	properties := ExpandMetaData(propertiesRaw)
@@ -216,7 +222,9 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
 	}
 
-	if acl != nil && (storageAccount.IsHnsEnabled == nil || !*storageAccount.IsHnsEnabled) {
+	if acl != nil && (storageAccount.AccountProperties == nil ||
+		storageAccount.AccountProperties.IsHnsEnabled == nil ||
+		!*storageAccount.AccountProperties.IsHnsEnabled) {
 		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
 	}
 
@@ -296,8 +304,10 @@ func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
+	var ace []interface{}
 	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
-	if storageAccount.IsHnsEnabled != nil && *storageAccount.IsHnsEnabled {
+	if storageAccount.AccountProperties != nil && storageAccount.AccountProperties.IsHnsEnabled != nil &&
+		*storageAccount.AccountProperties.IsHnsEnabled {
 		// The above `getStatus` API request doesn't return the ACLs
 		// Have to make a `getAccessControl` request, but that doesn't return all fields either!
 		pathResponse, err := pathClient.GetProperties(ctx, id.AccountName, id.DirectoryName, "/", paths.GetPropertiesActionGetAccessControl)
@@ -306,9 +316,10 @@ func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta inte
 			if err != nil {
 				return fmt.Errorf("Error parsing response ACL %q: %s", pathResponse.ACL, err)
 			}
-			d.Set("ace", FlattenDataLakeGen2AceList(acl))
+			ace = FlattenDataLakeGen2AceList(acl)
 		}
 	}
+	d.Set("ace", ace)
 
 	return nil
 }
