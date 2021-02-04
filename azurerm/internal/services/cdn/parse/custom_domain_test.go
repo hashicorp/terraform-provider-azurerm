@@ -12,7 +12,7 @@ var _ resourceid.Formatter = CustomDomainId{}
 
 func TestCustomDomainIDFormatter(t *testing.T) {
 	actual := NewCustomDomainID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "endpoint1", "domain1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/domain1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/domain1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -51,49 +51,49 @@ func TestCustomDomainID(t *testing.T) {
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// missing EndpointName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
 			// missing value for EndpointName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/",
 			Error: true,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/domain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/domain1",
 			Expected: &CustomDomainId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",

@@ -39,7 +39,7 @@ func (id CustomDomainId) String() string {
 }
 
 func (id CustomDomainId) ID() string {
-	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s/customdomains/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s/customdomains/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 }
 
@@ -60,7 +60,7 @@ func CustomDomainID(input string) (*CustomDomainId, error) {
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourcegroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {

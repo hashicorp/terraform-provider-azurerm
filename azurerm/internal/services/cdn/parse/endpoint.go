@@ -36,7 +36,7 @@ func (id EndpointId) String() string {
 }
 
 func (id EndpointId) ID() string {
-	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.Name)
 }
 
@@ -57,7 +57,7 @@ func EndpointID(input string) (*EndpointId, error) {
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourcegroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {

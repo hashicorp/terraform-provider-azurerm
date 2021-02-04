@@ -36,49 +36,49 @@ func TestCustomDomainID(t *testing.T) {
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Valid: false,
 		},
 
 		{
 			// missing ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Valid: false,
 		},
 
 		{
 			// missing value for ProfileName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Valid: false,
 		},
 
 		{
 			// missing EndpointName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for EndpointName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/",
 			Valid: false,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/domain1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1/customdomains/domain1",
 			Valid: true,
 		},
 

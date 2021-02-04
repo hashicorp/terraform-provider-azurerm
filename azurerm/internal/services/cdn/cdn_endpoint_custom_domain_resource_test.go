@@ -329,7 +329,7 @@ resource "azurerm_key_vault" "test" {
       "get",
       "delete",
       "import",
-	  "purge",
+      "purge",
     ]
 
     key_permissions = [

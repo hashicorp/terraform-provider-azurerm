@@ -12,7 +12,7 @@ var _ resourceid.Formatter = ProfileId{}
 
 func TestProfileIDFormatter(t *testing.T) {
 	actual := NewProfileID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -51,25 +51,25 @@ func TestProfileID(t *testing.T) {
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1",
 			Expected: &ProfileId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
