@@ -37,7 +37,7 @@ resource "azurerm_iot_security_solution" "example" {
 }
 
 resource "azurerm_iot_security_device_group" "example" {
-  name               = "example-device-security-group"
+  name      = "example-device-security-group"
   iothub_id = azurerm_iothub.example.id
 
   allow_rule {
@@ -45,10 +45,10 @@ resource "azurerm_iot_security_device_group" "example" {
   }
 
   time_window_rule {
-    type             = "ActiveConnectionsNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    window_size = "PT5M"
+    type          = "ActiveConnectionsNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   depends_on = [azurerm_iot_security_solution.example]
@@ -71,11 +71,11 @@ The following arguments are supported:
 
 An `allow_list_rule` block supports the following:
 
-* `connection_to_ip_not_allowed` - (optional) 
+* `connection_to_ip_not_allowed` - (optional) Specifies which Ip is not allowed to be connected to in current device group.
 
-* `local_user_not_allowed` - (optional) 
+* `local_user_not_allowed` - (optional) Specifies which local user is not allowed to Login in current device group.
 
-* `process_not_allowed` - (optional) 
+* `process_not_allowed` - (optional) Specifies which process is not allowed to be executed in current device group.
 
 ---
 
