@@ -17,8 +17,8 @@ import (
 type DeviceSecurityGroupResource struct {
 }
 
-func TestDeviceSecurityGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_device_security_group", "test")
+func TestIotSecurityDeviceGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -32,8 +32,8 @@ func TestDeviceSecurityGroup_basic(t *testing.T) {
 	})
 }
 
-func TestDeviceSecurityGroup_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_device_security_group", "test")
+func TestIotSecurityDeviceGroup_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -47,8 +47,8 @@ func TestDeviceSecurityGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestDeviceSecurityGroup_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_device_security_group", "test")
+func TestIotSecurityDeviceGroup_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -62,8 +62,8 @@ func TestDeviceSecurityGroup_complete(t *testing.T) {
 	})
 }
 
-func TestDeviceSecurityGroup_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_device_security_group", "test")
+func TestIotSecurityDeviceGroup_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -92,14 +92,14 @@ func TestDeviceSecurityGroup_update(t *testing.T) {
 }
 
 func (DeviceSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.DeviceSecurityGroupID(state.ID)
+	id, err := parse.IotSecurityDeviceGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SecurityCenter.DeviceSecurityGroupsClient.Get(ctx, id.TargetResourceID, id.Name)
+	resp, err := clients.SecurityCenter.DeviceSecurityGroupsClient.Get(ctx, id.IotHubID, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Device Security Group %q: %+v", id.ID(), err)
+		return nil, fmt.Errorf("reading Iot Security Device Group %q: %+v", id.ID(), err)
 	}
 
 	return utils.Bool(resp.DeviceSecurityGroupProperties != nil), nil
@@ -109,9 +109,9 @@ func (r DeviceSecurityGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_device_security_group" "test" {
-  name               = "acctest-DSG-%d"
-  target_resource_id = azurerm_iothub.test.id
+resource "azurerm_iot_security_device_group" "test" {
+  name      = "acctest-ISDG-%d"
+  iothub_id = azurerm_iothub.test.id
 
   depends_on = [azurerm_iot_security_solution.test]
 }
@@ -122,9 +122,9 @@ func (r DeviceSecurityGroupResource) requiresImport(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_device_security_group" "import" {
-  name               = azurerm_device_security_group.test.name
-  target_resource_id = azurerm_device_security_group.test.target_resource_id
+resource "azurerm_iot_security_device_group" "import" {
+  name      = azurerm_iot_security_device_group.test.name
+  iothub_id = azurerm_iot_security_device_group.test.iothub_id
 }
 `, r.basic(data))
 }
@@ -133,136 +133,127 @@ func (r DeviceSecurityGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_device_security_group" "test" {
-  name               = "acctest-DSG-%d"
-  target_resource_id = azurerm_iothub.test.id
+resource "azurerm_iot_security_device_group" "test" {
+  name      = "acctest-ISDG-%d"
+  iothub_id = azurerm_iothub.test.id
 
-  allow_list_rule {
-    type   = "LocalUserNotAllowed"
-    values = ["user1"]
-  }
-
-  allow_list_rule {
-    type   = "ProcessNotAllowed"
-    values = ["ssh"]
-  }
-
-  allow_list_rule {
-    type   = "ConnectionToIpNotAllowed"
-    values = ["10.0.0.0/24"]
+  allow_rule {
+    connection_to_ip_not_allowed = ["10.0.0.0/24"]
+    local_user_not_allowed       = ["user1"]
+    process_not_allowed          = ["ssh"]
   }
 
   time_window_rule {
-    type             = "ActiveConnectionsNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "ActiveConnectionsNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "AmqpC2DMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "AmqpC2DMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "MqttC2DMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "MqttC2DMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "HttpC2DMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "HttpC2DMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "AmqpC2DRejectedMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "AmqpC2DRejectedMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "MqttC2DRejectedMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "MqttC2DRejectedMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "HttpC2DRejectedMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "HttpC2DRejectedMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
 
   time_window_rule {
-    type             = "AmqpD2CMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "AmqpD2CMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "MqttD2CMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "MqttD2CMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "HttpD2CMessagesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "HttpD2CMessagesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "DirectMethodInvokesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "DirectMethodInvokesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "FailedLocalLoginsNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "FailedLocalLoginsNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "FileUploadsNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "FileUploadsNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "QueuePurgesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "QueuePurgesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "TwinUpdatesNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "TwinUpdatesNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   time_window_rule {
-    type             = "UnauthorizedOperationsNotInAllowedRange"
-    min_threshold    = 0
-    max_threshold    = 30
-    time_window_size = "PT5M"
+    type          = "UnauthorizedOperationsNotInAllowedRange"
+    min_threshold = 0
+    max_threshold = 30
+    window_size   = "PT5M"
   }
 
   depends_on = [azurerm_iot_security_solution.test]

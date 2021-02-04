@@ -8,25 +8,25 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDeviceSecurityGroup() *schema.Resource {
+func resourceIotSecurityDeviceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDeviceSecurityGroupCreateUpdate,
-		Read:   resourceDeviceSecurityGroupRead,
-		Update: resourceDeviceSecurityGroupCreateUpdate,
-		Delete: resourceDeviceSecurityGroupDelete,
+		Create: resourceIotSecurityDeviceGroupCreateUpdate,
+		Read:   resourceIotSecurityDeviceGroupRead,
+		Update: resourceIotSecurityDeviceGroupCreateUpdate,
+		Delete: resourceIotSecurityDeviceGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DeviceSecurityGroupID(id)
+			_, err := parse.IotSecurityDeviceGroupID(id)
 			return err
 		}),
 
@@ -45,31 +45,39 @@ func resourceDeviceSecurityGroup() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"target_resource_id": {
+			"iothub_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: iothubValidate.IotHubID,
 			},
 
-			"allow_list_rule": {
-				Type:     schema.TypeSet,
+			"allow_rule": {
+				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(security.RuleTypeConnectionToIPNotAllowed),
-								string(security.RuleTypeLocalUserNotAllowed),
-								string(security.RuleTypeProcessNotAllowed),
-							}, false),
+						"connection_to_ip_not_allowed": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.CIDR,
+							},
 						},
 
-						"values": {
+						"local_user_not_allowed": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"process_not_allowed": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -118,7 +126,7 @@ func resourceDeviceSecurityGroup() *schema.Resource {
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"time_window_size": {
+						"window_size": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.ISO8601Duration,
@@ -130,14 +138,14 @@ func resourceDeviceSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceDeviceSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDeviceSecurityGroupId(d.Get("target_resource_id").(string), d.Get("name").(string))
+	id := parse.NewIotSecurityDeviceGroupId(d.Get("iothub_id").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, id.TargetResourceID, id.Name)
+		server, err := client.Get(ctx, id.IotHubID, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
 				return fmt.Errorf("checking for presence of existing Device Security Group for %q: %+v", id.ID(), err)
@@ -145,44 +153,40 @@ func resourceDeviceSecurityGroupCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if !utils.ResponseWasNotFound(server.Response) {
-			return tf.ImportAsExistsError("azurerm_device_security_group", id.ID())
+			return tf.ImportAsExistsError("azurerm_iot_security_device_group", id.ID())
 		}
 	}
 
-	timeWindowRules, err := expandDeviceSecurityGroupTimeWindowRule(d.Get("time_window_rule").(*schema.Set).List())
-	if err != nil {
-		return err
-	}
-	allowListRules, err := expandDeviceSecurityGroupAllowListRule(d.Get("allow_list_rule").(*schema.Set).List())
+	timeWindowRules, err := expandIotSecurityDeviceGroupTimeWindowRule(d.Get("time_window_rule").(*schema.Set).List())
 	if err != nil {
 		return err
 	}
 	deviceSecurityGroup := security.DeviceSecurityGroup{
 		DeviceSecurityGroupProperties: &security.DeviceSecurityGroupProperties{
 			TimeWindowRules: timeWindowRules,
-			AllowlistRules:  allowListRules,
+			AllowlistRules:  expandIotSecurityDeviceGroupAllowRule(d.Get("allow_rule").([]interface{})),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.TargetResourceID, id.Name, deviceSecurityGroup); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.IotHubID, id.Name, deviceSecurityGroup); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceDeviceSecurityGroupRead(d, meta)
+	return resourceIotSecurityDeviceGroupRead(d, meta)
 }
 
-func resourceDeviceSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DeviceSecurityGroupID(d.Id())
+	id, err := parse.IotSecurityDeviceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.TargetResourceID, id.Name)
+	resp, err := client.Get(ctx, id.IotHubID, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("Device Security Group not found for %q: %+v", id.ID(), err)
@@ -193,13 +197,13 @@ func resourceDeviceSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("target_resource_id", id.TargetResourceID)
+	d.Set("iothub_id", id.IotHubID)
 	d.Set("name", id.Name)
 	if prop := resp.DeviceSecurityGroupProperties; prop != nil {
-		if err := d.Set("allow_list_rule", flattenDeviceSecurityGroupAllowListRule(prop.AllowlistRules)); err != nil {
-			return fmt.Errorf("setting `allow_list_rule`: %+v", err)
+		if err := d.Set("allow_rule", flattenIotSecurityDeviceGroupAllowRule(prop.AllowlistRules)); err != nil {
+			return fmt.Errorf("setting `allow_rule`: %+v", err)
 		}
-		if err := d.Set("time_window_rule", flattenDeviceSecurityGroupTimeWindowRule(prop.TimeWindowRules)); err != nil {
+		if err := d.Set("time_window_rule", flattenIotSecurityDeviceGroupTimeWindowRule(prop.TimeWindowRules)); err != nil {
 			return fmt.Errorf("setting `time_window_rule`: %+v", err)
 		}
 	}
@@ -207,62 +211,52 @@ func resourceDeviceSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceDeviceSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DeviceSecurityGroupID(d.Id())
+	id, err := parse.IotSecurityDeviceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.TargetResourceID, id.Name); err != nil {
+	if _, err := client.Delete(ctx, id.IotHubID, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandDeviceSecurityGroupAllowListRule(input []interface{}) (*[]security.BasicAllowlistCustomAlertRule, error) {
-	if len(input) == 0 {
-		return nil, nil
+func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.BasicAllowlistCustomAlertRule {
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
+	v := input[0].(map[string]interface{})
 	result := make([]security.BasicAllowlistCustomAlertRule, 0)
-	ruleTypeMap := make(map[security.RuleTypeBasicCustomAlertRule]struct{})
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		t := security.RuleTypeBasicCustomAlertRule(v["type"].(string))
-		values := v["values"].(*schema.Set).List()
 
-		// check duplicate
-		if _, ok := ruleTypeMap[t]; ok {
-			return nil, fmt.Errorf("rule type duplicate: %q", t)
-		}
-		ruleTypeMap[t] = struct{}{}
-
-		switch t {
-		case security.RuleTypeConnectionToIPNotAllowed:
-			result = append(result, security.ConnectionToIPNotAllowed{
-				AllowlistValues: utils.ExpandStringSlice(values),
-				IsEnabled:       utils.Bool(true),
-			})
-		case security.RuleTypeLocalUserNotAllowed:
-			result = append(result, security.LocalUserNotAllowed{
-				AllowlistValues: utils.ExpandStringSlice(values),
-				IsEnabled:       utils.Bool(true),
-			})
-		case security.RuleTypeProcessNotAllowed:
-			result = append(result, security.ProcessNotAllowed{
-				AllowlistValues: utils.ExpandStringSlice(values),
-				IsEnabled:       utils.Bool(true),
-			})
-		}
+	if connectionToIPNotAllowed := v["connection_to_ip_not_allowed"].(*schema.Set).List(); len(connectionToIPNotAllowed) > 0 {
+		result = append(result, security.ConnectionToIPNotAllowed{
+			AllowlistValues: utils.ExpandStringSlice(connectionToIPNotAllowed),
+			IsEnabled:       utils.Bool(true),
+		})
 	}
-	return &result, nil
+	if LocalUserNotAllowed := v["local_user_not_allowed"].(*schema.Set).List(); len(LocalUserNotAllowed) > 0 {
+		result = append(result, security.LocalUserNotAllowed{
+			AllowlistValues: utils.ExpandStringSlice(LocalUserNotAllowed),
+			IsEnabled:       utils.Bool(true),
+		})
+	}
+	if processNotAllowed := v["process_not_allowed"].(*schema.Set).List(); len(processNotAllowed) > 0 {
+		result = append(result, security.ProcessNotAllowed{
+			AllowlistValues: utils.ExpandStringSlice(processNotAllowed),
+			IsEnabled:       utils.Bool(true),
+		})
+	}
+	return &result
 }
 
-func expandDeviceSecurityGroupTimeWindowRule(input []interface{}) (*[]security.BasicTimeWindowCustomAlertRule, error) {
+func expandIotSecurityDeviceGroupTimeWindowRule(input []interface{}) (*[]security.BasicTimeWindowCustomAlertRule, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -271,7 +265,7 @@ func expandDeviceSecurityGroupTimeWindowRule(input []interface{}) (*[]security.B
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		t := security.RuleTypeBasicCustomAlertRule(v["type"].(string))
-		timeWindowSize := v["time_window_size"].(string)
+		timeWindowSize := v["window_size"].(string)
 		minThreshold := int32(v["min_threshold"].(int))
 		maxThreshold := int32(v["max_threshold"].(int))
 
@@ -399,47 +393,50 @@ func expandDeviceSecurityGroupTimeWindowRule(input []interface{}) (*[]security.B
 	return &result, nil
 }
 
-func flattenDeviceSecurityGroupAllowListRule(input *[]security.BasicAllowlistCustomAlertRule) []interface{} {
+func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCustomAlertRule) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
-	result := make([]interface{}, 0)
+
+	var flag bool
+	var connectionToIpNotAllowed, localUserNotAllowed, processNotAllowed *[]string
 	for _, v := range *input {
-		var isEnabled *bool
-		var t string
-		var values *[]string
 		switch v := v.(type) {
 		case security.ConnectionToIPNotAllowed:
-			isEnabled = v.IsEnabled
-			t = string(v.RuleType)
-			values = v.AllowlistValues
+			if v.IsEnabled != nil && *v.IsEnabled {
+				flag = true
+				connectionToIpNotAllowed = v.AllowlistValues
+			}
 		case security.LocalUserNotAllowed:
-			isEnabled = v.IsEnabled
-			t = string(v.RuleType)
-			values = v.AllowlistValues
+			if v.IsEnabled != nil && *v.IsEnabled {
+				flag = true
+				localUserNotAllowed = v.AllowlistValues
+			}
 		case security.ProcessNotAllowed:
-			isEnabled = v.IsEnabled
-			t = string(v.RuleType)
-			values = v.AllowlistValues
-		default:
-			continue
+			if v.IsEnabled != nil && *v.IsEnabled {
+				flag = true
+				processNotAllowed = v.AllowlistValues
+			}
 		}
-		if isEnabled == nil || !*isEnabled {
-			continue
-		}
-		result = append(result, map[string]interface{}{
-			"type":   t,
-			"values": utils.FlattenStringSlice(values),
-		})
 	}
-	return result
+	if !flag {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"connection_to_ip_not_allowed": utils.FlattenStringSlice(connectionToIpNotAllowed),
+			"local_user_not_allowed":       utils.FlattenStringSlice(localUserNotAllowed),
+			"process_not_allowed":          utils.FlattenStringSlice(processNotAllowed),
+		},
+	}
 }
 
-func flattenDeviceSecurityGroupTimeWindowRule(input *[]security.BasicTimeWindowCustomAlertRule) []interface{} {
+func flattenIotSecurityDeviceGroupTimeWindowRule(input *[]security.BasicTimeWindowCustomAlertRule) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 	result := make([]interface{}, 0)
+
 	for _, v := range *input {
 		var isEnabled *bool
 		var t string
@@ -561,10 +558,10 @@ func flattenDeviceSecurityGroupTimeWindowRule(input *[]security.BasicTimeWindowC
 			maxThreshold = int(*maxThresholdPointer)
 		}
 		result = append(result, map[string]interface{}{
-			"type":             t,
-			"time_window_size": timeWindowSize,
-			"min_threshold":    minThreshold,
-			"max_threshold":    maxThreshold,
+			"type":          t,
+			"window_size":   timeWindowSize,
+			"min_threshold": minThreshold,
+			"max_threshold": maxThreshold,
 		})
 	}
 	return result

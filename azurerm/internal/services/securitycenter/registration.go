@@ -27,7 +27,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_advanced_threat_protection":           resourceAdvancedThreatProtection(),
-		"azurerm_device_security_group":                resourceDeviceSecurityGroup(),
+		"azurerm_iot_security_device_group":            resourceIotSecurityDeviceGroup(),
 		"azurerm_iot_security_solution":                resourceIotSecuritySolution(),
 		"azurerm_security_center_contact":              resourceSecurityCenterContact(),
 		"azurerm_security_center_setting":              resourceSecurityCenterSetting(),

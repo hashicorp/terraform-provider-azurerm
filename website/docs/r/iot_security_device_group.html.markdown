@@ -1,14 +1,14 @@
 ---
 subcategory: "Security Center"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_device_security_group"
+page_title: "Azure Resource Manager: azurerm_iot_security_device_group"
 description: |-
-  Manages a Device Security Group.
+  Manages a Iot Security Device Group.
 ---
 
-# azurerm_device_security_group
+# azurerm_iot_security_device_group
 
-Manages a Device Security Group.
+Manages a Iot Security Device Group.
 
 ## Example Usage
 
@@ -36,20 +36,19 @@ resource "azurerm_iot_security_solution" "example" {
   iothub_ids          = [azurerm_iothub.example.id]
 }
 
-resource "azurerm_device_security_group" "example" {
+resource "azurerm_iot_security_device_group" "example" {
   name               = "example-device-security-group"
-  target_resource_id = azurerm_iothub.example.id
+  iothub_id = azurerm_iothub.example.id
 
-  allow_list_rule {
-    type   = "LocalUserNotAllowed"
-    values = ["user0"]
+  allow_rule {
+    connection_to_ip_not_allowed = ["10.0.0.0/24"]
   }
 
   time_window_rule {
     type             = "ActiveConnectionsNotInAllowedRange"
     min_threshold    = 0
     max_threshold    = 30
-    time_window_size = "PT5M"
+    window_size = "PT5M"
   }
 
   depends_on = [azurerm_iot_security_solution.example]
@@ -62,9 +61,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Device Security Group. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) The ID of the Azure Resource which to create the Device Security Group. Changing this forces a new resource to be created.
+* `iothub_id` - (Required) The ID of the IoT Hub which to link the Security Device Group to. Changing this forces a new resource to be created.
 
-* `allow_list_rule` - (Optional) One or more `allow_list_rule` blocks as defined below.
+* `allow_rule` - (Optional) an `allow_list_rule` blocks as defined below.
 
 * `time_window_rule` - (Optional) One or more `time_window_rule` blocks as defined below.
 
@@ -72,9 +71,11 @@ The following arguments are supported:
 
 An `allow_list_rule` block supports the following:
 
-* `type` - (Required) The type of supported rule type. Possible Values are `ConnectionToIpNotAllowed`, `LocalUserNotAllowed` and `LocalUserNotAllowed`.
+* `connection_to_ip_not_allowed` - (optional) 
 
-* `values` - (Required) The values to allow.
+* `local_user_not_allowed` - (optional) 
+
+* `process_not_allowed` - (optional) 
 
 ---
 
@@ -86,27 +87,27 @@ An `time_window_rule` block supports the following:
 
 * `min_threshold` - (Required) The minimum threshold in the given time window.
 
-* `time_window_size` - (Required) Specifies the time range. represented in ISO 8601 duration format.
+* `window_size` - (Required) Specifies the time range. represented in ISO 8601 duration format.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the Device Security Group resource.
+* `id` - The ID of the Iot Security Device Group resource.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Device Security Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Device Security Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Device Security Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Device Security Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Iot Security Device Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Iot Security Device Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Iot Security Device Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Iot Security Device Group.
 
 ## Import
 
-Device Security Group can be imported using the `resource id`, e.g.
+Iot Security Device Group can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_device_security_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/group1
+terraform import azurerm_iot_security_device_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/group1
 ```

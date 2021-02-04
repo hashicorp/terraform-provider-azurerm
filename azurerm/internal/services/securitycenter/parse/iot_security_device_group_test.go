@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestDeviceSecurityGroupID(t *testing.T) {
+func TestIotSecurityDeviceGroupID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *DeviceSecurityGroupId
+		Expect *IotSecurityDeviceGroupId
 	}{
 		{
 			Name:  "Empty",
@@ -28,22 +28,22 @@ func TestDeviceSecurityGroupID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "No Device Security Group Segment",
+			Name:  "No Iot Security Device Group Segment",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/",
 			Error: true,
 		},
 		{
-			Name:  "No Device Security Group name",
+			Name:  "No Iot Security Device Group name",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/",
 			Error: true,
 		},
 		{
-			Name:  "ID of Device Security Group",
+			Name:  "ID of Iot Security Device Group",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/providers/Microsoft.Security/deviceSecurityGroups/group1",
 			Error: false,
-			Expect: &DeviceSecurityGroupId{
-				TargetResourceID: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1",
-				Name:             "group1",
+			Expect: &IotSecurityDeviceGroupId{
+				IotHubID: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1",
+				Name:     "group1",
 			},
 		},
 		{
@@ -56,7 +56,7 @@ func TestDeviceSecurityGroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DeviceSecurityGroupID(v.Input)
+		actual, err := IotSecurityDeviceGroupID(v.Input)
 		if err != nil {
 			if v.Expect == nil {
 				continue
@@ -67,8 +67,8 @@ func TestDeviceSecurityGroupID(t *testing.T) {
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
-		if actual.TargetResourceID != v.Expect.TargetResourceID {
-			t.Fatalf("Expected %q but got %q for TargetResourceID", v.Expect.TargetResourceID, actual.TargetResourceID)
+		if actual.IotHubID != v.Expect.IotHubID {
+			t.Fatalf("Expected %q but got %q for IotHubID", v.Expect.IotHubID, actual.IotHubID)
 		}
 	}
 }
