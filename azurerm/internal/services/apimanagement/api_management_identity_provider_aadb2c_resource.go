@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -37,7 +39,7 @@ func resourceArmApiManagementIdentityProviderAADB2C() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"client_id": {
 				Type:         schema.TypeString,
