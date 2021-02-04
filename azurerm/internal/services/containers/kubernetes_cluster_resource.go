@@ -285,6 +285,9 @@ func resourceKubernetesCluster() *schema.Resource {
 							Computed: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								// https://github.com/Azure/AKS/issues/1954#issuecomment-759306712
+								// Transparent is already the default and only option for CNI
+								// Bridge is only kept for backward compatibility
 								string(containerservice.Bridge),
 								string(containerservice.Transparent),
 							}, false),
