@@ -617,6 +617,11 @@ resource "azurerm_container_group" "test" {
   ip_address_type     = "public"
   os_type             = "Linux"
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"
@@ -871,6 +876,15 @@ resource "azurerm_container_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
+
+  exposed_port {
+    port = 80
+  }
+
+  exposed_port {
+    port     = 5443
+    protocol = "UDP"
+  }
 
   container {
     name   = "hw"
