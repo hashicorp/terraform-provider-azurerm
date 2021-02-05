@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_lb_backend_address_pool` - mark `backend_address` as computed [GH-10481]
+* `azurerm_storage_data_lake_gen2_filesystem_resource` - do not set/retrieve ACLs when HNS is not enabled  [GH-10470]
 
 ## 2.46.0 (February 04, 2021)
 
