@@ -1,3 +1,9 @@
+## 2.46.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_lb_backend_address_pool` - mark `backend_address` as computed [GH-10481]
+
 ## 2.46.0 (February 04, 2021)
 
 FEATURES:
