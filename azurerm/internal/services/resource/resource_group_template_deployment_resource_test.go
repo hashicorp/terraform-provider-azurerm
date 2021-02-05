@@ -274,7 +274,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 data "azurerm_template_spec_version" "test" {
-  name                = "acctest-standing-data-for-rg"
+  name                = "acctest-standing-data-empty"
   resource_group_name = "stedev-201130"
   version             = "v1.0.0"
 }
