@@ -1,9 +1,9 @@
-## 2.46.1 (Unreleased)
+## 2.46.1 (February 05, 2021)
 
 BUG FIXES:
 
-* `azurerm_lb_backend_address_pool` - mark `backend_address` as computed [GH-10481]
-* `azurerm_storage_data_lake_gen2_filesystem_resource` - do not set/retrieve ACLs when HNS is not enabled  [GH-10470]
+* `azurerm_lb_backend_address_pool` - mark `backend_address` as computed ([#10481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10481))
+* `azurerm_storage_data_lake_gen2_filesystem_resource` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
 
 ## 2.46.0 (February 04, 2021)
 
