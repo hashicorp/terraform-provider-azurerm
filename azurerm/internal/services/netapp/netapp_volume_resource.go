@@ -621,7 +621,6 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *netapp
 			if res.StatusCode == 400 && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
 				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
 				// TODO: remove this workaround when above bug is fixed
-				print("")
 			} else {
 				if !utils.ResponseWasNotFound(res.Response) {
 					return nil, "", fmt.Errorf("Error retrieving replication status from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
