@@ -79,9 +79,10 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 						},
 
 						"encryption_password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"manual_schedule": {
