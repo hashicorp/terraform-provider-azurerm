@@ -47,13 +47,13 @@ The following attributes are exported:
 
 * `name` - The name of the Backend Address Pool.
 
-* `backend_address` - An array of `backend_address` block as defined below.
+* `backend_address` - An list of `backend_address` block as defined below.
  
-* `backend_ip_configurations` - An array of references to IP addresses defined in network interfaces.
+* `backend_ip_configurations` - An list of references to IP addresses defined in network interfaces.
 
-* `load_balancing_rules` - An array of the Load Balancing Rules associated with this Backend Address Pool.
+* `load_balancing_rules` - An list of the Load Balancing Rules associated with this Backend Address Pool.
 
-* `outbound_rules` - An array of the Load Balancing Outbound Rules associated with this Backend Address Pool.
+* `outbound_rules` - An list of the Load Balancing Outbound Rules associated with this Backend Address Pool.
 
 ---
 
@@ -61,9 +61,9 @@ A `backend_address` block exports the following:
 
 * `name` - The name of the Backend Address.
 
-* `virtual_network_id` - The ID of the Virtual Network that is pre-allocated for this Backend Address.
+* `virtual_network_id` - The ID of the Virtual Network where the Load Balancer exists.
 
-* `ip_address` - The IP address pre-allocated for this Backend Address with in the Virtual Network of `virtual_network_id`.
+* `ip_address` - The Static IP address for this Load Balancer within the Virtual Network.
 
 ## Timeouts
 

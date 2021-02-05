@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
@@ -19,10 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
+
 func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
-		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
+		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate, // TODO: remove in 3.0 since all fields are ForceNew
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 
@@ -43,78 +46,82 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: func() map[string]*schema.Schema {
+			s := map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-			// TODO 3.0: remove this as it can be inferred from "loadbalancer_id"
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
+				// TODO 3.0: remove this as it can be inferred from "loadbalancer_id"
+				"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 
-			"loadbalancer_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.LoadBalancerID,
-			},
+				"loadbalancer_id": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.LoadBalancerID,
+				},
 
-			"backend_address": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				// Making this block optional for standard sku LB associating NIC, where the `name` will be computed after
-				// NIC associates with LB BAP by azurerm_network_interface_backend_address_pool_association.
-				Computed: true,
-				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"virtual_network_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: networkValidate.VirtualNetworkID,
-						},
-
-						"ip_address": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsIPAddress,
-						},
+				"backend_ip_configurations": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
-			},
 
-			"backend_ip_configurations": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				"load_balancing_rules": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
-			},
 
-			"load_balancing_rules": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				"outbound_rules": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
-			},
+			}
 
-			"outbound_rules": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-		},
+			if !features.ThreePointOh() {
+				s["backend_address"] = &schema.Schema{
+					Type:       schema.TypeSet,
+					Optional:   true,
+					Deprecated: "This field is non-functional and will be removed in version 3.0 of the Azure Provider - use the separate `azurerm_lb_backend_address_pool_address` resource instead.",
+					MinItems:   1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"name": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"virtual_network_id": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: networkValidate.VirtualNetworkID,
+							},
+
+							"ip_address": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.IsIPAddress,
+							},
+						},
+					},
+				}
+			}
+
+			return s
+		}(),
 	}
 }
 
@@ -144,6 +151,9 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *schema.ResourceDat
 			return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
 		}
 	}
+
+	locks.ByName(name, backendAddressPoolResourceName)
+	defer locks.UnlockByName(name, backendAddressPoolResourceName)
 
 	locks.ByID(loadBalancerId.ID())
 	defer locks.UnlockByID(loadBalancerId.ID())
@@ -198,7 +208,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *schema.ResourceDat
 		}
 	} else {
 		param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
-			LoadBalancerBackendAddresses: expandAzureRmLoadBalancerBackendAddresses(d.Get("backend_address").(*schema.Set).List()),
+			// NOTE: Backend Addresses are managed using `azurerm_lb_backend_pool_address`
 		}
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, param)
@@ -243,8 +253,12 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 	d.Set("loadbalancer_id", lbId.ID())
 
 	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		if err := d.Set("backend_address", flattenArmLoadBalancerBackendAddresses(props.LoadBalancerBackendAddresses)); err != nil {
-			return fmt.Errorf("setting `backend_address`: %v", err)
+		// TODO: remove in 3.0
+		if !features.ThreePointOh() {
+			// @tombuildsstuff: this is a Set so won't be referenced, let's just nil this out for now
+			if err := d.Set("backend_address", []interface{}{}); err != nil {
+				return fmt.Errorf("setting `backend_address`: %v", err)
+			}
 		}
 
 		var backendIPConfigurations []string
@@ -306,6 +320,9 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
+	locks.ByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
+	defer locks.UnlockByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
+
 	lb, err := lbClient.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(lb.Response) {
@@ -321,7 +338,7 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 	}
 
 	if sku.Name == network.LoadBalancerSkuNameBasic {
-		_, index, exists := FindLoadBalancerBackEndAddressPoolByName(&lb, d.Get("name").(string))
+		_, index, exists := FindLoadBalancerBackEndAddressPoolByName(&lb, id.BackendAddressPoolName)
 		if !exists {
 			return nil
 		}
@@ -350,65 +367,4 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 	}
 
 	return nil
-}
-
-func expandAzureRmLoadBalancerBackendAddresses(input []interface{}) *[]network.LoadBalancerBackendAddress {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]network.LoadBalancerBackendAddress, 0)
-
-	for _, e := range input {
-		b := e.(map[string]interface{})
-
-		result = append(result, network.LoadBalancerBackendAddress{
-			LoadBalancerBackendAddressPropertiesFormat: &network.LoadBalancerBackendAddressPropertiesFormat{
-				VirtualNetwork: &network.SubResource{
-					ID: utils.String(b["virtual_network_id"].(string)),
-				},
-				IPAddress: utils.String(b["ip_address"].(string)),
-			},
-			Name: utils.String(b["name"].(string)),
-		})
-	}
-
-	return &result
-}
-
-func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackendAddress) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, e := range *input {
-		var name string
-		if e.Name != nil {
-			name = *e.Name
-		}
-
-		var (
-			ipAddress string
-			vnetId    string
-		)
-		if prop := e.LoadBalancerBackendAddressPropertiesFormat; prop != nil {
-			if prop.IPAddress != nil {
-				ipAddress = *prop.IPAddress
-			}
-			if prop.VirtualNetwork != nil && prop.VirtualNetwork.ID != nil {
-				vnetId = *prop.VirtualNetwork.ID
-			}
-		}
-
-		v := map[string]interface{}{
-			"name":               name,
-			"virtual_network_id": vnetId,
-			"ip_address":         ipAddress,
-		}
-		output = append(output, v)
-	}
-
-	return output
 }

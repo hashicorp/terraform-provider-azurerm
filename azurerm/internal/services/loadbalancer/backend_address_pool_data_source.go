@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -158,4 +159,41 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 	}
 
 	return nil
+}
+
+func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackendAddress) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var name string
+		if e.Name != nil {
+			name = *e.Name
+		}
+
+		var (
+			ipAddress string
+			vnetId    string
+		)
+		if prop := e.LoadBalancerBackendAddressPropertiesFormat; prop != nil {
+			if prop.IPAddress != nil {
+				ipAddress = *prop.IPAddress
+			}
+			if prop.VirtualNetwork != nil && prop.VirtualNetwork.ID != nil {
+				vnetId = *prop.VirtualNetwork.ID
+			}
+		}
+
+		v := map[string]interface{}{
+			"name":               name,
+			"virtual_network_id": vnetId,
+			"ip_address":         ipAddress,
+		}
+		output = append(output, v)
+	}
+
+	return output
 }
