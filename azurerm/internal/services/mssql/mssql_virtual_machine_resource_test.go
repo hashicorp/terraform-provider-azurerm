@@ -103,13 +103,6 @@ func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 		data.ImportStep("auto_backup.0.encryption_password",
 			"auto_backup.0.storage_account_access_key",
 			"auto_backup.0.storage_blob_endpoint"),
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -416,7 +409,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   auto_backup {
     encryption_enabled              = true
     encryption_password             = "P@55w0rD!!%[2]s"
-    retention_period                = 23
+    retention_period_in_days        = 23
     storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key      = azurerm_storage_account.test.primary_access_key
     system_databases_backup_enabled = false
@@ -444,16 +437,16 @@ resource "azurerm_mssql_virtual_machine" "test" {
   auto_backup {
     encryption_enabled              = true
     encryption_password             = "P@55w0rD!!%[2]s"
-    retention_period                = 14
+    retention_period_in_days        = 14
     storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key      = azurerm_storage_account.test.primary_access_key
     system_databases_backup_enabled = true
 
     manual_schedule {
-      full_backup_frequency    = "Daily"
-      full_backup_start_hour   = 3
-      full_backup_window_hours = 4
-      log_backup_frequency     = 20
+      full_backup_frequency           = "Daily"
+      full_backup_start_hour          = 3
+      full_backup_window_in_hours     = 4
+      log_backup_frequency_in_minutes = 20
     }
   }
 }

@@ -297,6 +297,13 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 }
 
 func resourceMsSqlVirtualMachineCustomDiff(d *schema.ResourceDiff, _ interface{}) error {
+	// ForceNew when removing the auto_backup block.
+	// See https://github.com/Azure/azure-rest-api-specs/issues/12818#issuecomment-773727756
+	old, new := d.GetChange("auto_backup")
+	if len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0 {
+		return d.ForceNew("auto_backup")
+	}
+
 	encryptionEnabled := d.Get("auto_backup.0.encryption_enabled")
 	v, ok := d.GetOk("auto_backup.0.encryption_password")
 

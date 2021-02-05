@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit) and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
-* `auto_backup` (Optional) An `auto_backup` block as defined below.
+* `auto_backup` (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
 * `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
