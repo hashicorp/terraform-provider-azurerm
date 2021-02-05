@@ -81,6 +81,13 @@ func TestAccAzureRMSentinelDataConnectorOffice365_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.complete(data, false, true, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
