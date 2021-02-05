@@ -247,6 +247,10 @@ resource "azurerm_data_factory" "test" {
   }
 }
 
+data "azuread_service_principal" "test" {
+  display_name = azurerm_data_factory.test.name
+}
+
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsql%d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -261,7 +265,7 @@ resource "azurerm_sql_active_directory_administrator" "test" {
   resource_group_name = azurerm_resource_group.test.name
   login               = azurerm_data_factory.test.name
   tenant_id           = azurerm_data_factory.test.identity.0.tenant_id
-  object_id           = azurerm_data_factory.test.identity.0.principal_id
+  object_id           = data.azuread_service_principal.test.application_id
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
