@@ -256,6 +256,8 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	return &result
 }
 
+// issue to track: https://github.com/Azure/azure-sdk-for-go/issues/14282
+// there is a lot of repeated codes here. once the issue is resolved, we should use a more elegant way
 func expandIotSecurityDeviceGroupTimeWindowRule(input []interface{}) (*[]security.BasicTimeWindowCustomAlertRule, error) {
 	if len(input) == 0 {
 		return nil, nil
@@ -431,6 +433,8 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 	}
 }
 
+// issue to track: https://github.com/Azure/azure-sdk-for-go/issues/14282
+// there is a lot of repeated codes here. once the issue is resolved, we should use a more elegant way
 func flattenIotSecurityDeviceGroupTimeWindowRule(input *[]security.BasicTimeWindowCustomAlertRule) []interface{} {
 	if input == nil {
 		return []interface{}{}
