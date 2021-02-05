@@ -110,11 +110,11 @@ func tenantTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interfa
 	existing, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+			return fmt.Errorf("checking for presence of existing Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
+		return tf.ImportAsExistsError("azurerm_tenant_template_deployment", id.ID())
 	}
 
 	deployment := resources.ScopedDeployment{
@@ -148,21 +148,21 @@ func tenantTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interfa
 		deployment.Properties.Parameters = parameters
 	}
 
-	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Running validation of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := validateTenantTemplateDeployment(ctx, id, deployment, client); err != nil {
-		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("validating Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Validated Tenant Template Deployment %q..", id.DeploymentName)
 
-	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Provisioning Tenant Template Deployment %q..", id.DeploymentName)
 	future, err := client.CreateOrUpdateAtTenantScope(ctx, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("creating Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Waiting for deployment of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("waiting for creation of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	d.SetId(id.ID())
@@ -179,13 +179,13 @@ func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Retrieving Tenant Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 	if template.Properties == nil {
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: `properties` was nil", id.DeploymentName)
+		return fmt.Errorf("retrieving Tenant Template Deployment %q: `properties` was nil", id.DeploymentName)
 	}
 
 	// the API doesn't have a Patch operation, so we'll need to build one
@@ -221,7 +221,7 @@ func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interfa
 		// retrieve the existing content and reuse that
 		exportedTemplate, err := client.ExportTemplateAtTenantScope(ctx, id.DeploymentName)
 		if err != nil {
-			return fmt.Errorf("retrieving Contents for Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+			return fmt.Errorf("retrieving Contents for Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
@@ -237,21 +237,21 @@ func tenantTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interfa
 		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Running validation of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := validateTenantTemplateDeployment(ctx, *id, deployment, client); err != nil {
-		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("validating Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Validated Tenant Template Deployment %q..", id.DeploymentName)
 
-	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q)..", id.DeploymentName)
+	log.Printf("[DEBUG] Provisioning Tenant Template Deployment %q)..", id.DeploymentName)
 	future, err := client.CreateOrUpdateAtTenantScope(ctx, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("creating Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Waiting for deployment of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("waiting for creation of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	return tenantTemplateDeploymentResourceRead(d, meta)
@@ -270,17 +270,17 @@ func tenantTemplateDeploymentResourceRead(d *schema.ResourceData, meta interface
 	resp, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subscription Template Deployment %q was not found - removing from state", id.DeploymentName)
+			log.Printf("[DEBUG] Tenant Template Deployment %q was not found - removing from state", id.DeploymentName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	templateContents, err := client.ExportTemplateAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Template Content for Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Template Content for Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	d.Set("name", id.DeploymentName)
@@ -331,17 +331,17 @@ func tenantTemplateDeploymentResourceDelete(d *schema.ResourceData, meta interfa
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Deleting Tenant Template Deployment %q..", id.DeploymentName)
 	future, err := client.DeleteAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("deleting Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("deleting Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Waiting for deletion of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("waiting for deletion of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Subscription Template Deployment %q.", id.DeploymentName)
+	log.Printf("[DEBUG] Deleted Tenant Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

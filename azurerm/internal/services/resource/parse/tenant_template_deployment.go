@@ -1,9 +1,8 @@
 package parse
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -34,9 +33,41 @@ func (id TenantTemplateDeploymentId) ID() string {
 
 // TenantTemplateDeploymentID parses a TenantTemplateDeployment ID into an TenantTemplateDeploymentId struct
 func TenantTemplateDeploymentID(input string) (*TenantTemplateDeploymentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	idURL, err := url.ParseRequestURI(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
+	}
+
+	path := idURL.Path
+
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+
+	components := strings.Split(path, "/")
+
+	if len(components)%2 != 0 {
+		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
+	}
+
+	componentMap := make(map[string]string, len(components)/2)
+	for current := 0; current < len(components); current += 2 {
+		key := components[current]
+		value := components[current+1]
+
+		// Check key/value for empty strings.
+		if key == "" || value == "" {
+			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
+		}
+		componentMap[key] = value
+	}
+
+	// Build up a TargetResourceID from the map
+	id := &azure.ResourceID{}
+	id.Path = componentMap
+
+	if provider, ok := componentMap["providers"]; ok {
+		id.Provider = provider
+		delete(componentMap, "providers")
 	}
 
 	resourceId := TenantTemplateDeploymentId{}
