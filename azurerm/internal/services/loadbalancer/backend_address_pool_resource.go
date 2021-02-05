@@ -64,6 +64,9 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			"backend_address": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				// Making this block optional for standard sku LB associating NIC, where the `name` will be computed after
+				// NIC associates with LB BAP by azurerm_network_interface_backend_address_pool_association.
+				Computed: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

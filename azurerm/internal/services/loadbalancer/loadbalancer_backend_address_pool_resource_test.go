@@ -275,11 +275,79 @@ func (r LoadBalancerBackendAddressPool) standardSkuNIC(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_virtual_network" "test" {
+  name                = "testvnet-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["192.168.0.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "testnic-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+    }
+  }
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "test" {
+  ip_configuration_name   = "testconfiguration1"
+  network_interface_id    = azurerm_network_interface.test.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+}
+
 resource "azurerm_lb_backend_address_pool" "test" {
   loadbalancer_id = azurerm_lb.test.id
-  name            = "Address-pool-%d"
+  name            = "Address-pool-%[2]d"
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(8))
 }
 
 func (r LoadBalancerBackendAddressPool) standardSkuIPBasic(data acceptance.TestData) string {
