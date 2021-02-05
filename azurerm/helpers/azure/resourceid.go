@@ -61,7 +61,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		}
 	}
 
-	// Build up a IotHubID from the map
+	// Build up a TargetResourceID from the map
 	idObj := &ResourceID{}
 	idObj.Path = componentMap
 

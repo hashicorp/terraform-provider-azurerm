@@ -143,117 +143,117 @@ resource "azurerm_iot_security_device_group" "test" {
     process_not_allowed          = ["ssh"]
   }
 
-  time_window_rule {
-    type          = "ActiveConnectionsNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "ActiveConnectionsNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "AmqpC2DMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "AmqpC2DMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "MqttC2DMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "MqttC2DMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "HttpC2DMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "HttpC2DMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "AmqpC2DRejectedMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "AmqpC2DRejectedMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "MqttC2DRejectedMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "MqttC2DRejectedMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "HttpC2DRejectedMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "HttpC2DRejectedMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
 
-  time_window_rule {
-    type          = "AmqpD2CMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "AmqpD2CMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "MqttD2CMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "MqttD2CMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "HttpD2CMessagesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "HttpD2CMessagesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "DirectMethodInvokesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "DirectMethodInvokesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "FailedLocalLoginsNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "FailedLocalLoginsNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "FileUploadsNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "FileUploadsNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "QueuePurgesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "QueuePurgesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "TwinUpdatesNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "TwinUpdatesNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
-  time_window_rule {
-    type          = "UnauthorizedOperationsNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "UnauthorizedOperationsNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
   depends_on = [azurerm_iot_security_solution.test]

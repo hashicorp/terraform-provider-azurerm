@@ -44,11 +44,11 @@ resource "azurerm_iot_security_device_group" "example" {
     connection_to_ip_not_allowed = ["10.0.0.0/24"]
   }
 
-  time_window_rule {
-    type          = "ActiveConnectionsNotInAllowedRange"
-    min_threshold = 0
-    max_threshold = 30
-    window_size   = "PT5M"
+  range_rule {
+    type     = "ActiveConnectionsNotInAllowedRange"
+    min      = 0
+    max      = 30
+    duration = "PT5M"
   }
 
   depends_on = [azurerm_iot_security_solution.example]
@@ -63,13 +63,13 @@ The following arguments are supported:
 
 * `iothub_id` - (Required) The ID of the IoT Hub which to link the Security Device Group to. Changing this forces a new resource to be created.
 
-* `allow_rule` - (Optional) an `allow_list_rule` blocks as defined below.
+* `allow_rule` - (Optional) an `allow_rule` blocks as defined below.
 
-* `time_window_rule` - (Optional) One or more `time_window_rule` blocks as defined below.
+* `range_rule` - (Optional) One or more `range_rule` blocks as defined below.
 
 ---
 
-An `allow_list_rule` block supports the following:
+An `allow_rule` block supports the following:
 
 * `connection_to_ip_not_allowed` - (optional) Specifies which Ip is not allowed to be connected to in current device group.
 
@@ -79,15 +79,15 @@ An `allow_list_rule` block supports the following:
 
 ---
 
-An `time_window_rule` block supports the following:
+An `range_rule` block supports the following:
+
+* `duration` - (Required) Specifies the time range. represented in ISO 8601 duration format.
+
+* `max` - (Required) The maximum threshold in the given time window.
+
+* `min` - (Required) The minimum threshold in the given time window.
 
 * `type` - (Required) The type of supported rule type. Possible Values are `ActiveConnectionsNotInAllowedRange`, `AmqpC2DMessagesNotInAllowedRange`, `MqttC2DMessagesNotInAllowedRange`, `HttpC2DMessagesNotInAllowedRange`, `AmqpC2DRejectedMessagesNotInAllowedRange`, `MqttC2DRejectedMessagesNotInAllowedRange`, `HttpC2DRejectedMessagesNotInAllowedRange`, `AmqpD2CMessagesNotInAllowedRange`, `MqttD2CMessagesNotInAllowedRange`, `HttpD2CMessagesNotInAllowedRange`, `DirectMethodInvokesNotInAllowedRange`, `FailedLocalLoginsNotInAllowedRange`, `FileUploadsNotInAllowedRange`, `QueuePurgesNotInAllowedRange`, `TwinUpdatesNotInAllowedRange` and `UnauthorizedOperationsNotInAllowedRange`.
-
-* `max_threshold` - (Required) The maximum threshold in the given time window.
-
-* `min_threshold` - (Required) The minimum threshold in the given time window.
-
-* `window_size` - (Required) Specifies the time range. represented in ISO 8601 duration format.
 
 ## Attributes Reference
 
