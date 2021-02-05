@@ -225,7 +225,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
@@ -244,20 +244,6 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctest-NSG-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_network_security_rule" "RDPRule" {
-  name                        = "RDPRule"
-  resource_group_name         = azurerm_resource_group.test.name
-  priority                    = 1000
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = 3389
-  source_address_prefix       = "167.220.255.0/25"
-  destination_address_prefix  = "*"
-  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "MSSQLRule" {
@@ -428,11 +414,12 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   auto_backup {
-    encryption_enabled         = true
-    encryption_password        = "P@55w0rD!!%[2]s"
-    retention_period           = 23
-    storage_blob_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    encryption_enabled              = true
+    encryption_password             = "P@55w0rD!!%[2]s"
+    retention_period                = 23
+    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
+    system_databases_backup_enabled = false
   }
 }
 `, r.template(data), data.RandomString)
@@ -455,17 +442,19 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   auto_backup {
-    encryption_enabled         = true
-    encryption_password        = "P@55w0rD!!%[2]s"
-    retention_period           = 14
-    storage_blob_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
-    backup_system_databases    = true
-    backup_schedule_automated  = false
-    full_backup_frequency      = "Daily"
-    full_backup_start_hour     = 3
-    full_backup_window_hours   = 4
-    log_backup_frequency       = 20
+    encryption_enabled              = true
+    encryption_password             = "P@55w0rD!!%[2]s"
+    retention_period                = 14
+    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
+    system_databases_backup_enabled = true
+
+    manual_schedule {
+      full_backup_frequency    = "Daily"
+      full_backup_start_hour   = 3
+      full_backup_window_hours = 4
+      log_backup_frequency     = 20
+    }
   }
 }
 `, r.template(data), data.RandomString)

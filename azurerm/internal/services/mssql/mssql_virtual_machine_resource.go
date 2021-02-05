@@ -72,17 +72,6 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"backup_system_databases": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-
-						"backup_schedule_automated": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-
 						"encryption_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -95,35 +84,44 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 							Sensitive: true,
 						},
 
-						"full_backup_frequency": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.Daily),
-								string(sqlvirtualmachine.Weekly),
-							}, false),
+						"manual_schedule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"full_backup_frequency": {
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.CaseDifference,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(sqlvirtualmachine.Daily),
+											string(sqlvirtualmachine.Weekly),
+										}, false),
+									},
+
+									"full_backup_start_hour": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(0, 23),
+									},
+
+									"full_backup_window_in_hours": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 23),
+									},
+
+									"log_backup_frequency_in_minutes": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(5, 60),
+									},
+								},
+							},
 						},
 
-						"full_backup_start_hour": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 23),
-						},
-
-						"full_backup_window_hours": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 23),
-						},
-
-						"log_backup_frequency": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(5, 60),
-						},
-
-						"retention_period": {
+						"retention_period_in_days": {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 30),
@@ -139,6 +137,11 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"system_databases_backup_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -303,40 +306,6 @@ func resourceMsSqlVirtualMachineCustomDiff(d *schema.ResourceDiff, _ interface{}
 
 	if !encryptionEnabled.(bool) && ok && v.(string) != "" {
 		return fmt.Errorf("auto_backup: `encryption_enabled` must be true when `encryption_password` is set")
-	}
-
-	if v, ok := d.GetOk("auto_backup.0.backup_schedule_automated"); ok && v.(bool) {
-		if _, ok := d.GetOk("auto_backup.0.full_backup_start_hour"); ok {
-			return fmt.Errorf("auto_backup: `full_backup_start_hour` can only be set when `backup_schedule_automated` is false")
-		}
-
-		if _, ok := d.GetOk("auto_backup.0.full_backup_window_hours"); ok {
-			return fmt.Errorf("auto_backup: `full_backup_window_hours` can only be set when `backup_schedule_automated` is false")
-		}
-
-		if _, ok := d.GetOk("auto_backup.0.log_backup_frequency"); ok {
-			return fmt.Errorf("auto_backup: `log_backup_frequency` can only be set when `backup_schedule_automated` is false")
-		}
-
-		if _, ok := d.GetOk("auto_backup.0.full_backup_frequency"); ok {
-			return fmt.Errorf("auto_backup: `full_backup_frequency` can only be set when `backup_schedule_automated` is false")
-		}
-	} else {
-		if _, ok := d.GetOk("auto_backup.0.full_backup_start_hour"); !ok {
-			return fmt.Errorf("auto_backup: `full_backup_start_hour` must be set when `backup_schedule_automated` is false")
-		}
-
-		if _, ok := d.GetOk("auto_backup.0.full_backup_window_hours"); !ok {
-			return fmt.Errorf("auto_backup: `full_backup_window_hours` must be set when `backup_schedule_automated` is false")
-		}
-
-		if _, ok := d.GetOk("auto_backup.0.log_backup_frequency"); !ok {
-			return fmt.Errorf("auto_backup: `log_backup_frequency` must be set when `backup_schedule_automated` is false")
-		}
-
-		if v, ok := d.GetOk("auto_backup.0.full_backup_frequency"); !ok || v.(string) == "" {
-			return fmt.Errorf("auto_backup: `full_backup_frequency` must be set when `backup_schedule_automated` is false")
-		}
 	}
 
 	return nil
@@ -557,12 +526,32 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 				return resp, "Pending", nil
 			}
 
-			// check each property for drift
+			// check each property in the auto_backup block for drift
 			for prop, val := range autoBackupSettings[0].(map[string]interface{}) {
 				v := d.Get(fmt.Sprintf("auto_backup.0.%s", prop))
 				switch prop {
-				case "full_backup_frequency":
-					if !strings.EqualFold(v.(string), val.(string)) {
+				case "manual_schedule":
+					if m := val.([]interface{}); len(m) > 0 {
+						if b, ok := d.GetOk("auto_backup.0.manual_schedule"); !ok || len(b.([]interface{})) == 0 {
+							// manual schedule disabled in config but still showing in response
+							return resp, "Pending", nil
+						}
+						// check each property in the manual_schedule block for drift
+						for prop2, val2 := range m[0].(map[string]interface{}) {
+							v2 := d.Get(fmt.Sprintf("auto_backup.0.manual_schedule.0.%s", prop2))
+							switch prop2 {
+							case "full_backup_frequency":
+								if !strings.EqualFold(v2.(string), val2.(string)) {
+									return resp, "Pending", nil
+								}
+							default:
+								if v2 != val2 {
+									return resp, "Pending", nil
+								}
+							}
+						}
+					} else if b, ok := d.GetOk("auto_backup.0.manual_schedule"); ok || len(b.([]interface{})) > 0 {
+						// manual schedule set in config but not reflecting in response
 						return resp, "Pending", nil
 					}
 				default:
@@ -584,40 +573,46 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualm
 		Enable: utils.Bool(false),
 	}
 
-	if len(input) == 1 {
+	if len(input) > 0 {
 		config := input[0].(map[string]interface{})
-
 		ret.Enable = utils.Bool(true)
-		ret.RetentionPeriod = utils.Int32(int32(config["retention_period"].(int)))
-		ret.StorageAccountURL = utils.String(config["storage_blob_endpoint"].(string))
-		ret.StorageAccessKey = utils.String(config["storage_account_access_key"].(string))
+
+		if v, ok := config["retention_period_in_days"]; ok {
+			ret.RetentionPeriod = utils.Int32(int32(v.(int)))
+		}
+		if v, ok := config["storage_blob_endpoint"]; ok {
+			ret.StorageAccountURL = utils.String(v.(string))
+		}
+		if v, ok := config["storage_account_access_key"]; ok {
+			ret.StorageAccessKey = utils.String(v.(string))
+		}
 
 		v, ok := config["encryption_enabled"]
 		enableEncryption := ok && v.(bool)
 		ret.EnableEncryption = utils.Bool(enableEncryption)
-		if enableEncryption {
-			ret.Password = utils.String(config["encryption_password"].(string))
+		if v, ok := config["encryption_password"]; enableEncryption && ok {
+			ret.Password = utils.String(v.(string))
 		}
 
-		if v, ok := config["backup_system_databases"]; ok {
+		if v, ok := config["system_databases_backup_enabled"]; ok {
 			ret.BackupSystemDbs = utils.Bool(v.(bool))
 		}
 
-		if v, ok := config["backup_schedule_automated"]; ok && v.(bool) {
-			ret.BackupScheduleType = sqlvirtualmachine.Automated
-		} else {
+		ret.BackupScheduleType = sqlvirtualmachine.Automated
+		if v, ok := config["manual_schedule"]; ok && len(v.([]interface{})) > 0 {
+			manualSchedule := v.([]interface{})[0].(map[string]interface{})
 			ret.BackupScheduleType = sqlvirtualmachine.Manual
-			ret.FullBackupFrequency = sqlvirtualmachine.FullBackupFrequencyType(config["full_backup_frequency"].(string))
 
-			if v, ok := config["full_backup_start_hour"]; ok {
+			if v, ok := manualSchedule["full_backup_frequency"]; ok {
+				ret.FullBackupFrequency = sqlvirtualmachine.FullBackupFrequencyType(v.(string))
+			}
+			if v, ok := manualSchedule["full_backup_start_hour"]; ok {
 				ret.FullBackupStartTime = utils.Int32(int32(v.(int)))
 			}
-
-			if v, ok := config["full_backup_window_hours"]; ok {
+			if v, ok := manualSchedule["full_backup_window_in_hours"]; ok {
 				ret.FullBackupWindowHours = utils.Int32(int32(v.(int)))
 			}
-
-			if v, ok := config["log_backup_frequency"]; ok {
+			if v, ok := manualSchedule["log_backup_frequency_in_minutes"]; ok {
 				ret.LogBackupFrequency = utils.Int32(int32(v.(int)))
 			}
 		}
@@ -631,19 +626,31 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackup
 		return []interface{}{}
 	}
 
-	var fullBackupStartHour int
-	if autoBackup.FullBackupStartTime != nil {
-		fullBackupStartHour = int(*autoBackup.FullBackupStartTime)
-	}
+	manualSchedule := make([]interface{}, 0)
+	if strings.EqualFold(string(autoBackup.BackupScheduleType), string(sqlvirtualmachine.Manual)) {
+		var fullBackupStartHour int
+		if autoBackup.FullBackupStartTime != nil {
+			fullBackupStartHour = int(*autoBackup.FullBackupStartTime)
+		}
 
-	var fullBackupWindowHours int
-	if autoBackup.FullBackupWindowHours != nil {
-		fullBackupWindowHours = int(*autoBackup.FullBackupWindowHours)
-	}
+		var fullBackupWindowHours int
+		if autoBackup.FullBackupWindowHours != nil {
+			fullBackupWindowHours = int(*autoBackup.FullBackupWindowHours)
+		}
 
-	var logBackupFrequency int
-	if autoBackup.LogBackupFrequency != nil {
-		logBackupFrequency = int(*autoBackup.LogBackupFrequency)
+		var logBackupFrequency int
+		if autoBackup.LogBackupFrequency != nil {
+			logBackupFrequency = int(*autoBackup.LogBackupFrequency)
+		}
+
+		manualSchedule = []interface{}{
+			map[string]interface{}{
+				"full_backup_frequency":           string(autoBackup.FullBackupFrequency),
+				"full_backup_start_hour":          fullBackupStartHour,
+				"full_backup_window_in_hours":     fullBackupWindowHours,
+				"log_backup_frequency_in_minutes": logBackupFrequency,
+			},
+		}
 	}
 
 	var retentionPeriod int
@@ -659,18 +666,13 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackup
 
 	return []interface{}{
 		map[string]interface{}{
-			"backup_schedule_automated": strings.EqualFold(string(autoBackup.BackupScheduleType), string(sqlvirtualmachine.Automated)),
-			"backup_system_databases":   autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
-			"encryption_enabled":        autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption,
-			"full_backup_frequency":     string(autoBackup.FullBackupFrequency),
-			"full_backup_start_hour":    fullBackupStartHour,
-			"full_backup_window_hours":  fullBackupWindowHours,
-			"log_backup_frequency":      logBackupFrequency,
-			"retention_period":          retentionPeriod,
-
-			"encryption_password":        encryptionPassword,
-			"storage_account_access_key": storageKey,
-			"storage_blob_endpoint":      blobEndpoint,
+			"encryption_enabled":              autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption,
+			"encryption_password":             encryptionPassword,
+			"manual_schedule":                 manualSchedule,
+			"retention_period_in_days":        retentionPeriod,
+			"storage_account_access_key":      storageKey,
+			"storage_blob_endpoint":           blobEndpoint,
+			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
 }
