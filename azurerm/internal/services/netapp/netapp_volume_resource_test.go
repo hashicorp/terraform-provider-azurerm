@@ -52,12 +52,16 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 }
 
 func TestAccNetAppVolume_crr(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
 	r := NetAppVolumeResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.crr(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("Dst"),
+			),
 		},
 		data.ImportStep(),
 	})
