@@ -723,23 +723,21 @@ func resourceContainerGroupRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func flattenPorts(ports []interface{}) *schema.Set {
-	if ports != nil && len(ports) > 0 {
+	if len(ports) > 0 {
 		flatPorts := make([]interface{}, 0)
 		for _, p := range ports {
 			port := make(map[string]interface{})
-			switch p.(type) {
+			switch t := p.(type) {
 			case containerinstance.Port:
-				pCast := p.(containerinstance.Port)
-				if v := pCast.Port; v != nil {
+				if v := t.Port; v != nil {
 					port["port"] = int(*v)
 				}
-				port["protocol"] = string(pCast.Protocol)
+				port["protocol"] = string(t.Protocol)
 			case containerinstance.ContainerPort:
-				pCast := p.(containerinstance.ContainerPort)
-				if v := pCast.Port; v != nil {
+				if v := t.Port; v != nil {
 					port["port"] = int(*v)
 				}
-				port["protocol"] = string(pCast.Protocol)
+				port["protocol"] = string(t.Protocol)
 			}
 			flatPorts = append(flatPorts, port)
 		}
@@ -984,7 +982,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 	if v, ok := d.Get("exposed_port").(*schema.Set); ok && len(v.List()) > 0 {
 		cgpMap := make(map[int32]bool)
 		for _, p := range containerInstancePorts {
-			cgpMap[int32(*p.Port)] = true
+			cgpMap[*p.Port] = true
 		}
 
 		for _, p := range v.List() {
