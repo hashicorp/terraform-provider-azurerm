@@ -1,4 +1,4 @@
-package tests
+package consumption
 
 import (
 	"fmt"
