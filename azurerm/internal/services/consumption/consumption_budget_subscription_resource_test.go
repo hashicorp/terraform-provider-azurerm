@@ -1,7 +1,10 @@
-package tests
+package consumption_test
 
 import (
+	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"testing"
 	"time"
 
@@ -19,171 +22,129 @@ func consumptionBudgetTestStartDate() time.Time {
 	return startDate
 }
 
-func TestAccAzureRMConsumptionBudgetSubscription_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+type ConsumptionBudgetSubscriptionResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMConsumptionBudgetSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccConsumptionBudgetSubscription_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccConsumptionBudgetSubscription_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccConsumptionBudgetSubscription_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_consumption_budget_subscription"),
 		},
 	})
 }
 
-func TestAccAzureRMConsumptionBudgetSubscription_basicUpdate(t *testing.T) {
+func TestAccConsumptionBudgetSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMConsumptionBudgetSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_basicUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMConsumptionBudgetSubscription_complete(t *testing.T) {
+func TestAccConsumptionBudgetSubscription_usageCategory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMConsumptionBudgetSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withUsageCategory(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
-	})
-}
-func TestAccAzureRMConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMConsumptionBudgetSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_completeUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMConsumptionBudgetSubscription_usageCategory(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMConsumptionBudgetSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMConsumptionBudgetSubscription_usageCategory(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMConsumptionBudgetSubscriptionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMConsumptionBudgetSubscriptionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Consumption.BudgetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		consumptionBudgetName := rs.Primary.Attributes["name"]
-		subscriptionId, hasSubscriptionId := rs.Primary.Attributes["subscription_id"]
-		scope := fmt.Sprintf("/subscriptions/%s", subscriptionId)
-		if !hasSubscriptionId {
-			return fmt.Errorf("bad: no subscription id found in state for Consumption Budget: %s", consumptionBudgetName)
-		}
-
-		resp, err := conn.Get(ctx, scope, consumptionBudgetName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Consumption Budget %q for scope %q does not exist", consumptionBudgetName, scope)
-			}
-
-			return fmt.Errorf("bad: Get on consumptionBudgetClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMConsumptionBudgetSubscriptionDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Consumption.BudgetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_consumption_budget_subscription" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		subscriptionId := rs.Primary.Attributes["subscription_id"]
-		scope := fmt.Sprintf("/subscriptions/%s", subscriptionId)
-
-		resp, err := conn.Get(ctx, scope, name)
-
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
+func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureConsumptionBudgetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.BudgetProperties != nil), nil
 }
 
-func testAccAzureRMConsumptionBudgetSubscription_basic(data acceptance.TestData) string {
+func (ConsumptionBudgetSubscriptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -217,7 +178,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 `, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
-func testAccAzureRMConsumptionBudgetSubscription_basicUpdate(data acceptance.TestData) string {
+func (ConsumptionBudgetSubscriptionResource) basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -255,7 +216,23 @@ resource "azurerm_consumption_budget_subscription" "test" {
 `, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
-func testAccAzureRMConsumptionBudgetSubscription_complete(data acceptance.TestData) string {
+func (ConsumptionBudgetSubscriptionResource) requiresImport(data acceptance.TestData) string {
+	template := ConsumptionBudgetSubscriptionResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_consumption_budget_subscription" "import" {
+  name                = azurerm_consumption_budget_subscription.test.name
+  subscription_id     = azurerm_consumption_budget_subscription.test.subscription_id
+  
+  amount     = azurerm_consumption_budget_subscription.test.amount
+  category   = azurerm_consumption_budget_subscription.test.category
+  time_grain = azurerm_consumption_budget_subscription.test.time_grain
+}
+`, template)
+}
+
+func (ConsumptionBudgetSubscriptionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -339,7 +316,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
-func testAccAzureRMConsumptionBudgetSubscription_completeUpdate(data acceptance.TestData) string {
+func (ConsumptionBudgetSubscriptionResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -436,7 +413,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
-func testAccAzureRMConsumptionBudgetSubscription_usageCategory(data acceptance.TestData) string {
+func (ConsumptionBudgetSubscriptionResource) withUsageCategory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

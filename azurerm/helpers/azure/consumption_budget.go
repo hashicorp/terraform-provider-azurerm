@@ -24,6 +24,16 @@ type ConsumptionBudgetID struct {
 	Scope string
 }
 
+func (id ConsumptionBudgetID) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Scope %q", id.Scope),
+	}
+
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Consumption Budget", segmentsStr)
+}
+
 // validation
 func ValidateAzureConsumptionBudgetName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
