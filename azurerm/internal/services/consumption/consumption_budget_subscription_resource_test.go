@@ -228,8 +228,23 @@ resource "azurerm_consumption_budget_subscription" "import" {
   amount     = azurerm_consumption_budget_subscription.test.amount
   category   = azurerm_consumption_budget_subscription.test.category
   time_grain = azurerm_consumption_budget_subscription.test.time_grain
+
+  time_period {
+    start_date = "%s"
+  }
+
+  notification {
+    enabled   = true
+    threshold = 90.0
+    operator  = "EqualTo"
+
+    contact_emails = [
+      "foo@example.com",
+      "bar@example.com",
+    ]
+  }
 }
-`, template)
+`, template, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
 func (ConsumptionBudgetSubscriptionResource) complete(data acceptance.TestData) string {

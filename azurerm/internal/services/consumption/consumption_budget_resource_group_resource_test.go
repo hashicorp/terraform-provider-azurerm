@@ -55,7 +55,7 @@ func TestAccConsumptionBudgetResourceGroup_basicUpdate(t *testing.T) {
 }
 
 func TestAccConsumptionBudgetResourceGroup_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
 	r := ConsumptionBudgetResourceGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccConsumptionBudgetResourceGroup_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_consumption_budget_subscription"),
+			ExpectError: acceptance.RequiresImportError("azurerm_consumption_budget_resource_group"),
 		},
 	})
 }
@@ -234,8 +234,23 @@ resource "azurerm_consumption_budget_resource_group" "import" {
   amount     = azurerm_consumption_budget_resource_group.test.amount
   category   = azurerm_consumption_budget_resource_group.test.category
   time_grain = azurerm_consumption_budget_resource_group.test.time_grain
+
+  time_period {
+    start_date = "%s"
+  }
+
+  notification {
+    enabled   = true
+    threshold = 90.0
+    operator  = "EqualTo"
+
+    contact_emails = [
+      "foo@example.com",
+      "bar@example.com",
+    ]
+  }
 }
-`, template)
+`, template, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
 func (ConsumptionBudgetResourceGroupResource) complete(data acceptance.TestData) string {
