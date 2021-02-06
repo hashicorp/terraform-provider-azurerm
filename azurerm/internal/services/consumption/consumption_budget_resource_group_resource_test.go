@@ -3,8 +3,8 @@ package consumption_test
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	"testing"
 	"time"
 
@@ -19,7 +19,7 @@ type ConsumptionBudgetResourceGroupResource struct{}
 
 func TestAccConsumptionBudgetResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r:= ConsumptionBudgetResourceGroupResource{}
+	r := ConsumptionBudgetResourceGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccConsumptionBudgetResourceGroup_basic(t *testing.T) {
 
 func TestAccConsumptionBudgetResourceGroup_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r:= ConsumptionBudgetResourceGroupResource{}
+	r := ConsumptionBudgetResourceGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -72,10 +72,9 @@ func TestAccConsumptionBudgetResourceGroup_requiresImport(t *testing.T) {
 	})
 }
 
-
 func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r:= ConsumptionBudgetResourceGroupResource{}
+	r := ConsumptionBudgetResourceGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -89,7 +88,7 @@ func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
 }
 func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r:= ConsumptionBudgetResourceGroupResource{}
+	r := ConsumptionBudgetResourceGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -111,7 +110,7 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 
 func TestAccConsumptionBudgetResourceGroup_usageCategory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r:= ConsumptionBudgetResourceGroupResource{}
+	r := ConsumptionBudgetResourceGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -125,7 +124,7 @@ func TestAccConsumptionBudgetResourceGroup_usageCategory(t *testing.T) {
 }
 
 func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureConsumptionBudgetID(state.ID)
+	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}

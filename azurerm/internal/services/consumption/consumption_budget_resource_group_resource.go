@@ -2,6 +2,7 @@ package consumption
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,7 +26,7 @@ func resourceArmConsumptionBudgetResourceGroup() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: azure.SchemaAzureConsumptionBudgetResourceGroupResource(),
+		Schema: SchemaAzureConsumptionBudgetResourceGroupResource(),
 	}
 }
 
@@ -49,7 +50,7 @@ func resourceArmConsumptionBudgetResourceGroupRead(d *schema.ResourceData, meta 
 	}
 
 	// Parse the consumption budget to get the scope
-	consumptionBudgetId, err := azure.ParseAzureConsumptionBudgetID(d.Id())
+	consumptionBudgetId, err := parse.ConsumptionBudgetID(d.Id())
 	if err != nil {
 		return err
 	}

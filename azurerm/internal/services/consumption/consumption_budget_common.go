@@ -2,11 +2,11 @@ package consumption
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-01-01/consumption"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/shopspring/decimal"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -18,7 +18,7 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureConsumptionBudgetID(d.Id())
+	id, err := parse.ConsumptionBudgetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -39,9 +39,9 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) 
 	amount, _ := resp.Amount.Float64()
 	d.Set("amount", amount)
 	d.Set("time_grain", string(resp.TimeGrain))
-	d.Set("time_period", azure.FlattenAzureConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", schema.NewSet(schema.HashResource(azure.SchemaAzureConsumptionBudgetNotificationElement()), azure.FlattenAzureConsumptionBudgetNotifications(resp.Notifications)))
-	d.Set("filter", azure.FlattenAzureConsumptionBudgetFilter(resp.Filters))
+	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
+	d.Set("notification", schema.NewSet(schema.HashResource(SchemaAzureConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
+	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filters))
 
 	return nil
 }
@@ -51,7 +51,7 @@ func resourceArmConsumptionBudgetDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureConsumptionBudgetID(d.Id())
+	id, err := parse.ConsumptionBudgetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	amount := decimal.NewFromFloat(d.Get("amount").(float64))
-	timePeriod, err := azure.ExpandAzureConsumptionBudgetTimePeriod(d.Get("time_period").([]interface{}))
+	timePeriod, err := ExpandConsumptionBudgetTimePeriod(d.Get("time_period").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("error in expanding`time_period`: %+v", err)
 	}
@@ -101,8 +101,8 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 		BudgetProperties: &consumption.BudgetProperties{
 			Amount:        &amount,
 			Category:      consumption.CategoryType(d.Get("category").(string)),
-			Filters:       azure.ExpandAzureConsumptionBudgetFilter(d.Get("filter").([]interface{})),
-			Notifications: azure.ExpandAzureConsumptionBudgetNotifications(d.Get("notification").(*schema.Set).List()),
+			Filters:       ExpandConsumptionBudgetFilter(d.Get("filter").([]interface{})),
+			Notifications: ExpandConsumptionBudgetNotifications(d.Get("notification").(*schema.Set).List()),
 			TimeGrain:     consumption.TimeGrainType(d.Get("time_grain").(string)),
 			TimePeriod:    timePeriod,
 		},

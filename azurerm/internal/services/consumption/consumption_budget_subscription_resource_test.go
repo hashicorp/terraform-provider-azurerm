@@ -3,8 +3,8 @@ package consumption_test
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	"testing"
 	"time"
 
@@ -131,7 +131,7 @@ func TestAccConsumptionBudgetSubscription_usageCategory(t *testing.T) {
 }
 
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureConsumptionBudgetID(state.ID)
+	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -222,9 +222,9 @@ func (ConsumptionBudgetSubscriptionResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_consumption_budget_subscription" "import" {
-  name                = azurerm_consumption_budget_subscription.test.name
-  subscription_id     = azurerm_consumption_budget_subscription.test.subscription_id
-  
+  name            = azurerm_consumption_budget_subscription.test.name
+  subscription_id = azurerm_consumption_budget_subscription.test.subscription_id
+
   amount     = azurerm_consumption_budget_subscription.test.amount
   category   = azurerm_consumption_budget_subscription.test.category
   time_grain = azurerm_consumption_budget_subscription.test.time_grain
