@@ -82,6 +82,7 @@ func (client ChargesClient) ListByScope(ctx context.Context, scope string, filte
 	result, err = client.ListByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.ChargesClient", "ListByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return

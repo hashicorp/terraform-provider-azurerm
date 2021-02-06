@@ -103,6 +103,7 @@ func (client UsageDetailsClient) List(ctx context.Context, scope string, expand 
 	result.udlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.UsageDetailsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.udlr.hasNextLink() && result.udlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -180,6 +181,7 @@ func (client UsageDetailsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.UsageDetailsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

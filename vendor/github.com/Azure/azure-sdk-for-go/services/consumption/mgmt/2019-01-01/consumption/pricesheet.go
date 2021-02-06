@@ -88,6 +88,7 @@ func (client PriceSheetClient) Get(ctx context.Context, expand string, skiptoken
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.PriceSheetClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -185,6 +186,7 @@ func (client PriceSheetClient) GetByBillingPeriod(ctx context.Context, billingPe
 	result, err = client.GetByBillingPeriodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.PriceSheetClient", "GetByBillingPeriod", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -74,6 +74,7 @@ func (client ForecastsClient) List(ctx context.Context, filter string) (result F
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.ForecastsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

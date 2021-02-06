@@ -76,6 +76,7 @@ func (client AggregatedCostClient) GetByManagementGroup(ctx context.Context, man
 	result, err = client.GetByManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.AggregatedCostClient", "GetByManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -153,6 +154,7 @@ func (client AggregatedCostClient) GetForBillingPeriodByManagementGroup(ctx cont
 	result, err = client.GetForBillingPeriodByManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.AggregatedCostClient", "GetForBillingPeriodByManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -79,6 +79,7 @@ func (client TagsClient) Get(ctx context.Context, scope string) (result TagsResu
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.TagsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
