@@ -1,9 +1,10 @@
 package validate
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"regexp"
 )
 
 func ConsumptionBudgetName() schema.SchemaValidateFunc {

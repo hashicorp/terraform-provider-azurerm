@@ -2,12 +2,13 @@ package consumption
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-01-01/consumption"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/shopspring/decimal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
 )
 
 // expand and flatten

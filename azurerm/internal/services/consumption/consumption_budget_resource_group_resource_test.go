@@ -3,10 +3,11 @@ package consumption_test
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 	"testing"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"

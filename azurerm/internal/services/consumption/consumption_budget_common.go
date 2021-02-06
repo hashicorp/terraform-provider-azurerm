@@ -2,6 +2,7 @@ package consumption
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-01-01/consumption"
