@@ -653,8 +653,8 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 	// Let the user have a final say whether they want to keep these 2 or not on
 	// Linux consumption plans. They shouldn't be there according to a bug
 	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
+
 	if !strings.EqualFold(d.Get("os_type").(string), "linux") {
-		delete(appSettings, "WEBSITE_CONTENTSHARE")
 		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 	}
 

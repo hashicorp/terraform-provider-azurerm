@@ -214,7 +214,6 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 
-	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
 	// TODO 3.0 - remove this logic for determining which storage account connection string to use
@@ -246,7 +245,6 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 	}
 
 	functionVersion := d.Get("version").(string)
-	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
 	basicSettings := []web.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},
@@ -261,12 +259,12 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 	}
 
 	consumptionSettings := []web.NameValuePair{
-		{Name: &contentSharePropName, Value: &contentShare},
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
 	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+
 	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium")) &&
 		!strings.EqualFold(d.Get("os_type").(string), "linux") {
 		return append(basicSettings, consumptionSettings...), nil
