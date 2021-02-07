@@ -1,207 +1,179 @@
 package compute_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type ImageBuilderTemplateResource struct{}
 
 func TestAccAzureRMImageBuilderTemplate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMImageBuilderTemplate_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.shell_sha256_checksum", "2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.shell_sha256_checksum", "ade4c5214c3c675e92c66e2d067a870c5b81b9844b3de3cc72c49ff36425fc93"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_sha256_checksum", "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("customizer.0.shell_sha256_checksum").HasValue("2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"),
+				check.That(data.ResourceName).Key("customizer.1.shell_sha256_checksum").HasValue("ade4c5214c3c675e92c66e2d067a870c5b81b9844b3de3cc72c49ff36425fc93"),
+				check.That(data.ResourceName).Key("customizer.2.shell_sha256_checksum").HasValue("d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_tags_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMImageBuilderTemplate_tags_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMImageBuilderTemplate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.tags_update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_identity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMImageBuilderTemplate_identity_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMImageBuilderTemplate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.identity_update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_vnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_vnet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vnet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_windowsPlatformSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_windowsPlatformSource(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.powershell_sha256_checksum", "0607c084bdde8ef843cd8b7668e54a37ed07446bb642fe791ba79307a0828ea5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_sha256_checksum", "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsPlatformSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("customizer.0.powershell_sha256_checksum").HasValue("0607c084bdde8ef843cd8b7668e54a37ed07446bb642fe791ba79307a0828ea5"),
+				check.That(data.ResourceName).Key("customizer.2.file_sha256_checksum").HasValue("d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	linuxVMResourceName := "azurerm_linux_virtual_machine.test"
+	r := ImageBuilderTemplateResource{}
+	rLinuxVMResource := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				// create the original VM
-				Config: testLinuxVirtualMachine_imageFromExistingMachinePrep(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists("azurerm_linux_virtual_machine.source"),
-					generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
-				),
-			},
-			{
-				// then create an image builder template by consuming the image id as source after generalizing the original VM
-				Config: testLinuxVirtualMachine_imageBuilderTemplateFromImage(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: rLinuxVMResource.imageFromExistingMachinePrep(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(linuxVMResourceName).ExistsInAzure(rLinuxVMResource),
+				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+			),
 		},
+		{
+			Config: r.imageBuilderTemplateFromImage(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -210,136 +182,118 @@ func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 // Issue filed to Azure service team: https://github.com/Azure/azure-rest-api-specs/issues/11559.
 func TestAccAzureRMImageBuilderTemplate_sharedImageGallerySource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	linuxVMResourceName := "azurerm_linux_virtual_machine.test"
+	r := ImageBuilderTemplateResource{}
+	rLinuxVMResource := LinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				// create the original VM
-				Config: testLinuxVirtualMachine_imageFromExistingMachinePrep(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists("azurerm_linux_virtual_machine.source"),
-					generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
-				),
-			},
-			{
-				// then create an image builder template by consuming the image version in SIG as source after generalizing the original VM
-				Config: testLinuxVirtualMachine_imageBuilderTemplateFromSharedImageGallery(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: rLinuxVMResource.imageFromExistingMachinePrep(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(linuxVMResourceName).ExistsInAzure(rLinuxVMResource),
+				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+			),
 		},
+		{
+			Config: r.imageBuilderTemplateFromSharedImageGallery(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_purchasePlanSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_purchasePlanSource(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.purchasePlanSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_vhdDistribution(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_vhdDistribution(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.vhdDistribution(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_sharedImageDistribution(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_sharedImageDistribution(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sharedImageDistribution(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMImageBuilderTemplate_multipleDistribution(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
+	r := ImageBuilderTemplateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageBuilderTemplateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMImageBuilderTemplate_multipleDistribution(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleDistribution(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMImageBuilderTemplateDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMImageBuilderTemplateClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r ImageBuilderTemplateResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_image_builder_template" {
-			continue
+	resp, err := client.Compute.VMImageBuilderTemplateClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Image Builder Template still exists:\n%#v", resp)
-		}
+		return nil, fmt.Errorf("retrieving Image Builder Template: %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return nil
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMImageBuilderTemplate_basic(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
+
+	if _, err := client.Compute.VMImageBuilderTemplateClient.Delete(ctx, resourceGroup, name); err != nil {
+		return nil, fmt.Errorf("deleting Image Builder Template %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return utils.Bool(true), nil
+}
+
+func (r ImageBuilderTemplateResource) basic(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -383,9 +337,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMImageBuilderTemplate_basic(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 %s
@@ -416,9 +370,9 @@ resource "azurerm_image_builder_template" "import" {
 `, template, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_tags_update(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) tags_update(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -463,9 +417,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_identity_update(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) identity_update(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -543,9 +497,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, data.RandomInteger, data.RandomInteger, data.RandomInteger, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_vnet(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) vnet(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -661,9 +615,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_complete(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) complete(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -742,9 +696,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_purchasePlanSource(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) purchasePlanSource(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -793,9 +747,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_windowsPlatformSource(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+func (r ImageBuilderTemplateResource) windowsPlatformSource(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -878,9 +832,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_vhdDistribution(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionVHDTemplate := testAccAzureRMImageBuilderTemplate_distributionVHDTemplate(data)
+func (r ImageBuilderTemplateResource) vhdDistribution(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionVHDTemplate := r.distributionVHDTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -924,9 +878,9 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionVHDTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_sharedImageDistribution(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionSharedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionSharedImageTemplate(data)
+func (r ImageBuilderTemplateResource) sharedImageDistribution(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionSharedImageTemplate := r.distributionSharedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -989,11 +943,11 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionSharedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_multipleDistribution(data acceptance.TestData) string {
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
-	distributionVHDTemplate := testAccAzureRMImageBuilderTemplate_distributionVHDTemplate(data)
-	distributionSharedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionSharedImageTemplate(data)
+func (r ImageBuilderTemplateResource) multipleDistribution(data acceptance.TestData) string {
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionVHDTemplate := r.distributionVHDTemplate(data)
+	distributionSharedImageTemplate := r.distributionSharedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1100,40 +1054,13 @@ resource "azurerm_image_builder_template" "test" {
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate, distributionVHDTemplate, distributionSharedImageTemplate)
 }
 
-func testCheckAzureRMImageBuilderTemplateExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMImageBuilderTemplateClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r ImageBuilderTemplateResource) imageBuilderTemplateFromImage(data acceptance.TestData) string {
+	rLinuxVMResource := LinuxVirtualMachineResource{}
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Image Builder Template Not found: %s", resourceName)
-		}
+	template := rLinuxVMResource.imageFromExistingMachinePrep(data)
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("No resource group found in state for Image Builder Template: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Get Image Builder Template: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("image builder template %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testLinuxVirtualMachine_imageBuilderTemplateFromImage(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_imageFromExistingMachinePrep(data)
-
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 %s
@@ -1172,11 +1099,12 @@ resource "azurerm_image_builder_template" "test" {
 `, template, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
 
-func testLinuxVirtualMachine_imageBuilderTemplateFromSharedImageGallery(data acceptance.TestData) string {
-	template := testLinuxVirtualMachine_imageFromExistingMachinePrep(data)
+func (r ImageBuilderTemplateResource) imageBuilderTemplateFromSharedImageGallery(data acceptance.TestData) string {
+	rLinuxVMResource := LinuxVirtualMachineResource{}
+	template := rLinuxVMResource.imageFromExistingMachinePrep(data)
 
-	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
+	roleTemplate := r.roleTemplate(data)
+	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 %s
@@ -1244,7 +1172,7 @@ resource "azurerm_image_builder_template" "test" {
 `, template, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
 
-func testAccAzureRMImageBuilderTemplate_roleTemplate(data acceptance.TestData) string {
+func (r ImageBuilderTemplateResource) roleTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
@@ -1282,7 +1210,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data acceptance.TestData) string {
+func (r ImageBuilderTemplateResource) distributionMamagedImageTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 distribution_managed_image {
   name                = "acctestDistManagedImg-%[1]d"
@@ -1296,7 +1224,7 @@ distribution_managed_image {
 `, data.RandomInteger)
 }
 
-func testAccAzureRMImageBuilderTemplate_distributionVHDTemplate(data acceptance.TestData) string {
+func (r ImageBuilderTemplateResource) distributionVHDTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 distribution_vhd {
   run_output_name = "acctest-vhd-RunOutputName-%[1]d"
@@ -1307,7 +1235,7 @@ distribution_vhd {
 `, data.RandomInteger)
 }
 
-func testAccAzureRMImageBuilderTemplate_distributionSharedImageTemplate(data acceptance.TestData) string {
+func (r ImageBuilderTemplateResource) distributionSharedImageTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 distribution_shared_image {
   id = azurerm_shared_image.test.id
