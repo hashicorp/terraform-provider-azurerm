@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
@@ -125,6 +126,14 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+
+				"java_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(1\.8|11)`),
+						`Invalid Java version provided`),
+				},
 			},
 		},
 	}
@@ -199,6 +208,11 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"health_check_path": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"java_version": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -394,6 +408,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
+	if v, ok := config["java_version"]; ok {
+		siteConfig.JavaVersion = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -450,6 +468,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HealthCheckPath != nil {
 		result["health_check_path"] = *input.HealthCheckPath
+	}
+
+	if input.JavaVersion != nil {
+		result["java_version"] = *input.JavaVersion
 	}
 
 	results = append(results, result)
