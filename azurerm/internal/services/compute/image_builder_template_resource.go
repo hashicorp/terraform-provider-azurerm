@@ -31,7 +31,7 @@ var fieldsOfShellCustomizer = []string{"shell_commands", "shell_script_uri", "sh
 var fieldsOfWindowsRestartCustomizer = []string{"windows_restart_check_command", "windows_restart_command", "windows_restart_timeout"}
 var fieldsOfWindowsUpdateCustomizer = []string{"windows_update_filters", "windows_update_search_criteria", "windows_update_limit"}
 
-func resourceArmImageBuilderTemplate() *schema.Resource {
+func resourceImageBuilderTemplate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmImageBuilderTemplateCreate,
 		Read:   resourceArmImageBuilderTemplateRead,
@@ -84,7 +84,7 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityId,
+								ValidateFunc: msiValidate.UserAssignedIdentityID,
 							},
 						},
 					},

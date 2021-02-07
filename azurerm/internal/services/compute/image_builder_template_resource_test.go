@@ -1,4 +1,4 @@
-package tests
+package compute_test
 
 import (
 	"fmt"
