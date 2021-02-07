@@ -30,7 +30,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
 
-// CapacitiesCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// CapacitiesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type CapacitiesCreateFuture struct {
 	azure.Future
 }
@@ -58,7 +59,8 @@ func (future *CapacitiesCreateFuture) Result(client CapacitiesClient) (dc Dedica
 	return
 }
 
-// CapacitiesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// CapacitiesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type CapacitiesDeleteFuture struct {
 	azure.Future
 }
@@ -80,7 +82,8 @@ func (future *CapacitiesDeleteFuture) Result(client CapacitiesClient) (ar autore
 	return
 }
 
-// CapacitiesResumeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// CapacitiesResumeFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type CapacitiesResumeFuture struct {
 	azure.Future
 }
@@ -125,7 +128,8 @@ func (future *CapacitiesSuspendFuture) Result(client CapacitiesClient) (ar autor
 	return
 }
 
-// CapacitiesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// CapacitiesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type CapacitiesUpdateFuture struct {
 	azure.Future
 }
@@ -300,8 +304,8 @@ type DedicatedCapacityAdministrators struct {
 	Members *[]string `json:"members,omitempty"`
 }
 
-// DedicatedCapacityMutableProperties an object that represents a set of mutable Dedicated capacity resource
-// properties.
+// DedicatedCapacityMutableProperties an object that represents a set of mutable Dedicated capacity
+// resource properties.
 type DedicatedCapacityMutableProperties struct {
 	// Administration - A collection of Dedicated capacity administrators
 	Administration *DedicatedCapacityAdministrators `json:"administration,omitempty"`
@@ -428,8 +432,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result listing capacities. It contains a list of operations and a URL link to get the
-// next set of results.
+// OperationListResult result listing capacities. It contains a list of operations and a URL link to get
+// the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of capacities supported by the Microsoft.PowerBIDedicated resource provider.
@@ -581,8 +585,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Resource represents an instance of an PowerBI Dedicated resource.
@@ -630,7 +637,8 @@ type SkuDetailsForExistingResource struct {
 	Sku *ResourceSku `json:"sku,omitempty"`
 }
 
-// SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing resources
+// SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing
+// resources
 type SkuEnumerationForExistingResourceResult struct {
 	autorest.Response `json:"-"`
 	// Value - The collection of available SKUs for existing resources

@@ -12,21 +12,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementDiagnostic() *schema.Resource {
+func resourceApiManagementDiagnostic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementDiagnosticCreateUpdate,
-		Read:   resourceArmApiManagementDiagnosticRead,
-		Update: resourceArmApiManagementDiagnosticCreateUpdate,
-		Delete: resourceArmApiManagementDiagnosticDelete,
+		Create: resourceApiManagementDiagnosticCreateUpdate,
+		Read:   resourceApiManagementDiagnosticRead,
+		Update: resourceApiManagementDiagnosticCreateUpdate,
+		Delete: resourceApiManagementDiagnosticDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ApiManagementDiagnosticID(id)
+			_, err := parse.DiagnosticID(id)
 			return err
 		}),
 
@@ -50,12 +51,12 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"api_management_logger_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementLoggerID,
+				ValidateFunc: validate.LoggerID,
 			},
 
 			"enabled": {
@@ -63,11 +64,60 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 				Optional:   true,
 				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
+
+			"sampling_percentage": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatBetween(0.0, 100.0),
+			},
+
+			"always_log_errors": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"verbosity": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.Verbose),
+					string(apimanagement.Information),
+					string(apimanagement.Error),
+				}, false),
+			},
+
+			"log_client_ip": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"http_correlation_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.HTTPCorrelationProtocolNone),
+					string(apimanagement.HTTPCorrelationProtocolLegacy),
+					string(apimanagement.HTTPCorrelationProtocolW3C),
+				}, false),
+			},
+
+			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"frontend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 		},
 	}
 }
 
-func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -95,6 +145,55 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
+	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+		parameters.Sampling = &apimanagement.SamplingSettings{
+			SamplingType: apimanagement.Fixed,
+			Percentage:   utils.Float(samplingPercentage.(float64)),
+		}
+	} else {
+		parameters.Sampling = nil
+	}
+
+	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
+		parameters.AlwaysLog = apimanagement.AllErrors
+	}
+
+	if verbosity, ok := d.GetOk("verbosity"); ok {
+		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
+	}
+
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
+		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
+	}
+
+	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
+		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
+	}
+
+	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
+	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
+	if frontendRequestSet || frontendResponseSet {
+		parameters.Frontend = &apimanagement.PipelineDiagnosticSettings{}
+		if frontendRequestSet {
+			parameters.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+		}
+		if frontendResponseSet {
+			parameters.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+		}
+	}
+
+	backendRequest, backendRequestSet := d.GetOk("backend_request")
+	backendResponse, backendResponseSet := d.GetOk("backend_response")
+	if backendRequestSet || backendResponseSet {
+		parameters.Backend = &apimanagement.PipelineDiagnosticSettings{}
+		if backendRequestSet {
+			parameters.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+		}
+		if backendResponseSet {
+			parameters.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, diagnosticId, parameters, ""); err != nil {
 		return fmt.Errorf("creating or updating Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, resourceGroup, serviceName, err)
 	}
@@ -108,15 +207,15 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementDiagnosticRead(d, meta)
+	return resourceApiManagementDiagnosticRead(d, meta)
 }
 
-func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId, err := parse.ApiManagementDiagnosticID(d.Id())
+	diagnosticId, err := parse.DiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -136,16 +235,39 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	d.Set("resource_group_name", diagnosticId.ResourceGroup)
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	d.Set("api_management_logger_id", resp.LoggerID)
+	if props := resp.DiagnosticContractProperties; props != nil {
+		if props.Sampling != nil && props.Sampling.Percentage != nil {
+			d.Set("sampling_percentage", props.Sampling.Percentage)
+		}
+		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
+		d.Set("verbosity", props.Verbosity)
+		d.Set("log_client_ip", props.LogClientIP)
+		d.Set("http_correlation_protocol", props.HTTPCorrelationProtocol)
+		if frontend := props.Frontend; frontend != nil {
+			d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
+			d.Set("frontend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Response))
+		} else {
+			d.Set("frontend_request", nil)
+			d.Set("frontend_response", nil)
+		}
+		if backend := props.Backend; backend != nil {
+			d.Set("backend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Request))
+			d.Set("backend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Response))
+		} else {
+			d.Set("backend_request", nil)
+			d.Set("backend_response", nil)
+		}
+	}
 
 	return nil
 }
 
-func resourceArmApiManagementDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId, err := parse.ApiManagementDiagnosticID(d.Id())
+	diagnosticId, err := parse.DiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}

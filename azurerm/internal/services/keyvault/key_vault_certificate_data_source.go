@@ -10,16 +10,17 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVaultCertificate() *schema.Resource {
+func dataSourceKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultCertificateRead,
+		Read: dataSourceKeyVaultCertificateRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -29,13 +30,13 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildName,
+				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"version": {
@@ -210,6 +211,11 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"certificate_data_base64": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"thumbprint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -220,25 +226,28 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func dataSourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	if err != nil {
+		return err
+	}
 	version := d.Get("version").(string)
 
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
+		return fmt.Errorf("looking up base uri for Key %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	cert, err := client.GetCertificate(ctx, keyVaultBaseUri, name, version)
+	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
-			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, keyVaultBaseUri)
+			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, *keyVaultBaseUri)
 			d.SetId("")
 			return nil
 		}
@@ -252,7 +261,7 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 
 	d.SetId(*cert.ID)
 
-	id, err := azure.ParseKeyVaultChildID(*cert.ID)
+	id, err := parse.ParseNestedItemID(*cert.ID)
 	if err != nil {
 		return err
 	}
@@ -273,6 +282,12 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("certificate_data", certificateData)
 
+	certificateDataBase64 := ""
+	if contents := cert.Cer; contents != nil {
+		certificateDataBase64 = base64.StdEncoding.EncodeToString(*contents)
+	}
+	d.Set("certificate_data_base64", certificateDataBase64)
+
 	thumbprint := ""
 	if v := cert.X509Thumbprint; v != nil {
 		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
@@ -288,6 +303,10 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {

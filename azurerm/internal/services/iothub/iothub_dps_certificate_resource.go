@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubDPSCertificate() *schema.Resource {
+func resourceIotHubDPSCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubDPSCertificateCreateUpdate,
-		Read:   resourceArmIotHubDPSCertificateRead,
-		Update: resourceArmIotHubDPSCertificateCreateUpdate,
-		Delete: resourceArmIotHubDPSCertificateDelete,
+		Create: resourceIotHubDPSCertificateCreateUpdate,
+		Read:   resourceIotHubDPSCertificateRead,
+		Update: resourceIotHubDPSCertificateCreateUpdate,
+		Delete: resourceIotHubDPSCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -60,7 +60,7 @@ func resourceArmIotHubDPSCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,10 +101,10 @@ func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotHubDPSCertificateRead(d, meta)
+	return resourceIotHubDPSCertificateRead(d, meta)
 }
 
-func resourceArmIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceArmIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmIotHubDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

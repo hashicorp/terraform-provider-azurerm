@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAppServiceEnvironment() *schema.Resource {
+func dataSourceAppServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAppServiceEnvironmentRead,
+		Read: dataSourceAppServiceEnvironmentRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -30,6 +30,24 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
+
+			"cluster_setting": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"front_end_scale_factor": {
 				Type:     schema.TypeInt,
@@ -64,7 +82,7 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 	}
 }
 
-func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -103,9 +121,10 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 
 		pricingTier := ""
 		if props.MultiSize != nil {
-			pricingTier = convertFromIsolatedSKU(*props.MultiSize)
+			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
+		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
 
 	d.Set("internal_ip_address", vipInfo.InternalIPAddress)

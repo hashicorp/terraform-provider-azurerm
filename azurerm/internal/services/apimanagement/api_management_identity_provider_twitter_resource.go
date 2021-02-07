@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderTwitter() *schema.Resource {
+func resourceApiManagementIdentityProviderTwitter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderTwitterCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderTwitterRead,
-		Update: resourceArmApiManagementIdentityProviderTwitterCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderTwitterDelete,
+		Create: resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderTwitterRead,
+		Update: resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderTwitterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,7 +38,7 @@ func resourceArmApiManagementIdentityProviderTwitter() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"api_key": {
 				Type:         schema.TypeString,
@@ -53,7 +56,7 @@ func resourceArmApiManagementIdentityProviderTwitter() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,21 +100,21 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderTwitterRead(d, meta)
+	return resourceApiManagementIdentityProviderTwitterRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderTwitterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
 	if err != nil {
@@ -134,18 +137,18 @@ func resourceArmApiManagementIdentityProviderTwitterRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderTwitterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.Name
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName), ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

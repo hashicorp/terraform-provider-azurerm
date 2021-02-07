@@ -36,11 +36,32 @@ provider "azurerm" {
 
 More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/docs/configuration/providers.html#provider-versions).
 
-Once version 2.0 of the AzureRM Provider is released - you can then upgrade to it by updating the version specified in the Provider block, like so:
+To use version 2.0 and newer of the AzureRM Provider - you can upgrade to it in a controlled manner by updating the version specified in the Provider block, like so:
 
 ```hcl
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
   version = "=2.0.0"
+  features {}
+}
+```
+
+When using the AzureRM Provider with Terraform 0.13 and later, the recommended approach is to declare Provider versions in the root module Terraform configuration, using a `required_providers` block as per the following example:
+
+```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
   features {}
 }
 ```
@@ -226,9 +247,9 @@ The `identity.type` field no longer supports the combined value `"SystemAssigned
 
 The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
 
-The `site_config.ip_restriction.subnet_mask` field has been removed as it is not longer used.
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is no longer used.
 
-The `site_config.virtual_network_name` field has been removed as it it no longer used
+The `site_config.virtual_network_name` field has been removed as it is no longer used
 
 ### Resource: `azurerm_app_service_plan`
 
@@ -368,19 +389,19 @@ The field `forwarding_protocol` within the `forwarding_configuration` block now 
 
 The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
 
-The `site_config.ip_restriction.subnet_mask` field has been removed as it is not longer used.
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is no longer used.
 
-The `site_config.virtual_network_name` field has been removed as it it no longer used
+The `site_config.virtual_network_name` field has been removed as it is no longer used
 
 ### Resource: `azurerm_iothub`
 
-The deprecated `sku.tier` property will be remove.
+The deprecated `sku.tier` property will be removed.
 
 The `sku.name` property is now case sensitive. 
 
 ### Resource: `azurerm_iothub_dps`
 
-The deprecated `sku.tier` property will be remove.
+The deprecated `sku.tier` property will be removed.
 
 The `sku.name` property is now case sensitive. 
 
@@ -500,13 +521,13 @@ The deprecated `elastic_pool_properties` block will be removed. The fields insid
 
 The deprecated field `network_security_group_id` will be removed. This has been replaced by the `azurerm_network_interface_security_group_association` resource.
 
-The `application_gateway_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.
+The `application_gateway_backend_address_pools_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.
 
-The `application_security_group_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_security_group_association` resource.
+The `application_security_group_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_application_security_group_association` resource.
 
-The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_backend_address_pool_association` resource.
+The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_backend_address_pool_association` resource.
 
-The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
+The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will be removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
 
 ### Resource: `azurerm_network_interface_application_security_group_association`
 

@@ -159,6 +159,7 @@ func (client BackupLongTermRetentionPoliciesClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +239,7 @@ func (client BackupLongTermRetentionPoliciesClient) ListByDatabase(ctx context.C
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return

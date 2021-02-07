@@ -10,27 +10,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricMeshSecretValue() *schema.Resource {
+func resourceServiceFabricMeshSecretValue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricMeshSecretValueCreateUpdate,
-		Read:   resourceArmServiceFabricMeshSecretValueRead,
-		Update: resourceArmServiceFabricMeshSecretValueCreateUpdate,
-		Delete: resourceArmServiceFabricMeshSecretValueDelete,
+		Create: resourceServiceFabricMeshSecretValueCreateUpdate,
+		Read:   resourceServiceFabricMeshSecretValueRead,
+		Update: resourceServiceFabricMeshSecretValueCreateUpdate,
+		Delete: resourceServiceFabricMeshSecretValueDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricMeshSecretValueID(id)
+			_, err := parse.SecretValueID(id)
 			return err
 		}),
+
+		DeprecationMessage: deprecationMessage("azurerm_service_fabric_mesh_secret_value"),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -72,7 +74,7 @@ func resourceArmServiceFabricMeshSecretValue() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -81,7 +83,7 @@ func resourceArmServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData,
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	secretID, err := parse.ServiceFabricMeshSecretID(d.Get("service_fabric_mesh_secret_id").(string))
+	secretID, err := parse.SecretID(d.Get("service_fabric_mesh_secret_id").(string))
 	if err != nil {
 		return err
 	}
@@ -122,16 +124,16 @@ func resourceArmServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmServiceFabricMeshSecretValueRead(d, meta)
+	return resourceServiceFabricMeshSecretValueRead(d, meta)
 }
 
-func resourceArmServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	secretClient := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshSecretValueID(d.Id())
+	id, err := parse.SecretValueID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -147,7 +149,7 @@ func resourceArmServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("reading Service Fabric Mesh Secret: %+v", err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Unable to find Service Fabric Mesh Secret Value %q - removing from state", d.Id())
@@ -158,27 +160,27 @@ func resourceArmServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("reading Service Fabric Mesh Secret Value: %+v", err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ValueName)
 	d.Set("service_fabric_mesh_secret_id", secret.ID)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricMeshSecretValueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshSecretValueID(d.Id())
+	id, err := parse.SecretValueID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.SecretName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Service Fabric Mesh Secret Value %q (Resource Group %q / Secret %q): %+v", id.Name, id.ResourceGroup, id.SecretName, err)
+			return fmt.Errorf("deleting Service Fabric Mesh Secret Value %q (Resource Group %q / Secret %q): %+v", id.ValueName, id.ResourceGroup, id.SecretName, err)
 		}
 	}
 

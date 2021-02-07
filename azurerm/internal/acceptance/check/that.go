@@ -1,6 +1,10 @@
 package check
 
 import (
+	"encoding/json"
+	"fmt"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -18,6 +22,14 @@ type thatType struct {
 func That(resourceName string) thatType {
 	return thatType{
 		resourceName: resourceName,
+	}
+}
+
+// DoesNotExistInAzure validates that the specified resource does not exist within Azure
+func (t thatType) DoesNotExistInAzure(testResource types.TestResource) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client)
+		return helpers.DoesNotExistInAzure(client, testResource, t.resourceName)(s)
 	}
 }
 
@@ -43,6 +55,45 @@ type thatWithKeyType struct {
 
 	// key being the specific field we're querying e.g. bar or a nested object ala foo.0.bar
 	key string
+}
+
+// JsonAssertionFunc is a function which takes a deserialized JSON object and asserts on it
+type JsonAssertionFunc func(input []interface{}) (*bool, error)
+
+// ContainsKeyValue returns a TestCheckFunc which asserts upon a given JSON string set into
+// the State by deserializing it and then asserting on it via the JsonAssertionFunc
+func (t thatWithKeyType) ContainsJsonValue(assertion JsonAssertionFunc) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, exists := s.RootModule().Resources[t.resourceName]
+		if !exists {
+			return fmt.Errorf("%q was not found in the state", t.resourceName)
+		}
+
+		value, exists := rs.Primary.Attributes[t.key]
+		if !exists {
+			return fmt.Errorf("the value %q does not exist within %q", t.key, t.resourceName)
+		}
+
+		if value == "" {
+			return fmt.Errorf("the value for %q was empty", t.key)
+		}
+
+		var out []interface{}
+		if err := json.Unmarshal([]byte(value), &out); err != nil {
+			return fmt.Errorf("deserializing the value for %q (%q) to json: %+v", t.key, value, err)
+		}
+
+		ok, err := assertion(out)
+		if err != nil {
+			return fmt.Errorf("asserting value for %q: %+v", t.key, err)
+		}
+
+		if ok == nil || !*ok {
+			return fmt.Errorf("assertion failed for %q: %+v", t.key, err)
+		}
+
+		return nil
+	}
 }
 
 // DoesNotExist returns a TestCheckFunc which validates that the specific key
@@ -71,4 +122,10 @@ func (t thatWithKeyType) HasValue(value string) resource.TestCheckFunc {
 // matches another other key on another resource
 func (t thatWithKeyType) MatchesOtherKey(other thatWithKeyType) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrPair(t.resourceName, t.key, other.resourceName, other.key)
+}
+
+// MatchesRegex returns a TestCheckFunc which validates that the key on this resource matches
+// the given regular expression
+func (t thatWithKeyType) MatchesRegex(r *regexp.Regexp) resource.TestCheckFunc {
+	return resource.TestMatchResourceAttr(t.resourceName, t.key, r)
 }

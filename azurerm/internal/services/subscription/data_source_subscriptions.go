@@ -5,14 +5,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmSubscriptions() *schema.Resource {
+func dataSourceSubscriptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSubscriptionsRead,
+		Read: dataSourceSubscriptionsRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -66,6 +68,8 @@ func dataSourceArmSubscriptions() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"tags": tags.SchemaDataSource(),
 					},
 				},
 			},
@@ -73,7 +77,7 @@ func dataSourceArmSubscriptions() *schema.Resource {
 	}
 }
 
-func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
 	subClient := armClient.Subscription.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -135,6 +139,8 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 				continue
 			}
 		}
+
+		s["tags"] = tags.Flatten(val.Tags)
 
 		subscriptions = append(subscriptions, s)
 	}

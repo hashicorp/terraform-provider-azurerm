@@ -25,7 +25,7 @@ A Service Principal is an application within Azure Active Directory whose authen
 
 It's possible to complete this task in either the [Azure CLI](#creating-a-service-principal-using-the-azure-cli) or in the [Azure Portal](#creating-a-service-principal-in-the-azure-portal) - in both we'll create a Service Principal which has `Contributor` rights to the subscription. [It's also possible to assign other rights](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
 
-### Creating a Service Principal using the Azure CLI
+### Creating a Service Principal using the Azure CLI
 
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
@@ -139,8 +139,8 @@ There are three tasks necessary to create a Service Principal using [the Azure P
 Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
 - **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single tenant)"
-- **Redirect URI** - you should choose "Web" in for the URI type. the actual value can be left blank
+- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
 At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
 
@@ -150,7 +150,7 @@ At the top of this page, you'll need to take note of the "Application (client) I
 
 Now that the Azure Active Directory Application exists we can create a Client Secret which can be used for authentication - to do this select **Certificates & secrets**. This screen displays the Certificates and Client Secrets (i.e. passwords) which are associated with this Azure Active Directory Application.
 
-On this screen we can generate a new Client Secret by clicking the **New client secret** button, then entering a Description and selecting an Expiry Date, and then pressing **Add**. Once the Client Secret has been generated it will be displayed on screen - _this is only displayed once_ so **be sure to copy it now** (otherwise you will need to regenerate a new secret). This value is the `client_secret` you will need.
+On this screen, we can generate a new Client Secret by clicking the **New client secret** button, then entering a Description and selecting an Expiry Date, and then pressing **Add**. Once the Client Secret has been generated it will be displayed on screen - _this is only displayed once_ so **be sure to copy it now** (otherwise you will need to regenerate a new secret). This value is the `client_secret` you will need it.
 
 ### 3. Granting the Application access to manage resources in your Azure Subscription
 
@@ -175,12 +175,22 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `2.5.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `2.46.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=2.5.0"
   features {}
 }
 ```
@@ -199,16 +209,25 @@ It's also possible to configure these variables either in-line or from using var
 variable "client_secret" {
 }
 
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=2.4.0"
+  features {}
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
   client_id       = "00000000-0000-0000-0000-000000000000"
   client_secret   = var.client_secret
   tenant_id       = "00000000-0000-0000-0000-000000000000"
-
-  features {}
 }
 ```
 

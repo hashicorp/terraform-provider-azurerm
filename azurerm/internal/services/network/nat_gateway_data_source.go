@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNatGateway() *schema.Resource {
+func dataSourceNatGateway() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNatGatewayRead,
+		Read: dataSourceNatGatewayRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -76,7 +76,7 @@ func dataSourceArmNatGateway() *schema.Resource {
 	}
 }
 
-func dataSourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

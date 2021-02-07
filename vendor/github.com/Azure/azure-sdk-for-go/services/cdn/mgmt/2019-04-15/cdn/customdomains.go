@@ -263,6 +263,7 @@ func (client CustomDomainsClient) DisableCustomHTTPS(ctx context.Context, resour
 	result, err = client.DisableCustomHTTPSResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "DisableCustomHTTPS", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -353,6 +354,7 @@ func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourc
 	result, err = client.EnableCustomHTTPSResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "EnableCustomHTTPS", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -445,6 +447,7 @@ func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -532,6 +535,7 @@ func (client CustomDomainsClient) ListByEndpoint(ctx context.Context, resourceGr
 	result.cdlr, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "ListByEndpoint", resp, "Failure responding to request")
+		return
 	}
 	if result.cdlr.hasNextLink() && result.cdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -597,6 +601,7 @@ func (client CustomDomainsClient) listByEndpointNextResults(ctx context.Context,
 	result, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "listByEndpointNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

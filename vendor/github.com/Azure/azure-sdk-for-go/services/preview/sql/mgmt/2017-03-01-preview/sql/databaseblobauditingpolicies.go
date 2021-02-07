@@ -78,6 +78,7 @@ func (client DatabaseBlobAuditingPoliciesClient) CreateOrUpdate(ctx context.Cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseBlobAuditingPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client DatabaseBlobAuditingPoliciesClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -240,6 +242,7 @@ func (client DatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx context.Cont
 	result.dbaplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseBlobAuditingPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.dbaplr.hasNextLink() && result.dbaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -305,6 +308,7 @@ func (client DatabaseBlobAuditingPoliciesClient) listByDatabaseNextResults(ctx c
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

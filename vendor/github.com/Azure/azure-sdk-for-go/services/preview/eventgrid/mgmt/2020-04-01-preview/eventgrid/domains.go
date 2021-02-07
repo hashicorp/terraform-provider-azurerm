@@ -225,6 +225,7 @@ func (client DomainsClient) Get(ctx context.Context, resourceGroupName string, d
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -308,6 +309,7 @@ func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.dlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -377,6 +379,7 @@ func (client DomainsClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -435,6 +438,7 @@ func (client DomainsClient) ListBySubscription(ctx context.Context, filter strin
 	result.dlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -503,6 +507,7 @@ func (client DomainsClient) listBySubscriptionNextResults(ctx context.Context, l
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -554,6 +559,7 @@ func (client DomainsClient) ListSharedAccessKeys(ctx context.Context, resourceGr
 	result, err = client.ListSharedAccessKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListSharedAccessKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -636,6 +642,7 @@ func (client DomainsClient) RegenerateKey(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -75,6 +75,7 @@ func (client TasksClient) Cancel(ctx context.Context, groupName string, serviceN
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -157,6 +158,7 @@ func (client TasksClient) CreateOrUpdate(ctx context.Context, parameters Project
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -240,6 +242,7 @@ func (client TasksClient) Delete(ctx context.Context, groupName string, serviceN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +326,7 @@ func (client TasksClient) Get(ctx context.Context, groupName string, serviceName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -408,6 +412,7 @@ func (client TasksClient) List(ctx context.Context, groupName string, serviceNam
 	result.tl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -476,6 +481,7 @@ func (client TasksClient) listNextResults(ctx context.Context, lastResults TaskL
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -531,6 +537,7 @@ func (client TasksClient) Update(ctx context.Context, parameters ProjectTask, gr
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -9,27 +9,41 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
+func DoesNotExistInAzure(client *clients.Client, testResource types.TestResource, resourceName string) resource.TestCheckFunc {
+	return existsFunc(false)(client, testResource, resourceName)
+}
+
 func ExistsInAzure(client *clients.Client, testResource types.TestResource, resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		ctx := client.StopContext
+	return existsFunc(true)(client, testResource, resourceName)
+}
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("%q was not found in the state", resourceName)
-		}
+func existsFunc(shouldExist bool) func(*clients.Client, types.TestResource, string) resource.TestCheckFunc {
+	return func(client *clients.Client, testResource types.TestResource, resourceName string) resource.TestCheckFunc {
+		return func(s *terraform.State) error {
+			ctx := client.StopContext
 
-		result, err := testResource.Exists(ctx, client, rs.Primary)
-		if err != nil {
-			return fmt.Errorf("running exists func for %q: %+v", resourceName, err)
-		}
-		if result == nil {
-			return fmt.Errorf("received nil for exists for %q", resourceName)
-		}
+			rs, ok := s.RootModule().Resources[resourceName]
+			if !ok {
+				return fmt.Errorf("%q was not found in the state", resourceName)
+			}
 
-		if !*result {
-			return fmt.Errorf("%q did not exist", resourceName)
-		}
+			result, err := testResource.Exists(ctx, client, rs.Primary)
+			if err != nil {
+				return fmt.Errorf("running exists func for %q: %+v", resourceName, err)
+			}
+			if result == nil {
+				return fmt.Errorf("received nil for exists for %q", resourceName)
+			}
 
-		return nil
+			if *result != shouldExist {
+				if !shouldExist {
+					return fmt.Errorf("%q still exists", resourceName)
+				}
+
+				return fmt.Errorf("%q did not exist", resourceName)
+			}
+
+			return nil
+		}
 	}
 }

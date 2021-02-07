@@ -94,6 +94,7 @@ func (client PercentileTargetClient) ListMetrics(ctx context.Context, resourceGr
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.PercentileTargetClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -96,6 +96,7 @@ func (client BookmarkRelationsClient) CreateOrUpdateRelation(ctx context.Context
 	result, err = client.CreateOrUpdateRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "CreateOrUpdateRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client BookmarkRelationsClient) DeleteRelation(ctx context.Context, resour
 	result, err = client.DeleteRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "DeleteRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,6 +291,7 @@ func (client BookmarkRelationsClient) GetRelation(ctx context.Context, resourceG
 	result, err = client.GetRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "GetRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -391,6 +394,7 @@ func (client BookmarkRelationsClient) List(ctx context.Context, resourceGroupNam
 	result.rl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -469,6 +473,7 @@ func (client BookmarkRelationsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

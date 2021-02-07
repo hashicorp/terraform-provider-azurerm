@@ -87,6 +87,7 @@ func (client ConnectionTypeClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionTypeClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client ConnectionTypeClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionTypeClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,6 +260,7 @@ func (client ConnectionTypeClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionTypeClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -343,6 +346,7 @@ func (client ConnectionTypeClient) ListByAutomationAccount(ctx context.Context, 
 	result.ctlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionTypeClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.ctlr.hasNextLink() && result.ctlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -407,6 +411,7 @@ func (client ConnectionTypeClient) listByAutomationAccountNextResults(ctx contex
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionTypeClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

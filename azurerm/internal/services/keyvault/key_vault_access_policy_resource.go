@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultAccessPolicy() *schema.Resource {
+func resourceKeyVaultAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultAccessPolicyCreate,
-		Read:   resourceArmKeyVaultAccessPolicyRead,
-		Update: resourceArmKeyVaultAccessPolicyUpdate,
-		Delete: resourceArmKeyVaultAccessPolicyDelete,
+		Create: resourceKeyVaultAccessPolicyCreate,
+		Read:   resourceKeyVaultAccessPolicyRead,
+		Update: resourceKeyVaultAccessPolicyUpdate,
+		Delete: resourceKeyVaultAccessPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,18 +66,18 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
+			"certificate_permissions": schemaCertificatePermissions(),
 
-			"key_permissions": azure.SchemaKeyVaultKeyPermissions(),
+			"key_permissions": schemaKeyPermissions(),
 
-			"secret_permissions": azure.SchemaKeyVaultSecretPermissions(),
+			"secret_permissions": schemaSecretPermissions(),
 
-			"storage_permissions": azure.SchemaKeyVaultStoragePermissions(),
+			"storage_permissions": schemaStoragePermissions(),
 		},
 	}
 }
 
-func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
+func resourceKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,16 +162,16 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	}
 
 	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
-	certPermissions := azure.ExpandCertificatePermissions(certPermissionsRaw)
+	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
 	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
-	keyPermissions := azure.ExpandKeyPermissions(keyPermissionsRaw)
+	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
 	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
-	secretPermissions := azure.ExpandSecretPermissions(secretPermissionsRaw)
+	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
 	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
-	storagePermissions := azure.ExpandStoragePermissions(storagePermissionsRaw)
+	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
 	accessPolicy := keyvault.AccessPolicyEntry{
 		ObjectID: utils.String(objectId),
@@ -244,25 +244,24 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add)
+func resourceKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add)
 }
 
-func resourceArmKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
+func resourceKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
 }
 
-func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace)
+func resourceKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace)
 }
 
-func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -302,22 +301,22 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	}
 
 	if permissions := policy.Permissions; permissions != nil {
-		certificatePermissions := azure.FlattenCertificatePermissions(permissions.Certificates)
+		certificatePermissions := flattenCertificatePermissions(permissions.Certificates)
 		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
 			return fmt.Errorf("Error setting `certificate_permissions`: %+v", err)
 		}
 
-		keyPermissions := azure.FlattenKeyPermissions(permissions.Keys)
+		keyPermissions := flattenKeyPermissions(permissions.Keys)
 		if err := d.Set("key_permissions", keyPermissions); err != nil {
 			return fmt.Errorf("Error setting `key_permissions`: %+v", err)
 		}
 
-		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
+		secretPermissions := flattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
 			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
 		}
 
-		storagePermissions := azure.FlattenStoragePermissions(permissions.Storage)
+		storagePermissions := flattenStoragePermissions(permissions.Storage)
 		if err := d.Set("storage_permissions", storagePermissions); err != nil {
 			return fmt.Errorf("Error setting `storage_permissions`: %+v", err)
 		}

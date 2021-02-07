@@ -10,19 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevTestLab() *schema.Resource {
+func resourceDevTestLab() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestLabCreateUpdate,
-		Read:   resourceArmDevTestLabRead,
-		Update: resourceArmDevTestLabCreateUpdate,
-		Delete: resourceArmDevTestLabDelete,
+		Create: resourceDevTestLabCreateUpdate,
+		Read:   resourceDevTestLabRead,
+		Update: resourceDevTestLabCreateUpdate,
+		Delete: resourceDevTestLabDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -93,7 +93,7 @@ func resourceArmDevTestLab() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,10 +148,10 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestLabRead(d, meta)
+	return resourceDevTestLabRead(d, meta)
 }
 
-func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, read.Tags)
 }
 
-func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

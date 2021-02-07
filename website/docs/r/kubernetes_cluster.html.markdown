@@ -80,7 +80,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
@@ -169,6 +169,8 @@ A `auto_scaler_profile` block supports the following:
 
 * `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
 
+* `new_pod_scale_up_delay` - For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
+
 * `scale_down_delay_after_add` - How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
 
 * `scale_down_delay_after_delete` - How long after node deletion that scale down evaluation resumes. Defaults to the value used for `scan_interval`.
@@ -188,8 +190,6 @@ A `auto_scaler_profile` block supports the following:
 A `azure_active_directory` block supports the following:
 
 * `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
-
-~> **Note:** Managed Azure Active Directory Integrations is in Preview and needs to be enabled prior to use. More information, including how to enable the Preview feature - [can be found in the Managed Azure Active Directory Integration Documentation](https://docs.microsoft.com/en-us/azure/aks/azure-ad-v2).
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
@@ -229,6 +229,8 @@ A `default_node_pool` block supports the following:
 
 -> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
 
+* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Defaults to `false`.
+
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
@@ -240,6 +242,8 @@ A `default_node_pool` block supports the following:
 -> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
 
 * `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. Changing this forces a new resource to be created.
+
+* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
@@ -253,17 +257,17 @@ A `default_node_pool` block supports the following:
 
 If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
-* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100` and between `min_count` and `max_count`.
+* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000` and between `min_count` and `max_count`.
 
 -> **NOTE:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
 
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
-* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 -> **NOTE:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
@@ -271,13 +275,14 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 A `http_application_routing` block supports the following:
 
-* `enabled` (Required) Is HTTP Application Routing Enabled? Changing this forces a new resource to be created.
+* `enabled` (Required) Is HTTP Application Routing Enabled?
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`.
+* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
 ---
 
@@ -300,6 +305,12 @@ A `network_profile` block supports the following:
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
+
+* `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible values are `bridge` and `transparent`. Changing this forces a new resource to be created.
+
+~> **Note:** `network_mode` can only be set to `bridge` for existing Kubernetes Clusters and cannot be used to provision new Clusters - this will be removed by Azure in the future.
+
+~> **NOTE:** This property can only be set when `network_plugin` is set to `azure`.
 
 * `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
 
@@ -383,7 +394,7 @@ A `windows_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for Windows VMs.
 
-* `admin_password` - (Required) The Admin Password for Windows VMs.
+* `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
 
 ## Attributes Reference

@@ -1,6 +1,7 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -9,47 +10,63 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var apimBackendProtocolSsl3 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
-var apimBackendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
-var apimBackendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"
-var apimFrontendProtocolSsl3 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
-var apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
-var apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-var apimTripleDesCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
-var apimHttp2Protocol = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
+var (
+	apimBackendProtocolSsl3                  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
+	apimBackendProtocolTls10                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
+	apimBackendProtocolTls11                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"
+	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
+	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
+	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
+	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
+	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
+	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
+	apimTlsEcdheRsaWithAes256CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
+	apimTlsEcdheRsaWithAes128CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+	apimTlsRsaWithAes128GcmSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
+	apimTlsRsaWithAes256CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
+	apimTlsRsaWithAes128CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
+	apimTlsRsaWithAes256CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
+	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
+)
 
-func resourceArmApiManagementService() *schema.Resource {
+func resourceApiManagementService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementServiceCreateUpdate,
-		Read:   resourceArmApiManagementServiceRead,
-		Update: resourceArmApiManagementServiceCreateUpdate,
-		Delete: resourceArmApiManagementServiceDelete,
+		Create: resourceApiManagementServiceCreateUpdate,
+		Read:   resourceApiManagementServiceRead,
+		Update: resourceApiManagementServiceCreateUpdate,
+		Delete: resourceApiManagementServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(3 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementName(),
+			"name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -58,25 +75,20 @@ func resourceArmApiManagementService() *schema.Resource {
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementServicePublisherName,
+				ValidateFunc: apimValidate.ApiManagementServicePublisherName,
 			},
 
 			"publisher_email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementServicePublisherEmail,
+				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
-					string(apimanagement.SkuTypeConsumption),
-					string(apimanagement.SkuTypeDeveloper),
-					string(apimanagement.SkuTypeBasic),
-					string(apimanagement.SkuTypeStandard),
-					string(apimanagement.SkuTypePremium),
-				}, 1, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
 			"identity": {
@@ -110,7 +122,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: validate.UserAssignedIdentityID,
 							},
 						},
 					},
@@ -121,7 +133,6 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(apimanagement.VirtualNetworkTypeNone),
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.VirtualNetworkTypeNone),
 					string(apimanagement.VirtualNetworkTypeExternal),
@@ -138,7 +149,6 @@ func resourceArmApiManagementService() *schema.Resource {
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -285,7 +295,63 @@ func resourceArmApiManagementService() *schema.Resource {
 							Default:  false,
 						},
 
+						// TODO: Remove in v3.0
 						"enable_triple_des_ciphers": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
+							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
+						},
+
+						"triple_des_ciphers_enabled": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true, // TODO: v3.0 remove Computed and set Default: false
+							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
+						},
+
+						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -297,7 +363,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			"hostname_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -353,7 +418,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"policy.0.xml_link"},
-							DiffSuppressFunc: suppress.XmlDiff,
+							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 						},
 
 						"xml_link": {
@@ -465,10 +530,25 @@ func resourceArmApiManagementService() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
+		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("virtual_network_type", func(old, new, meta interface{}) bool {
+				return !(old.(string) == string(apimanagement.VirtualNetworkTypeNone) &&
+					(new.(string) == string(apimanagement.VirtualNetworkTypeInternal) ||
+						new.(string) == string(apimanagement.VirtualNetworkTypeExternal)))
+			}),
+
+			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+			}),
+		),
 	}
 }
 
-func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -501,21 +581,26 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	notificationSenderEmail := d.Get("notification_sender_email").(string)
 	virtualNetworkType := d.Get("virtual_network_type").(string)
 
-	customProperties := expandApiManagementCustomProperties(d)
+	customProperties, err := expandApiManagementCustomProperties(d, sku.Name == apimanagement.SkuTypeConsumption)
+	if err != nil {
+		return err
+	}
 	certificates := expandAzureRmApiManagementCertificates(d)
-	hostnameConfigurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:          utils.String(publisherName),
-			PublisherEmail:         utils.String(publisherEmail),
-			CustomProperties:       customProperties,
-			Certificates:           certificates,
-			HostnameConfigurations: hostnameConfigurations,
+			PublisherName:    utils.String(publisherName),
+			PublisherEmail:   utils.String(publisherEmail),
+			CustomProperties: customProperties,
+			Certificates:     certificates,
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
+	}
+
+	if _, ok := d.GetOk("hostname_configuration"); ok {
+		properties.ServiceProperties.HostnameConfigurations = expandAzureRmApiManagementHostnameConfigurations(d)
 	}
 
 	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
@@ -571,17 +656,27 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	d.SetId(*read.ID)
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
-	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
-		return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption {
+		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
+		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+		if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
-		return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption {
+		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
+		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+		if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -607,21 +702,24 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	return resourceArmApiManagementServiceRead(d, meta)
+	return resourceApiManagementServiceRead(d, meta)
 }
 
-func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	name := id.ServiceName
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -632,18 +730,6 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 
 		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -661,7 +747,10 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	identity, err := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -680,15 +769,18 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 
-		if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties)); err != nil {
-			return fmt.Errorf("setting `security`: %+v", err)
+		if resp.Sku != nil && resp.Sku.Name != "" {
+			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
+				return fmt.Errorf("setting `security`: %+v", err)
+			}
 		}
 
 		if err := d.Set("protocols", flattenApiManagementProtocolsCustomProperties(props.CustomProperties)); err != nil {
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
+		apimHostNameSuffix := environment.APIManagementHostNameSuffix
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, name, apimHostNameSuffix)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
@@ -706,32 +798,46 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("setting `sku_name`: %+v", err)
 	}
 
-	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
-		return fmt.Errorf("setting `sign_in`: %+v", err)
-	}
-
-	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
-		return fmt.Errorf("setting `sign_up`: %+v", err)
-	}
-
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 		return fmt.Errorf("setting `policy`: %+v", err)
+	}
+
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
+			return fmt.Errorf("setting `sign_in`: %+v", err)
+		}
+
+		signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
+			return fmt.Errorf("setting `sign_up`: %+v", err)
+		}
+	} else {
+		d.Set("sign_in", []interface{}{})
+		d.Set("sign_up", []interface{}{})
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	name := id.ServiceName
 
 	log.Printf("[DEBUG] Deleting API Management Service %q (Resource Grouo %q)", name, resourceGroup)
 	future, err := client.Delete(ctx, resourceGroup, name)
@@ -748,9 +854,38 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
+func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.ServiceClient, serviceName, resourceGroup string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if API Management Service %q (Resource Group: %q) is available..", serviceName, resourceGroup)
+
+		resp, err := client.Get(ctx, resourceGroup, serviceName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				log.Printf("[DEBUG] Retrieving API Management %q (Resource Group: %q) returned 404.", serviceName, resourceGroup)
+				return nil, "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("Error polling for the state of the API Management Service %q (Resource Group: %q): %+v", serviceName, resourceGroup, err)
+		}
+
+		state := ""
+		if props := resp.ServiceProperties; props != nil {
+			if props.ProvisioningState != nil {
+				state = *props.ProvisioningState
+			}
+		}
+
+		return resp, state, nil
+	}
+}
+
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
 	results := make([]apimanagement.HostnameConfiguration, 0)
-	hostnameVs := d.Get("hostname_configuration").([]interface{})
+	vs := d.Get("hostname_configuration")
+	if vs == nil {
+		return &results
+	}
+	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
 		hostnameV := hostnameRawVal.(map[string]interface{})
@@ -829,7 +964,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
+func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData, name, apimHostNameSuffix string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -848,6 +983,11 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["host_name"] = *config.HostName
 		}
 
+		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
+		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
+			continue
+		}
+
 		if config.NegotiateClientCertificate != nil {
 			output["negotiate_client_certificate"] = *config.NegotiateClientCertificate
 		}
@@ -856,26 +996,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
-		// Iterate through old state to find sensitive props not returned by API.
-		// This must be done in order to avoid state diffs.
-		// NOTE: this information won't be available during times like Import, so this is a best-effort.
-		existingHostnames := d.Get("hostname_configuration").([]interface{})
-		if len(existingHostnames) > 0 {
-			v := existingHostnames[0].(map[string]interface{})
-
-			if valsRaw, ok := v[strings.ToLower(string(config.Type))]; ok {
-				vals := valsRaw.([]interface{})
-				for _, val := range vals {
-					oldConfig := val.(map[string]interface{})
-
-					if oldConfig["host_name"] == *config.HostName {
-						output["certificate_password"] = oldConfig["certificate_password"]
-						output["certificate"] = oldConfig["certificate"]
-					}
-				}
-			}
-		}
-
+		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
@@ -883,19 +1004,38 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
+			configType = "proxy"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
+			configType = "management"
 
 		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
+			configType = "portal"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
 			developerPortalResults = append(developerPortalResults, output)
+			configType = "developer_portal"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
+			configType = "scm"
 		}
+
+		existingHostnames := d.Get("hostname_configuration").([]interface{})
+		if len(existingHostnames) > 0 && configType != "" {
+			v := existingHostnames[0].(map[string]interface{})
+
+			if valsRaw, ok := v[configType]; ok {
+				vals := valsRaw.([]interface{})
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
+			}
+		}
+	}
+
+	if len(managementResults) == 0 && len(portalResults) == 0 && len(developerPortalResults) == 0 && len(proxyResults) == 0 && len(scmResults) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{
@@ -1038,9 +1178,9 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 	return &managedServiceIdentity, nil
 }
 
-func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
+func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
 	if identity == nil || identity.Type == apimanagement.None {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	result := make(map[string]interface{})
@@ -1057,12 +1197,16 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	identityIds := make([]interface{}, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
 	}
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func expandAzureRmApiManagementSkuName(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
@@ -1091,7 +1235,7 @@ func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuPropertie
 	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 }
 
-func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
+func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumption bool) (map[string]*string, error) {
 	backendProtocolSsl3 := false
 	backendProtocolTls10 := false
 	backendProtocolTls11 := false
@@ -1099,6 +1243,15 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	frontendProtocolTls10 := false
 	frontendProtocolTls11 := false
 	tripleDesCiphers := false
+	tlsEcdheEcdsaWithAes256CbcShaCiphers := false
+	tlsEcdheEcdsaWithAes128CbcShaCiphers := false
+	tlsEcdheRsaWithAes256CbcShaCiphers := false
+	tlsEcdheRsaWithAes128CbcShaCiphers := false
+	tlsRsaWithAes128GcmSha256Ciphers := false
+	tlsRsaWithAes256CbcSha256Ciphers := false
+	tlsRsaWithAes128CbcSha256Ciphers := false
+	tlsRsaWithAes256CbcShaCiphers := false
+	tlsRsaWithAes128CbcShaCiphers := false
 
 	if vs := d.Get("security").([]interface{}); len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
@@ -1108,17 +1261,90 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolSsl3 = v["enable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
-		tripleDesCiphers = v["enable_triple_des_ciphers"].(bool)
+
+		// TODO: Remove and simplify after deprecation
+		if v, exists := v["enable_triple_des_ciphers"]; exists {
+			tripleDesCiphers = v.(bool)
+		}
+		if v, exists := v["triple_des_ciphers_enabled"]; exists {
+			tripleDesCiphers = v.(bool)
+		}
+
+		tlsEcdheEcdsaWithAes256CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheEcdsaWithAes128CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheRsaWithAes256CbcShaCiphers = v["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheRsaWithAes128CbcShaCiphers = v["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+		tlsRsaWithAes128GcmSha256Ciphers = v["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes256CbcSha256Ciphers = v["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes128CbcSha256Ciphers = v["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes256CbcShaCiphers = v["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
+		tlsRsaWithAes128CbcShaCiphers = v["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+
+		if skuIsConsumption && frontendProtocolSsl3 {
+			return nil, fmt.Errorf("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tripleDesCiphers {
+			return nil, fmt.Errorf("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128GcmSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes256CbcSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128CbcSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
 	}
 
 	customProperties := map[string]*string{
 		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
 		apimBackendProtocolTls10:  utils.String(strconv.FormatBool(backendProtocolTls10)),
 		apimBackendProtocolTls11:  utils.String(strconv.FormatBool(backendProtocolTls11)),
-		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolSsl3)),
 		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
 		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
-		apimTripleDesCiphers:      utils.String(strconv.FormatBool(tripleDesCiphers)),
+	}
+
+	if !skuIsConsumption {
+		customProperties[apimFrontendProtocolSsl3] = utils.String(strconv.FormatBool(frontendProtocolSsl3))
+		customProperties[apimTripleDesCiphers] = utils.String(strconv.FormatBool(tripleDesCiphers))
+		customProperties[apimTlsEcdheEcdsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsEcdheEcdsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcShaCiphers))
+		customProperties[apimTlsEcdheRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsEcdheRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers))
+		customProperties[apimTlsRsaWithAes128GcmSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers))
+		customProperties[apimTlsRsaWithAes128CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcShaCiphers))
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
@@ -1127,7 +1353,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(enableHttp2))
 	}
 
-	return customProperties
+	return customProperties, nil
 }
 
 func expandAzureRmApiManagementVirtualNetworkConfigurations(d *schema.ResourceData) *apimanagement.VirtualNetworkConfiguration {
@@ -1144,16 +1370,29 @@ func expandAzureRmApiManagementVirtualNetworkConfigurations(d *schema.ResourceDa
 	}
 }
 
-func flattenApiManagementSecurityCustomProperties(input map[string]*string) []interface{} {
+func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuIsConsumption bool) []interface{} {
 	output := make(map[string]interface{})
 
 	output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
 	output["enable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
 	output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
-	output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+
+	if !skuIsConsumption {
+		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
+		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+		output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"] // TODO: remove in v3.0
+		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
+		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+		output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
+		output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
+		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
+		output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
+		output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
+	}
 
 	return []interface{}{output}
 }
@@ -1178,54 +1417,6 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	}
 
 	return []interface{}{virtualNetworkConfiguration}
-}
-
-func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"host_name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"key_vault_id": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
-		},
-
-		"certificate": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"certificate_password": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"negotiate_client_certificate": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-	}
-}
-
-func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema()
-
-	hostnameSchema["default_ssl_binding"] = &schema.Schema{
-		Type:     schema.TypeBool,
-		Optional: true,
-		Computed: true, // Azure has certain logic to set this, which we cannot predict
-	}
-
-	return hostnameSchema
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {
@@ -1360,7 +1551,7 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlContent != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				Format: apimanagement.XML,
+				Format: apimanagement.Rawxml,
 				Value:  utils.String(xmlContent),
 			},
 		}, nil

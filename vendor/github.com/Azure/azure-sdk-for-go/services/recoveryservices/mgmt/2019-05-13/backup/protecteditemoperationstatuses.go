@@ -80,6 +80,7 @@ func (client ProtectedItemOperationStatusesClient) Get(ctx context.Context, vaul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemOperationStatusesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

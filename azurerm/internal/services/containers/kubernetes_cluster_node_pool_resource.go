@@ -6,12 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
@@ -22,15 +21,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKubernetesClusterNodePool() *schema.Resource {
+func resourceKubernetesClusterNodePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterNodePoolCreate,
-		Read:   resourceArmKubernetesClusterNodePoolRead,
-		Update: resourceArmKubernetesClusterNodePoolUpdate,
-		Delete: resourceArmKubernetesClusterNodePoolDelete,
+		Create: resourceKubernetesClusterNodePoolCreate,
+		Read:   resourceKubernetesClusterNodePoolRead,
+		Update: resourceKubernetesClusterNodePoolUpdate,
+		Delete: resourceKubernetesClusterNodePoolDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.KubernetesNodePoolID(id)
+			_, err := parse.NodePoolID(id)
 			return err
 		}),
 
@@ -46,21 +45,21 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesAgentPoolName,
+				ValidateFunc: containerValidate.KubernetesAgentPoolName,
 			},
 
 			"kubernetes_cluster_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: containerValidate.KubernetesClusterID,
+				ValidateFunc: containerValidate.ClusterID,
 			},
 
 			"node_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(0, 100),
+				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
 			"tags": tags.Schema(),
@@ -87,6 +86,12 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_host_encryption": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"enable_node_public_ip": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -105,7 +110,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"max_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 100),
+				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
 			"max_pods": {
@@ -129,7 +134,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				// NOTE: rather than setting `0` users should instead pass `null` here
-				ValidateFunc: validation.IntBetween(0, 100),
+				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
 			"node_labels": {
@@ -165,6 +170,17 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"os_disk_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  containerservice.Managed,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Ephemeral),
+					string(containerservice.Managed),
+				}, false),
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -187,6 +203,13 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				}, false),
 			},
 
+			"proximity_placement_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: computeValidate.ProximityPlacementGroupID,
+			},
+
 			"spot_max_price": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
@@ -205,20 +228,20 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	kubernetesClusterId, err := parse.KubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
+	kubernetesClusterId, err := parse.ClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := kubernetesClusterId.ResourceGroup
-	clusterName := kubernetesClusterId.Name
+	clusterName := kubernetesClusterId.ManagedClusterName
 	name := d.Get("name").(string)
 
 	log.Printf("[DEBUG] Retrieving Kubernetes Cluster %q (Resource Group %q)..", clusterName, resourceGroup)
@@ -267,16 +290,18 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
+	enableHostEncryption := d.Get("enable_host_encryption").(bool)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
-		OsType:             containerservice.OSType(osType),
-		EnableAutoScaling:  utils.Bool(enableAutoScaling),
-		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
-		Mode:               mode,
-		ScaleSetPriority:   containerservice.ScaleSetPriority(priority),
-		Tags:               tags.Expand(t),
-		Type:               containerservice.VirtualMachineScaleSets,
-		VMSize:             containerservice.VMSizeTypes(vmSize),
+		OsType:                 containerservice.OSType(osType),
+		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Mode:                   mode,
+		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
+		Tags:                   tags.Expand(t),
+		Type:                   containerservice.VirtualMachineScaleSets,
+		VMSize:                 containerservice.VMSizeTypes(vmSize),
+		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
@@ -325,6 +350,15 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
 		profile.OsDiskSizeGB = utils.Int32(int32(osDiskSizeGB))
+	}
+
+	proximityPlacementGroupId := d.Get("proximity_placement_group_id").(string)
+	if proximityPlacementGroupId != "" {
+		profile.ProximityPlacementGroupID = &proximityPlacementGroupId
+	}
+
+	if osDiskType := d.Get("os_disk_type").(string); osDiskType != "" {
+		profile.OsDiskType = containerservice.OSDiskType(osDiskType)
 	}
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
@@ -384,33 +418,33 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmKubernetesClusterNodePoolRead(d, meta)
+	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	client := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KubernetesNodePoolID(d.Id())
+	id, err := parse.NodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	log.Printf("[DEBUG] Retrieving existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.Name, id.ClusterName, id.ResourceGroup)
+			return fmt.Errorf("Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
 	}
 	if existing.ManagedClusterAgentPoolProfileProperties == nil {
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", id.Name, id.ClusterName, id.ResourceGroup)
+		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
 	}
 
 	props := existing.ManagedClusterAgentPoolProfileProperties
@@ -421,7 +455,7 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		enableAutoScaling = *props.EnableAutoScaling
 	}
 
-	log.Printf("[DEBUG] Determining delta for existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
+	log.Printf("[DEBUG] Determining delta for existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
 
 	// delta patching
 	if d.HasChange("availability_zones") {
@@ -433,6 +467,10 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	if d.HasChange("enable_auto_scaling") {
 		enableAutoScaling = d.Get("enable_auto_scaling").(bool)
 		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
+	}
+
+	if d.HasChange("enable_host_encryption") {
+		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
 	}
 
 	if d.HasChange("enable_node_public_ip") {
@@ -467,7 +505,7 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		}
 
 		orchestratorVersion := d.Get("orchestrator_version").(string)
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ClusterName, id.Name, orchestratorVersion); err != nil {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, orchestratorVersion); err != nil {
 			return err
 		}
 
@@ -506,57 +544,57 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		props.MinCount = nil
 	}
 
-	log.Printf("[DEBUG] Updating existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
+	log.Printf("[DEBUG] Updating existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
 	existing.ManagedClusterAgentPoolProfileProperties = props
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.Name, existing)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, existing)
 	if err != nil {
-		return fmt.Errorf("updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	d.Partial(false)
 
-	return resourceArmKubernetesClusterNodePoolRead(d, meta)
+	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KubernetesNodePoolID(d.Id())
+	id, err := parse.NodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// if the parent cluster doesn't exist then the node pool won't
-	cluster, err := clustersClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	cluster, err := clustersClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(cluster.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ClusterName, id.ResourceGroup)
+			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ManagedClusterName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
-	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q - removing from state!", id.Name, id.ClusterName, id.ResourceGroup)
+			log.Printf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q - removing from state!", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AgentPoolName)
 	d.Set("kubernetes_cluster_id", cluster.ID)
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
@@ -566,6 +604,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {
@@ -617,6 +656,12 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
+
+		osDiskType := containerservice.Managed
+		if props.OsDiskType != "" {
+			osDiskType = props.OsDiskType
+		}
+		d.Set("os_disk_type", osDiskType)
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
@@ -625,6 +670,8 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			priority = string(props.ScaleSetPriority)
 		}
 		d.Set("priority", priority)
+
+		d.Set("proximity_placement_group_id", props.ProximityPlacementGroupID)
 
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {
@@ -639,23 +686,23 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KubernetesNodePoolID(d.Id())
+	id, err := parse.NodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 	if err != nil {
-		return fmt.Errorf("deleting Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.AgentPoolName, id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	return nil

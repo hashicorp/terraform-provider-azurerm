@@ -16,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmCosmosDbAccount() *schema.Resource {
+func dataSourceCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmCosmosDbAccountRead,
+		Read: dataSourceCosmosDbAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -138,6 +138,11 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 				},
 			},
 
+			"key_vault_key_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"enable_multiple_write_locations": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -219,7 +224,7 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,6 +257,10 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_free_tier", resp.EnableFreeTier)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+
+		if v := props.KeyVaultKeyURI; v != nil {
+			d.Set("key_vault_key_id", resp.KeyVaultKeyURI)
+		}
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)

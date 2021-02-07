@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubRouteTable() *schema.Resource {
+func resourceVirtualHubRouteTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubRouteTableCreateUpdate,
-		Read:   resourceArmVirtualHubRouteTableRead,
-		Update: resourceArmVirtualHubRouteTableCreateUpdate,
-		Delete: resourceArmVirtualHubRouteTableDelete,
+		Create: resourceVirtualHubRouteTableCreateUpdate,
+		Read:   resourceVirtualHubRouteTableRead,
+		Update: resourceVirtualHubRouteTableCreateUpdate,
+		Delete: resourceVirtualHubRouteTableDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +34,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubRouteTableID(id)
+			_, err := parse.HubRouteTableID(id)
 			return err
 		}),
 
@@ -43,14 +43,14 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubRouteTableName,
+				ValidateFunc: networkValidate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"labels": {
@@ -112,7 +112,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta in
 		Name: utils.String(d.Get("name").(string)),
 		HubRouteTableProperties: &network.HubRouteTableProperties{
 			Labels: utils.ExpandStringSlice(d.Get("labels").(*schema.Set).List()),
-			Routes: expandArmVirtualHubRouteTableHubRoutes(d.Get("route").(*schema.Set).List()),
+			Routes: expandVirtualHubRouteTableHubRoutes(d.Get("route").(*schema.Set).List()),
 		},
 	}
 
@@ -168,16 +168,15 @@ func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubRouteTableRead(d, meta)
+	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubRouteTableID(d.Id())
+	id, err := parse.HubRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -194,24 +193,24 @@ func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		d.Set("labels", utils.FlattenStringSlice(props.Labels))
 
-		if err := d.Set("route", flattenArmVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
+		if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}
 	}
 	return nil
 }
 
-func resourceArmVirtualHubRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubRouteTableID(d.Id())
+	id, err := parse.HubRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -231,7 +230,7 @@ func resourceArmVirtualHubRouteTableDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandArmVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubRoute {
+func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubRoute {
 	results := make([]network.HubRoute, 0)
 
 	for _, item := range input {
@@ -251,7 +250,7 @@ func expandArmVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubR
 	return &results
 }
 
-func flattenArmVirtualHubRouteTableHubRoutes(input *[]network.HubRoute) []interface{} {
+func flattenVirtualHubRouteTableHubRoutes(input *[]network.HubRoute) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

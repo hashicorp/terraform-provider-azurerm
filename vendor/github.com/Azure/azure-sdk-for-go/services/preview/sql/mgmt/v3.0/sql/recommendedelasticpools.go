@@ -77,6 +77,7 @@ func (client RecommendedElasticPoolsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -154,6 +155,7 @@ func (client RecommendedElasticPoolsClient) ListByServer(ctx context.Context, re
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,6 +233,7 @@ func (client RecommendedElasticPoolsClient) ListMetrics(ctx context.Context, res
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return

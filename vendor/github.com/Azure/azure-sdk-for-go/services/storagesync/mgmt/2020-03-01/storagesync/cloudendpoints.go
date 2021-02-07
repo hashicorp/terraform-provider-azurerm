@@ -265,6 +265,7 @@ func (client CloudEndpointsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -353,6 +354,7 @@ func (client CloudEndpointsClient) ListBySyncGroup(ctx context.Context, resource
 	result, err = client.ListBySyncGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "ListBySyncGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -806,6 +808,7 @@ func (client CloudEndpointsClient) Restoreheartbeat(ctx context.Context, resourc
 	result, err = client.RestoreheartbeatResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Restoreheartbeat", resp, "Failure responding to request")
+		return
 	}
 
 	return

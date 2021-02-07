@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,11 +23,11 @@ func dataSourceApiManagementApiVersionSet() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementChildDataSourceName(),
+			"name": schemaz.SchemaApiManagementChildDataSourceName(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"api_management_name": azure.SchemaApiManagementDataSourceName(),
+			"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
 
 			"description": {
 				Type:     schema.TypeString,
@@ -76,7 +79,12 @@ func dataSourceApiManagementApiVersionSetRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("retrieving API Version Set %q (API Management Service %q /Resource Group %q): ID was nil or empty", name, serviceName, resourceGroup)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.ApiVersionSetID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("Error parsing API Version Set ID: %q", *resp.ID)
+	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)

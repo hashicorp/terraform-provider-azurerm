@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
+func resourceDataFactoryDatasetMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetMySQLCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetMySQLRead,
-		Update: resourceArmDataFactoryDatasetMySQLCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetMySQLDelete,
+		Create: resourceDataFactoryDatasetMySQLCreateUpdate,
+		Read:   resourceDataFactoryDatasetMySQLRead,
+		Update: resourceDataFactoryDatasetMySQLCreateUpdate,
+		Delete: resourceDataFactoryDatasetMySQLDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -144,7 +144,7 @@ func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,10 +229,10 @@ func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetMySQLRead(d, meta)
+	return resourceDataFactoryDatasetMySQLRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,7 +309,7 @@ func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmDataFactoryDatasetMySQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetMySQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

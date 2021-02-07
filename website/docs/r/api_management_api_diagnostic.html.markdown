@@ -68,6 +68,48 @@ resource "azurerm_api_management_api_diagnostic" "example" {
   api_management_name      = azurerm_api_management.example.name
   api_name                 = azurerm_api_management_api.example.name
   api_management_logger_id = azurerm_api_management_logger.example.id
+
+  sampling_percentage       = 5.0
+  always_log_errors         = true
+  log_client_ip             = true
+  verbosity                 = "Verbose"
+  http_correlation_protocol = "W3C"
+
+  frontend_request {
+    body_bytes = 32
+    headers_to_log = [
+      "content-type",
+      "accept",
+      "origin",
+    ]
+  }
+
+  frontend_response {
+    body_bytes = 32
+    headers_to_log = [
+      "content-type",
+      "content-length",
+      "origin",
+    ]
+  }
+
+  backend_request {
+    body_bytes = 32
+    headers_to_log = [
+      "content-type",
+      "accept",
+      "origin",
+    ]
+  }
+
+  backend_response {
+    body_bytes = 32
+    headers_to_log = [
+      "content-type",
+      "content-length",
+      "origin",
+    ]
+  }
 }
 ```
 
@@ -84,6 +126,34 @@ The following arguments are supported:
 * `identifier` - (Required) Identifier of the Diagnostics Logs. Possible values are `applicationinsights` and `azuremonitor`. Changing this forces a new API Management Service API Diagnostics Logs to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the API Management Service API Diagnostics Logs should exist. Changing this forces a new API Management Service API Diagnostics Logs to be created.
+
+---
+
+* `always_log_errors` - (Optional) Always log errors. Send telemetry if there is an erroneous condition, regardless of sampling settings.
+
+* `backend_request` - (Optional) A `backend_request` block as defined below.
+
+* `backend_response` - (Optional) A `backend_response` block as defined below.
+
+* `frontend_request` - (Optional) A `frontend_request` block as defined below.
+
+* `frontend_response` - (Optional) A `frontend_response` block as defined below.
+
+* `http_correlation_protocol` - (Optional) The HTTP Correlation Protocol to use. Possible values are `None`, `Legacy` or `W3C`.
+
+* `log_client_ip` - (Optional) Log client IP address.
+
+* `sampling_percentage` - (Optional) Sampling (%). For high traffic APIs, please read this [documentation](https://docs.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling. Valid values are between `0.0` and `100.0`.
+
+* `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.
+
+---
+
+A `backend_request`, `backend_response`, `frontend_request` or `frontend_response` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
 
 ## Attributes Reference
 

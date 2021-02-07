@@ -71,6 +71,7 @@ func (client LocationsClient) GetCapability(ctx context.Context, location string
 	result, err = client.GetCapabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetCapability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -144,6 +145,7 @@ func (client LocationsClient) GetUsage(ctx context.Context, location string) (re
 	result, err = client.GetUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetUsage", resp, "Failure responding to request")
+		return
 	}
 
 	return

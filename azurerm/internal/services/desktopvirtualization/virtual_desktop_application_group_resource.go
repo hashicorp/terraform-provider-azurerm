@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -23,12 +24,12 @@ import (
 
 var applicationGroupType = "azurerm_virtual_desktop_application_group"
 
-func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
+func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualDesktopApplicationGroupCreateUpdate,
-		Read:   resourceArmVirtualDesktopApplicationGroupRead,
-		Update: resourceArmVirtualDesktopApplicationGroupCreateUpdate,
-		Delete: resourceArmVirtualDesktopApplicationGroupDelete,
+		Create: resourceVirtualDesktopApplicationGroupCreateUpdate,
+		Read:   resourceVirtualDesktopApplicationGroupRead,
+		Update: resourceVirtualDesktopApplicationGroupCreateUpdate,
+		Delete: resourceVirtualDesktopApplicationGroupDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -38,9 +39,18 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopApplicationGroupID(id)
+			_, err := parse.ApplicationGroupID(id)
 			return err
 		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.ApplicationGroupUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.ApplicationGroupUpgradeV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -73,7 +83,7 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 			"host_pool_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualDesktopHostPoolID,
+				ValidateFunc: validate.HostPoolID,
 			},
 
 			"friendly_name": {
@@ -93,7 +103,7 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -108,7 +118,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualDesktopApplicationGroupId(resourceGroup, name)
+	resourceId := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -118,7 +128,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.ApplicationGroupProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", id.ID(subscriptionId))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", resourceId)
 		}
 	}
 
@@ -140,18 +150,16 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating Virtual Desktop Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
-
-	return resourceArmVirtualDesktopApplicationGroupRead(d, meta)
+	d.SetId(resourceId)
+	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
 
-func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopApplicationGroupID(d.Id())
+	id, err := parse.ApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -181,12 +189,13 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 
 		hostPoolIdStr := ""
 		if props.HostPoolArmPath != nil {
-			hostPoolId, err := parse.VirtualDesktopHostPoolID(*props.HostPoolArmPath)
+			// TODO: raise an API bug
+			hostPoolId, err := parse.HostPoolIDInsensitively(*props.HostPoolArmPath)
 			if err != nil {
 				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
 			}
 
-			hostPoolIdStr = hostPoolId.ID(subscriptionId)
+			hostPoolIdStr = hostPoolId.ID()
 		}
 		d.Set("host_pool_id", hostPoolIdStr)
 	}
@@ -194,10 +203,10 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 
-	id, err := parse.VirtualDesktopApplicationGroupID(d.Id())
+	id, err := parse.ApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}

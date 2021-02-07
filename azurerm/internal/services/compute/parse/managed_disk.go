@@ -1,38 +1,63 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type ManagedDiskId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	DiskName       string
 }
 
-func NewManagedDiskId(resourceGroup, name string) ManagedDiskId {
+func NewManagedDiskID(subscriptionId, resourceGroup, diskName string) ManagedDiskId {
 	return ManagedDiskId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		DiskName:       diskName,
 	}
 }
 
-func (id ManagedDiskId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ManagedDiskId) String() string {
+	segments := []string{
+		fmt.Sprintf("Disk Name %q", id.DiskName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Managed Disk", segmentsStr)
 }
 
+func (id ManagedDiskId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DiskName)
+}
+
+// ManagedDiskID parses a ManagedDisk ID into an ManagedDiskId struct
 func ManagedDiskID(input string) (*ManagedDiskId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Managed Disk ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	disk := ManagedDiskId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ManagedDiskId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if disk.Name, err = id.PopSegment("disks"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.DiskName, err = id.PopSegment("disks"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +65,5 @@ func ManagedDiskID(input string) (*ManagedDiskId, error) {
 		return nil, err
 	}
 
-	return &disk, nil
+	return &resourceId, nil
 }

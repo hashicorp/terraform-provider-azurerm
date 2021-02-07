@@ -11,15 +11,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetRouteTableAssociation() *schema.Resource {
+func resourceSubnetRouteTableAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetRouteTableAssociationCreate,
-		Read:   resourceArmSubnetRouteTableAssociationRead,
-		Delete: resourceArmSubnetRouteTableAssociationDelete,
+		Create: resourceSubnetRouteTableAssociationCreate,
+		Read:   resourceSubnetRouteTableAssociationRead,
+		Delete: resourceSubnetRouteTableAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +50,7 @@ func resourceArmSubnetRouteTableAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -59,12 +60,12 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	subnetId := d.Get("subnet_id").(string)
 	routeTableId := d.Get("route_table_id").(string)
 
-	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
+	parsedSubnetId, err := parse.SubnetID(subnetId)
 	if err != nil {
 		return err
 	}
 
-	parsedRouteTableId, err := ParseRouteTableID(routeTableId)
+	parsedRouteTableId, err := parse.RouteTableID(routeTableId)
 	if err != nil {
 		return err
 	}
@@ -72,8 +73,8 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
 	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 
-	subnetName := parsedSubnetId.Path["subnets"]
-	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
+	subnetName := parsedSubnetId.Name
+	virtualNetworkName := parsedSubnetId.VirtualNetworkName
 	resourceGroup := parsedSubnetId.ResourceGroup
 
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
@@ -117,24 +118,23 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmSubnetRouteTableAssociationRead(d, meta)
+	return resourceSubnetRouteTableAssociationRead(d, meta)
 }
 
-func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
@@ -162,18 +162,18 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	// retrieve the subnet
 	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
@@ -197,7 +197,7 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := ParseRouteTableID(*props.RouteTable.ID)
+	parsedRouteTableId, err := parse.RouteTableID(*props.RouteTable.ID)
 	if err != nil {
 		return err
 	}

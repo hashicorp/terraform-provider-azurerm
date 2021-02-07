@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource {
+func resourceNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate,
-		Read:   resourceArmNetworkInterfaceBackendAddressPoolAssociationRead,
-		Delete: resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete,
+		Create: resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
+		Read:   resourceNetworkInterfaceBackendAddressPoolAssociationRead,
+		Delete: resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource
 	}
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,7 +99,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -132,7 +132,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 	pools = append(pools, pool)
 	p.LoadBalancerBackendAddressPools = &pools
 
-	props.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
+	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
@@ -145,10 +145,10 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
+	return resourceNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		log.Printf("IP Configuration %q was not found in Network Interface %q (Resource Group %q) - removing from state!", ipConfigurationName, networkInterfaceName, resourceGroup)
 		d.SetId("")
@@ -226,7 +226,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 	return nil
 }
 
-func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +268,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.Re
 		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
+	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
 	if c == nil {
 		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
 	}
@@ -292,7 +292,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.Re
 		}
 	}
 	props.LoadBalancerBackendAddressPools = &backendAddressPools
-	nicProps.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
+	nicProps.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {

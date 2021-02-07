@@ -1,12 +1,14 @@
 module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
-	github.com/Azure/azure-sdk-for-go v48.0.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.10
+	github.com/Azure/azure-sdk-for-go v49.2.0+incompatible
+	github.com/Azure/go-autorest/autorest v0.11.17
+	github.com/Azure/go-autorest/autorest/adal v0.9.10 // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0
-	github.com/Azure/go-autorest/autorest/validation v0.3.0
+	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/google/go-cmp v0.3.1
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-azure-helpers v0.13.0
 	github.com/hashicorp/go-getter v1.4.0
@@ -20,8 +22,8 @@ require (
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/sergi/go-diff v1.1.0
 	github.com/terraform-providers/terraform-provider-azuread v0.9.0
-	github.com/tombuildsstuff/giovanni v0.14.0
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	github.com/tombuildsstuff/giovanni v0.15.1
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 	gopkg.in/yaml.v2 v2.2.4
 )
