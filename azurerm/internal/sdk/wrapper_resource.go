@@ -92,7 +92,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 				return fmt.Errorf(out)
 			}
 
-			return err
+			return nil
 		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
 				ctx, metaData := runArgs(d, meta, rw.logger)
