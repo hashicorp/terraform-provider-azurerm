@@ -12,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -70,12 +73,24 @@ func resourceDataFactory() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
+								"UserAssigned",
 							}, false),
 						},
+
+						"user_identity_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
+						},
+
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -167,6 +182,13 @@ func resourceDataFactory() *schema.Resource {
 				Default:  true,
 			},
 
+			"key_vault_key_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+				RequiredWith: []string{"identity.0.user_identity_ids"},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -209,8 +231,36 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
+
+		identityIdsRaw := d.Get("identity.0.user_identity_ids").(*schema.Set).List()
+		identityIds := make(map[string]interface{})
+		for _, v := range identityIdsRaw {
+			identityIds[v.(string)] = make(map[string]string)
+		}
+
 		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type: &identityType,
+			Type:                   &identityType,
+			UserAssignedIdentities: identityIds,
+		}
+	}
+
+	if keyVaultKeyID, ok := d.GetOk("key_vault_key_id"); ok {
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyID.(string))
+		if err != nil {
+			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+		}
+
+		identityIdsRaw := d.Get("identity.0.user_identity_ids").(*schema.Set).List()
+
+		first := identityIdsRaw[0].(string)
+
+		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
+			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
+			KeyName:      &keyVaultKey.Name,
+			KeyVersion:   &keyVaultKey.Version,
+			Identity: &datafactory.CMKIdentityDefinition{
+				UserAssignedIdentity: &first,
+			},
 		}
 	}
 
@@ -268,6 +318,12 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if factoryProps := resp.FactoryProperties; factoryProps != nil {
+		if enc := factoryProps.Encryption; enc != nil {
+			d.Set("key_vault_key_id", fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion))
+		}
 	}
 
 	d.Set("vsts_configuration", []interface{}{})
@@ -425,6 +481,13 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface
 	}
 	if identity.TenantID != nil {
 		result["tenant_id"] = identity.TenantID.String()
+	}
+	if identity.UserAssignedIdentities != nil {
+		userIdentities := make([]string, 0)
+		for key := range identity.UserAssignedIdentities {
+			userIdentities = append(userIdentities, key)
+		}
+		result["user_identity_ids"] = userIdentities
 	}
 
 	return []interface{}{result}
