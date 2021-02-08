@@ -26,7 +26,7 @@ import (
 
 // This is to serve input validation for the customizer block.
 var fieldsOfFileCustomizer = []string{"file_source_uri", "file_sha256_checksum", "file_destination_path"}
-var fieldsOfPowerShellCustomizer = []string{"powershell_commands", "powershell_run_elevated", "powershell_script_uri", "powershell_sha256_checksum", "powershell_valid_exit_codes"}
+var fieldsOfPowerShellCustomizer = []string{"powershell_commands", "powershell_run_as_system", "powershell_run_elevated", "powershell_script_uri", "powershell_sha256_checksum", "powershell_valid_exit_codes"}
 var fieldsOfShellCustomizer = []string{"shell_commands", "shell_script_uri", "shell_sha256_checksum"}
 var fieldsOfWindowsRestartCustomizer = []string{"windows_restart_check_command", "windows_restart_command", "windows_restart_timeout"}
 var fieldsOfWindowsUpdateCustomizer = []string{"windows_update_filters", "windows_update_search_criteria", "windows_update_limit"}
@@ -158,6 +158,12 @@ func resourceImageBuilderTemplate() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+						},
+
+						"powershell_run_as_system": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							ForceNew: true,
 						},
 
 						"powershell_run_elevated": {
@@ -1154,6 +1160,7 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 				ScriptURI:      utils.String(customizer["powershell_script_uri"].(string)),
 				Sha256Checksum: utils.String(customizer["powershell_sha256_checksum"].(string)),
 				Inline:         utils.ExpandStringSlice(customizer["powershell_commands"].([]interface{})),
+				RunAsSystem:	utils.Bool(customizer["powershell_run_as_system"].(bool)),
 				RunElevated:    utils.Bool(customizer["powershell_run_elevated"].(bool)),
 				ValidExitCodes: utils.ExpandInt32Slice(customizer["powershell_valid_exit_codes"].([]interface{})),
 			})
@@ -1316,6 +1323,10 @@ func flattenCustomizerPowerShell(input *virtualmachineimagebuilder.ImageTemplate
 		result["powershell_commands"] = *input.Inline
 	}
 
+	if input.RunAsSystem != nil {
+		result["powershell_run_as_system"] = *input.RunAsSystem
+	}
+
 	if input.RunElevated != nil {
 		result["powershell_run_elevated"] = *input.RunElevated
 	}
@@ -1433,6 +1444,10 @@ func validateImageTemplateCustomizerInputForPowerShellType(d *schema.ResourceDat
 	if (scriptUri == "" && len(commandsRaw) == 0) ||
 		(scriptUri != "" && len(commandsRaw) > 0) {
 		return fmt.Errorf("exactly one of `powershell_script_uri` and `powershell_commands` must be specified if the customizer type is PowerShell")
+	}
+
+	if customizer["powershell_run_as_system"].(bool) && !customizer["powershell_run_elevated"].(bool) {
+		return fmt.Errorf("`powershell_run_as_system` can only be true when `powershell_run_elevated` is set to true")
 	}
 
 	excludeList := make([]string, 0)

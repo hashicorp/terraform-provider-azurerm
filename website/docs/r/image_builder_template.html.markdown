@@ -136,7 +136,11 @@ A `customizer` block supports the following:
 
 * `powershell_commands` - (Optional) List of PowerShell commands to execute. Changing this forces a new resource to be created.
 
+* `powershell_run_as_system` - (Optional) Whether the PowerShell script will be run with elevated privileges using the local system user? Changing this forces a new resource to be created.
+
 * `powershell_run_elevated` - (Optional) Whether the PowerShell script will be run with elevated privileges? Changing this forces a new resource to be created.
+
+-> **Note** `powershell_run_as_system` can only be true when `powershell_run_elevated` is set to true when the customizer type is `PowerShell`.
 
 * `powershell_script_uri` - (Optional) URI of the PowerShell script to be run for customizing. Changing this forces a new resource to be created.
 
