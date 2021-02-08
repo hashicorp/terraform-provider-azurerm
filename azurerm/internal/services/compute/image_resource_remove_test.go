@@ -83,43 +83,6 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	return nil
 }
 
-// nolint unparam
-func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - BEGIN.")
-
-		vmRs, vmOk := s.RootModule().Resources[sourceVM]
-		if !vmOk {
-			return fmt.Errorf("VM Not found: %s", sourceVM)
-		}
-		vmName := vmRs.Primary.Attributes["name"]
-
-		resourceGroup, hasResourceGroup := vmRs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for VM: %s", vmName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, vmName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on client: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Bad: VM %q (resource group %q) does not exist", vmName, resourceGroup)
-		}
-		if resp.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Bad: VM %q (resource group %q) still exists", vmName, resourceGroup)
-		}
-
-		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - END.")
-
-		return nil
-	}
-}
-
 func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		vmssClient := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient

@@ -33,7 +33,7 @@ func TestAccSharedImageVersion_basic(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: r.setup(data, userName, password, hostName),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
@@ -74,7 +74,7 @@ func TestAccSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 			Config:  r.setup(data, userName, password, hostName),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
@@ -106,7 +106,7 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 			Config:  r.setup(data, userName, password, hostName),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
@@ -180,7 +180,7 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 			Config:  r.setup(data, userName, password, hostName),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},

@@ -27,7 +27,7 @@ func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 			),
 		},
@@ -56,7 +56,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilterError(t *testing.T) {
 			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 			),
 		},
@@ -81,7 +81,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 			),
 		},

@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMImages_basic(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: ImageResource{}.setupUnmanagedDisks(data, storageType),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
@@ -63,7 +63,7 @@ func TestAccDataSourceAzureRMImages_tagsFilterError(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: ImageResource{}.setupUnmanagedDisks(data, storageType),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
@@ -94,7 +94,7 @@ func TestAccDataSourceAzureRMImages_tagsFilter(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: ImageResource{}.setupUnmanagedDisks(data, storageType),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},

@@ -25,7 +25,7 @@ func TestAccDataSourceSharedImageVersion_basic(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data, username, password, hostname),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 			),
 		},
@@ -56,7 +56,7 @@ func TestAccDataSourceSharedImageVersion_latest(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data, username, password, hostname),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 			),
 		},
@@ -88,7 +88,7 @@ func TestAccDataSourceSharedImageVersion_recent(t *testing.T) {
 			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
 			),
 		},

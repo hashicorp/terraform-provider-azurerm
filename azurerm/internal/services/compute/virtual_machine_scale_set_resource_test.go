@@ -469,7 +469,7 @@ func TestAccVirtualMachineScaleSet_customImage(t *testing.T) {
 			Config:  ImageResource{}.setupUnmanagedDisks(data, "LRS"),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
