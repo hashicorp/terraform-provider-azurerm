@@ -3,6 +3,7 @@ package compute_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -10,8 +11,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/ssh"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,14 +22,8 @@ type ImageResource struct {
 }
 
 func TestAccImage_standaloneImage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,30 +31,22 @@ func TestAccImage_standaloneImage(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data, "LRS"),
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "LRS", ""),
 			Check: resource.ComposeTestCheckFunc(
-				check.That("azurerm_image.test").ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"delete_data_disks_on_termination",
-			"delete_os_disk_on_termination",
-		),
+		data.ImportStep(),
 	})
 }
 
 func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -65,30 +54,22 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data, "LRS"),
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "LRS", "V2"),
 			Check: resource.ComposeTestCheckFunc(
-				check.That("azurerm_image.test").ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"delete_data_disks_on_termination",
-			"delete_os_disk_on_termination",
-		),
+		data.ImportStep(),
 	})
 }
 
 func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -97,7 +78,7 @@ func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -111,14 +92,8 @@ func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
 }
 
 func TestAccImage_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -126,31 +101,22 @@ func TestAccImage_requiresImport(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data, "LRS"),
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.standaloneImageProvision(data, "LRS", ""),
 			Check: resource.ComposeTestCheckFunc(
-				check.That("azurerm_image.test").ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.standaloneImageRequiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_image"),
-		},
+		data.RequiresImportErrorStep(r.standaloneImageRequiresImport),
 	})
 }
 
 func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -158,7 +124,7 @@ func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data, "LRS"),
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -171,14 +137,8 @@ func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
 }
 
 func TestAccImage_customImageFromVMWithManagedDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -187,7 +147,7 @@ func TestAccImage_customImageFromVMWithManagedDisks(t *testing.T) {
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -200,14 +160,8 @@ func TestAccImage_customImageFromVMWithManagedDisks(t *testing.T) {
 }
 
 func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -216,7 +170,7 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -242,6 +196,110 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *terraform.InstanceState) error {
+	return func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.VirtualMachineID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		// these are nested in a Set in the Legacy VM resource, simpler to compute them
+		userName := fmt.Sprintf("testadmin%d", data.RandomInteger)
+		password := fmt.Sprintf("Password1234!%d", data.RandomInteger)
+
+		// first retrieve the Virtual Machine, since we need to find
+		nicIdRaw := state.Attributes["network_interface_ids.0"]
+		nicId, err := networkParse.NetworkInterfaceID(nicIdRaw)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Retrieving Network Interface..")
+		nic, err := client.Network.InterfacesClient.Get(ctx, nicId.ResourceGroup, nicId.Name, "")
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *nicId, err)
+		}
+
+		publicIpRaw := ""
+		if props := nic.InterfacePropertiesFormat; props != nil {
+			if configs := props.IPConfigurations; configs != nil {
+				for _, config := range *props.IPConfigurations {
+					if config.InterfaceIPConfigurationPropertiesFormat == nil {
+						continue
+					}
+
+					if config.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress == nil {
+						continue
+					}
+
+					if config.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID == nil {
+						continue
+					}
+
+					publicIpRaw = *config.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID
+					break
+				}
+			}
+		}
+		if publicIpRaw == "" {
+			return fmt.Errorf("retrieving %s: could not determine Public IP Address ID", *nicId)
+		}
+
+		log.Printf("[DEBUG] Retrieving Public IP Address %q..", publicIpRaw)
+		publicIpId, err := networkParse.PublicIpAddressID(publicIpRaw)
+		if err != nil {
+			return err
+		}
+
+		publicIpAddress, err := client.Network.PublicIPsClient.Get(ctx, publicIpId.ResourceGroup, publicIpId.Name, "")
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *publicIpId, err)
+		}
+		fqdn := ""
+		if props := publicIpAddress.PublicIPAddressPropertiesFormat; props != nil {
+			if dns := props.DNSSettings; dns != nil {
+				if dns.Fqdn != nil {
+					fqdn = *dns.Fqdn
+				}
+			}
+		}
+		if fqdn == "" {
+			return fmt.Errorf("unable to determine FQDN for %q", *publicIpId)
+		}
+
+		log.Printf("[DEBUG] Running Generalization Command..")
+		sshGeneralizationCommand := ssh.Runner{
+			Hostname: fqdn,
+			Port:     22,
+			Username: userName,
+			Password: password,
+			CommandsToRun: []string{
+				ssh.LinuxAgentDeprovisionCommand,
+			},
+		}
+		if err := sshGeneralizationCommand.Run(); err != nil {
+			return fmt.Errorf("Bad: running generalization command: %+v", err)
+		}
+
+		log.Printf("[DEBUG] Deallocating VM..")
+		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Bad: deallocating vm: %+v", err)
+		}
+		log.Printf("[DEBUG] Waiting for Deallocation..")
+		if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+			return fmt.Errorf("Bad: waiting for deallocation: %+v", err)
+		}
+
+		log.Printf("[DEBUG] Generalizing VM..")
+		if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("Bad: Generalizing error %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
@@ -363,7 +421,7 @@ resource "azurerm_network_interface" "testsource" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa${var.random_string}"
+  name                     = "accsa${local.random_string}"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"

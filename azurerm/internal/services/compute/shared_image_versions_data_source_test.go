@@ -16,23 +16,19 @@ type SharedImageVersionsDataSource struct {
 func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
 	r := SharedImageVersionsDataSource{}
-	username := "testadmin"
-	password := "Password1234!"
-	hostname := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
+			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.basic(data, username, password, hostname),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("images.0.managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("images.0.target_region.#").HasValue("1"),
@@ -45,23 +41,19 @@ func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 func TestAccDataSourceSharedImageVersions_tagsFilterError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
 	r := SharedImageVersionsDataSource{}
-	username := "testadmin"
-	password := "Password1234!"
-	hostname := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
+			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config:      r.tagsFilterError(data, username, password, hostname),
+			Config:      r.tagsFilterError(data),
 			ExpectError: regexp.MustCompile("unable to find any images"),
 		},
 	})
@@ -70,23 +62,18 @@ func TestAccDataSourceSharedImageVersions_tagsFilterError(t *testing.T) {
 func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
 	r := SharedImageVersionsDataSource{}
-	username := "testadmin"
-	password := "Password1234!"
-	hostname := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  SharedImageVersionResource{}.setup(data, username, password, hostname),
+			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.tagsFilter(data, username, password, hostname),
+			Config: r.tagsFilter(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("images.#").HasValue("1"),
 			),
@@ -94,7 +81,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 	})
 }
 
-func (SharedImageVersionsDataSource) basic(data acceptance.TestData, username, password, hostname string) string {
+func (SharedImageVersionsDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -103,10 +90,10 @@ data "azurerm_shared_image_versions" "test" {
   image_name          = azurerm_shared_image_version.test.image_name
   resource_group_name = azurerm_shared_image_version.test.resource_group_name
 }
-`, SharedImageVersionResource{}.imageVersion(data, username, password, hostname))
+`, SharedImageVersionResource{}.imageVersion(data))
 }
 
-func (SharedImageVersionsDataSource) tagsFilterError(data acceptance.TestData, username, password, hostname string) string {
+func (SharedImageVersionsDataSource) tagsFilterError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -119,10 +106,10 @@ data "azurerm_shared_image_versions" "test" {
     "foo" = "error"
   }
 }
-`, SharedImageVersionResource{}.imageVersion(data, username, password, hostname))
+`, SharedImageVersionResource{}.imageVersion(data))
 }
 
-func (SharedImageVersionsDataSource) tagsFilter(data acceptance.TestData, username, password, hostname string) string {
+func (SharedImageVersionsDataSource) tagsFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -135,5 +122,5 @@ data "azurerm_shared_image_versions" "test" {
     "foo" = "bar"
   }
 }
-`, SharedImageVersionResource{}.imageVersion(data, username, password, hostname))
+`, SharedImageVersionResource{}.imageVersion(data))
 }

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -20,7 +19,7 @@ func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -59,7 +58,7 @@ func TestAccLinuxVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -386,22 +385,4 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func generalizeLinuxVirtualMachine(resourceName string) func(s *terraform.State) error {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
-		username := rs.Primary.Attributes["admin_username"]
-		password := rs.Primary.Attributes["admin_password"]
-		port := "22"
-		location := rs.Primary.Attributes["location"]
-
-		return testGeneralizeVMImage(resourceGroup, name, username, password, name, port, location)(s)
-	}
 }
