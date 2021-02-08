@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `storage_account_type` - (Required) The type of storage to use for the managed disk. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
--> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
+-> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
 * `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
