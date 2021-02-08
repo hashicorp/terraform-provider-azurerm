@@ -160,13 +160,13 @@ provider "azurerm" {
 
 data "azurerm_template_spec_version" "test" {
   name                = "acctest-standing-data-for-sub"
-  resource_group_name = "stedev-201130"
+  resource_group_name = "standing-data-for-acctest"
   version             = "v1.0.0"
 }
 
 resource "azurerm_subscription_template_deployment" "test" {
   name     = "acctestsubdeploy-%d"
-  location = %[2]q
+  location = %q
 
   template_spec_version_id = data.azurerm_template_spec_version.test.id
 
@@ -176,7 +176,7 @@ resource "azurerm_subscription_template_deployment" "test" {
    "value": "acctest-rg-tspec-%d"
   },
   "rgLocation": {
-   "value": %[2]q
+   "value": %q
   },
   "tags": {
    "value": {}
@@ -184,7 +184,7 @@ resource "azurerm_subscription_template_deployment" "test" {
 }
 PARAM
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SubscriptionTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData) string {

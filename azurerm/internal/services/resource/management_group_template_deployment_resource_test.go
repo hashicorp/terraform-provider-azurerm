@@ -66,7 +66,7 @@ resource "azurerm_management_group" "test" {
 
 data "azurerm_template_spec_version" "test" {
   name                = "acctest-standing-data-empty"
-  resource_group_name = "stedev-201130"
+  resource_group_name = "standing-data-for-acctest"
   version             = "v1.0.0"
 }
 
