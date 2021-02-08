@@ -466,7 +466,7 @@ func TestAccVirtualMachineScaleSet_customImage(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  ImageResource{}.standaloneImage_setup(data, userName, password, hostName, "LRS"),
+			Config:  ImageResource{}.setupUnmanagedDisks(data, "LRS"),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),

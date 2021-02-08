@@ -230,7 +230,7 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 
 // nolint: unparam
 func (SharedImageVersionResource) setup(data acceptance.TestData, username, password, hostname string) string {
-	return ImageResource{}.standaloneImage_setup(data, username, password, hostname, "LRS")
+	return ImageResource{}.setupUnmanagedDisks(data, "LRS")
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData, username, password, hostname string) string {
@@ -256,7 +256,7 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, ImageResource{}.standaloneImage_provision(data, username, password, hostname, "LRS", ""), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, ImageResource{}.standaloneImageProvision(data, "LRS", ""), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersion(data acceptance.TestData, username, password, hostname string) string {

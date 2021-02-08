@@ -27,14 +27,14 @@ func TestAccDataSourceAzureRMImages_basic(t *testing.T) {
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: ImageResource{}.standaloneImage_setup(data, userName, password, hostName, storageType),
+			Config: ImageResource{}.setupUnmanagedDisks(data, storageType),
 			Check: resource.ComposeTestCheckFunc(
 				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
 		{
-			Config: ImageResource{}.standaloneImage_provision(data, userName, password, hostName, storageType, ""),
+			Config: ImageResource{}.standaloneImageProvision(data, storageType, ""),
 			Check:  resource.ComposeTestCheckFunc(),
 		},
 		{
@@ -61,14 +61,14 @@ func TestAccDataSourceAzureRMImages_tagsFilterError(t *testing.T) {
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: ImageResource{}.standaloneImage_setup(data, userName, password, hostName, storageType),
+			Config: ImageResource{}.setupUnmanagedDisks(data, storageType),
 			Check: resource.ComposeTestCheckFunc(
 				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
 		{
-			Config: ImageResource{}.standaloneImage_provision(data, userName, password, hostName, storageType, ""),
+			Config: ImageResource{}.standaloneImageProvision(data, storageType, ""),
 			Check:  resource.ComposeTestCheckFunc(),
 		},
 		{
@@ -92,14 +92,14 @@ func TestAccDataSourceAzureRMImages_tagsFilter(t *testing.T) {
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: ImageResource{}.standaloneImage_setup(data, userName, password, hostName, storageType),
+			Config: ImageResource{}.setupUnmanagedDisks(data, storageType),
 			Check: resource.ComposeTestCheckFunc(
 				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
 			),
 		},
 		{
-			Config: ImageResource{}.standaloneImage_provision(data, userName, password, hostName, storageType, ""),
+			Config: ImageResource{}.standaloneImageProvision(data, storageType, ""),
 			Check:  resource.ComposeTestCheckFunc(),
 		},
 		{
@@ -118,7 +118,7 @@ func (ImagesDataSource) basic(data acceptance.TestData, userName, password, host
 data "azurerm_images" "test" {
   resource_group_name = azurerm_image.test.resource_group_name
 }
-`, ImageResource{}.standaloneImage_provision(data, userName, password, hostName, storageType, ""))
+`, ImageResource{}.standaloneImageProvision(data, storageType, ""))
 }
 
 func (ImagesDataSource) tagsFilterError(data acceptance.TestData, userName, password, hostName, storageType string) string {
@@ -131,7 +131,7 @@ data "azurerm_images" "test" {
     environment = "error"
   }
 }
-`, ImageResource{}.standaloneImage_provision(data, userName, password, hostName, storageType, ""))
+`, ImageResource{}.standaloneImageProvision(data, storageType, ""))
 }
 
 func (ImagesDataSource) tagsFilter(data acceptance.TestData, userName, password, hostName, storageType string) string {
@@ -144,5 +144,5 @@ data "azurerm_images" "test" {
     environment = "Dev"
   }
 }
-`, ImageResource{}.standaloneImage_provision(data, userName, password, hostName, storageType, ""))
+`, ImageResource{}.standaloneImageProvision(data, storageType, ""))
 }
