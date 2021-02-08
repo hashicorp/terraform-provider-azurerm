@@ -166,6 +166,21 @@ func TestAccDataFactory_publicNetworkDisabled(t *testing.T) {
 	})
 }
 
+func TestAccDataFactory_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactory_keyVaultKeyEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 	r := DataFactoryResource{}
@@ -379,6 +394,38 @@ resource "azurerm_data_factory" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (DataFactoryResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctest%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    user_identity_ids = [
+		azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (DataFactoryResource) keyVaultKeyEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -454,7 +501,7 @@ resource "azurerm_data_factory" "test" {
   identity {
     type = "UserAssigned"
     user_identity_ids = [
-      azurerm_user_assigned_identity.test.id
+		azurerm_user_assigned_identity.test.id
     ]
   }
 

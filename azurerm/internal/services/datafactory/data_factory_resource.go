@@ -231,8 +231,12 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
-
 		identityIdsRaw := d.Get("identity.0.user_identity_ids").(*schema.Set).List()
+
+		if len(identityIdsRaw) > 0 && identityType != "UserAssigned" {
+			return fmt.Errorf("`user_identity_ids` can only be specified when `type` is `UserAssigned`")
+		}
+
 		identityIds := make(map[string]interface{})
 		for _, v := range identityIdsRaw {
 			identityIds[v.(string)] = make(map[string]string)
@@ -322,7 +326,12 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 
 	if factoryProps := resp.FactoryProperties; factoryProps != nil {
 		if enc := factoryProps.Encryption; enc != nil {
-			d.Set("key_vault_key_id", fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion))
+			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
+				versionedKey := fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
+				if err := d.Set("key_vault_key_id", versionedKey); err != nil {
+					return fmt.Errorf("Error setting `key_vault_key_id`: %+v", err)
+				}
+			}
 		}
 	}
 
