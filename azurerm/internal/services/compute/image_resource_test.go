@@ -222,7 +222,7 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 		{
 			Config: r.customImageFromVMSSWithUnmanagedDisksProvision(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMSSExists("azurerm_virtual_machine_scale_set.testdestination", true),
+				data.CheckWithClientForResource(r.virtualMachineScaleSetExists, "azurerm_virtual_machine_scale_set.testdestination"),
 			),
 		},
 	})
@@ -251,6 +251,24 @@ func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.C
 	}
 
 	resp, err := client.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("%s does not exist", *id)
+		}
+
+		return fmt.Errorf("Bad: Get on client: %+v", err)
+	}
+
+	return nil
+}
+
+func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s does not exist", *id)

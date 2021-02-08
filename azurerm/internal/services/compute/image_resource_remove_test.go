@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -81,40 +80,4 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	}
 
 	return nil
-}
-
-func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		vmssClient := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
-
-		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
-		if !vmOk {
-			return fmt.Errorf("VMSS Not found: %s", sourceVMSS)
-		}
-		vmssName := vmRs.Primary.Attributes["name"]
-
-		resourceGroup, hasResourceGroup := vmRs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for VMSS: %s", vmssName)
-		}
-
-		resp, err := vmssClient.Get(ctx, resourceGroup, vmssName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on vmssClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Bad: VMSS %q (resource group %q) does not exist", vmssName, resourceGroup)
-		}
-		if resp.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Bad: VMSS %q (resource group %q) still exists", vmssName, resourceGroup)
-		}
-
-		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - END.")
-
-		return nil
-	}
 }
