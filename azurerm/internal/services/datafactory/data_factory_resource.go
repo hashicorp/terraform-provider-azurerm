@@ -256,14 +256,12 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 		identityIdsRaw := d.Get("identity.0.user_identity_ids").(*schema.Set).List()
 
-		first := identityIdsRaw[0].(string)
-
 		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
 			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
 			KeyName:      &keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &datafactory.CMKIdentityDefinition{
-				UserAssignedIdentity: &first,
+				UserAssignedIdentity: utils.String(identityIdsRaw[0].(string)),
 			},
 		}
 	}
