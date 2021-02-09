@@ -16,6 +16,8 @@ Manages a Key Vault.
 
 ~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
+!> **Note:** As of 2020-12-15 Azure now requires that Soft Delete is enabled on Key Vaults and this can no longer be disabled. Version v2.42 of the Azure Provider and later ignore the value of the `soft_delete_enabled` field and force this value to be `true` - as such this field can be safely removed from your Terraform Configuration. This field will be removed in version 3.0 of the Azure Provider. 
+
 ## Example Usage
 
 ```hcl
@@ -30,17 +32,16 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                        = "testvault"
+  name                        = "examplekeyvault"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  soft_delete_enabled         = true
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
 
@@ -52,7 +53,6 @@ resource "azurerm_key_vault" "example" {
 
     key_permissions = [
       "get",
-      "ManageContacts",
     ]
 
     secret_permissions = [
@@ -62,21 +62,6 @@ resource "azurerm_key_vault" "example" {
     storage_permissions = [
       "get",
     ]
-  }
-
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-  }
-
-  contact {
-    email = "example@example.com"
-    name  = "example"
-    phone = "0123456789"
-  }
-
-  tags = {
-    environment = "Testing"
   }
 }
 ```
@@ -115,19 +100,13 @@ The following arguments are supported:
 
 !> **Note:** Once Purge Protection has been Enabled it's not possible to Disable it. Support for [disabling purge protection is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075). Deleting the Key Vault with Purge Protection Enabled will schedule the Key Vault to be deleted (which will happen by Azure in the configured number of days, currently 90 days - which will be configurable in Terraform in the future).
 
-* `soft_delete_enabled` - (Optional) Should Soft Delete be enabled for this Key Vault? Defaults to `false`.
+* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` (the default) days.
 
-!> **Note:** Once Soft Delete has been Enabled it's not possible to Disable it.
-
-~> **Note:** Terraform will check when creating a Key Vault for a previous soft-deleted Key Vault and recover it if one exists. You can configure this behaviour using the `features` block within the `provider` block.  
-
-* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted.
-
-~> **Note:** This field can only be set once Soft Delete is Enabled and cannot be updated.
+~> **Note:** This field can only be configured one time and cannot be updated.
 
 * `contact` - (Optional) One or more `contact` block as defined below.
 
-~> **Note:** This field can only be set once user has `ManageContacts` permission.
+~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

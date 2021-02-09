@@ -1,149 +1,137 @@
 package netapp_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+type NetAppVolumeResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.2676449260", "NFSv3"),
-				),
-			},
-			data.ImportStep(),
+func TestAccNetAppVolume_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.2676449260").HasValue("NFSv3"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_nfsv41(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nfsv41(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.3098200649").HasValue("NFSv4.1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_netapp_volume"),
 		},
 	})
 }
 
-func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
+func TestAccNetAppVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_nfsv41(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.3098200649", "NFSv4.1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetAppVolume_requiresImport(t *testing.T) {
+func TestAccNetAppVolume_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetAppVolume_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_netapp_volume"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
+func TestAccNetAppVolume_updateSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
-					resource.TestCheckResourceAttr(data.ResourceName, "mount_ip_addresses.#", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetAppVolume_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppVolume_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppVolume_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetAppVolume_updateSubnet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
 	resourceGroupName := fmt.Sprintf("acctestRG-netapp-%d", data.RandomInteger)
 	oldVNetName := fmt.Sprintf("acctest-VirtualNetwork-%d", data.RandomInteger)
 	oldSubnetName := fmt.Sprintf("acctest-Subnet-%d", data.RandomInteger)
@@ -155,113 +143,66 @@ func TestAccAzureRMNetAppVolume_updateSubnet(t *testing.T) {
 	oldSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, oldVNetName, oldSubnetName)
 	newSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, newVNetName, newSubnetName)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_id", oldSubnetId),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppVolume_updateSubnet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_id", newSubnetId),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").HasValue(oldSubnetId),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateSubnet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").HasValue(newSubnetId),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
+func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppVolume_updateExportPolicyRule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateExportPolicyRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.VolumeClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("NetApp Volume not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		poolName := rs.Primary.Attributes["pool_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: NetApp Volume %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on netapp.VolumeClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNetAppVolumeDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.VolumeClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_netapp_volume" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		poolName := rs.Primary.Attributes["pool_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on netapp.VolumeClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VolumeID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.NetApp.VolumeClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Netapp Volume (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMNetAppVolume_basic(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppVolume_template(data)
+func (NetAppVolumeResource) basic(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -279,8 +220,8 @@ resource "azurerm_netapp_volume" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppVolume_nfsv41(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppVolume_template(data)
+func (NetAppVolumeResource) nfsv41(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -307,7 +248,7 @@ resource "azurerm_netapp_volume" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppVolume_requiresImport(data acceptance.TestData) string {
+func (r NetAppVolumeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -322,11 +263,10 @@ resource "azurerm_netapp_volume" "import" {
   subnet_id           = azurerm_netapp_volume.test.subnet_id
   storage_quota_in_gb = azurerm_netapp_volume.test.storage_quota_in_gb
 }
-`, testAccAzureRMNetAppVolume_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMNetAppVolume_complete(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppVolume_template(data)
+func (r NetAppVolumeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -372,11 +312,10 @@ resource "azurerm_netapp_volume" "test" {
     "FoO" = "BaR"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppVolume_updateSubnet(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppVolume_template(data)
+func (r NetAppVolumeResource) updateSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -415,11 +354,10 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppVolume_updateExportPolicyRule(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppVolume_template(data)
+func (r NetAppVolumeResource) updateExportPolicyRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -447,10 +385,10 @@ resource "azurerm_netapp_volume" "test" {
     "FoO" = "BaR"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppVolume_template(data acceptance.TestData) string {
+func (NetAppVolumeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

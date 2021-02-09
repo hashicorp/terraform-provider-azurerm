@@ -74,6 +74,7 @@ func (client AssetsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -153,6 +154,7 @@ func (client AssetsClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -229,6 +231,7 @@ func (client AssetsClient) Get(ctx context.Context, resourceGroupName string, ac
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -307,6 +310,7 @@ func (client AssetsClient) GetEncryptionKey(ctx context.Context, resourceGroupNa
 	result, err = client.GetEncryptionKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "GetEncryptionKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -388,6 +392,7 @@ func (client AssetsClient) List(ctx context.Context, resourceGroupName string, a
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -461,6 +466,7 @@ func (client AssetsClient) listNextResults(ctx context.Context, lastResults Asse
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -515,6 +521,7 @@ func (client AssetsClient) ListContainerSas(ctx context.Context, resourceGroupNa
 	result, err = client.ListContainerSasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "ListContainerSas", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -594,6 +601,7 @@ func (client AssetsClient) ListStreamingLocators(ctx context.Context, resourceGr
 	result, err = client.ListStreamingLocatorsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "ListStreamingLocators", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -672,6 +680,7 @@ func (client AssetsClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

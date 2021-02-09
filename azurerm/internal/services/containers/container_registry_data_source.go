@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmContainerRegistry() *schema.Resource {
+func dataSourceContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmContainerRegistryRead,
+		Read: dataSourceContainerRegistryRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -24,7 +24,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -66,7 +66,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 	}
 }
 
-func dataSourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

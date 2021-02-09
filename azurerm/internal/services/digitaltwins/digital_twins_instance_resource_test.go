@@ -122,7 +122,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-DigitalTwins-%d"
+  name     = "acctestRG-dtwin-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)

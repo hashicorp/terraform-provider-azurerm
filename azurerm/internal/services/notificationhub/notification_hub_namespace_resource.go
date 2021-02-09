@@ -13,24 +13,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
 
-func resourceArmNotificationHubNamespace() *schema.Resource {
+func resourceNotificationHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNotificationHubNamespaceCreateUpdate,
-		Read:   resourceArmNotificationHubNamespaceRead,
-		Update: resourceArmNotificationHubNamespaceCreateUpdate,
-		Delete: resourceArmNotificationHubNamespaceDelete,
+		Create: resourceNotificationHubNamespaceCreateUpdate,
+		Read:   resourceNotificationHubNamespaceRead,
+		Update: resourceNotificationHubNamespaceCreateUpdate,
+		Delete: resourceNotificationHubNamespaceDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NamespaceID(id)
 			return err
@@ -90,7 +90,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,10 +161,10 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(*read.ID)
 
-	return resourceArmNotificationHubNamespaceRead(d, meta)
+	return resourceNotificationHubNamespaceRead(d, meta)
 }
 
-func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var eventHubResourceName = "azurerm_eventhub"
 
-func resourceArmEventHub() *schema.Resource {
+func resourceEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreateUpdate,
-		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreateUpdate,
-		Delete: resourceArmEventHubDelete,
+		Create: resourceEventHubCreateUpdate,
+		Read:   resourceEventHubRead,
+		Update: resourceEventHubCreateUpdate,
+		Delete: resourceEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,14 +42,14 @@ func resourceArmEventHub() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -150,7 +150,7 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,10 +202,10 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventHubRead(d, meta)
+	return resourceEventHubRead(d, meta)
 }
 
-func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +245,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -24,6 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -529,7 +529,11 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
+	identity, err := flattenVirtualMachineIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -605,7 +609,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 			if err != nil {
 				return fmt.Errorf("flattening `admin_ssh_key`: %+v", err)
 			}
-			if err := d.Set("admin_ssh_key", flattenedSSHKeys); err != nil {
+			if err := d.Set("admin_ssh_key", schema.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
 		}
@@ -1085,22 +1089,32 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	// ISSUE: XXX
-	// shutting down the Virtual Machine prior to removing it means users are no longer charged for the compute
-	// thus this can be a large cost-saving when deleting larger instances
-	log.Printf("[DEBUG] Powering Off Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-	powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
-	if err != nil {
-		return fmt.Errorf("powering off Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	// If the VM was in a Failed state we can skip powering off, since that'll fail
+	if strings.EqualFold(*existing.ProvisioningState, "failed") {
+		log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
+	} else {
+		//ISSUE: 4920
+		// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
+		// thus this can be a large cost-saving when deleting larger instances
+		// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
+		log.Printf("[DEBUG] Powering Off Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
+		powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
+		if err != nil {
+			return fmt.Errorf("powering off Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for power off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		log.Printf("[DEBUG] Powered Off Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 	}
-	if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for power off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	log.Printf("[DEBUG] Powered Off Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	log.Printf("[DEBUG] Deleting Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("deleting Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

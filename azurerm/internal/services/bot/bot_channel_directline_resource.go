@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotChannelDirectline() *schema.Resource {
+func resourceBotChannelDirectline() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotChannelDirectlineCreate,
-		Read:   resourceArmBotChannelDirectlineRead,
-		Delete: resourceArmBotChannelDirectlineDelete,
-		Update: resourceArmBotChannelDirectlineUpdate,
+		Create: resourceBotChannelDirectlineCreate,
+		Read:   resourceBotChannelDirectlineRead,
+		Delete: resourceBotChannelDirectlineDelete,
+		Update: resourceBotChannelDirectlineUpdate,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.BotChannelID(id)
@@ -117,7 +117,7 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 	}
 }
 
-func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -137,7 +137,7 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 			if ok && directLineChannel.Properties != nil {
 				sites := filterSites(directLineChannel.Properties.Sites)
 				if len(sites) != 0 {
-					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID(""))
+					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID())
 				}
 			}
 		}
@@ -157,17 +157,17 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("creating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	return resourceArmBotChannelDirectlineRead(d, meta)
+	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceArmBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceArmBotChannelDirectlineRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,10 +233,10 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
 
-	return resourceArmBotChannelDirectlineRead(d, meta)
+	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceArmBotChannelDirectlineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -97,7 +97,7 @@ func resourceSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{
 	if listResp.Value != nil && len(*listResp.Value) != 0 {
 		existing := (*listResp.Value)[0]
 		if existing.ID != nil && *existing.ID != "" {
-			resourceId := parse.NewRoleAssignmentId(*workspaceId, *existing.ID).ID("")
+			resourceId := parse.NewRoleAssignmentId(*workspaceId, *existing.ID).ID()
 			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 		}
 	}
@@ -116,7 +116,7 @@ func resourceSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(*workspaceId, *resp.ID).ID("")
+	resourceId := parse.NewRoleAssignmentId(*workspaceId, *resp.ID).ID()
 	d.SetId(resourceId)
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
@@ -154,7 +154,7 @@ func resourceSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{})
 		d.Set("role_name", role.Name)
 	}
 
-	d.Set("synapse_workspace_id", id.Workspace.ID(""))
+	d.Set("synapse_workspace_id", id.Workspace.ID())
 	d.Set("principal_id", resp.PrincipalID)
 	return nil
 }

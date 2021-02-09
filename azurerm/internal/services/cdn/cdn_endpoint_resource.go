@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -215,7 +215,6 @@ func resourceCdnEndpoint() *schema.Resource {
 }
 
 func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -246,21 +245,27 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
-	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	geoFilters := expandCdnEndpointGeoFilters(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	endpoint := cdn.Endpoint{
 		Location: &location,
 		EndpointProperties: &cdn.EndpointProperties{
-			ContentTypesToCompress:     &contentTypes,
-			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if _, ok := d.GetOk("content_types_to_compress"); ok {
+		contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
+		endpoint.EndpointProperties.ContentTypesToCompress = &contentTypes
+	}
+
+	if _, ok := d.GetOk("geo_filter"); ok {
+		geoFilters := expandCdnEndpointGeoFilters(d)
+		endpoint.EndpointProperties.GeoFilters = geoFilters
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -296,10 +301,12 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
-			return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
+			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 		}
 
-		endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
+		if profile.Sku.Name == cdn.StandardMicrosoft {
+			endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
+		}
 	}
 
 	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
@@ -321,7 +328,7 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 
 	return resourceCdnEndpointRead(d, meta)
 }
@@ -343,20 +350,26 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
-	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	geoFilters := expandCdnEndpointGeoFilters(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
-			ContentTypesToCompress:     &contentTypes,
-			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if _, ok := d.GetOk("content_types_to_compress"); ok {
+		contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
+		endpoint.EndpointPropertiesUpdateParameters.ContentTypesToCompress = &contentTypes
+	}
+
+	if _, ok := d.GetOk("geo_filter"); ok {
+		geoFilters := expandCdnEndpointGeoFilters(d)
+		endpoint.EndpointPropertiesUpdateParameters.GeoFilters = geoFilters
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -390,10 +403,12 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
-			return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
+			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 		}
 
-		endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
+		if profile.Sku.Name == cdn.StandardMicrosoft {
+			endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
+		}
 	}
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)

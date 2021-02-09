@@ -6,16 +6,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSharedImageGallery() *schema.Resource {
+func dataSourceSharedImageGallery() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSharedImageGalleryRead,
+		Read: dataSourceSharedImageGalleryRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -47,7 +47,7 @@ func dataSourceArmSharedImageGallery() *schema.Resource {
 	}
 }
 
-func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

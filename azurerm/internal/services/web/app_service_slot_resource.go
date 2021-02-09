@@ -9,23 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceSlot() *schema.Resource {
+func resourceAppServiceSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceSlotCreateUpdate,
-		Read:   resourceArmAppServiceSlotRead,
-		Update: resourceArmAppServiceSlotCreateUpdate,
-		Delete: resourceArmAppServiceSlotDelete,
+		Create: resourceAppServiceSlotCreateUpdate,
+		Read:   resourceAppServiceSlotRead,
+		Update: resourceAppServiceSlotCreateUpdate,
+		Delete: resourceAppServiceSlotDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceSlotID(id)
@@ -164,7 +164,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,10 +236,10 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceSlotUpdate(d, meta)
+	return resourceAppServiceSlotUpdate(d, meta)
 }
 
-func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -365,10 +365,10 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceArmAppServiceSlotRead(d, meta)
+	return resourceAppServiceSlotRead(d, meta)
 }
 
-func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -480,7 +480,10 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `logs`: %s", err)
 	}
 
-	identity := flattenAppServiceIdentity(resp.Identity)
+	identity, err := flattenAppServiceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -498,7 +501,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

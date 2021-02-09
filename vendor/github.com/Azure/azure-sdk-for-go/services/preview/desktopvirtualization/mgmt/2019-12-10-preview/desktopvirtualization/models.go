@@ -35,11 +35,11 @@ type Application struct {
 	autorest.Response `json:"-"`
 	// ApplicationProperties - Detailed properties for Application
 	*ApplicationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -112,11 +112,11 @@ type ApplicationGroup struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -365,8 +365,11 @@ func (page ApplicationGroupListPage) Values() []ApplicationGroup {
 }
 
 // Creates a new instance of the ApplicationGroupListPage type.
-func NewApplicationGroupListPage(getNextPage func(context.Context, ApplicationGroupList) (ApplicationGroupList, error)) ApplicationGroupListPage {
-	return ApplicationGroupListPage{fn: getNextPage}
+func NewApplicationGroupListPage(cur ApplicationGroupList, getNextPage func(context.Context, ApplicationGroupList) (ApplicationGroupList, error)) ApplicationGroupListPage {
+	return ApplicationGroupListPage{
+		fn:  getNextPage,
+		agl: cur,
+	}
 }
 
 // ApplicationGroupPatch applicationGroup properties that can be patched.
@@ -375,11 +378,11 @@ type ApplicationGroupPatch struct {
 	Tags map[string]*string `json:"tags"`
 	// ApplicationGroupPatchProperties - ApplicationGroup properties that can be patched.
 	*ApplicationGroupPatchProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -656,8 +659,11 @@ func (page ApplicationListPage) Values() []Application {
 }
 
 // Creates a new instance of the ApplicationListPage type.
-func NewApplicationListPage(getNextPage func(context.Context, ApplicationList) (ApplicationList, error)) ApplicationListPage {
-	return ApplicationListPage{fn: getNextPage}
+func NewApplicationListPage(cur ApplicationList, getNextPage func(context.Context, ApplicationList) (ApplicationList, error)) ApplicationListPage {
+	return ApplicationListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // ApplicationPatch application properties that can be patched.
@@ -787,15 +793,15 @@ func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
 	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -812,11 +818,11 @@ type Desktop struct {
 	autorest.Response `json:"-"`
 	// DesktopProperties - Detailed properties for Desktop
 	*DesktopProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -992,11 +998,11 @@ type HostPool struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1245,8 +1251,11 @@ func (page HostPoolListPage) Values() []HostPool {
 }
 
 // Creates a new instance of the HostPoolListPage type.
-func NewHostPoolListPage(getNextPage func(context.Context, HostPoolList) (HostPoolList, error)) HostPoolListPage {
-	return HostPoolListPage{fn: getNextPage}
+func NewHostPoolListPage(cur HostPoolList, getNextPage func(context.Context, HostPoolList) (HostPoolList, error)) HostPoolListPage {
+	return HostPoolListPage{
+		fn:  getNextPage,
+		hpl: cur,
+	}
 }
 
 // HostPoolPatch hostPool properties that can be patched.
@@ -1255,11 +1264,11 @@ type HostPoolPatch struct {
 	Tags map[string]*string `json:"tags"`
 	// HostPoolPatchProperties - HostPool properties that can be patched.
 	*HostPoolPatchProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1355,6 +1364,8 @@ type HostPoolPatchProperties struct {
 	ValidationEnvironment *bool `json:"validationEnvironment,omitempty"`
 	// RegistrationInfo - The registration info of HostPool.
 	RegistrationInfo *RegistrationInfoPatch `json:"registrationInfo,omitempty"`
+	// VMTemplate - VM template for sessionhosts configuration within hostpool.
+	VMTemplate *string `json:"vmTemplate,omitempty"`
 	// SsoContext - Path to keyvault containing ssoContext secret.
 	SsoContext *string `json:"ssoContext,omitempty"`
 	// PreferredAppGroupType - The type of preferred application group type, default to Desktop Application Group. Possible values include: 'PreferredAppGroupTypeNone', 'PreferredAppGroupTypeDesktop', 'PreferredAppGroupTypeRailApplications'
@@ -1438,14 +1449,14 @@ func (hpp HostPoolProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
-// required location and tags
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
 type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1467,13 +1478,13 @@ type RegistrationInfoPatch struct {
 	RegistrationTokenOperation RegistrationTokenOperation `json:"registrationTokenOperation,omitempty"`
 }
 
-// Resource ...
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1517,11 +1528,11 @@ type SessionHost struct {
 	autorest.Response `json:"-"`
 	// SessionHostProperties - Detailed properties for SessionHost
 	*SessionHostProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1746,19 +1757,22 @@ func (page SessionHostListPage) Values() []SessionHost {
 }
 
 // Creates a new instance of the SessionHostListPage type.
-func NewSessionHostListPage(getNextPage func(context.Context, SessionHostList) (SessionHostList, error)) SessionHostListPage {
-	return SessionHostListPage{fn: getNextPage}
+func NewSessionHostListPage(cur SessionHostList, getNextPage func(context.Context, SessionHostList) (SessionHostList, error)) SessionHostListPage {
+	return SessionHostListPage{
+		fn:  getNextPage,
+		shl: cur,
+	}
 }
 
 // SessionHostPatch sessionHost properties that can be patched.
 type SessionHostPatch struct {
 	// SessionHostPatchProperties - Detailed properties for SessionHost
 	*SessionHostPatchProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1902,11 +1916,11 @@ func (shp SessionHostProperties) MarshalJSON() ([]byte, error) {
 type StartMenuItem struct {
 	// StartMenuItemProperties - Detailed properties for StartMenuItem
 	*StartMenuItemProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2131,8 +2145,11 @@ func (page StartMenuItemListPage) Values() []StartMenuItem {
 }
 
 // Creates a new instance of the StartMenuItemListPage type.
-func NewStartMenuItemListPage(getNextPage func(context.Context, StartMenuItemList) (StartMenuItemList, error)) StartMenuItemListPage {
-	return StartMenuItemListPage{fn: getNextPage}
+func NewStartMenuItemListPage(cur StartMenuItemList, getNextPage func(context.Context, StartMenuItemList) (StartMenuItemList, error)) StartMenuItemListPage {
+	return StartMenuItemListPage{
+		fn:   getNextPage,
+		smil: cur,
+	}
 }
 
 // StartMenuItemProperties schema for StartMenuItem properties.
@@ -2151,17 +2168,18 @@ type StartMenuItemProperties struct {
 	IconIndex *int32 `json:"iconIndex,omitempty"`
 }
 
-// TrackedResource the resource model definition for a ARM tracked top level resource
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
 type TrackedResource struct {
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2182,11 +2200,11 @@ type UserSession struct {
 	autorest.Response `json:"-"`
 	// UserSessionProperties - Detailed properties for UserSession
 	*UserSessionProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2411,8 +2429,11 @@ func (page UserSessionListPage) Values() []UserSession {
 }
 
 // Creates a new instance of the UserSessionListPage type.
-func NewUserSessionListPage(getNextPage func(context.Context, UserSessionList) (UserSessionList, error)) UserSessionListPage {
-	return UserSessionListPage{fn: getNextPage}
+func NewUserSessionListPage(cur UserSessionList, getNextPage func(context.Context, UserSessionList) (UserSessionList, error)) UserSessionListPage {
+	return UserSessionListPage{
+		fn:  getNextPage,
+		usl: cur,
+	}
 }
 
 // UserSessionProperties schema for UserSession properties.
@@ -2438,11 +2459,11 @@ type Workspace struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2691,8 +2712,11 @@ func (page WorkspaceListPage) Values() []Workspace {
 }
 
 // Creates a new instance of the WorkspaceListPage type.
-func NewWorkspaceListPage(getNextPage func(context.Context, WorkspaceList) (WorkspaceList, error)) WorkspaceListPage {
-	return WorkspaceListPage{fn: getNextPage}
+func NewWorkspaceListPage(cur WorkspaceList, getNextPage func(context.Context, WorkspaceList) (WorkspaceList, error)) WorkspaceListPage {
+	return WorkspaceListPage{
+		fn: getNextPage,
+		wl: cur,
+	}
 }
 
 // WorkspacePatch workspace properties that can be patched.

@@ -102,15 +102,6 @@ resource "azurerm_monitor_action_group" "example" {
     use_common_alert_schema = true
   }
 
-webhook_receiver {
-    name                    = "secureWebhook"
-    service_uri             = "http://secureWebhook.com/alert"
-    use_common_alert_schema = false
-    use_aad_auth            = true
-    aad_auth_object_id      = azuread_application.example.object_id
-    aad_auth_identifier_uri = azuread_application.example.identifier_uris[0]
-  }
-
 }
 ```
 
@@ -222,8 +213,9 @@ The following arguments are supported:
 * `service_uri` - (Required) The URI where webhooks should be sent.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 * `use_aad_auth` - (Optional) Use AAD authentication?
+~> **NOTE:** Before adding a secure webhook receiver by enabling `use_aad_auth` and setting `aad_auth_object_id`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook). 
 * `aad_auth_object_id` - (Optional) The webhook app object Id for aad auth. Required when `use_aad_auth` is `true`.
-* `aad_auth_identifier_uri` - (Optional) The identifier uri for aad auth. Required when `use_aad_auth` is `true`.
+* `aad_auth_identifier_uri` - (Optional) The identifier uri for aad auth.
 * `aad_auth_tenant_id` - (Optional) The tenant id for aad auth.
 
 ## Attributes Reference

@@ -45,7 +45,7 @@ func ExtendedAuditingSchema() *schema.Schema {
 	}
 }
 
-func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
+func ExpandSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
@@ -72,7 +72,7 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 	return &ExtendedServerBlobAuditingPolicyProperties
 }
 
-func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
+func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
 	if extendedServerBlobAuditingPolicy == nil || extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}
@@ -104,7 +104,7 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 	}
 }
 
-func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
+func ExpandMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
@@ -131,7 +131,7 @@ func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.Extended
 	return &ExtendedDatabaseBlobAuditingPolicyProperties
 }
 
-func FlattenAzureRmMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.ExtendedDatabaseBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
+func FlattenMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.ExtendedDatabaseBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
 	if extendedDatabaseBlobAuditingPolicy == nil || extendedDatabaseBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}

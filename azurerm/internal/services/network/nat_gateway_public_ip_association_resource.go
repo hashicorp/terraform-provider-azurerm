@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNATGatewayPublicIpAssociation() *schema.Resource {
+func resourceNATGatewayPublicIpAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNATGatewayPublicIpAssociationCreate,
-		Read:   resourceArmNATGatewayPublicIpAssociationRead,
-		Delete: resourceArmNATGatewayPublicIpAssociationDelete,
+		Create: resourceNATGatewayPublicIpAssociationCreate,
+		Read:   resourceNATGatewayPublicIpAssociationRead,
+		Delete: resourceNATGatewayPublicIpAssociationDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NatGatewayPublicIPAddressAssociationID(id)
@@ -53,7 +53,7 @@ func resourceArmNATGatewayPublicIpAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,10 +109,10 @@ func resourceArmNATGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 
 	d.SetId(id)
 
-	return resourceArmNATGatewayPublicIpAssociationRead(d, meta)
+	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
 
-func resourceArmNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceArmNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

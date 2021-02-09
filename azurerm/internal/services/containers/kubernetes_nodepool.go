@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -63,6 +63,12 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"enable_node_public_ip": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"enable_host_encryption": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					ForceNew: true,
@@ -206,13 +212,14 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	t := raw["tags"].(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
-		EnableAutoScaling:  utils.Bool(enableAutoScaling),
-		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
-		Name:               utils.String(raw["name"].(string)),
-		NodeLabels:         nodeLabels,
-		Tags:               tags.Expand(t),
-		Type:               containerservice.AgentPoolType(raw["type"].(string)),
-		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
+		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
+		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
+		Name:                   utils.String(raw["name"].(string)),
+		NodeLabels:             nodeLabels,
+		Tags:                   tags.Expand(t),
+		Type:                   containerservice.AgentPoolType(raw["type"].(string)),
+		VMSize:                 containerservice.VMSizeTypes(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
@@ -344,6 +351,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		enableNodePublicIP = *agentPool.EnableNodePublicIP
 	}
 
+	enableHostEncryption := false
+	if agentPool.EnableEncryptionAtHost != nil {
+		enableHostEncryption = *agentPool.EnableEncryptionAtHost
+	}
+
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
@@ -402,6 +414,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"availability_zones":           availabilityZones,
 			"enable_auto_scaling":          enableAutoScaling,
 			"enable_node_public_ip":        enableNodePublicIP,
+			"enable_host_encryption":       enableHostEncryption,
 			"max_count":                    maxCount,
 			"max_pods":                     maxPods,
 			"min_count":                    minCount,

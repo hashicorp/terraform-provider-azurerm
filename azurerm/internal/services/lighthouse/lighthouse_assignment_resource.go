@@ -21,11 +21,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLighthouseAssignment() *schema.Resource {
+func resourceLighthouseAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLighthouseAssignmentCreate,
-		Read:   resourceArmLighthouseAssignmentRead,
-		Delete: resourceArmLighthouseAssignmentDelete,
+		Create: resourceLighthouseAssignmentCreate,
+		Read:   resourceLighthouseAssignmentRead,
+		Delete: resourceLighthouseAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,10 +111,10 @@ func resourceArmLighthouseAssignmentCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmLighthouseAssignmentRead(d, meta)
+	return resourceLighthouseAssignmentRead(d, meta)
 }
 
-func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,7 @@ func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

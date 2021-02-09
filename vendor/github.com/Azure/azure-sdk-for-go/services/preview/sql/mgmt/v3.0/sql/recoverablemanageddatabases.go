@@ -76,6 +76,7 @@ func (client RecoverableManagedDatabasesClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -154,6 +155,7 @@ func (client RecoverableManagedDatabasesClient) ListByInstance(ctx context.Conte
 	result.rmdlr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.rmdlr.hasNextLink() && result.rmdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -218,6 +220,7 @@ func (client RecoverableManagedDatabasesClient) listByInstanceNextResults(ctx co
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -9,22 +9,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceCertificateOrder() *schema.Resource {
+func resourceAppServiceCertificateOrder() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCertificateOrderCreateUpdate,
-		Read:   resourceArmAppServiceCertificateOrderRead,
-		Update: resourceArmAppServiceCertificateOrderCreateUpdate,
-		Delete: resourceArmAppServiceCertificateOrderDelete,
+		Create: resourceAppServiceCertificateOrderCreateUpdate,
+		Read:   resourceAppServiceCertificateOrderRead,
+		Update: resourceAppServiceCertificateOrderCreateUpdate,
+		Delete: resourceAppServiceCertificateOrderDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CertificateOrderID(id)
 			return err
@@ -170,7 +170,7 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesOrderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,10 +244,10 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceCertificateOrderRead(d, meta)
+	return resourceAppServiceCertificateOrderRead(d, meta)
 }
 
-func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesOrderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +313,7 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesOrderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

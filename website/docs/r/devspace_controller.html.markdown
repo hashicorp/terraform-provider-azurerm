@@ -12,6 +12,8 @@ Manages a DevSpace Controller.
 
 ~> **NOTE:** Microsoft will be retiring Azure Dev Spaces on 31 October 2023, please see the product [documentation](https://azure.microsoft.com/en-us/updates/azure-dev-spaces-is-retiring-on-31-october-2023/) for more information.
 
+!> **NOTE:** The Azure API no longer allows provisioning new DevSpace Controllers - as such this resource exists only to allow existing users to continue managing these in Terraform at this time. Support for the `azurerm_devspace_controller` resource will be removed in version 3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl
@@ -57,6 +59,8 @@ resource "azurerm_devspace_controller" "example" {
 
 ## Argument Reference
 
+!> **NOTE:** The Azure API no longer allows provisioning new DevSpace Controllers - as such this resource exists only to allow existing users to continue managing these in Terraform at this time. Support for the `azurerm_devspace_controller` resource will be removed in version 3.0 of the Azure Provider.
+
 The following arguments are supported:  
 
 * `name` - (Required) Specifies the name of the DevSpace Controller. Changing this forces a new resource to be created.
@@ -85,8 +89,6 @@ The following attributes are exported:
 * `host_suffix` - The host suffix for the DevSpace Controller.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -226,6 +226,7 @@ func (client DdosCustomPoliciesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.DdosCustomPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -302,6 +303,7 @@ func (client DdosCustomPoliciesClient) UpdateTags(ctx context.Context, resourceG
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.DdosCustomPoliciesClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

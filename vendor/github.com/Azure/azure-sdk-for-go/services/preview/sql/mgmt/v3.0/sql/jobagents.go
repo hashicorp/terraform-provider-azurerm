@@ -244,6 +244,7 @@ func (client JobAgentsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,6 +323,7 @@ func (client JobAgentsClient) ListByServer(ctx context.Context, resourceGroupNam
 	result.jalr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.jalr.hasNextLink() && result.jalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -386,6 +388,7 @@ func (client JobAgentsClient) listByServerNextResults(ctx context.Context, lastR
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

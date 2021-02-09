@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -41,6 +42,8 @@ func dataSourceDatabricksWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -72,5 +75,5 @@ func dataSourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{})
 		d.Set("workspace_url", props.WorkspaceURL)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

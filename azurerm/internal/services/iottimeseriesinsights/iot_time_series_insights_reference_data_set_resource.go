@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
+func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
-		Read:   resourceArmIoTTimeSeriesInsightsReferenceDataSetRead,
-		Update: resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
-		Delete: resourceArmIoTTimeSeriesInsightsReferenceDataSetDelete,
+		Create: resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
+		Read:   resourceIoTTimeSeriesInsightsReferenceDataSetRead,
+		Update: resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
+		Delete: resourceIoTTimeSeriesInsightsReferenceDataSetDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ReferenceDataSetID(id)
 			return err
@@ -59,6 +59,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			"data_string_comparison_behavior": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(timeseriesinsights.Ordinal),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(timeseriesinsights.Ordinal),
@@ -69,16 +70,19 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			"key_property": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(timeseriesinsights.ReferenceDataKeyPropertyTypeBool),
 								string(timeseriesinsights.ReferenceDataKeyPropertyTypeDateTime),
@@ -97,7 +101,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 	}
 }
 
-func resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,10 +152,10 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Reso
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIoTTimeSeriesInsightsReferenceDataSetRead(d, meta)
+	return resourceIoTTimeSeriesInsightsReferenceDataSetRead(d, meta)
 }
 
-func resourceArmIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +191,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmIoTTimeSeriesInsightsReferenceDataSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsReferenceDataSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

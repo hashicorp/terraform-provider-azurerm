@@ -9,24 +9,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var networkInterfaceResourceName = "azurerm_network_interface"
 
-func resourceArmNetworkInterface() *schema.Resource {
+func resourceNetworkInterface() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceCreate,
-		Read:   resourceArmNetworkInterfaceRead,
-		Update: resourceArmNetworkInterfaceUpdate,
-		Delete: resourceArmNetworkInterfaceDelete,
+		Create: resourceNetworkInterfaceCreate,
+		Read:   resourceNetworkInterfaceRead,
+		Update: resourceNetworkInterfaceUpdate,
+		Delete: resourceNetworkInterfaceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -181,7 +181,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,10 +275,10 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmNetworkInterfaceRead(d, meta)
+	return resourceNetworkInterfaceRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -380,7 +380,7 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -477,7 +477,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

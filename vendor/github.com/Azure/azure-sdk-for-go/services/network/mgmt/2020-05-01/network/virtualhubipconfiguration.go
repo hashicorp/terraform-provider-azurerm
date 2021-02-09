@@ -249,6 +249,7 @@ func (client VirtualHubIPConfigurationClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubIPConfigurationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,6 +327,7 @@ func (client VirtualHubIPConfigurationClient) List(ctx context.Context, resource
 	result.lvhicr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubIPConfigurationClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lvhicr.hasNextLink() && result.lvhicr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -390,6 +392,7 @@ func (client VirtualHubIPConfigurationClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubIPConfigurationClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

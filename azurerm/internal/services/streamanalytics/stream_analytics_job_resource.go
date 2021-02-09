@@ -10,9 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,10 @@ func resourceStreamAnalyticsJob() *schema.Resource {
 		Read:   resourceStreamAnalyticsJobRead,
 		Update: resourceStreamAnalyticsJobCreateUpdate,
 		Delete: resourceStreamAnalyticsJobDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.StreamingJobID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -234,26 +237,24 @@ func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StreamingJobID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["streamingjobs"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, "transformation")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Stream Analytics Job %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if resp.Location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
@@ -273,13 +274,13 @@ func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) er
 
 		// Computed
 		d.Set("job_id", props.JobID)
-	}
 
-	if transformation := resp.StreamingJobProperties.Transformation; transformation != nil {
-		if units := transformation.StreamingUnits; units != nil {
-			d.Set("streaming_units", int(*units))
+		if transformation := props.Transformation; transformation != nil {
+			if units := transformation.StreamingUnits; units != nil {
+				d.Set("streaming_units", int(*units))
+			}
+			d.Set("transformation_query", transformation.Query)
 		}
-		d.Set("transformation_query", transformation.Query)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -290,20 +291,18 @@ func resourceStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StreamingJobID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["streamingjobs"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

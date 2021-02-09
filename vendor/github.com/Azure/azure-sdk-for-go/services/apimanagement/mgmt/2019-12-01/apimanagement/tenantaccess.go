@@ -81,6 +81,7 @@ func (client TenantAccessClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -165,6 +166,7 @@ func (client TenantAccessClient) GetEntityTag(ctx context.Context, resourceGroup
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -248,6 +250,7 @@ func (client TenantAccessClient) ListSecrets(ctx context.Context, resourceGroupN
 	result, err = client.ListSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessClient", "ListSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -332,6 +335,7 @@ func (client TenantAccessClient) RegeneratePrimaryKey(ctx context.Context, resou
 	result, err = client.RegeneratePrimaryKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessClient", "RegeneratePrimaryKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -415,6 +419,7 @@ func (client TenantAccessClient) RegenerateSecondaryKey(ctx context.Context, res
 	result, err = client.RegenerateSecondaryKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessClient", "RegenerateSecondaryKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -501,6 +506,7 @@ func (client TenantAccessClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -10,25 +10,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlServer() *schema.Resource {
+func resourceMsSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlServerCreateUpdate,
-		Read:   resourceArmMsSqlServerRead,
-		Update: resourceArmMsSqlServerCreateUpdate,
-		Delete: resourceArmMsSqlServerDelete,
+		Create: resourceMsSqlServerCreateUpdate,
+		Read:   resourceMsSqlServerRead,
+		Update: resourceMsSqlServerCreateUpdate,
+		Delete: resourceMsSqlServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -42,7 +47,7 @@ func resourceArmMsSqlServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServerName,
+				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -169,11 +174,12 @@ func resourceArmMsSqlServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
-		CustomizeDiff: mssqlMinimumTLSVersionDiff,
+
+		CustomizeDiff: msSqlMinimumTLSVersionDiff,
 	}
 }
 
-func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
@@ -214,7 +220,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		sqlServerIdentity := expandAzureRmSqlServerIdentity(d)
+		sqlServerIdentity := expandSqlServerIdentity(d)
 		props.Identity = sqlServerIdentity
 	}
 
@@ -261,7 +267,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("waiting for SQL Server %q AAD admin (Resource Group %q) to be deleted: %+v", name, resGroup, err)
 		}
 
-		if adminParams := expandAzureRmMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
+		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
 			adminFuture, err := adminClient.CreateOrUpdate(ctx, resGroup, name, *adminParams)
 			if err != nil {
 				return fmt.Errorf("creating SQL Server %q AAD admin (Resource Group %q): %+v", name, resGroup, err)
@@ -283,7 +289,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
+		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
 	}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps)
@@ -295,10 +301,10 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for creation of SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return resourceArmMsSqlServerRead(d, meta)
+	return resourceMsSqlServerRead(d, meta)
 }
 
-func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
@@ -332,7 +338,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenSqlServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -350,7 +356,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("reading SQL Server %s AAD admin: %v", name, err)
 		}
 	} else {
-		if err := d.Set("azuread_administrator", flatternAzureRmMsSqlServerAdministrator(adminResp)); err != nil {
+		if err := d.Set("azuread_administrator", flatternMsSqlServerAdministrator(adminResp)); err != nil {
 			return fmt.Errorf("setting `azuread_administrator`: %+v", err)
 		}
 	}
@@ -369,7 +375,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("reading SQL Server %s Blob Auditing Policies: %v ", name, err)
 	}
 
-	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
+	if err := d.Set("extended_auditing_policy", helper.FlattenSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
 		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
@@ -377,14 +383,14 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
 	}
-	if err := d.Set("restorable_dropped_database_ids", flattenAzureRmSqlServerRestorableDatabases(restorableResp)); err != nil {
+	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableResp)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMsSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -405,7 +411,7 @@ func resourceArmMsSqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
-func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentity {
+func expandSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentity {
 	identities := d.Get("identity").([]interface{})
 	if len(identities) == 0 {
 		return &sql.ResourceIdentity{}
@@ -417,7 +423,7 @@ func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentit
 	}
 }
 
-func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
+func flattenSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
 	if identity == nil {
 		return []interface{}{}
 	}
@@ -433,7 +439,7 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 	return []interface{}{result}
 }
 
-func expandAzureRmMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {
+func expandMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -457,7 +463,7 @@ func expandAzureRmMsSqlServerAdministrator(input []interface{}) *sql.ServerAzure
 	return &adminParams
 }
 
-func flatternAzureRmMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []interface{} {
+func flatternMsSqlServerAdministrator(admin sql.ServerAzureADAdministrator) []interface{} {
 	var login, sid, tid string
 	if admin.Login != nil {
 		login = *admin.Login
@@ -480,7 +486,7 @@ func flatternAzureRmMsSqlServerAdministrator(admin sql.ServerAzureADAdministrato
 	}
 }
 
-func flattenAzureRmSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListResult) []string {
+func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListResult) []string {
 	if resp.Value == nil || len(*resp.Value) == 0 {
 		return []string{}
 	}
@@ -495,7 +501,7 @@ func flattenAzureRmSqlServerRestorableDatabases(resp sql.RestorableDroppedDataba
 	return res
 }
 
-func mssqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func msSqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")

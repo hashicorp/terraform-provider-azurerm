@@ -9,18 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
+func resourceDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServicePostgreSQLRead,
-		Update: resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServicePostgreSQLDelete,
+		Create: resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
+		Read:   resourceDataFactoryLinkedServicePostgreSQLRead,
+		Update: resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
+		Delete: resourceDataFactoryLinkedServicePostgreSQLDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -98,7 +98,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,10 +174,10 @@ func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.Resourc
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServicePostgreSQLRead(d, meta)
+	return resourceDataFactoryLinkedServicePostgreSQLRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

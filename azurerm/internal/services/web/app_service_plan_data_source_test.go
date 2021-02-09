@@ -10,7 +10,7 @@ import (
 
 type AppServicePlanDataSource struct{}
 
-func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
+func TestAccAppServicePlanDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -27,7 +27,7 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
+func TestAccAppServicePlanDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -45,7 +45,7 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
+func TestAccAppServicePlanDataSource_premiumSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+func TestAccAppServicePlanDataSource_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

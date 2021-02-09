@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -22,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSharedImageVersion() *schema.Resource {
+func resourceSharedImageVersion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSharedImageVersionCreateUpdate,
-		Read:   resourceArmSharedImageVersionRead,
-		Update: resourceArmSharedImageVersionCreateUpdate,
-		Delete: resourceArmSharedImageVersionDelete,
+		Create: resourceSharedImageVersionCreateUpdate,
+		Read:   resourceSharedImageVersionRead,
+		Update: resourceSharedImageVersionCreateUpdate,
+		Delete: resourceSharedImageVersionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SharedImageVersionID(id)
@@ -46,21 +45,21 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.SharedImageVersionName,
+				ValidateFunc: validate.SharedImageVersionName,
 			},
 
 			"gallery_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.SharedImageGalleryName,
+				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
 			"image_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.SharedImageName,
+				ValidateFunc: validate.SharedImageName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -131,7 +130,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 	}
 }
 
-func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,10 +195,10 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmSharedImageVersionRead(d, meta)
+	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +252,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

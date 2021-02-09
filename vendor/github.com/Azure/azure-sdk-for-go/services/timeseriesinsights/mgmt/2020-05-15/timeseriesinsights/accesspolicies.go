@@ -86,6 +86,7 @@ func (client AccessPoliciesClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.AccessPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client AccessPoliciesClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.AccessPoliciesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -246,6 +248,7 @@ func (client AccessPoliciesClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.AccessPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +326,7 @@ func (client AccessPoliciesClient) ListByEnvironment(ctx context.Context, resour
 	result, err = client.ListByEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.AccessPoliciesClient", "ListByEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -403,6 +407,7 @@ func (client AccessPoliciesClient) Update(ctx context.Context, resourceGroupName
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.AccessPoliciesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

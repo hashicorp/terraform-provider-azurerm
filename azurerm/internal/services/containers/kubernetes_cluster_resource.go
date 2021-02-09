@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,18 +19,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKubernetesCluster() *schema.Resource {
+func resourceKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterCreate,
-		Read:   resourceArmKubernetesClusterRead,
-		Update: resourceArmKubernetesClusterUpdate,
-		Delete: resourceArmKubernetesClusterDelete,
+		Create: resourceKubernetesClusterCreate,
+		Read:   resourceKubernetesClusterRead,
+		Update: resourceKubernetesClusterUpdate,
+		Delete: resourceKubernetesClusterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ClusterID(id)
@@ -68,7 +70,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesDNSPrefix,
+				ValidateFunc: containerValidate.KubernetesDNSPrefix,
 			},
 
 			"kubernetes_version": {
@@ -108,6 +110,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+						},
+						"new_pod_scale_up_delay": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
 						},
 						"scan_interval": {
 							Type:         schema.TypeString,
@@ -179,7 +187,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.ResourceIdentityTypeSystemAssigned),
+								string(containerservice.ResourceIdentityTypeUserAssigned),
 							}, false),
+						},
+						"user_assigned_identity_id": {
+							Type:         schema.TypeString,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							Optional:     true,
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -224,7 +238,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesAdminUserName,
+							ValidateFunc: containerValidate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
 							Type:     schema.TypeList,
@@ -262,6 +276,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Azure),
 								string(containerservice.Kubenet),
+							}, false),
+						},
+
+						"network_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								// https://github.com/Azure/AKS/issues/1954#issuecomment-759306712
+								// Transparent is already the default and only option for CNI
+								// Bridge is only kept for backward compatibility
+								string(containerservice.Bridge),
+								string(containerservice.Transparent),
 							}, false),
 						},
 
@@ -546,7 +574,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringLenBetween(14, 123),
 						},
 					},
 				},
@@ -647,7 +675,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -806,10 +834,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmKubernetesClusterRead(d, meta)
+	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
@@ -1120,10 +1148,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	d.Partial(false)
 
-	return resourceArmKubernetesClusterRead(d, meta)
+	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1199,7 +1227,10 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `default_node_pool`: %+v", err)
 		}
 
-		kubeletIdentity := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		kubeletIdentity, err := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
 			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
@@ -1247,7 +1278,12 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if err := d.Set("identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+	identity, err := flattenKubernetesClusterManagedClusterIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -1260,7 +1296,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1337,9 +1373,9 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 	}
 }
 
-func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) []interface{} {
+func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	kubeletIdentity := make([]interface{}, 0)
@@ -1356,7 +1392,12 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			userAssignedIdentityId = *resourceid
+			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			if err != nil {
+				return nil, err
+			}
+
+			userAssignedIdentityId = parsedId.ID()
 		}
 
 		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
@@ -1366,7 +1407,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 		})
 	}
 
-	return kubeletIdentity
+	return kubeletIdentity, nil
 }
 
 func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
@@ -1444,7 +1485,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1452,13 +1493,18 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	config := input[0].(map[string]interface{})
 
 	networkPlugin := config["network_plugin"].(string)
+	networkMode := config["network_mode"].(string)
+	if networkPlugin != "azure" && networkMode != "" {
+		return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
+	}
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerProfileRaw := config["load_balancer_profile"].([]interface{})
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	outboundType := config["outbound_type"].(string)
 
-	networkProfile := containerservice.NetworkProfileType{
+	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
+		NetworkMode:     containerservice.NetworkMode(networkMode),
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 		OutboundType:    containerservice.OutboundType(outboundType),
@@ -1569,7 +1615,7 @@ func resourceReferencesToIds(refs *[]containerservice.ResourceReference) []strin
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -1635,6 +1681,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"load_balancer_sku":     string(profile.LoadBalancerSku),
 			"load_balancer_profile": lbProfiles,
 			"network_plugin":        string(profile.NetworkPlugin),
+			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
 			"service_cidr":          serviceCidr,
@@ -1710,6 +1757,17 @@ func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *contain
 	}
 
 	values := input[0].(map[string]interface{})
+
+	if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
+		userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
+			values["user_assigned_identity_id"].(string): {},
+		}
+
+		return &containerservice.ManagedClusterIdentity{
+			Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
+			UserAssignedIdentities: userAssignedIdentities,
+		}
+	}
 
 	return &containerservice.ManagedClusterIdentity{
 		Type: containerservice.ResourceIdentityType(values["type"].(string)),
@@ -1856,10 +1914,10 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 	}
 }
 
-func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) ([]interface{}, error) {
 	// if it's none, omit the block
 	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identity := make(map[string]interface{})
@@ -1874,9 +1932,24 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 		identity["tenant_id"] = *input.TenantID
 	}
 
+	identity["user_assigned_identity_id"] = ""
+	if input.UserAssignedIdentities != nil {
+		keys := []string{}
+		for key := range input.UserAssignedIdentities {
+			keys = append(keys, key)
+		}
+		if len(keys) > 0 {
+			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			if err != nil {
+				return nil, err
+			}
+			identity["user_assigned_identity_id"] = parsedId.ID()
+		}
+	}
+
 	identity["type"] = string(input.Type)
 
-	return []interface{}{identity}
+	return []interface{}{identity}, nil
 }
 
 func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) []interface{} {
@@ -1894,6 +1967,11 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
 		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
+	}
+
+	newPodScaleUpDelay := ""
+	if profile.NewPodScaleUpDelay != nil {
+		newPodScaleUpDelay = *profile.NewPodScaleUpDelay
 	}
 
 	scaleDownDelayAfterAdd := ""
@@ -1935,6 +2013,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
+			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
 			"scale_down_delay_after_failure":   scaleDownDelayAfterFailure,
@@ -1955,6 +2034,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
+	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
 	scaleDownDelayAfterFailure := config["scale_down_delay_after_failure"].(string)
@@ -1966,6 +2046,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
+		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
 		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
 		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),

@@ -128,7 +128,7 @@ resource "azurerm_data_lake_analytics_account" "import" {
   location                   = azurerm_data_lake_analytics_account.test.location
   default_store_account_name = azurerm_data_lake_analytics_account.test.default_store_account_name
 }
-`, r.basic(data))
+`, DataLakeAnalyticsAccountResource{}.basic(data))
 }
 
 func (r DataLakeAnalyticsAccountResource) tier(data acceptance.TestData) string {
@@ -144,7 +144,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = azurerm_data_lake_store.test.name
 }
-`, r.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }
 
 func (r DataLakeAnalyticsAccountResource) withTags(data acceptance.TestData) string {
@@ -163,7 +163,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
     cost_center = "MSFT"
   }
 }
-`, r.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }
 
 func (r DataLakeAnalyticsAccountResource) withTagsUpdate(data acceptance.TestData) string {
@@ -181,5 +181,5 @@ resource "azurerm_data_lake_analytics_account" "test" {
     environment = "staging"
   }
 }
-`, r.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
+`, DataLakeStoreResource{}.basic(data), strconv.Itoa(data.RandomInteger)[2:17])
 }

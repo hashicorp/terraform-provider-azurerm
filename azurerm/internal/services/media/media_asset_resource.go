@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -97,17 +98,27 @@ func resourceMediaAsset() *schema.Resource {
 
 func resourceMediaAssetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	assetName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
-	description := d.Get("description").(string)
+	resourceId := parse.NewAssetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_media_asset", resourceId.ID())
+		}
+	}
 
 	parameters := media.Asset{
 		AssetProperties: &media.AssetProperties{
-			Description: utils.String(description),
+			Description: utils.String(d.Get("description").(string)),
 		},
 	}
 
@@ -123,16 +134,11 @@ func resourceMediaAssetCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		parameters.StorageAccountName = utils.String(v.(string))
 	}
 
-	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, assetName, parameters); e != nil {
-		return fmt.Errorf("Error creating Asset %q in Media Services Account %q (Resource Group %q): %+v", assetName, accountName, resourceGroup, e)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	asset, err := client.Get(ctx, resourceGroup, accountName, assetName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Asset %q in Media Services Account %q (Resource Group %q): %+v", assetName, accountName, resourceGroup, err)
-	}
-	d.SetId(*asset.ID)
-
+	d.SetId(resourceId.ID())
 	return resourceMediaAssetRead(d, meta)
 }
 
@@ -149,22 +155,23 @@ func resourceMediaAssetRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Asset %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Asset %q from Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("media_services_account_name", id.MediaserviceName)
-	if resp.AssetProperties != nil {
-		d.Set("description", resp.AssetProperties.Description)
-		d.Set("alternate_id", resp.AssetProperties.AlternateID)
-		d.Set("container", resp.AssetProperties.Container)
-		d.Set("storage_account_name", resp.AssetProperties.StorageAccountName)
+
+	if props := resp.AssetProperties; props != nil {
+		d.Set("description", props.Description)
+		d.Set("alternate_id", props.AlternateID)
+		d.Set("container", props.Container)
+		d.Set("storage_account_name", props.StorageAccountName)
 	}
 
 	return nil
@@ -182,10 +189,9 @@ func resourceAssetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Asset '%s': %+v", id.Name, err)
 	}
 
 	return nil

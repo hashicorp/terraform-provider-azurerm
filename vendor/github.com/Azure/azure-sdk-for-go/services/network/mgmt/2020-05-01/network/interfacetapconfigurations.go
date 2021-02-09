@@ -268,6 +268,7 @@ func (client InterfaceTapConfigurationsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceTapConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -345,6 +346,7 @@ func (client InterfaceTapConfigurationsClient) List(ctx context.Context, resourc
 	result.itclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceTapConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.itclr.hasNextLink() && result.itclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -409,6 +411,7 @@ func (client InterfaceTapConfigurationsClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceTapConfigurationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

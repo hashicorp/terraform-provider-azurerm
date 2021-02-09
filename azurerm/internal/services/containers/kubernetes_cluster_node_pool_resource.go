@@ -6,12 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
@@ -22,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKubernetesClusterNodePool() *schema.Resource {
+func resourceKubernetesClusterNodePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterNodePoolCreate,
-		Read:   resourceArmKubernetesClusterNodePoolRead,
-		Update: resourceArmKubernetesClusterNodePoolUpdate,
-		Delete: resourceArmKubernetesClusterNodePoolDelete,
+		Create: resourceKubernetesClusterNodePoolCreate,
+		Read:   resourceKubernetesClusterNodePoolRead,
+		Update: resourceKubernetesClusterNodePoolUpdate,
+		Delete: resourceKubernetesClusterNodePoolDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NodePoolID(id)
@@ -46,7 +45,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesAgentPoolName,
+				ValidateFunc: containerValidate.KubernetesAgentPoolName,
 			},
 
 			"kubernetes_cluster_id": {
@@ -85,6 +84,12 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"enable_auto_scaling": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+
+			"enable_host_encryption": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"enable_node_public_ip": {
@@ -223,7 +228,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
@@ -285,16 +290,18 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
+	enableHostEncryption := d.Get("enable_host_encryption").(bool)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
-		OsType:             containerservice.OSType(osType),
-		EnableAutoScaling:  utils.Bool(enableAutoScaling),
-		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
-		Mode:               mode,
-		ScaleSetPriority:   containerservice.ScaleSetPriority(priority),
-		Tags:               tags.Expand(t),
-		Type:               containerservice.VirtualMachineScaleSets,
-		VMSize:             containerservice.VMSizeTypes(vmSize),
+		OsType:                 containerservice.OSType(osType),
+		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Mode:                   mode,
+		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
+		Tags:                   tags.Expand(t),
+		Type:                   containerservice.VirtualMachineScaleSets,
+		VMSize:                 containerservice.VMSizeTypes(vmSize),
+		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
@@ -411,10 +418,10 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmKubernetesClusterNodePoolRead(d, meta)
+	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	client := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -460,6 +467,10 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	if d.HasChange("enable_auto_scaling") {
 		enableAutoScaling = d.Get("enable_auto_scaling").(bool)
 		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
+	}
+
+	if d.HasChange("enable_host_encryption") {
+		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
 	}
 
 	if d.HasChange("enable_node_public_ip") {
@@ -546,10 +557,10 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 
 	d.Partial(false)
 
-	return resourceArmKubernetesClusterNodePoolRead(d, meta)
+	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -593,6 +604,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {
@@ -674,7 +686,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

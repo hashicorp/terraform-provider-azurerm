@@ -82,6 +82,7 @@ func (client IntegrationAccountSchemasClient) CreateOrUpdate(ctx context.Context
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client IntegrationAccountSchemasClient) Delete(ctx context.Context, resour
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +239,7 @@ func (client IntegrationAccountSchemasClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +319,7 @@ func (client IntegrationAccountSchemasClient) List(ctx context.Context, resource
 	result.iaslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.iaslr.hasNextLink() && result.iaslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -386,6 +390,7 @@ func (client IntegrationAccountSchemasClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -438,6 +443,7 @@ func (client IntegrationAccountSchemasClient) ListContentCallbackURL(ctx context
 	result, err = client.ListContentCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "ListContentCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return

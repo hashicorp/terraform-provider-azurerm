@@ -65,7 +65,8 @@ type ClientDiscoveryDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// ClientDiscoveryForLogSpecification class to represent shoebox log specification in json client discovery.
+// ClientDiscoveryForLogSpecification class to represent shoebox log specification in json client
+// discovery.
 type ClientDiscoveryForLogSpecification struct {
 	// Name - Name of the log.
 	Name *string `json:"name,omitempty"`
@@ -97,8 +98,8 @@ type ClientDiscoveryResponse struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ClientDiscoveryResponseIterator provides access to a complete listing of ClientDiscoveryValueForSingleAPI
-// values.
+// ClientDiscoveryResponseIterator provides access to a complete listing of
+// ClientDiscoveryValueForSingleAPI values.
 type ClientDiscoveryResponseIterator struct {
 	i    int
 	page ClientDiscoveryResponsePage
@@ -241,8 +242,11 @@ func (page ClientDiscoveryResponsePage) Values() []ClientDiscoveryValueForSingle
 }
 
 // Creates a new instance of the ClientDiscoveryResponsePage type.
-func NewClientDiscoveryResponsePage(getNextPage func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error)) ClientDiscoveryResponsePage {
-	return ClientDiscoveryResponsePage{fn: getNextPage}
+func NewClientDiscoveryResponsePage(cur ClientDiscoveryResponse, getNextPage func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error)) ClientDiscoveryResponsePage {
+	return ClientDiscoveryResponsePage{
+		fn:  getNextPage,
+		cdr: cur,
+	}
 }
 
 // ClientDiscoveryValueForSingleAPI available operation details.
@@ -345,6 +349,7 @@ func (ptr PatchTrackedResource) MarshalJSON() ([]byte, error) {
 type PatchVault struct {
 	Properties *VaultProperties `json:"properties,omitempty"`
 	Sku        *Sku             `json:"sku,omitempty"`
+	Identity   *IdentityData    `json:"identity,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
@@ -367,6 +372,9 @@ func (pv PatchVault) MarshalJSON() ([]byte, error) {
 	}
 	if pv.Sku != nil {
 		objectMap["sku"] = pv.Sku
+	}
+	if pv.Identity != nil {
+		objectMap["identity"] = pv.Identity
 	}
 	if pv.Location != nil {
 		objectMap["location"] = pv.Location
@@ -658,8 +666,11 @@ func (page PrivateLinkResourcesPage) Values() []PrivateLinkResource {
 }
 
 // Creates a new instance of the PrivateLinkResourcesPage type.
-func NewPrivateLinkResourcesPage(getNextPage func(context.Context, PrivateLinkResources) (PrivateLinkResources, error)) PrivateLinkResourcesPage {
-	return PrivateLinkResourcesPage{fn: getNextPage}
+func NewPrivateLinkResourcesPage(cur PrivateLinkResources, getNextPage func(context.Context, PrivateLinkResources) (PrivateLinkResources, error)) PrivateLinkResourcesPage {
+	return PrivateLinkResourcesPage{
+		fn:  getNextPage,
+		plr: cur,
+	}
 }
 
 // PrivateLinkServiceConnectionState gets or sets private link service connection state.
@@ -1471,8 +1482,11 @@ func (page VaultListPage) Values() []Vault {
 }
 
 // Creates a new instance of the VaultListPage type.
-func NewVaultListPage(getNextPage func(context.Context, VaultList) (VaultList, error)) VaultListPage {
-	return VaultListPage{fn: getNextPage}
+func NewVaultListPage(cur VaultList, getNextPage func(context.Context, VaultList) (VaultList, error)) VaultListPage {
+	return VaultListPage{
+		fn: getNextPage,
+		vl: cur,
+	}
 }
 
 // VaultProperties properties of the vault.

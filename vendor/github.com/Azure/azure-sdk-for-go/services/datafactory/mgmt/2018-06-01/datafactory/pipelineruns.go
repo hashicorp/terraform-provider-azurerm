@@ -88,6 +88,7 @@ func (client PipelineRunsClient) Cancel(ctx context.Context, resourceGroupName s
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelineRunsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client PipelineRunsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelineRunsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,6 +273,7 @@ func (client PipelineRunsClient) QueryByFactory(ctx context.Context, resourceGro
 	result, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelineRunsClient", "QueryByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return

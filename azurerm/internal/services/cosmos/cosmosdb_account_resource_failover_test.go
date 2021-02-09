@@ -6,137 +6,110 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
+func TestAccCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_boundedStaleness(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "GlobalDocumentDB"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_boundedStaleness(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("GlobalDocumentDB"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(t *testing.T) {
+func TestAccCosmosDBAccount_failover_boundedStalenessComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_boundedStalenessComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
+func TestAccCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_eventualConsistency(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_eventualConsistency(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_failover_mongoDB(t *testing.T) {
+func TestAccCosmosDBAccount_failover_mongoDB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_mongoDB(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "MongoDB"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_mongoDB(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("MongoDB"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_failover_session(t *testing.T) {
+func TestAccCosmosDBAccount_failover_session(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_session(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_session(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_failover_strong(t *testing.T) {
+func TestAccCosmosDBAccount_failover_strong(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_strong(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_strong(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
+func TestAccCosmosDBAccount_failover_geoReplicated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDBAccount_failover_geoReplicated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failover_geoReplicated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testAccAzureRMCosmosDBAccount_failover_boundedStaleness(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_boundedStaleness(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,7 +138,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_boundedStalenessComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -196,7 +169,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_eventualConsistency(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_eventualConsistency(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -225,7 +198,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_session(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_session(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -254,7 +227,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_mongoDB(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_mongoDB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -284,7 +257,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_strong(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_strong(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -313,7 +286,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_geoReplicated(data acceptance.TestData) string {
+func (CosmosDBAccountResource) failover_geoReplicated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -14,29 +14,20 @@ Manages a Key Vault Key.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "my-resource-group"
-  location = "West US"
-}
-
-resource "random_id" "server" {
-  keepers = {
-    ami_id = 1
-  }
-
-  byte_length = 8
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "keyvaultkeyexample"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -45,15 +36,13 @@ resource "azurerm_key_vault" "example" {
     key_permissions = [
       "create",
       "get",
+      "purge",
+      "recover"
     ]
 
     secret_permissions = [
       "set",
     ]
-  }
-
-  tags = {
-    environment = "Production"
   }
 }
 
@@ -123,5 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Key Vault Key which is Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_key.examplehttps://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_key.example "https://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217"
 ```

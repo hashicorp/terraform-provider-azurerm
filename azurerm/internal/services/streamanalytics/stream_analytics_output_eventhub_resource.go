@@ -12,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,10 @@ func resourceStreamAnalyticsOutputEventHub() *schema.Resource {
 		Read:   resourceStreamAnalyticsOutputEventHubRead,
 		Update: resourceStreamAnalyticsOutputEventHubCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputEventHubDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.OutputID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -75,7 +78,7 @@ func resourceStreamAnalyticsOutputEventHub() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsOutputSerialization(),
+			"serialization": schemaStreamAnalyticsOutputSerialization(),
 		},
 	}
 }
@@ -109,7 +112,7 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *schema.ResourceData, m
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `serialization`: %+v", err)
 	}
@@ -156,41 +159,38 @@ func resourceStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	jobName := id.Path["streamingjobs"]
-	name := id.Path["outputs"]
 
-	resp, err := client.Get(ctx, resourceGroup, jobName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Output EventHub %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Output EventHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("stream_analytics_job_name", jobName)
+	d.Set("name", id.Name)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.OutputProperties; props != nil {
 		v, ok := props.Datasource.AsEventHubOutputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Output Data Source to a EventHub Output: %+v", err)
+			return fmt.Errorf("converting Output Data Source to a EventHub Output: %+v", err)
 		}
 
 		d.Set("eventhub_name", v.EventHubName)
 		d.Set("servicebus_namespace", v.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-			return fmt.Errorf("Error setting `serialization`: %+v", err)
+		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
 
@@ -202,17 +202,14 @@ func resourceStreamAnalyticsOutputEventHubDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	jobName := id.Path["streamingjobs"]
-	name := id.Path["outputs"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Output EventHub %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

@@ -1,8 +1,8 @@
 package keyvault_test
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
@@ -10,420 +10,315 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+type KeyVaultKeyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicEC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("key_size"),
+func TestAccKeyVaultKey_basicEC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_key_vault_key"),
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
+func TestAccKeyVaultKey_basicECHSM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicEC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMKeyVaultKey_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_key"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicECHSM(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
+func TestAccKeyVaultKey_curveEC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicECHSM(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.curveEC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultKey_basicRSA(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicRSA(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_basicRSAHSM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicRSAHSM(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.softDeleteRecovery(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config:  r.softDeleteRecovery(data, false),
+			Destroy: true,
+		},
+		{
+			Config: r.softDeleteRecovery(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
+func TestAccKeyVaultKey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_curveEC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicRSA(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_opts.#").HasValue("6"),
+				check.That(data.ResourceName).Key("key_opts.0").HasValue("decrypt"),
+			),
+		},
+		{
+			Config: r.basicUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_opts.#").HasValue("5"),
+				check.That(data.ResourceName).Key("key_opts.0").HasValue("encrypt"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
+func TestAccKeyVaultKey_updatedExternally(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicRSA(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("key_size"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.updateExpiryDate("2029-02-02T12:59:00Z")),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: r.basicECUpdatedExternally(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:   r.basicECUpdatedExternally(data),
+			PlanOnly: true,
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicEC,
+			TestResource: r,
+		}),
+	})
+}
+
+func TestAccKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEC(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
+func TestAccKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicRSAHSM(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("key_size"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withExternalAccessPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.withExternalAccessPolicyUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
 	})
 }
 
-func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	client := clients.KeyVault.ManagementClient
+	keyVaultsClient := clients.KeyVault
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2021-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
-				),
-			},
-			data.ImportStep("key_size"),
-		},
-	})
+	id, err := parse.ParseNestedItemID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	if err != nil || !ok {
+		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+
+	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
+	}
+
+	return utils.Bool(resp.Key != nil), nil
 }
 
-func TestAccAzureRMKeyVaultKey_softDeleteRecovery(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
+	if err != nil {
+		return err
+	}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_softDeleteRecovery(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2021-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
-				),
-			},
-			data.ImportStep("key_size"),
-			{
-				Config:  testAccAzureRMKeyVaultKey_softDeleteRecovery(data, false),
-				Destroy: true,
-			},
-			{
-				Config: testAccAzureRMKeyVaultKey_softDeleteRecovery(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2021-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicRSA(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.#", "6"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.0", "decrypt"),
-				),
-			},
-			{
-				Config: testAccAzureRMKeyVaultKey_basicUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.#", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.0", "encrypt"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_updatedExternally(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicEC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					updateExpiryDateForKeyVaultKey(data.ResourceName, "2029-02-02T12:59:00Z"),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMKeyVaultKey_basicECUpdatedExternally(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			{
-				Config:   testAccAzureRMKeyVaultKey_basicECUpdatedExternally(data),
-				PlanOnly: true,
-			},
-			data.ImportStep("key_size"),
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicEC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-					testCheckAzureRMKeyVaultKeyDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_basicEC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists("azurerm_key_vault_key.test"),
-					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultKey_withExternalAccessPolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("key_size"),
-			{
-				Config: testAccAzureRMKeyVaultKey_withExternalAccessPolicyUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("key_size"),
-		},
-	})
-}
-
-func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-	vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_key_vault_key" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			// key vault's been deleted
-			return nil
-		}
-
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		// get the latest version
-		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return fmt.Errorf("Key Vault Key still exists:\n%#v", resp)
+	if ok == nil || !*ok {
+		return fmt.Errorf("deleting parent key vault failed")
 	}
 
 	return nil
 }
 
-func testCheckAzureRMKeyVaultKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		name := state.Attributes["name"]
+		keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
 		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+			return err
 		}
 
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		vaultBaseUrl, err := clients.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Key Vault Key %q (resource group: %q) does not exist", name, vaultBaseUrl)
-			}
-
-			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func updateExpiryDateForKeyVaultKey(resourceName string, expiryDate string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
+			return fmt.Errorf("looking up base uri for Key %q from %q: %+v", name, keyVaultId, err)
 		}
 
 		expirationDate, err := time.Parse(time.RFC3339, expiryDate)
@@ -436,108 +331,40 @@ func updateExpiryDateForKeyVaultKey(resourceName string, expiryDate string) reso
 				Expires: &expirationUnixTime,
 			},
 		}
-		if _, err = client.UpdateKey(ctx, vaultBaseUrl, name, "", update); err != nil {
+		if _, err = clients.KeyVault.ManagementClient.UpdateKey(ctx, *vaultBaseUrl, name, "", update); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 
-		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Key Vault Key %q (resource group: %q) does not exist", name, vaultBaseUrl)
-			}
-
-			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
-		}
-
 		return nil
 	}
 }
 
-func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.DeleteKey(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
+func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	if err != nil {
+		return nil, err
 	}
+
+	vaultBaseUrl, err := client.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+	}
+
+	if _, err := client.KeyVault.ManagementClient.DeleteKey(ctx, *vaultBaseUrl, name); err != nil {
+		return nil, fmt.Errorf("deleting keyVaultManagementClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMKeyVaultKey_basicEC(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) basicEC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name         = "key-%s"
@@ -550,53 +377,16 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicECUpdatedExternally(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) basicECUpdatedExternally(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name            = "key-%s"
@@ -614,11 +404,10 @@ resource "azurerm_key_vault_key" "test" {
     Rick = "Morty"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultKey_basicEC(data)
+func (r KeyVaultKeyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -633,53 +422,16 @@ resource "azurerm_key_vault_key" "import" {
     "verify",
   ]
 }
-`, template)
+`, r.basicEC(data))
 }
 
-func testAccAzureRMKeyVaultKey_basicRSA(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) basicRSA(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name         = "key-%s"
@@ -696,52 +448,16 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicRSAHSM(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) basicRSAHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name         = "key-%s"
@@ -758,52 +474,16 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templatePremium(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_complete(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name            = "key-%s"
@@ -826,53 +506,16 @@ resource "azurerm_key_vault_key" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicUpdated(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name         = "key-%s"
@@ -888,52 +531,16 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_curveEC(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) curveEC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name         = "key-%s"
@@ -946,52 +553,16 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicECHSM(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) basicECHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name         = "key-%s"
@@ -1004,10 +575,10 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, r.templatePremium(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_softDeleteRecovery(data acceptance.TestData, purge bool) string {
+func (r KeyVaultKeyResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1018,45 +589,7 @@ provider "azurerm" {
   }
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-kvk-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  soft_delete_enabled = true
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-      "recover",
-      "delete",
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_key" "test" {
   name            = "key-%s"
@@ -1079,10 +612,10 @@ resource "azurerm_key_vault_key" "test" {
     "hello" = "world"
   }
 }
-`, purge, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, purge, r.templateStandard(data), data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_withExternalAccessPolicy(data acceptance.TestData) string {
+func (KeyVaultKeyResource) withExternalAccessPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1097,12 +630,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   tags = {
     environment = "accTest"
@@ -1118,6 +652,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "create",
     "delete",
     "get",
+    "purge",
+    "recover",
     "update",
   ]
 
@@ -1144,7 +680,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_withExternalAccessPolicyUpdate(data acceptance.TestData) string {
+func (KeyVaultKeyResource) withExternalAccessPolicyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1159,12 +695,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   tags = {
     environment = "accTest"
@@ -1181,6 +718,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "delete",
     "encrypt",
     "get",
+    "purge",
+    "recover",
     "update",
   ]
 
@@ -1205,4 +744,57 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (r KeyVaultKeyResource) templateStandard(data acceptance.TestData) string {
+	return r.template(data, "standard")
+}
+
+func (r KeyVaultKeyResource) templatePremium(data acceptance.TestData) string {
+	return r.template(data, "premium")
+}
+
+func (KeyVaultKeyResource) template(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "%s"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+      "purge",
+      "recover",
+      "update",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
 }

@@ -9,21 +9,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLDatabase() *schema.Resource {
+func resourcePostgreSQLDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLDatabaseCreate,
-		Read:   resourceArmPostgreSQLDatabaseRead,
-		Delete: resourceArmPostgreSQLDatabaseDelete,
+		Create: resourcePostgreSQLDatabaseCreate,
+		Read:   resourcePostgreSQLDatabaseRead,
+		Delete: resourcePostgreSQLDatabaseDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
@@ -69,7 +69,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.DatabasesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,10 +120,10 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*read.ID)
 
-	return resourceArmPostgreSQLDatabaseRead(d, meta)
+	return resourcePostgreSQLDatabaseRead(d, meta)
 }
 
-func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +156,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

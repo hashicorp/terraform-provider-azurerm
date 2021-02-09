@@ -12,21 +12,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSharedImage() *schema.Resource {
+func resourceSharedImage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSharedImageCreateUpdate,
-		Read:   resourceArmSharedImageRead,
-		Update: resourceArmSharedImageCreateUpdate,
-		Delete: resourceArmSharedImageDelete,
+		Create: resourceSharedImageCreateUpdate,
+		Read:   resourceSharedImageRead,
+		Update: resourceSharedImageCreateUpdate,
+		Delete: resourceSharedImageDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SharedImageID(id)
@@ -161,7 +161,7 @@ func resourceArmSharedImage() *schema.Resource {
 	}
 }
 
-func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,10 +226,10 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmSharedImageRead(d, meta)
+	return resourceSharedImageRead(d, meta)
 }
 
-func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +278,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -5,25 +5,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsDataExport() *schema.Resource {
+func resourceLogAnalyticsDataExport() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmOperationalinsightsDataExportCreateUpdate,
-		Read:   resourceArmOperationalinsightsDataExportRead,
-		Update: resourceArmOperationalinsightsDataExportCreateUpdate,
-		Delete: resourceArmOperationalinsightsDataExportDelete,
+		Create: resourceOperationalinsightsDataExportCreateUpdate,
+		Read:   resourceOperationalinsightsDataExportRead,
+		Update: resourceOperationalinsightsDataExportCreateUpdate,
+		Delete: resourceOperationalinsightsDataExportDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceArmLogAnalyticsDataExport() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.LogAnalyticsWorkspaceID,
 			},
 
 			"destination_resource_id": {
@@ -83,7 +83,7 @@ func resourceArmLogAnalyticsDataExport() *schema.Resource {
 	}
 }
 
-func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,10 +96,10 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.Name, name)
+		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -117,24 +117,24 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, name, parameters); err != nil {
+		return fmt.Errorf("creating/updating Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.Name, name)
+	resp, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.Name)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.WorkspaceName)
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmOperationalinsightsDataExportRead(d, meta)
+	return resourceOperationalinsightsDataExportRead(d, meta)
 }
 
-func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,28 +144,28 @@ func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta i
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Log Analytics %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.DataexportName, id.ResourceGroup, id.WorkspaceName, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.DataexportName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", id.WorkspaceID)
+	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.DataExportProperties; props != nil {
 		d.Set("export_rule_id", props.DataExportID)
-		d.Set("destination_resource_id", flattenArmDataExportDestination(props.Destination))
+		d.Set("destination_resource_id", flattenDataExportDestination(props.Destination))
 		d.Set("enabled", props.Enable)
 		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
 	}
 	return nil
 }
 
-func resourceArmOperationalinsightsDataExportDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,13 +175,13 @@ func resourceArmOperationalinsightsDataExportDelete(d *schema.ResourceData, meta
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
-		return fmt.Errorf("deleting Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName); err != nil {
+		return fmt.Errorf("deleting Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.DataexportName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 	return nil
 }
 
-func flattenArmDataExportDestination(input *operationalinsights.Destination) string {
+func flattenDataExportDestination(input *operationalinsights.Destination) string {
 	if input == nil {
 		return ""
 	}

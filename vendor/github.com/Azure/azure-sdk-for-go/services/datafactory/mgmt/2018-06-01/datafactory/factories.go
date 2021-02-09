@@ -58,17 +58,6 @@ func (client FactoriesClient) ConfigureFactoryRepo(ctx context.Context, location
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: factoryRepoUpdate,
-			Constraints: []validation.Constraint{{Target: "factoryRepoUpdate.RepoConfiguration", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "factoryRepoUpdate.RepoConfiguration.AccountName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "factoryRepoUpdate.RepoConfiguration.RepositoryName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "factoryRepoUpdate.RepoConfiguration.CollaborationBranch", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "factoryRepoUpdate.RepoConfiguration.RootFolder", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("datafactory.FactoriesClient", "ConfigureFactoryRepo", err.Error())
-	}
-
 	req, err := client.ConfigureFactoryRepoPreparer(ctx, locationID, factoryRepoUpdate)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "ConfigureFactoryRepo", nil, "Failure preparing request")
@@ -85,6 +74,7 @@ func (client FactoriesClient) ConfigureFactoryRepo(ctx context.Context, location
 	result, err = client.ConfigureFactoryRepoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "ConfigureFactoryRepo", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,11 +151,9 @@ func (client FactoriesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 			Constraints: []validation.Constraint{{Target: "factory.Identity", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "factory.Identity.Type", Name: validation.Null, Rule: true, Chain: nil}}},
 				{Target: "factory.FactoryProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "factory.FactoryProperties.RepoConfiguration", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "factory.FactoryProperties.RepoConfiguration.AccountName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "factory.FactoryProperties.RepoConfiguration.RepositoryName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "factory.FactoryProperties.RepoConfiguration.CollaborationBranch", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "factory.FactoryProperties.RepoConfiguration.RootFolder", Name: validation.Null, Rule: true, Chain: nil},
+					Chain: []validation.Constraint{{Target: "factory.FactoryProperties.Encryption", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "factory.FactoryProperties.Encryption.KeyName", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "factory.FactoryProperties.Encryption.VaultBaseURL", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 					}}}}}); err != nil {
 		return result, validation.NewError("datafactory.FactoriesClient", "CreateOrUpdate", err.Error())
@@ -187,6 +175,7 @@ func (client FactoriesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,6 +269,7 @@ func (client FactoriesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -368,6 +358,7 @@ func (client FactoriesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -460,6 +451,7 @@ func (client FactoriesClient) GetDataPlaneAccess(ctx context.Context, resourceGr
 	result, err = client.GetDataPlaneAccessResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "GetDataPlaneAccess", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -553,6 +545,7 @@ func (client FactoriesClient) GetGitHubAccessToken(ctx context.Context, resource
 	result, err = client.GetGitHubAccessTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "GetGitHubAccessToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -628,9 +621,11 @@ func (client FactoriesClient) List(ctx context.Context) (result FactoryListRespo
 	result.flr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.flr.hasNextLink() && result.flr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -749,9 +744,11 @@ func (client FactoriesClient) ListByResourceGroup(ctx context.Context, resourceG
 	result.flr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.flr.hasNextLink() && result.flr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -876,6 +873,7 @@ func (client FactoriesClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -73,6 +73,8 @@ A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
+* `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
+
 * `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.

@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbMongoCollection() *schema.Resource {
+func resourceCosmosDbMongoCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbMongoCollectionCreate,
-		Read:   resourceArmCosmosDbMongoCollectionRead,
-		Update: resourceArmCosmosDbMongoCollectionUpdate,
-		Delete: resourceArmCosmosDbMongoCollectionDelete,
+		Create: resourceCosmosDbMongoCollectionCreate,
+		Read:   resourceCosmosDbMongoCollectionRead,
+		Update: resourceCosmosDbMongoCollectionUpdate,
+		Delete: resourceCosmosDbMongoCollectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -137,7 +137,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,10 +211,10 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,11 +274,12 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
+	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -301,6 +302,11 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("database_name", id.MongodbDatabaseName)
+
+	accResp, err := accClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	if err != nil {
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
 	if props := resp.MongoDBCollectionGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
@@ -313,8 +319,18 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			for k := range res.ShardKey {
 				d.Set("shard_key", k)
 			}
+			accountIsVersion36 := false
+			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
+				if capabilities := accProps.Capabilities; capabilities != nil {
+					for _, v := range *capabilities {
+						if v.Name != nil && *v.Name == "EnableMongo" {
+							accountIsVersion36 = true
+						}
+					}
+				}
+			}
 
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes)
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, accountIsVersion36)
 			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
@@ -342,7 +358,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -399,7 +415,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
@@ -422,6 +438,13 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
+
+				if accountIsVersion36 {
+					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+					index["unique"] = true
+					indexes = append(indexes, index)
+				}
+
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)

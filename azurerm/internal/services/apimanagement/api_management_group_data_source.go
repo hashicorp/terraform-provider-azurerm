@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,11 +23,11 @@ func dataSourceApiManagementGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementChildDataSourceName(),
+			"name": schemaz.SchemaApiManagementChildDataSourceName(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"api_management_name": azure.SchemaApiManagementDataSourceName(),
+			"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
 
 			"display_name": {
 				Type:     schema.TypeString,
@@ -67,7 +70,12 @@ func dataSourceApiManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("making Read request for Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.GroupID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("Error parsing Group ID %q", *resp.ID)
+	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)

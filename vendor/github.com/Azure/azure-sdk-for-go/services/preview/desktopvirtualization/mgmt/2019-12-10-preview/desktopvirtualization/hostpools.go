@@ -89,6 +89,7 @@ func (client HostPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,6 +181,7 @@ func (client HostPoolsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -270,6 +272,7 @@ func (client HostPoolsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -349,6 +352,7 @@ func (client HostPoolsClient) List(ctx context.Context) (result HostPoolListPage
 	result.hpl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.hpl.hasNextLink() && result.hpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -411,6 +415,7 @@ func (client HostPoolsClient) listNextResults(ctx context.Context, lastResults H
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -472,6 +477,7 @@ func (client HostPoolsClient) ListByResourceGroup(ctx context.Context, resourceG
 	result.hpl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.hpl.hasNextLink() && result.hpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -535,6 +541,7 @@ func (client HostPoolsClient) listByResourceGroupNextResults(ctx context.Context
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -600,6 +607,7 @@ func (client HostPoolsClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

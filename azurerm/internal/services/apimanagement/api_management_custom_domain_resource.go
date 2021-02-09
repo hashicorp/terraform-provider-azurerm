@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -20,7 +21,7 @@ import (
 
 var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domain"
 
-func resourceArmApiManagementCustomDomain() *schema.Resource {
+func resourceApiManagementCustomDomain() *schema.Resource {
 	return &schema.Resource{
 		Create: apiManagementCustomDomainCreateUpdate,
 		Read:   apiManagementCustomDomainRead,
@@ -361,7 +362,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		if configType != "" {
 			if valsRaw, ok := d.GetOk(configType); ok {
 				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 	}

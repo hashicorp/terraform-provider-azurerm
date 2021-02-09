@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
+func resourcePostgreSQLVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate,
-		Read:   resourceArmPostgreSQLVirtualNetworkRuleRead,
-		Update: resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate,
-		Delete: resourceArmPostgreSQLVirtualNetworkRuleDelete,
+		Create: resourcePostgreSQLVirtualNetworkRuleCreateUpdate,
+		Read:   resourcePostgreSQLVirtualNetworkRuleRead,
+		Update: resourcePostgreSQLVirtualNetworkRuleCreateUpdate,
+		Delete: resourcePostgreSQLVirtualNetworkRuleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.VirtualNetworkRuleID(id)
 			return err
@@ -44,7 +44,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.VirtualNetworkRuleName,
+				ValidateFunc: validate2.VirtualNetworkRuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -70,7 +70,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,10 +137,10 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPostgreSQLVirtualNetworkRuleRead(d, meta)
+	return resourcePostgreSQLVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +173,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

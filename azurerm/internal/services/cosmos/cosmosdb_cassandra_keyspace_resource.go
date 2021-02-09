@@ -10,21 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
+func resourceCosmosDbCassandraKeyspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbCassandraKeyspaceCreate,
-		Read:   resourceArmCosmosDbCassandraKeyspaceRead,
-		Update: resourceArmCosmosDbCassandraKeyspaceUpdate,
-		Delete: resourceArmCosmosDbCassandraKeyspaceDelete,
+		Create: resourceCosmosDbCassandraKeyspaceCreate,
+		Read:   resourceCosmosDbCassandraKeyspaceRead,
+		Update: resourceCosmosDbCassandraKeyspaceUpdate,
+		Delete: resourceCosmosDbCassandraKeyspaceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -75,7 +75,7 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +136,10 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbCassandraKeyspaceRead(d, meta)
+	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,10 +187,10 @@ func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	return resourceArmCosmosDbCassandraKeyspaceRead(d, meta)
+	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +234,7 @@ func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -204,7 +204,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID())
 		}
 	}
 
@@ -218,7 +218,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating %s Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", resourceId.EndpointType(), resourceId.Name, resourceId.TrafficManagerProfileName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerEndpointRead(d, meta)
 }
 

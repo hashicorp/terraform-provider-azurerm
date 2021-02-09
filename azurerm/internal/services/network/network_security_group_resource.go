@@ -9,28 +9,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
-func resourceArmNetworkSecurityGroup() *schema.Resource {
+func resourceNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityGroupCreateUpdate,
-		Read:   resourceArmNetworkSecurityGroupRead,
-		Update: resourceArmNetworkSecurityGroupCreateUpdate,
-		Delete: resourceArmNetworkSecurityGroupDelete,
+		Create: resourceNetworkSecurityGroupCreateUpdate,
+		Read:   resourceNetworkSecurityGroupRead,
+		Update: resourceNetworkSecurityGroupCreateUpdate,
+		Delete: resourceNetworkSecurityGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseNetworkSecurityGroupID(id)
+			_, err := parse.NetworkSecurityGroupID(id)
 			return err
 		}),
 
@@ -178,7 +179,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,15 +239,15 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmNetworkSecurityGroupRead(d, meta)
+	return resourceNetworkSecurityGroupRead(d, meta)
 }
 
-func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseNetworkSecurityGroupID(d.Id())
+	id, err := parse.NetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -276,12 +277,12 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseNetworkSecurityGroupID(d.Id())
+	id, err := parse.NetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
 	}

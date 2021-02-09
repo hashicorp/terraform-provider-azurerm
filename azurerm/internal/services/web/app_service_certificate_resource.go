@@ -12,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -19,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceCertificate() *schema.Resource {
+func resourceAppServiceCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCertificateCreateUpdate,
-		Read:   resourceArmAppServiceCertificateRead,
-		Update: resourceArmAppServiceCertificateCreateUpdate,
-		Delete: resourceArmAppServiceCertificateDelete,
+		Create: resourceAppServiceCertificateCreateUpdate,
+		Read:   resourceAppServiceCertificateRead,
+		Update: resourceAppServiceCertificateCreateUpdate,
+		Delete: resourceAppServiceCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CertificateID(id)
 			return err
@@ -69,7 +71,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  azure.ValidateKeyVaultChildId,
+				ValidateFunc:  keyVaultValidate.NestedItemId,
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
@@ -122,9 +124,10 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func resourceAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,14 +182,14 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if keyVaultSecretId != "" {
-		parsedSecretId, err := azure.ParseKeyVaultChildID(keyVaultSecretId)
+		parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
 		if err != nil {
 			return err
 		}
 
 		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
 
-		keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUrl)
+		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultBaseUrl)
 		if err != nil {
 			return fmt.Errorf("Error retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 		}
@@ -212,10 +215,10 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceCertificateRead(d, meta)
+	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +262,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

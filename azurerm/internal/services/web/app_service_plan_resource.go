@@ -10,23 +10,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServicePlan() *schema.Resource {
+func resourceAppServicePlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServicePlanCreateUpdate,
-		Read:   resourceArmAppServicePlanRead,
-		Update: resourceArmAppServicePlanCreateUpdate,
-		Delete: resourceArmAppServicePlanDelete,
+		Create: resourceAppServicePlanCreateUpdate,
+		Read:   resourceAppServicePlanRead,
+		Update: resourceAppServicePlanCreateUpdate,
+		Delete: resourceAppServicePlanDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServicePlanID(id)
 			return err
@@ -133,7 +133,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 	}
 }
 
-func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +160,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	kind := d.Get("kind").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	sku := expandAzureRmAppServicePlanSku(d)
+	sku := expandAppServicePlanSku(d)
 	properties := &web.AppServicePlanProperties{}
 
 	isXenon := d.Get("is_xenon").(bool)
@@ -224,10 +224,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServicePlanRead(d, meta)
+	return resourceAppServicePlanRead(d, meta)
 }
 
-func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +294,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,7 +316,7 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
+func expandAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
 	configs := d.Get("sku").([]interface{})
 	config := configs[0].(map[string]interface{})
 
