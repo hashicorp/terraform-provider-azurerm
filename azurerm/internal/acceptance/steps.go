@@ -30,11 +30,17 @@ func (td TestData) DisappearsStep(data DisappearsStepData) resource.TestStep {
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
 			func(state *terraform.State) error {
-				client := buildClient()
+				client, err := buildClient()
+				if err != nil {
+					return fmt.Errorf("building client: %+v", err)
+				}
 				return helpers.ExistsInAzure(client, data.TestResource, td.ResourceName)(state)
 			},
 			func(state *terraform.State) error {
-				client := buildClient()
+				client, err := buildClient()
+				if err != nil {
+					return fmt.Errorf("building client: %+v", err)
+				}
 				return helpers.DeleteResourceFunc(client, data.TestResource, td.ResourceName)(state)
 			},
 		),
@@ -60,8 +66,11 @@ func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceNam
 				return fmt.Errorf("Resource not found: %s", resourceName)
 			}
 
-			clients := buildClient()
-			return check(clients.StopContext, clients, rs.Primary)
+			client, err := buildClient()
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return check(client.StopContext, client, rs.Primary)
 		},
 	)
 }

@@ -1,13 +1,20 @@
 package acceptance
 
 import (
+	"context"
+	"fmt"
+	"os"
+	"sync"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
 // NOTE: when Binary Testing is enabled the Check functions will need to build a client rather than relying on the
@@ -31,7 +38,10 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
-			client := buildClient()
+			client, err := buildClient()
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
 			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
 		Steps: steps,
@@ -54,24 +64,68 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 	}
 }
 
-func buildClient() *clients.Client {
-	// if enableBinaryTesting {
-	//   TODO: build up a client on demand
-	//   NOTE: this'll want caching/a singleton, and likely RP registration etc disabled, since otherwise this'll become
-	//   		 extremely expensive - and this doesn't need access to the provider feature toggles
-	// }
+var _client *clients.Client
+var clientLock = &sync.Mutex{}
 
-	return AzureProvider.Meta().(*clients.Client)
+func buildClient() (*clients.Client, error) {
+	if enableBinaryTesting {
+		clientLock.Lock()
+		defer clientLock.Unlock()
+
+		if _client == nil {
+			environment, exists := os.LookupEnv("ARM_ENVIRONMENT")
+			if !exists {
+				environment = "public"
+			}
+
+			builder := authentication.Builder{
+				SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
+				ClientID:       os.Getenv("ARM_CLIENT_ID"),
+				TenantID:       os.Getenv("ARM_TENANT_ID"),
+				ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
+				Environment:    environment,
+				MetadataHost:   os.Getenv("ARM_METADATA_HOST"),
+
+				// we intentionally only support Client Secret auth for tests (since those variables are used all over)
+				SupportsClientSecretAuth: true,
+			}
+			config, err := builder.Build()
+			if err != nil {
+				return nil, fmt.Errorf("Error building ARM Client: %+v", err)
+			}
+
+			clientBuilder := clients.ClientBuilder{
+				AuthConfig:               config,
+				SkipProviderRegistration: true,
+				TerraformVersion:         os.Getenv("TERRAFORM_CORE_VERSION"),
+				Features:                 features.Default(),
+				StorageUseAzureAD:        false,
+			}
+			client, err := clients.Build(context.TODO(), clientBuilder)
+			if err != nil {
+				return nil, err
+			}
+			_client = client
+		}
+
+		return _client, nil
+	}
+
+	return AzureProvider.Meta().(*clients.Client), nil
 }
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	if enableBinaryTesting {
+		testCase.DisableBinaryDriver = false
 		testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
-			// TODO: switch this out for dynamic initialization?
-			"azurerm": terraform.ResourceProviderFactoryFixed(AzureProvider),
+			"azurerm": func() (terraform.ResourceProvider, error) {
+				azurerm := provider.TestAzureProvider()
+				return azurerm, nil
+			},
 		}
+	} else {
+		testCase.Providers = SupportedProviders
 	}
-	testCase.Providers = SupportedProviders
 
 	resource.ParallelTest(t, testCase)
 }

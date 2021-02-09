@@ -4,6 +4,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/hashicorp/terraform-plugin-sdk/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread"
@@ -14,22 +15,23 @@ var once sync.Once
 
 func EnsureProvidersAreInitialised() {
 	if !enableBinaryTesting {
-		// NOTE: (@tombuildsstuff) - opting-out of Binary Testing for the moment
 		os.Setenv("TF_DISABLE_BINARY_TESTING", "true")
+	} else {
+		// require reattach testing is enabled
+		os.Setenv("TF_ACCTEST_REATTACH", "1")
 	}
 
 	once.Do(func() {
-		azureProvider := provider.TestAzureProvider().(*schema.Provider)
-
-		AzureProvider = azureProvider
-		SupportedProviders = map[string]terraform.ResourceProvider{
-			"azurerm": azureProvider,
-			"azuread": azuread.Provider().(*schema.Provider),
+		if !enableBinaryTesting {
+			azureProvider := provider.TestAzureProvider().(*schema.Provider)
+			AzureProvider = azureProvider
+			SupportedProviders = map[string]terraform.ResourceProvider{
+				"azurerm": azureProvider,
+				"azuread": azuread.Provider().(*schema.Provider),
+			}
+		} else {
+			acctest.UseBinaryDriver("azurerm", provider.TestAzureProvider)
+			acctest.UseBinaryDriver("azuread", azuread.Provider)
 		}
-
-		// NOTE: (@tombuildsstuff) - intentionally not calling these as Binary Testing
-		// is Disabled
-		// binarytestfuntime.UseBinaryDriver("azurerm", provider.TestAzureProvider)
-		// binarytestfuntime.UseBinaryDriver("azuread", azuread.Provider)
 	})
 }
