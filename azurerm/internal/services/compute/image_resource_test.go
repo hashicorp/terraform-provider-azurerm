@@ -607,55 +607,6 @@ func (r ImageResource) customImageFromManagedDiskVMProvision(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctnicsource-${local.number}"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "testsource"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = local.admin_username
-    admin_password = local.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
 resource "azurerm_image" "testdestination" {
   name                      = "acctestdest-${local.number}"
   location                  = azurerm_resource_group.test.location
