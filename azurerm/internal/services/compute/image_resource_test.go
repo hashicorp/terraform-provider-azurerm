@@ -467,6 +467,11 @@ resource "azurerm_virtual_machine" "testsource" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
 }
 `, template, storageType)
 }
@@ -556,7 +561,7 @@ resource "azurerm_image" "testdestination" {
 }
 
 resource "azurerm_network_interface" "testdestination" {
-  name                = "acctnicdest-${local.random}"
+  name                = "acctnicdest-${local.number}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -703,7 +708,7 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
   }
 
   os_profile {
-    computer_name_prefix = "testvm${local.random}"
+    computer_name_prefix = "testvm${local.number}"
     admin_username       = local.admin_username
     admin_password       = local.admin_password
   }
