@@ -19,11 +19,6 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azuread_application" "example" {
-  name            = "example-app"
-  identifier_uris = ["https://uri"]
-}
-
 resource "azurerm_monitor_action_group" "example" {
   name                = "CriticalAlertsAction"
   resource_group_name = azurerm_resource_group.example.name
@@ -101,7 +96,6 @@ resource "azurerm_monitor_action_group" "example" {
     service_uri             = "http://example.com/alert"
     use_common_alert_schema = true
   }
-
 }
 ```
 
