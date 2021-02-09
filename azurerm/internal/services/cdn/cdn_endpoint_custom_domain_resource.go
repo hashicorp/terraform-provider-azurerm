@@ -305,11 +305,11 @@ func resourceArmCdnEndpointCustomDomainRead(d *schema.ResourceData, meta interfa
 		d.Set("host_name", props.HostName)
 
 		switch params := props.CustomHTTPSParameters.(type) {
-		case *cdn.ManagedHTTPSParameters:
+		case cdn.ManagedHTTPSParameters:
 			if err := d.Set("cdn_managed_https_settings", flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(params)); err != nil {
 				return fmt.Errorf("setting `cdn_managed_https_settings`: %+v", err)
 			}
-		case *cdn.UserManagedHTTPSParameters:
+		case cdn.UserManagedHTTPSParameters:
 			if err := d.Set("user_managed_https_settings", flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(params)); err != nil {
 				return fmt.Errorf("setting `user_managed_https_settings`: %+v", err)
 			}
@@ -384,11 +384,7 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(input []interface{
 	return output
 }
 
-func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input *cdn.ManagedHTTPSParameters) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
+func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedHTTPSParameters) []interface{} {
 	certificateType := ""
 	if params := input.CertificateSourceParameters; params != nil {
 		certificateType = string(params.CertificateType)
@@ -401,11 +397,7 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input *cdn.Managed
 	}
 }
 
-func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(input *cdn.UserManagedHTTPSParameters) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
+func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(input cdn.UserManagedHTTPSParameters) []interface{} {
 	var (
 		subscriptionId    string
 		resourceGroupName string
