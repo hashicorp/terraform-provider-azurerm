@@ -19,29 +19,14 @@ type Runner struct {
 }
 
 func (r Runner) Run() error {
-	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{"NotFound"},
-		Target:                    []string{"Succeeded"},
-		Refresh:                   r.tryRun,
-		MinTimeout:                1 * time.Minute,
-		PollInterval:              15 * time.Second,
-		ContinuousTargetOccurence: 1,
-		Timeout:                   5 * time.Minute,
-	}
-	result, err := stateConf.WaitForState()
-	if err != nil {
+	if err := resource.Retry(5 * time.Minute, r.tryRun); err != nil {
 		return err
-	}
-
-	v, ok := result.(bool)
-	if !ok || !v {
-		return fmt.Errorf("failure connecting to host/running commands")
 	}
 
 	return nil
 }
 
-func (r Runner) tryRun() (result interface{}, state string, err error) {
+func (r Runner) tryRun() *resource.RetryError {
 	config := &ssh.ClientConfig{
 		User: r.Username,
 		Auth: []ssh.AuthMethod{
@@ -54,12 +39,12 @@ func (r Runner) tryRun() (result interface{}, state string, err error) {
 	log.Printf("[INFO] SSHing to %q...", hostAddress)
 	client, err := ssh.Dial("tcp", hostAddress, config)
 	if err != nil {
-		return nil, "NotFound", fmt.Errorf("connecting to host: %+v", err)
+		return resource.RetryableError(fmt.Errorf("connecting to host: %+v", err))
 	}
 
 	session, err := client.NewSession()
 	if err != nil {
-		return nil, "", fmt.Errorf("creating session: %+v", err)
+		return resource.RetryableError(fmt.Errorf("creating session: %+v", err))
 	}
 	defer session.Close()
 
@@ -68,9 +53,9 @@ func (r Runner) tryRun() (result interface{}, state string, err error) {
 		var b bytes.Buffer
 		session.Stdout = &b
 		if err := session.Run(cmd); err != nil {
-			return false, "Failed", fmt.Errorf("failure running command %q: %+v", cmd, err)
+			return resource.NonRetryableError(fmt.Errorf("failure running command %q: %+v", cmd, err))
 		}
 	}
 
-	return true, "Succeeded", nil
+	return nil
 }
