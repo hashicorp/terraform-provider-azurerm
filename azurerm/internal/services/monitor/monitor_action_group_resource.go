@@ -191,7 +191,8 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"aad_auth_identifier_uri": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+							Computed:     true,
+							ValidateFunc: validation.IsURLWithScheme([]string{"api"}),
 						},
 						"aad_auth_tenant_id": {
 							Type:         schema.TypeString,

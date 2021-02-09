@@ -1100,6 +1100,13 @@ data "azuread_service_principal" "action_group" {
   application_id = "461e8683-5575-4561-ac7f-899cc907d62a"
 }
 
+resource "null_resource" "role_assignment" {
+    provisioner "local-exec" {
+        command = "New-AzureADServiceAppRoleAssignment -Id $myApp.AppRoles[0].Id -ResourceId $myServicePrincipal.ObjectId -ObjectId $actionGroupsSP.ObjectId -PrincipalId $actionGroupsSP.ObjectId"
+        interpreter = ["PowerShell", "-Command"]
+    }
+}
+
 # Here we miss one AAD resource to do New-AzureADServiceAppRoleAssignment -Id $myApp.AppRoles[0].Id -ResourceId $myServicePrincipal.ObjectId -ObjectId $actionGroupsSP.ObjectId -PrincipalId $actionGroupsSP.ObjectId
 # Details in https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook
 
