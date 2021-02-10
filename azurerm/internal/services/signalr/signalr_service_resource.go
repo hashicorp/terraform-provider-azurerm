@@ -340,6 +340,11 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 			featuresRaw := d.Get("features").(*schema.Set).List()
 			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
+
+		if d.HasChange("upstream_setting") {
+			featuresRaw := d.Get("upstream_setting").(*schema.Set).List()
+			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
+		}
 	}
 
 	if d.HasChange("sku") {
@@ -453,19 +458,17 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 
 	result := make([]interface{}, 0)
 	for _, upstreamTemplate := range *upstreamSettings.Templates {
-		categoryPattern := ""
+		var categoryPattern, eventPattern, hubPattern, urlTemplate string
+
 		if upstreamTemplate.HubPattern != nil {
 			categoryPattern = *upstreamTemplate.HubPattern
 		}
-		eventPattern := ""
 		if upstreamTemplate.EventPattern != nil {
 			eventPattern = *upstreamTemplate.EventPattern
 		}
-		hubPattern := ""
 		if upstreamTemplate.HubPattern != nil {
 			hubPattern = *upstreamTemplate.HubPattern
 		}
-		urlTemplate := ""
 		if upstreamTemplate.URLTemplate != nil {
 			urlTemplate = *upstreamTemplate.URLTemplate
 		}
