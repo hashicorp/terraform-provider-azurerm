@@ -71,6 +71,13 @@ resource "azurerm_netapp_volume" "example" {
   subnet_id           = azurerm_subnet.example.id
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.example_primary.location
+    remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
+    replication_schedule      = "_10minutely"
+  }
 }
 ```
 
@@ -123,6 +130,18 @@ An `export_policy_rule` block supports the following:
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
+
+---
+
+An `data_protection_replication` is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported region pair and it supports the following:
+
+* `endpoint_type` - (Required) The endpoint type, supported value is `dst` for destination.
+  
+* `remote_volume_location` - (Required) Primary volume's location.
+
+* `remote_volume_resource_id` - (Required) Primary volume's resource id.
+  
+* `replication_schedule` - (Required) Replication frequency, supported values are '_10minutely', 'hourly', 'daily'
 
 ---
 
