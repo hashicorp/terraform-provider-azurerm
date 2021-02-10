@@ -201,6 +201,7 @@ func (SharedImageVersionResource) setup(data acceptance.TestData) string {
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
+	template := ImageResource{}.standaloneImageProvision(data, "LRS", "")
 	return fmt.Sprintf(`
 %s
 
@@ -223,10 +224,11 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, ImageResource{}.standaloneImageProvision(data, "LRS", ""), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) string {
+	template := r.provision(data)
 	return fmt.Sprintf(`
 %s
 
@@ -247,7 +249,7 @@ resource "azurerm_shared_image_version" "test" {
     "foo" = "bar"
   }
 }
-`, r.provision(data))
+`, template)
 }
 
 func (SharedImageVersionResource) setupSpecialized(data acceptance.TestData) string {

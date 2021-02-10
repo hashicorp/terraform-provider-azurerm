@@ -119,7 +119,7 @@ func dataSourceSharedImageVersionsRead(d *schema.ResourceData, meta interface{})
 	}
 
 	flattenedImages := flattenSharedImageVersions(images, filterTags)
-	if len(images) == 0 {
+	if len(flattenedImages) == 0 {
 		return fmt.Errorf("unable to find any images")
 	}
 

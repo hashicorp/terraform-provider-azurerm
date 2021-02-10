@@ -82,6 +82,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 }
 
 func (SharedImageVersionsDataSource) basic(data acceptance.TestData) string {
+	template := SharedImageVersionResource{}.imageVersion(data)
 	return fmt.Sprintf(`
 %s
 
@@ -90,7 +91,7 @@ data "azurerm_shared_image_versions" "test" {
   image_name          = azurerm_shared_image_version.test.image_name
   resource_group_name = azurerm_shared_image_version.test.resource_group_name
 }
-`, SharedImageVersionResource{}.imageVersion(data))
+`, template)
 }
 
 func (SharedImageVersionsDataSource) tagsFilterError(data acceptance.TestData) string {
