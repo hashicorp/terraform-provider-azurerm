@@ -166,7 +166,7 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 	})
 }
 
-func (t SharedImageVersionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SharedImageVersionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SharedImageVersionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -250,10 +250,6 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 `, template)
-}
-
-func (SharedImageVersionResource) setupSpecialized(data acceptance.TestData) string {
-	return ImageResource{}.setupManagedDisks(data)
 }
 
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {

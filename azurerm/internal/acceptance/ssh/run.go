@@ -19,7 +19,7 @@ type Runner struct {
 }
 
 func (r Runner) Run() error {
-	if err := resource.Retry(5 * time.Minute, r.tryRun); err != nil {
+	if err := resource.Retry(5*time.Minute, r.tryRun); err != nil {
 		return err
 	}
 

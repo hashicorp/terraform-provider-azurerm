@@ -123,7 +123,7 @@ func dataSourceSharedImageVersionsRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("unable to find any images")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("%s-%s-%s", imageName, galleryName, resourceGroup))
 
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)

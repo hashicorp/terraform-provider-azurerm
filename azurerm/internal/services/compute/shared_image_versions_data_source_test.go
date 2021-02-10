@@ -90,6 +90,7 @@ data "azurerm_shared_image_versions" "test" {
   gallery_name        = azurerm_shared_image_version.test.gallery_name
   image_name          = azurerm_shared_image_version.test.image_name
   resource_group_name = azurerm_shared_image_version.test.resource_group_name
+  depends_on          = [azurerm_shared_image_version.test]
 }
 `, template)
 }
@@ -118,6 +119,7 @@ data "azurerm_shared_image_versions" "test" {
   gallery_name        = azurerm_shared_image_version.test.gallery_name
   image_name          = azurerm_shared_image_version.test.image_name
   resource_group_name = azurerm_shared_image_version.test.resource_group_name
+  depends_on          = [azurerm_shared_image_version.test]
 
   tags_filter = {
     "foo" = "bar"
