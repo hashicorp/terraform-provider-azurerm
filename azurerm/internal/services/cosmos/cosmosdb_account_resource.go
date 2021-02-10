@@ -768,11 +768,7 @@ func resourceCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if future.Response().StatusCode == http.StatusNoContent {
-			return nil
-		}
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("deleting CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
