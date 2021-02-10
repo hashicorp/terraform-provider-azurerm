@@ -1133,7 +1133,11 @@ resource "azurerm_cosmosdb_account" "test" {
 func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 provider "azuread" {}
@@ -1156,8 +1160,9 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  purge_protection_enabled = true
-  soft_delete_enabled      = true
+  purge_protection_enabled   = true
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1223,7 +1228,11 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-  key_vault_key_id    = azurerm_key_vault_key.test.id
+  key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
+
+  capabilities {
+    name = "EnableMongo"
+  }
 
   consistency_policy {
     consistency_level = "%s"
