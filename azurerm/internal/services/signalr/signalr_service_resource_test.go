@@ -342,24 +342,9 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("upstream_setting.#").HasValue("4"),
-				check.That(data.ResourceName).Key("upstream_setting.0.category_pattern").DoesNotExist(),
-				check.That(data.ResourceName).Key("upstream_setting.0.event_pattern").DoesNotExist(),
-				check.That(data.ResourceName).Key("upstream_setting.0.hub_pattern").DoesNotExist(),
-				check.That(data.ResourceName).Key("upstream_setting.0.url_template").HasValue("http://foo.com"),
-				check.That(data.ResourceName).Key("upstream_setting.1.category_pattern").HasValue("connections,messages"),
-				check.That(data.ResourceName).Key("upstream_setting.1.event_pattern").HasValue("*"),
-				check.That(data.ResourceName).Key("upstream_setting.1.hub_pattern").HasValue("hub1"),
-				check.That(data.ResourceName).Key("upstream_setting.1.url_template").HasValue("http://foo.com"),
-				check.That(data.ResourceName).Key("upstream_setting.2.category_pattern").HasValue("*"),
-				check.That(data.ResourceName).Key("upstream_setting.2.event_pattern").HasValue("connect,disconnect"),
-				check.That(data.ResourceName).Key("upstream_setting.2.hub_pattern").HasValue("hub1,hub2"),
-				check.That(data.ResourceName).Key("upstream_setting.2.url_template").HasValue("http://foo3.com"),
-				check.That(data.ResourceName).Key("upstream_setting.3.category_pattern").HasValue("connections"),
-				check.That(data.ResourceName).Key("upstream_setting.3.event_pattern").HasValue("disconnect"),
-				check.That(data.ResourceName).Key("upstream_setting.3.hub_pattern").HasValue("*"),
-				check.That(data.ResourceName).Key("upstream_setting.3.url_template").HasValue("http://foo4.com"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -537,6 +522,16 @@ resource "azurerm_signalr_service" "test" {
   features {
     flag  = "ServiceMode"
     value = "Serverless"
+  }
+
+  features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
   }
 
   upstream_setting {

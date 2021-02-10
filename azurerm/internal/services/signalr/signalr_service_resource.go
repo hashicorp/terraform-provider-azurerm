@@ -103,7 +103,6 @@ func resourceArmSignalRService() *schema.Resource {
 			"upstream_setting": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"category_pattern": {
@@ -328,7 +327,7 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 
 	resourceType := &signalr.ResourceType{}
 
-	if d.HasChanges("cors", "features") {
+	if d.HasChanges("cors", "features", "upstream_setting") {
 		resourceType.Properties = &signalr.Properties{}
 
 		if d.HasChange("cors") {
@@ -437,9 +436,9 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 		setting := upstreamSetting.(map[string]interface{})
 
 		upstreamTemplate := &signalr.UpstreamTemplate{
-			HubPattern:      utils.String(setting["category_pattern"].(string)),
+			HubPattern:      utils.String(setting["hub_pattern"].(string)),
 			EventPattern:    utils.String(setting["event_pattern"].(string)),
-			CategoryPattern: utils.String(setting["hub_pattern"].(string)),
+			CategoryPattern: utils.String(setting["category_pattern"].(string)),
 			URLTemplate:     utils.String(setting["url_template"].(string)),
 		}
 
@@ -452,33 +451,28 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 }
 
 func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSettings) []interface{} {
+	result := make([]interface{}, 0)
 	if upstreamSettings == nil || upstreamSettings.Templates == nil {
-		return []interface{}{}
+		return result
 	}
 
-	result := make([]interface{}, 0)
-	for _, upstreamTemplate := range *upstreamSettings.Templates {
-		var categoryPattern, eventPattern, hubPattern, urlTemplate string
+	for _, settings := range *upstreamSettings.Templates {
+		upstreamSetting := make(map[string]interface{})
 
-		if upstreamTemplate.HubPattern != nil {
-			categoryPattern = *upstreamTemplate.HubPattern
+		if settings.CategoryPattern != nil {
+			upstreamSetting["category_pattern"] = *settings.CategoryPattern
 		}
-		if upstreamTemplate.EventPattern != nil {
-			eventPattern = *upstreamTemplate.EventPattern
+		if settings.EventPattern != nil {
+			upstreamSetting["event_pattern"] = *settings.EventPattern
 		}
-		if upstreamTemplate.HubPattern != nil {
-			hubPattern = *upstreamTemplate.HubPattern
+		if settings.HubPattern != nil {
+			upstreamSetting["hub_pattern"] = *settings.HubPattern
 		}
-		if upstreamTemplate.URLTemplate != nil {
-			urlTemplate = *upstreamTemplate.URLTemplate
+		if settings.URLTemplate != nil {
+			upstreamSetting["url_template"] = *settings.URLTemplate
 		}
 
-		result = append(result, map[string]interface{}{
-			"category_pattern": categoryPattern,
-			"event_pattern":    eventPattern,
-			"hub_pattern":      hubPattern,
-			"url_template":     urlTemplate,
-		})
+		result = append(result, upstreamSetting)
 	}
 	return result
 }
