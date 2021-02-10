@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering [GH-10519]
 * `azurerm_app_service` - `ip_restriction.x.ip_address` now accepts anything other than an empty string. [GH-10440]
 * `azurerm_storage_data_lake_gen2_filesystem` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
 
