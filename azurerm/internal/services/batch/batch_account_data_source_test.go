@@ -134,6 +134,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 data "azuread_service_principal" "test" {
   display_name = "Microsoft Azure Batch"
 }

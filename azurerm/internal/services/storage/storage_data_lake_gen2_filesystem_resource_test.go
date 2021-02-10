@@ -247,6 +247,8 @@ func (r StorageDataLakeGen2FileSystemResource) withExecuteACLForSPN(data accepta
 	return fmt.Sprintf(`
 %s
 
+provider "azuread" {}
+
 data "azurerm_client_config" "current" {
 }
 
