@@ -1,16 +1,26 @@
 ## 2.47.0 (Unreleased)
 
+UPGRADE NOTES
+
+* `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed [GH-10528]
+
 ENHANCEMENTS:
 
 * dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` [GH-10521]
 * `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block [GH-10520]
+* `azurerm_linux_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
 * `azurerm_media_streaming_endpoint` - exporting the field `host_name` [GH-10527]
+* `azurerm_windows_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
 
 BUG FIXES:
 
 * Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering [GH-10519]
 * `azurerm_app_service` - `ip_restriction.x.ip_address` now accepts anything other than an empty string. [GH-10440]
+* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `protected_settings` within the `extension` block was an empty string [GH-10528]
+* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `settings` within the `extension` block was an empty string [GH-10528]
 * `azurerm_storage_data_lake_gen2_filesystem` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
+* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `protected_settings` within the `extension` block was an empty string [GH-10528]
+* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `settings` within the `extension` block was an empty string [GH-10528]
 
 ## 2.46.1 (February 05, 2021)
 
