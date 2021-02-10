@@ -255,9 +255,11 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ## Attributes Reference
 
-`backend_pool` exports the following:
-
-* `id` - The ID of the Azure Front Door Backend Pool.
+* `backend_pool_health_probes` - A map/dictionary of Backend Pool Health Probe Names (key) to the Backend Pool Health Probe ID (value)
+* `backend_pool_load_balancing_settings` - A map/dictionary of Backend Pool Load Balancing Setting Names (key) to the Backend Pool Load Balancing Setting ID (value)
+* `backend_pools` - A map/dictionary of Backend Pool Names (key) to the Backend Pool ID (value)
+* `frontend_endpoints` - A map/dictionary of Frontend Endpoint Names (key) to the Frontend Endpoint ID (value)
+* `routing_rules` - A map/dictionary of Routing Rule Names (key) to the Routing Rule ID (value)
 
 ---
 
@@ -267,15 +269,9 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
-`frontend_endpoint` exports the following:
+`backend_pool` exports the following:
 
-* `id` - The ID of the Azure Front Door Frontend Endpoint.
-
-* `provisioning_state` - Provisioning state of the Front Door.
-
-* `provisioning_substate` - Provisioning substate of the Front Door
-
-[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+* `id` - The ID of the Azure Front Door Backend Pool.
 
 ---
 
@@ -291,15 +287,27 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
-`routing_rule` exports the following:
-
-* `id` - The ID of the Azure Front Door Backend Routing Rule.
-
----
-
 `custom_https_configuration` exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
+
+---
+
+`frontend_endpoint` exports the following:
+
+* `id` - The ID of the Azure Front Door Frontend Endpoint.
+
+* `provisioning_state` - Provisioning state of the Front Door.
+
+* `provisioning_substate` - Provisioning substate of the Front Door
+
+[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+
+---
+
+`routing_rule` exports the following:
+
+* `id` - The ID of the Azure Front Door Backend Routing Rule.
 
 ---
 

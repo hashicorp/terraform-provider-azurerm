@@ -75,12 +75,12 @@ resource "azurerm_frontdoor" "example" {
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_0" {
-  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[0].id
+  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint1"]
   custom_https_provisioning_enabled = false
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1" {
-  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[1].id
+  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
