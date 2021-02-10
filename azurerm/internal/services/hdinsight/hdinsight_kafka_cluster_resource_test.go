@@ -1242,6 +1242,8 @@ func (r HDInsightKafkaClusterResource) restProxy(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
+provider "azuread" {}
+
 resource "azuread_group" "test" {
   name = "acctesthdi-%d"
 }
