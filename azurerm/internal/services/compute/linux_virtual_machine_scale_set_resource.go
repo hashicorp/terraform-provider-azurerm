@@ -801,7 +801,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta inte
 		update.Sku = sku
 	}
 
-	if d.HasChange("extension") {
+	if d.HasChanges("extension", "extensions_time_budget") {
 		updateInstances = true
 
 		extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
@@ -809,12 +809,6 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta inte
 			return err
 		}
 		updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
-	}
-
-	if d.HasChange("extensions_time_budget") {
-		if updateProps.VirtualMachineProfile.ExtensionProfile == nil {
-			updateProps.VirtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
-		}
 		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
