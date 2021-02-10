@@ -1,8 +1,12 @@
 ## 2.46.1 (February 05, 2021)
 
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block [GH-10520]
+
 BUG FIXES:
 
-* `azurerm_app_service`: `ip_restriction.x.ip_address` now accepts anything other than an empty string. [GH-10440]
+* `azurerm_app_service` - `ip_restriction.x.ip_address` now accepts anything other than an empty string. [GH-10440]
 * `azurerm_lb_backend_address_pool` - mark `backend_address` as computed ([#10481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10481))
 * `azurerm_storage_data_lake_gen2_filesystem_resource` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
 
