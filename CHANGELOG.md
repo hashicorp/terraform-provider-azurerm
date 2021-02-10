@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` [GH-10521]
 * `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block [GH-10520]
 * `azurerm_media_streaming_endpoint` - exporting the field `host_name` [GH-10527]
 
