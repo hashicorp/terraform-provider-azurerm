@@ -185,6 +185,10 @@ A `auto_scaler_profile` block supports the following:
 
 * `scale_down_utilization_threshold` - Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
 
+* `skip_nodes_with_local_storage` - If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
+
+* `skip_nodes_with_system_pods` - If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
+
 ---
 
 A `azure_active_directory` block supports the following:
