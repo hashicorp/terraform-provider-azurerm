@@ -15,7 +15,9 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering [GH-10519]
-* `azurerm_app_service` - `ip_restriction.x.ip_address` now accepts anything other than an empty string. [GH-10440]
+* `azurerm_app_service` - the `ip_restriction.x.ip_address` propertynow accepts anything other than an empty string [GH-10440]
+* `azurerm_cosmosdb_account` - validate the `key_vault_key_id` property is versionless [GH-10420]
+* `azurerm_key_vault_key` - export the `versionless_id` attribute [GH-10420]
 * `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `protected_settings` within the `extension` block was an empty string [GH-10528]
 * `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `settings` within the `extension` block was an empty string [GH-10528]
 * `azurerm_storage_data_lake_gen2_filesystem` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
