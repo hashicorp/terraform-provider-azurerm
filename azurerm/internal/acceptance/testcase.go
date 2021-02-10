@@ -17,10 +17,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-// NOTE: when Binary Testing is enabled the Check functions will need to build a client rather than relying on the
-// shared one. For the moment we init the shared client when Binary Testing is Enabled & Disabled - but this needs
-// fixing when we move to Binary Testing so that we can test across provider instances
-var enableBinaryTesting = false
+// @tombuildsstuff: this is left in as a compatibility layer for the moment
+// in the near future we'll remove this, and remove the "azuread" provider below
+// but for the moment there's no need to remove the vendor here imminantly afaict
+var enableBinaryTesting = true
 
 // lintignore:AT001
 func (td TestData) DataSourceTest(t *testing.T, steps []resource.TestStep) {
