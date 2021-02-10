@@ -595,6 +595,18 @@ func resourceKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"auto_upgrade_channel": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.UpgradeChannelNone),
+					string(containerservice.UpgradeChannelPatch),
+					string(containerservice.UpgradeChannelRapid),
+					string(containerservice.UpgradeChannelStable),
+				}, false),
+			},
+
 			// Computed
 			"fqdn": {
 				Type:     schema.TypeString,
@@ -799,6 +811,9 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 			WindowsProfile:         windowsProfile,
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			AutoUpgradeProfile: &containerservice.ManagedClusterAutoUpgradeProfile{
+				UpgradeChannel: containerservice.UpgradeChannel(d.Get("auto_upgrade_channel").(string)),
+			},
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1102,6 +1117,10 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
 	}
 
+	if d.HasChange("auto_upgrade_channel") {
+		existing.AutoUpgradeProfile.UpgradeChannel = containerservice.UpgradeChannel(d.Get("auto_upgrade_channel").(string))
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1222,6 +1241,10 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+
+		if autoUpgradeProfile := props.AutoUpgradeProfile; autoUpgradeProfile != nil {
+			d.Set("auto_upgrade_channel", autoUpgradeProfile.UpgradeChannel)
+		}
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {

@@ -72,6 +72,12 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
+* `auto_upgrade_channel` - (Optional) The auto-upgrade channel for this Kubernetes Cluster. Possible values are `none`, `patch`, `rapid`, and `stable`. The default value is `none`.
+
+-> **NOTE:** Cluster auto-upgrade only updates to GA versions of Kubernetes and will not update to preview versions.
+
+~> **NOTE:** Auto upgrade channel is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
+
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
