@@ -26,6 +26,7 @@ func TestAccMediaStreamingEndpoint_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("scale_units").HasValue("1"),
+				check.That(data.ResourceName).Key("host_name").Exists(),
 			),
 		},
 		data.ImportStep(),
