@@ -116,7 +116,7 @@ func buildClient() (*clients.Client, error) {
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	if enableBinaryTesting {
-		testCase.DisableBinaryDriver = false
+		testCase.DisableBinaryDriver = false //nolint:SA1019
 		testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
 			"azurerm": func() (terraform.ResourceProvider, error) {
 				azurerm := provider.TestAzureProvider()
