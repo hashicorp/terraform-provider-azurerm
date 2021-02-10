@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"strings"
 
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
@@ -159,6 +160,11 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ForceNew:     true,
 					ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				},
+				"only_critical_addons_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
 			},
 		},
 	}
@@ -206,7 +212,12 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 
 	if len(*nodeTaints) != 0 {
-		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one")
+		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one.")
+	}
+
+	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
+	if criticalAddonsEnabled {
+		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:NoSchedule")
 	}
 
 	t := raw["tags"].(map[string]interface{})
@@ -217,6 +228,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
 		Name:                   utils.String(raw["name"].(string)),
 		NodeLabels:             nodeLabels,
+		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
 		Type:                   containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:                 containerservice.VMSizeTypes(raw["vm_size"].(string)),
@@ -384,6 +396,15 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
+	criticalAddonsEnabled := false
+	if agentPool.NodeTaints != nil {
+		for _, taint := range *agentPool.NodeTaints {
+			if strings.EqualFold(taint, "CriticalAddonsOnly=true:NoSchedule") {
+				criticalAddonsEnabled = true
+			}
+		}
+	}
+
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
@@ -430,6 +451,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"orchestrator_version":         orchestratorVersion,
 			"proximity_placement_group_id": proximityPlacementGroupId,
 			"vnet_subnet_id":               vnetSubnetId,
+			"only_critical_addons_enabled": criticalAddonsEnabled,
 		},
 	}, nil
 }
