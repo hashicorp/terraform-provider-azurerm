@@ -332,6 +332,37 @@ func TestAccSignalRService_cors(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_upstreamSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withUpstreamSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upstream_setting.#").HasValue("4"),
+				check.That(data.ResourceName).Key("upstream_setting.0.category_pattern").DoesNotExist(),
+				check.That(data.ResourceName).Key("upstream_setting.0.event_pattern").DoesNotExist(),
+				check.That(data.ResourceName).Key("upstream_setting.0.hub_pattern").DoesNotExist(),
+				check.That(data.ResourceName).Key("upstream_setting.0.url_template").HasValue("http://foo.com"),
+				check.That(data.ResourceName).Key("upstream_setting.1.category_pattern").HasValue("connections,messages"),
+				check.That(data.ResourceName).Key("upstream_setting.1.event_pattern").HasValue("*"),
+				check.That(data.ResourceName).Key("upstream_setting.1.hub_pattern").HasValue("hub1"),
+				check.That(data.ResourceName).Key("upstream_setting.1.url_template").HasValue("http://foo.com"),
+				check.That(data.ResourceName).Key("upstream_setting.2.category_pattern").HasValue("*"),
+				check.That(data.ResourceName).Key("upstream_setting.2.event_pattern").HasValue("connect,disconnect"),
+				check.That(data.ResourceName).Key("upstream_setting.2.hub_pattern").HasValue("hub1,hub2"),
+				check.That(data.ResourceName).Key("upstream_setting.2.url_template").HasValue("http://foo3.com"),
+				check.That(data.ResourceName).Key("upstream_setting.3.category_pattern").HasValue("connections"),
+				check.That(data.ResourceName).Key("upstream_setting.3.event_pattern").HasValue("disconnect"),
+				check.That(data.ResourceName).Key("upstream_setting.3.hub_pattern").HasValue("*"),
+				check.That(data.ResourceName).Key("upstream_setting.3.url_template").HasValue("http://foo4.com"),
+			),
+		},
+	})
+}
+
 func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ServiceID(state.ID)
 	if err != nil {
@@ -480,4 +511,58 @@ resource "azurerm_signalr_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
+}
+
+func (r SignalRServiceResource) withUpstreamSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "Serverless"
+  }
+
+  upstream_setting {
+    url_template = "http://foo.com"
+  }
+
+  upstream_setting {
+    category_pattern = "connections,messages"
+    event_pattern    = "*"
+    hub_pattern      = "hub1"
+    url_template     = "http://foo.com"
+  }
+
+  upstream_setting {
+    category_pattern = "*"
+    event_pattern    = "connect,disconnect"
+    hub_pattern      = "hub1,hub2"
+    url_template     = "http://foo3.com"
+  }
+
+  upstream_setting {
+    category_pattern = "connections"
+    event_pattern    = "disconnect"
+    hub_pattern      = "*"
+    url_template     = "http://foo4.com"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

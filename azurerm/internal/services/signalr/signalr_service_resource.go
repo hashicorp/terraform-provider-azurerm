@@ -100,6 +100,35 @@ func resourceArmSignalRService() *schema.Resource {
 				},
 			},
 
+			"upstream_setting": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"category_pattern": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"event_pattern": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"hub_pattern": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"url_template": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"cors": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -189,10 +218,12 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 	featureFlags := d.Get("features").(*schema.Set).List()
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
+	upstreamSettings := d.Get("upstream_setting").(*schema.Set).List()
 
 	properties := &signalr.Properties{
 		Cors:     expandSignalRCors(cors),
 		Features: expandSignalRFeatures(featureFlags),
+		Upstream: expandUpstreamSettings(upstreamSettings),
 	}
 
 	resourceType := &signalr.ResourceType{
@@ -270,6 +301,10 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 
 		if err := d.Set("cors", flattenSignalRCors(properties.Cors)); err != nil {
 			return fmt.Errorf("Error setting `cors`: %+v", err)
+		}
+
+		if err := d.Set("upstream_setting", flattenUpstreamSettings(properties.Upstream)); err != nil {
+			return fmt.Errorf("Error setting `upstream_setting`: %+v", err)
 		}
 	}
 
@@ -385,6 +420,61 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 		result = append(result, map[string]interface{}{
 			"flag":  string(feature.Flag),
 			"value": value,
+		})
+	}
+	return result
+}
+
+func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
+	upstreamTemplates := make([]signalr.UpstreamTemplate, 0)
+
+	for _, upstreamSetting := range input {
+		setting := upstreamSetting.(map[string]interface{})
+
+		upstreamTemplate := &signalr.UpstreamTemplate{
+			HubPattern:      utils.String(setting["category_pattern"].(string)),
+			EventPattern:    utils.String(setting["event_pattern"].(string)),
+			CategoryPattern: utils.String(setting["hub_pattern"].(string)),
+			URLTemplate:     utils.String(setting["url_template"].(string)),
+		}
+
+		upstreamTemplates = append(upstreamTemplates, *upstreamTemplate)
+	}
+
+	return &signalr.ServerlessUpstreamSettings{
+		Templates: &upstreamTemplates,
+	}
+}
+
+func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSettings) []interface{} {
+	if upstreamSettings == nil || upstreamSettings.Templates == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0)
+	for _, upstreamTemplate := range *upstreamSettings.Templates {
+		categoryPattern := ""
+		if upstreamTemplate.HubPattern != nil {
+			categoryPattern = *upstreamTemplate.HubPattern
+		}
+		eventPattern := ""
+		if upstreamTemplate.EventPattern != nil {
+			eventPattern = *upstreamTemplate.EventPattern
+		}
+		hubPattern := ""
+		if upstreamTemplate.HubPattern != nil {
+			hubPattern = *upstreamTemplate.HubPattern
+		}
+		urlTemplate := ""
+		if upstreamTemplate.URLTemplate != nil {
+			urlTemplate = *upstreamTemplate.URLTemplate
+		}
+
+		result = append(result, map[string]interface{}{
+			"category_pattern": categoryPattern,
+			"event_pattern":    eventPattern,
+			"hub_pattern":      hubPattern,
+			"url_template":     urlTemplate,
 		})
 	}
 	return result

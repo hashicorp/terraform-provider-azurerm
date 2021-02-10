@@ -36,6 +36,13 @@ resource "azurerm_signalr_service" "example" {
     flag  = "ServiceMode"
     value = "Default"
   }
+
+  upstream_setting {
+    category_pattern = "connections,messages"
+    event_pattern    = "*"
+    hub_pattern      = "hub1"
+    url_template     = "http://foo.com"
+  }
 }
 ```
 
@@ -55,6 +62,8 @@ The following arguments are supported:
 
 * `features` - (Optional) A `features` block as documented below.
 
+* `upstream_setting` - (Optional) An `upstream_setting` block as documented below. Using this block requires the SignalR service to be Serverless.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -70,6 +79,18 @@ A `features` block supports the following:
 * `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
 
 * `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
+
+---
+
+An `upstream_setting` block supports the following:
+
+* `url_template` - (Required) The upstream URL Template. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
+
+* `category_pattern` - (Optional) The matching pattern for category names. Possible values are `*`, multiple categories separated by commas `,`, and single categories. Ex: `connections,messages`, `*`, and `connections`.
+
+* `event_pattern` - (Optional) The matching pattern for event names.  Possible values are `*`, multiple events separated by commas `,`, and single events. Ex: `connect,disconnect`, `*`, and `connect`.
+
+* `hub_pattern` - (Optional) The matching mattern for hub names.  Possible values are `*`, multiple hubs separated by commas `,`, and single hubs. Ex: `hub1,hub1`, `*`, `hub1`.
 
 ---
 
