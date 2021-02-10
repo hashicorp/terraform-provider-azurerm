@@ -312,6 +312,17 @@ type TestCase struct {
 	Providers         map[string]terraform.ResourceProvider
 	ProviderFactories map[string]terraform.ResourceProviderFactory
 
+	// ExternalProviders are providers the TestCase relies on that should
+	// be downloaded from the registry during init. This is only really
+	// necessary to set if you're using import, as providers in your config
+	// will be automatically retrieved during init. Import doesn't always
+	// use a config, however, so we allow manually specifying them here to
+	// be downloaded for import tests.
+	//
+	// ExternalProviders will only be used when using binary acceptance
+	// testing in reattach mode.
+	ExternalProviders map[string]ExternalProvider
+
 	// PreventPostDestroyRefresh can be set to true for cases where data sources
 	// are tested alongside real resources
 	PreventPostDestroyRefresh bool
@@ -341,6 +352,13 @@ type TestCase struct {
 	//
 	// Deprecated: This property will be removed in version 2.0.0 of the SDK.
 	DisableBinaryDriver bool
+}
+
+// ExternalProvider holds information about third-party providers that should
+// be downloaded by Terraform as part of running the test step.
+type ExternalProvider struct {
+	VersionConstraint string // the version constraint for the provider
+	Source            string // the provider source
 }
 
 // TestStep is a single apply sequence of a test, done within the
@@ -648,7 +666,10 @@ func Test(t TestT, c TestCase) {
 		} else {
 			if step.ImportState {
 				if step.Config == "" {
-					step.Config = testProviderConfig(c)
+					step.Config, err = testProviderConfig(c)
+					if err != nil {
+						t.Fatal("Error setting config for providers: " + err.Error())
+					}
 				}
 
 				// Can optionally set step.Config in addition to
@@ -757,13 +778,38 @@ func Test(t TestT, c TestCase) {
 // testProviderConfig takes the list of Providers in a TestCase and returns a
 // config with only empty provider blocks. This is useful for Import, where no
 // config is provided, but the providers must be defined.
-func testProviderConfig(c TestCase) string {
+func testProviderConfig(c TestCase) (string, error) {
 	var lines []string
+	var requiredProviders []string
 	for p := range c.Providers {
 		lines = append(lines, fmt.Sprintf("provider %q {}\n", p))
 	}
+	for p, v := range c.ExternalProviders {
+		if _, ok := c.Providers[p]; ok {
+			return "", fmt.Errorf("Provider %q set in both Providers and ExternalProviders for TestCase. Must be set in only one.", p)
+		}
+		if _, ok := c.ProviderFactories[p]; ok {
+			return "", fmt.Errorf("Provider %q set in both ProviderFactories and ExternalProviders for TestCase. Must be set in only one.", p)
+		}
+		lines = append(lines, fmt.Sprintf("provider %q {}\n", p))
+		var providerBlock string
+		if v.VersionConstraint != "" {
+			providerBlock = fmt.Sprintf("%s\nversion = %q", providerBlock, v.VersionConstraint)
+		}
+		if v.Source != "" {
+			providerBlock = fmt.Sprintf("%s\nsource = %q", providerBlock, v.Source)
+		}
+		if providerBlock != "" {
+			providerBlock = fmt.Sprintf("%s = {%s\n}\n", p, providerBlock)
+		}
+		requiredProviders = append(requiredProviders, providerBlock)
+	}
 
-	return strings.Join(lines, "")
+	if len(requiredProviders) > 0 {
+		lines = append([]string{fmt.Sprintf("terraform {\nrequired_providers {\n%s}\n}\n\n", strings.Join(requiredProviders, ""))}, lines...)
+	}
+
+	return strings.Join(lines, ""), nil
 }
 
 // testProviderFactories combines the fixed Providers and
