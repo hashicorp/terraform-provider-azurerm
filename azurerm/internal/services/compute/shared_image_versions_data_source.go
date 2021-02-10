@@ -102,26 +102,34 @@ func dataSourceSharedImageVersionsRead(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterTags := tags.Expand(d.Get("tags_filter").(map[string]interface{}))
 
-	resp, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, imageName)
+	resp, err := client.ListByGalleryImageComplete(ctx, resourceGroup, galleryName, imageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
-			return fmt.Errorf("Shared Image Versions (Image %q / Gallery %q / Resource Group %q) was not found", imageName, galleryName, resourceGroup)
+			return fmt.Errorf("No Versions were found for Shared Image %q / Gallery %q / Resource Group %q", imageName, galleryName, resourceGroup)
 		}
 		return fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", imageName, galleryName, resourceGroup, err)
 	}
 
-	images := flattenSharedImageVersions(resp.Values(), filterTags)
-	if len(images) == 0 {
+	images := make([]compute.GalleryImageVersion, 0)
+	for resp.NotDone() {
+		images = append(images, resp.Value())
+		if err := resp.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("listing next page of images for Shared Image %q / Gallery %q / Resource Group %q: %+v", imageName, galleryName, resourceGroup, err)
+		}
+	}
+
+	flattenedImages := flattenSharedImageVersions(images, filterTags)
+	if len(flattenedImages) == 0 {
 		return fmt.Errorf("unable to find any images")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("%s-%s-%s", imageName, galleryName, resourceGroup))
 
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if err := d.Set("images", images); err != nil {
+	if err := d.Set("images", flattenedImages); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
 	}
 

@@ -22,23 +22,17 @@ func TestAccSharedImageVersion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
 
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setup(data, userName, password, hostName),
+			Config: r.setup(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.imageVersion(data, userName, password, hostName),
+			Config: r.imageVersion(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
@@ -46,7 +40,7 @@ func TestAccSharedImageVersion_basic(t *testing.T) {
 			),
 		},
 		{
-			Config: r.imageVersionUpdated(data, userName, password, hostName),
+			Config: r.imageVersionUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
@@ -61,25 +55,18 @@ func TestAccSharedImageVersion_basic(t *testing.T) {
 func TestAccSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
-
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setup(data, userName, password, hostName),
+			Config:  r.setup(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.imageVersionStorageAccountType(data, userName, password, hostName, "Standard_LRS"),
+			Config: r.imageVersionStorageAccountType(data, "Standard_LRS"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
@@ -94,24 +81,18 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
 
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setup(data, userName, password, hostName),
+			Config:  r.setup(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.imageVersionStorageAccountType(data, userName, password, hostName, "Standard_ZRS"),
+			Config: r.imageVersionStorageAccountType(data, "Standard_ZRS"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
@@ -126,13 +107,9 @@ func TestAccSharedImageVersion_specializedImageVersionBySnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
 
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.imageVersionSpecializedBySnapshot(data, userName, password, hostName),
+			Config: r.imageVersionSpecializedBySnapshot(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// the share image version will generate a shared access signature (SAS) on the referenced snapshot and keep it active until the replication is complete
@@ -149,13 +126,9 @@ func TestAccSharedImageVersion_specializedImageVersionByVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
 
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.imageVersionSpecializedByVM(data, userName, password, hostName),
+			Config: r.imageVersionSpecializedByVM(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -168,24 +141,18 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
 
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testadmin"
-	password := "Password1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setup(data, userName, password, hostName),
+			Config:  r.setup(data),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.imageVersion(data, userName, password, hostName),
+			Config: r.imageVersion(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
@@ -193,13 +160,13 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 			),
 		},
 		{
-			Config:      r.requiresImport(data, userName, password, hostName),
+			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_shared_image_version"),
 		},
 	})
 }
 
-func (t SharedImageVersionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SharedImageVersionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SharedImageVersionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -229,11 +196,12 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 }
 
 // nolint: unparam
-func (SharedImageVersionResource) setup(data acceptance.TestData, username, password, hostname string) string {
-	return ImageResource{}.standaloneImage_setup(data, username, password, hostname, "LRS")
+func (SharedImageVersionResource) setup(data acceptance.TestData) string {
+	return ImageResource{}.setupUnmanagedDisks(data, "LRS")
 }
 
-func (SharedImageVersionResource) provision(data acceptance.TestData, username, password, hostname string) string {
+func (SharedImageVersionResource) provision(data acceptance.TestData) string {
+	template := ImageResource{}.standaloneImageProvision(data, "LRS", "")
 	return fmt.Sprintf(`
 %s
 
@@ -256,10 +224,11 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, ImageResource{}.standaloneImage_provision(data, username, password, hostname, "LRS", ""), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SharedImageVersionResource) imageVersion(data acceptance.TestData, username, password, hostname string) string {
+func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) string {
+	template := r.provision(data)
 	return fmt.Sprintf(`
 %s
 
@@ -280,95 +249,11 @@ resource "azurerm_shared_image_version" "test" {
     "foo" = "bar"
   }
 }
-`, r.provision(data, username, password, hostname))
+`, template)
 }
 
-func (SharedImageVersionResource) setupSpecialized(data acceptance.TestData, username, password, hostname string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctpip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "%s"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctnicsource-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "testsource"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = "%s"
-    admin_password = "%s"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostname, data.RandomInteger, username, password)
-}
-
-func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData, username, password, hostname string) string {
+func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {
+	template := ImageResource{}.setupManagedDisks(data)
 	return fmt.Sprintf(`
 %s
 
@@ -392,10 +277,11 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, r.setupSpecialized(data, username, password, hostname), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SharedImageVersionResource) imageVersionSpecializedBySnapshot(data acceptance.TestData, username, password, hostname string) string {
+func (r SharedImageVersionResource) imageVersionSpecializedBySnapshot(data acceptance.TestData) string {
+	template := r.provisionSpecialized(data)
 	return fmt.Sprintf(`
 %s
 
@@ -425,10 +311,11 @@ resource "azurerm_shared_image_version" "test" {
     "foo" = "bar"
   }
 }
-`, r.provisionSpecialized(data, username, password, hostname), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
-func (r SharedImageVersionResource) imageVersionSpecializedByVM(data acceptance.TestData, username, password, hostname string) string {
+func (r SharedImageVersionResource) imageVersionSpecializedByVM(data acceptance.TestData) string {
+	template := r.provisionSpecialized(data)
 	return fmt.Sprintf(`
 %s
 
@@ -450,10 +337,11 @@ resource "azurerm_shared_image_version" "test" {
     "foo" = "bar"
   }
 }
-`, r.provisionSpecialized(data, username, password, hostname))
+`, template)
 }
 
-func (r SharedImageVersionResource) imageVersionStorageAccountType(data acceptance.TestData, username, password, hostname string, storageAccountType string) string {
+func (r SharedImageVersionResource) imageVersionStorageAccountType(data acceptance.TestData, storageAccountType string) string {
+	template := r.provision(data)
 	return fmt.Sprintf(`
 %s
 
@@ -471,10 +359,10 @@ resource "azurerm_shared_image_version" "test" {
     storage_account_type   = "%s"
   }
 }
-`, r.provision(data, username, password, hostname), storageAccountType)
+`, template, storageAccountType)
 }
 
-func (r SharedImageVersionResource) requiresImport(data acceptance.TestData, username, password, hostname string) string {
+func (r SharedImageVersionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -491,10 +379,11 @@ resource "azurerm_shared_image_version" "import" {
     regional_replica_count = 1
   }
 }
-`, r.imageVersion(data, username, password, hostname))
+`, r.imageVersion(data))
 }
 
-func (r SharedImageVersionResource) imageVersionUpdated(data acceptance.TestData, username, password, hostname string) string {
+func (r SharedImageVersionResource) imageVersionUpdated(data acceptance.TestData) string {
+	template := r.provision(data)
 	return fmt.Sprintf(`
 %s
 
@@ -516,5 +405,5 @@ resource "azurerm_shared_image_version" "test" {
     regional_replica_count = 2
   }
 }
-`, r.provision(data, username, password, hostname), data.Locations.Secondary)
+`, template, data.Locations.Secondary)
 }
