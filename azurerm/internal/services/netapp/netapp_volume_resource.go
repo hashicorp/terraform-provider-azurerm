@@ -207,7 +207,6 @@ func resourceNetAppVolume() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"dst",
-								"src",
 							}, true),
 						},
 
