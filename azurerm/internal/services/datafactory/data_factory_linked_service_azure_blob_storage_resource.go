@@ -53,10 +53,21 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"sas_uri"},
+				AtLeastOneOf:  []string{"connection_string", "sas_uri"},
+			},
+
+			"sas_uri": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"connection_string"},
+				AtLeastOneOf:  []string{"connection_string", "sas_uri"},
 			},
 
 			"description": {
@@ -66,6 +77,38 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 			},
 
 			"integration_runtime_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"use_managed_identity": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"service_principal_key", "service_principal_id"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity", "connection_string", "sas_uri"},
+			},
+
+			"service_principal_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.IsUUID,
+				RequiredWith:  []string{"service_principal_key"},
+				ConflictsWith: []string{"use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity", "connection_string", "sas_uri"},
+			},
+
+			"service_principal_key": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				RequiredWith:  []string{"service_principal_id"},
+				ConflictsWith: []string{"use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity", "connection_string", "sas_uri"},
+			},
+
+			"tenant": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -120,14 +163,39 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 		}
 	}
 
+	blobStorageProperties := &datafactory.AzureBlobStorageLinkedServiceTypeProperties{}
+
+	if v, ok := d.GetOk("connection_string"); ok {
+		blobStorageProperties.ConnectionString = &datafactory.SecureString{
+			Value: utils.String(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+	}
+
+	if v, ok := d.GetOk("sas_uri"); ok {
+		blobStorageProperties.SasURI = &datafactory.SecureString{
+			Value: utils.String(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+	}
+
+	if d.Get("use_managed_identity").(bool) {
+		blobStorageProperties.Tenant = utils.String(d.Get("tenant").(string))
+
+	} else {
+		secureString := datafactory.SecureString{
+			Value: utils.String(d.Get("service_principal_key").(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
+		blobStorageProperties.Tenant = utils.String(d.Get("tenant").(string))
+		blobStorageProperties.ServicePrincipalKey = &secureString
+	}
+
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
-		AzureBlobStorageLinkedServiceTypeProperties: &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
-			ConnectionString: &datafactory.SecureString{
-				Value: utils.String(d.Get("connection_string").(string)),
-				Type:  datafactory.TypeSecureString,
-			},
-		},
+		AzureBlobStorageLinkedServiceTypeProperties: blobStorageProperties,
 		Type: datafactory.TypeAzureBlobStorage,
 	}
 
@@ -200,6 +268,21 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
 	if !ok {
 		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
+	}
+
+	if blobStorage.SasURI != nil {
+		d.Set("sas_uri", blobStorage.SasURI)
+	}
+
+	if blobStorage.Tenant != nil {
+		d.Set("tenant", blobStorage.Tenant)
+	}
+
+	if blobStorage.ServicePrincipalID != nil {
+		d.Set("service_principal_id", blobStorage.ServicePrincipalID)
+		d.Set("use_managed_identity", false)
+	} else {
+		d.Set("use_managed_identity", true)
 	}
 
 	d.Set("additional_properties", blobStorage.AdditionalProperties)
