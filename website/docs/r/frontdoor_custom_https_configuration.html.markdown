@@ -13,7 +13,8 @@ Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint
 ~> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within [the `azurerm_frontdoor` resource](frontdoor.html) via the `custom_https_configuration` block and by using a separate resource, as described in the following sections.
 
 -> **NOTE:** Defining custom https configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
- 
+
+-> **NOTE:** UPCOMING BREAKING CHANGE: In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as frontend endpoints. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
