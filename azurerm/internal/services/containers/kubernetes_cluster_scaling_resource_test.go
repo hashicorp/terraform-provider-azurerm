@@ -297,6 +297,8 @@ func testAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unready").HasValue("15m"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_utilization_threshold").HasValue("0.5"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scan_interval").HasValue("10s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.skip_nodes_with_local_storage").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.skip_nodes_with_system_pods").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -554,6 +556,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     scale_down_unneeded              = "15m"
     scale_down_unready               = "15m"
     scale_down_utilization_threshold = "0.5"
+    skip_nodes_with_local_storage    = false
+    skip_nodes_with_system_pods      = false
   }
 
   identity {
