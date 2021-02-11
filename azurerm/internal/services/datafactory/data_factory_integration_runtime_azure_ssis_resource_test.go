@@ -176,31 +176,31 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-	name                = "managed-integration-runtime"
-	description					= "acctest"
+  name                = "managed-integration-runtime"
+  description         = "acctest"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-	node_size 											 = "Standard_D8_v3"
-	number_of_nodes                  = 2
-	max_parallel_executions_per_node = 8
-	edition                          = "Standard"
-	license_type                     = "LicenseIncluded"
+  node_size                        = "Standard_D8_v3"
+  number_of_nodes                  = 2
+  max_parallel_executions_per_node = 8
+  edition                          = "Standard"
+  license_type                     = "LicenseIncluded"
 
   vnet_integration {
     vnet_id     = "${azurerm_virtual_network.test.id}"
     subnet_name = "${azurerm_subnet.test.name}"
-	}
+  }
 
-	catalog_info {
+  catalog_info {
     server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
     pricing_tier           = "Basic"
   }
-	
-	custom_setup_script {
+
+  custom_setup_script {
     blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
     sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
   }
