@@ -39,8 +39,8 @@ resource "azurerm_api_management_named_value" "example" {
 }
 
 resource "azurerm_api_management_policy" "example" {
-  api_management_id  = azurerm_api_management.example.id
-  xml_content        = file("example.xml")
+  api_management_id = azurerm_api_management.example.id
+  xml_content       = file("example.xml")
 }
 ```
 
