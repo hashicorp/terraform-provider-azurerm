@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -453,6 +455,19 @@ func resourceKubernetesCluster() *schema.Resource {
 				ConflictsWith: []string{"private_link_enabled"},
 			},
 
+			"private_dns_zone_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true, // a Private Cluster is `System` by default even if unspecified
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					privateDnsValidate.PrivateDnsZoneID,
+					validation.StringInSlice([]string{
+						"System",
+					}, false),
+				),
+			},
+
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -810,6 +825,13 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if v, ok := d.GetOk("private_dns_zone_id"); ok {
+		if parameters.Identity == nil || (v.(string) != "System" && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned) {
+			return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+		}
+		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
 		parameters.ManagedClusterProperties.DiskEncryptionSetID = utils.String(v.(string))
 	}
@@ -969,6 +991,9 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
 			AuthorizedIPRanges:   utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
 			EnablePrivateCluster: &enablePrivateCluster,
+		}
+		if v, ok := d.GetOk("private_dns_zone_id"); ok {
+			existing.ManagedClusterProperties.APIServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
 		}
 	}
 
@@ -1207,6 +1232,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
+			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
