@@ -1,50 +1,50 @@
-## 2.47.0 (Unreleased)
+## 2.47.0 (February 11, 2021)
 
 UPGRADE NOTES
 
-* `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` have been added to the `azurerm_frontdoor` resource, which are a map of name-ID references. An upcoming version of the Azure Provider will change the blocks `backend_pool`, `backend_pool_health_probe`, `backend_pool_load_balancing`, `frontend_endpoint` and `routing_rule` from a List to a Set to work around an ordering issue within the Azure API - as such you should update your Terraform Configuration to reference these new Maps, rather than the Lists directly, due to the upcoming breaking change. For example, changing `azurerm_frontdoor.example.frontend_endpoint[1].id` to `azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]` [GH-9357]
-* `azurerm_lb_backend_address_pool` - the field `backend_addresses` has been deprecated and is no longer functional - instead the `azurerm_lb_backend_address_pool_address` resource offers the same functionality. [GH-10488]
-* `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed [GH-10528]
-* `azurerm_data_factory_integration_runtime_managed` - this resource has been renamed/deprecated in favour of `azurerm_data_factory_integration_runtime_azure_ssis` [GH-10236]
-* The provider-block field `skip_credentials_validation` is now deprecated since this was non-functional and will be removed in 3.0 of the Azure Provider [GH-10464]
+* `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` have been added to the `azurerm_frontdoor` resource, which are a map of name-ID references. An upcoming version of the Azure Provider will change the blocks `backend_pool`, `backend_pool_health_probe`, `backend_pool_load_balancing`, `frontend_endpoint` and `routing_rule` from a List to a Set to work around an ordering issue within the Azure API - as such you should update your Terraform Configuration to reference these new Maps, rather than the Lists directly, due to the upcoming breaking change. For example, changing `azurerm_frontdoor.example.frontend_endpoint[1].id` to `azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]` ([#9357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9357))
+* `azurerm_lb_backend_address_pool` - the field `backend_addresses` has been deprecated and is no longer functional - instead the `azurerm_lb_backend_address_pool_address` resource offers the same functionality. ([#10488](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10488))
+* `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_data_factory_integration_runtime_managed` - this resource has been renamed/deprecated in favour of `azurerm_data_factory_integration_runtime_azure_ssis` ([#10236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10236))
+* The provider-block field `skip_credentials_validation` is now deprecated since this was non-functional and will be removed in 3.0 of the Azure Provider ([#10464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10464))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_key_vault_certificate_data` [GH-8184]
-* **New Resource:** `azurerm_application_insights_smart_detection_rule` [GH-10539]
-* **New Resource:** `azurerm_data_factory_integration_runtime_azure` [GH-10236]
-* **New Resource:** `azurerm_data_factory_integration_runtime_azure_ssis` [GH-10236]
-* **New Resource:** `azurerm_lb_backend_address_pool_address` [GH-10488]
+* **New Data Source:** `azurerm_key_vault_certificate_data` ([#8184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8184))
+* **New Resource:** `azurerm_application_insights_smart_detection_rule` ([#10539](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10539))
+* **New Resource:** `azurerm_data_factory_integration_runtime_azure` ([#10236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10236))
+* **New Resource:** `azurerm_data_factory_integration_runtime_azure_ssis` ([#10236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10236))
+* **New Resource:** `azurerm_lb_backend_address_pool_address` ([#10488](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10488))
 
 ENHANCEMENTS:
 
-* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` [GH-10521]
-* `azurerm_frontdoor` - added the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` which are a map of name-ID references [GH-9357]
-* `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block [GH-10520]
-* `azurerm_kubernetes_cluster` - support for configuring `only_critical_addons_enabled` [GH-10307]
-* `azurerm_kubernetes_cluster` - support for configuring `private_dns_zone_id` [GH-10201]
-* `azurerm_linux_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
-* `azurerm_media_streaming_endpoint` - exporting the field `host_name` [GH-10527]
-* `azurerm_mssql_virtual_machine` - support for `auto_backup` [GH-10460]
-* `azurerm_windows_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
-* `azurerm_site_recovery_replicated_vm` - support for the `recovery_public_ip_address_id` property and changing `target_static_ip` or `target_static_ip` force a new resource to be created [GH-10446]
+* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` ([#10521](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10521))
+* `azurerm_frontdoor` - added the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` which are a map of name-ID references ([#9357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9357))
+* `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block ([#10520](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10520))
+* `azurerm_kubernetes_cluster` - support for configuring `only_critical_addons_enabled` ([#10307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10307))
+* `azurerm_kubernetes_cluster` - support for configuring `private_dns_zone_id` ([#10201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10201))
+* `azurerm_linux_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_media_streaming_endpoint` - exporting the field `host_name` ([#10527](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10527))
+* `azurerm_mssql_virtual_machine` - support for `auto_backup` ([#10460](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10460))
+* `azurerm_windows_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_site_recovery_replicated_vm` - support for the `recovery_public_ip_address_id` property and changing `target_static_ip` or `target_static_ip` force a new resource to be created ([#10446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10446))
 
 BUG FIXES:
 
-* provider: the provider-block field `skip_credentials_validation` is now deprecated since this was non-functional. This will be removed in 3.0 of the Azure Provider [GH-10464]
-* Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering [GH-10519]
-* `azurerm_app_service` - the `ip_restriction.x.ip_address` propertynow accepts anything other than an empty string [GH-10440]
-* `azurerm_cosmosdb_account` - validate the `key_vault_key_id` property is versionless [GH-10420]
-* `azurerm_cosmosdb_account` - will no longer panic if the response is nil [GH-10525]
-* `azurerm_eventhub_namespace` - correctly downgrade to the `Basic` sku [GH-10536]
-* `azurerm_key_vault_key` - export the `versionless_id` attribute [GH-10420]
-* `azurerm_lb_backend_address_pool` - the `backend_addresses` block is now deprecated and non-functional - use the `azurerm_lb_backend_address_pool_address` resource instead [GH-10488]
-* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `protected_settings` within the `extension` block was an empty string [GH-10528]
-* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `settings` within the `extension` block was an empty string [GH-10528]
-* `azurerm_monitor_diagnostic_setting` - changing the `log_analytics_workspace_id` property no longer creates a new resource [GH-10512]
+* provider: the provider-block field `skip_credentials_validation` is now deprecated since this was non-functional. This will be removed in 3.0 of the Azure Provider ([#10464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10464))
+* Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering ([#10519](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10519))
+* `azurerm_app_service` - the `ip_restriction.x.ip_address` propertynow accepts anything other than an empty string ([#10440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10440))
+* `azurerm_cosmosdb_account` - validate the `key_vault_key_id` property is versionless ([#10420](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10420))
+* `azurerm_cosmosdb_account` - will no longer panic if the response is nil ([#10525](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10525))
+* `azurerm_eventhub_namespace` - correctly downgrade to the `Basic` sku ([#10536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10536))
+* `azurerm_key_vault_key` - export the `versionless_id` attribute ([#10420](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10420))
+* `azurerm_lb_backend_address_pool` - the `backend_addresses` block is now deprecated and non-functional - use the `azurerm_lb_backend_address_pool_address` resource instead ([#10488](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10488))
+* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `protected_settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_monitor_diagnostic_setting` - changing the `log_analytics_workspace_id` property no longer creates a new resource ([#10512](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10512))
 * `azurerm_storage_data_lake_gen2_filesystem` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
-* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `protected_settings` within the `extension` block was an empty string [GH-10528]
-* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `settings` within the `extension` block was an empty string [GH-10528]
+* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `protected_settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
 
 ## 2.46.1 (February 05, 2021)
 
