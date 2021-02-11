@@ -73,6 +73,24 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"event_grouping": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"aggregation_method": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(securityinsight.AlertPerResult),
+								string(securityinsight.SingleAlert),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"tactics": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -302,6 +320,10 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta
 		param.ScheduledAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("event_grouping"); ok {
+		param.ScheduledAlertRuleProperties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
+	}
+
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
@@ -380,6 +402,10 @@ func resourceSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interfa
 		d.Set("suppression_enabled", prop.SuppressionEnabled)
 		d.Set("suppression_duration", prop.SuppressionDuration)
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+
+		if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+			return fmt.Errorf("setting `event_grouping`: %+v", err)
+		}
 	}
 
 	return nil
@@ -483,6 +509,21 @@ func expandAlertRuleScheduledGrouping(input []interface{}) *securityinsight.Grou
 	return output
 }
 
+func expandAlertRuleScheduledEventGroupingSetting(input []interface{}) *securityinsight.EventGroupingSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := securityinsight.EventGroupingSettings{}
+
+	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
+		result.AggregationKind = securityinsight.EventGroupingAggregationKind(aggregationKind)
+	}
+
+	return &result
+}
+
 func flattenAlertRuleScheduledGrouping(input *securityinsight.GroupingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -517,6 +558,23 @@ func flattenAlertRuleScheduledGrouping(input *securityinsight.GroupingConfigurat
 			"reopen_closed_incidents": reopenClosedIncidents,
 			"entity_matching_method":  string(input.EntitiesMatchingMethod),
 			"group_by":                groupByEntities,
+		},
+	}
+}
+
+func flattenAlertRuleScheduledEventGroupingSetting(input *securityinsight.EventGroupingSettings) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var aggregationKind string
+	if input.AggregationKind != "" {
+		aggregationKind = string(input.AggregationKind)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"aggregation_method": aggregationKind,
 		},
 	}
 }

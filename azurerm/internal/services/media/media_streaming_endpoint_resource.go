@@ -115,9 +115,8 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_prefix_length": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 								},
 							},
@@ -192,6 +191,11 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 2147483647),
+			},
+
+			"host_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -406,6 +410,7 @@ func resourceMediaStreamingEndpointRead(d *schema.ResourceData, meta interface{}
 		d.Set("cdn_enabled", props.CdnEnabled)
 		d.Set("cdn_profile", props.CdnProfile)
 		d.Set("cdn_provider", props.CdnProvider)
+		d.Set("host_name", props.HostName)
 
 		crossSiteAccessPolicies := flattenCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
 		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
@@ -433,6 +438,24 @@ func resourceMediaStreamingEndpointDelete(d *schema.ResourceData, meta interface
 	id, err := parse.StreamingEndpointID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	// Stop Streaming Endpoint before we attempt to delete it.
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("reading %s: %+v", id, err)
+	}
+	if props := resp.StreamingEndpointProperties; props != nil {
+		if props.ResourceState == media.StreamingEndpointResourceStateRunning {
+			stopFuture, err := client.Stop(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+			if err != nil {
+				return fmt.Errorf("stopping %s: %+v", id, err)
+			}
+
+			if err = stopFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for %s to stop: %+v", id, err)
+			}
+		}
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)

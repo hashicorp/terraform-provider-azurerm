@@ -238,6 +238,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-spring-%d"
   location = "%s"

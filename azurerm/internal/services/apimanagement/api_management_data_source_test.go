@@ -50,6 +50,26 @@ func TestAccDataSourceApiManagement_identitySystemAssigned(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceApiManagement_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+	r := ApiManagementDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
+				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceApiManagement_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
 	r := ApiManagementDataSource{}
@@ -127,6 +147,18 @@ data "azurerm_api_management" "test" {
   resource_group_name = azurerm_api_management.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementDataSource) identityUserAssigned(data acceptance.TestData) string {
+	template := ApiManagementResource{}.identityUserAssigned(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_api_management" "test" {
+  name                = azurerm_api_management.test.name
+  resource_group_name = azurerm_api_management.test.resource_group_name
+}
+`, template)
 }
 
 func (ApiManagementDataSource) virtualNetwork(data acceptance.TestData) string {

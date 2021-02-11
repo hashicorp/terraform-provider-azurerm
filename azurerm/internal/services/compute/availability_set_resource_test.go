@@ -60,16 +60,10 @@ func TestAccAvailabilitySet_disappears(t *testing.T) {
 	r := AvailabilitySetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("5"),
-				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
-				testCheckAvailabilitySetDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -148,7 +142,7 @@ func TestAccAvailabilitySet_unmanaged(t *testing.T) {
 	})
 }
 
-func (t AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -162,31 +156,20 @@ func (t AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.AvailabilitySetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !response.WasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
-			}
-		}
-
-		return nil
+func (AvailabilitySetResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AvailabilitySetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := client.Compute.AvailabilitySetsClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return nil, fmt.Errorf("deleting on availSetClient: %+v", err)
+		}
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (AvailabilitySetResource) basic(data acceptance.TestData) string {

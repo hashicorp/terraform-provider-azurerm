@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	azureHelpers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
@@ -129,7 +129,7 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							"log_analytics_workspace_id": {
 								Type:         schema.TypeString,
 								Optional:     true,
-								ValidateFunc: azureHelpers.ValidateResourceID,
+								ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 							},
 							"oms_agent_identity": {
 								Type:     schema.TypeList,

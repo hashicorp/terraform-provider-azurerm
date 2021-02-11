@@ -132,7 +132,7 @@ func resourceServiceBusQueue() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
+				ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 			},
 
 			"requires_duplicate_detection": {

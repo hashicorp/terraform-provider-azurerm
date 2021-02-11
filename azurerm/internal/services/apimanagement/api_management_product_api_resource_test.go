@@ -47,7 +47,7 @@ func TestAccApiManagementProductApi_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ApiManagementProductAPIResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementProductAPIResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -57,8 +57,7 @@ func (t ApiManagementProductAPIResource) Exists(ctx context.Context, clients *cl
 	productId := id.Path["products"]
 	apiName := id.Path["apis"]
 
-	_, err = clients.ApiManagement.ProductApisClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
-	if err != nil {
+	if _, err = clients.ApiManagement.ProductApisClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName); err != nil {
 		return nil, fmt.Errorf("reading ApiManagement Policy (%s): %+v", id, err)
 	}
 

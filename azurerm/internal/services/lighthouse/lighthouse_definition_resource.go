@@ -201,8 +201,7 @@ func resourceLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.LighthouseDefinitionID, id.Scope)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.LighthouseDefinitionID, id.Scope); err != nil {
 		return fmt.Errorf("Error deleting Lighthouse Definition %q at Scope %q: %+v", id.LighthouseDefinitionID, id.Scope, err)
 	}
 

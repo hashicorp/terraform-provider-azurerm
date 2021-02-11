@@ -486,6 +486,22 @@ func TestAccCosmosDBAccount_freeTier(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.Eventual),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1033,6 +1049,38 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
+func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  analytical_storage_enabled = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
 func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) resource.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("name").Exists(),
@@ -1085,8 +1133,14 @@ resource "azurerm_cosmosdb_account" "test" {
 func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
+
+provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%d"
@@ -1106,8 +1160,9 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  purge_protection_enabled = true
-  soft_delete_enabled      = true
+  purge_protection_enabled   = true
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1173,7 +1228,11 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-  key_vault_key_id    = azurerm_key_vault_key.test.id
+  key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
+
+  capabilities {
+    name = "EnableMongo"
+  }
 
   consistency_policy {
     consistency_level = "%s"

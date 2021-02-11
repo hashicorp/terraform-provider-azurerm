@@ -70,7 +70,7 @@ func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interfac
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.IdentityProperties; props != nil {
+	if props := resp.UserAssignedIdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
 		}

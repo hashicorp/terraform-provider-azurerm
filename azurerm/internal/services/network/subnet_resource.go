@@ -21,12 +21,12 @@ import (
 
 var SubnetResourceName = "azurerm_subnet"
 
-func resourceArmSubnet() *schema.Resource {
+func resourceSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreate,
-		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetUpdate,
-		Delete: resourceArmSubnetDelete,
+		Create: resourceSubnetCreate,
+		Read:   resourceSubnetRead,
+		Update: resourceSubnetUpdate,
+		Delete: resourceSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -175,7 +175,7 @@ func resourceArmSubnet() *schema.Resource {
 }
 
 // TODO: refactor the create/flatten functions
-func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,10 +257,10 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*read.ID)
 
-	return resourceArmSubnetRead(d, meta)
+	return resourceSubnetRead(d, meta)
 }
 
-func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -338,10 +338,10 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error waiting for update of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
 	}
 
-	return resourceArmSubnetRead(d, meta)
+	return resourceSubnetRead(d, meta)
 }
 
-func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -401,7 +401,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

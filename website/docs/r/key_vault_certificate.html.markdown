@@ -125,7 +125,6 @@ resource "azurerm_key_vault" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -317,6 +316,7 @@ The following attributes are exported:
 * `secret_id` - The ID of the associated Key Vault Secret.
 * `version` - The current version of the Key Vault Certificate.
 * `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
+* `certificate_data_base64` - The Base64 encoded Key Vault Certificate data.
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 * `certificate_attribute` - A `certificate_attribute` block as defined below.
 

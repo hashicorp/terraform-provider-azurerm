@@ -9,20 +9,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
+func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkGatewayConnectionCreateUpdate,
-		Read:   resourceArmVirtualNetworkGatewayConnectionRead,
-		Update: resourceArmVirtualNetworkGatewayConnectionCreateUpdate,
-		Delete: resourceArmVirtualNetworkGatewayConnectionDelete,
+		Create: resourceVirtualNetworkGatewayConnectionCreateUpdate,
+		Read:   resourceVirtualNetworkGatewayConnectionRead,
+		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
+		Delete: resourceVirtualNetworkGatewayConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -288,7 +288,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,7 +314,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	properties, err := getArmVirtualNetworkGatewayConnectionProperties(d)
+	properties, err := getVirtualNetworkGatewayConnectionProperties(d)
 	if err != nil {
 		return err
 	}
@@ -345,10 +345,10 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualNetworkGatewayConnectionRead(d, meta)
+	return resourceVirtualNetworkGatewayConnectionRead(d, meta)
 }
 
-func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -430,14 +430,14 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 	}
 
 	if conn.IpsecPolicies != nil {
-		ipsecPolicies := flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
+		ipsecPolicies := flattenVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
 
 		if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
 			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
 		}
 	}
 
-	trafficSelectorPolicies := flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
+	trafficSelectorPolicies := flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
 	if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
 		return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
 	}
@@ -445,7 +445,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -467,7 +467,7 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 	return nil
 }
 
-func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
+func getVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
 	connectionType := network.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
 
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
@@ -561,11 +561,11 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	}
 
 	if v, ok := d.GetOk("traffic_selector_policy"); ok {
-		props.TrafficSelectorPolicies = expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]interface{}))
+		props.TrafficSelectorPolicies = expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
-		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
+		props.IpsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
 	}
 
 	if props.ConnectionType == network.ExpressRoute {
@@ -600,7 +600,7 @@ func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGateway
 	return resGroup, name, nil
 }
 
-func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {
+func expandVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {
 	ipsecPolicies := make([]network.IpsecPolicy, 0, len(schemaIpsecPolicies))
 
 	for _, d := range schemaIpsecPolicies {
@@ -647,7 +647,7 @@ func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies [
 	return &ipsecPolicies
 }
 
-func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []interface{}) *[]network.TrafficSelectorPolicy {
+func expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []interface{}) *[]network.TrafficSelectorPolicy {
 	trafficSelectorPolicies := make([]network.TrafficSelectorPolicy, 0, len(schemaTrafficSelectorPolicies))
 
 	for _, d := range schemaTrafficSelectorPolicies {
@@ -666,7 +666,7 @@ func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTraff
 	return &trafficSelectorPolicies
 }
 
-func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
+func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
 	schemaIpsecPolicies := make([]interface{}, 0)
 
 	if ipsecPolicies != nil {
@@ -695,7 +695,7 @@ func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]net
 	return schemaIpsecPolicies
 }
 
-func flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
+func flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
 	schemaTrafficSelectorPolicies := make([]interface{}, 0)
 
 	if trafficSelectorPolicies != nil {

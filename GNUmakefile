@@ -127,13 +127,6 @@ endif
 scaffold-website:
 	./scripts/scaffold-website.sh
 
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
 teamcity-test:
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test

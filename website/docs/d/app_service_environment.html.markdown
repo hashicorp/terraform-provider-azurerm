@@ -27,29 +27,40 @@ output "id" {
 
 The following arguments are supported:
 
-- `name` - (Required) The name of this App Service Environment.
+* `name` - (Required) The name of this App Service Environment.
 
-- `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the App Service Environment.
+* `id` - The ID of the App Service Environment.
 
-- `front_end_scale_factor` - The number of app instances per App Service Environment Front End.
+* `cluster_setting` - Zero or more `cluster_setting` blocks as defined below.
 
-- `internal_ip_address` - IP address of internal load balancer of the App Service Environment.
+* `front_end_scale_factor` - The number of app instances per App Service Environment Front End.
 
-- `location` - The Azure Region where the App Service Environment exists.
+* `internal_ip_address` - IP address of internal load balancer of the App Service Environment.
 
-- `outbound_ip_addresses` - List of outbound IP addresses of the App Service Environment.
+* `location` - The Azure Region where the App Service Environment exists.
 
-- `pricing_tier` - The Pricing Tier (Isolated SKU) of the App Service Environment.
+* `outbound_ip_addresses` - List of outbound IP addresses of the App Service Environment.
 
-- `service_ip_address` - IP address of service endpoint of the App Service Environment.
+* `pricing_tier` - The Pricing Tier (Isolated SKU) of the App Service Environment.
 
-- `tags` - A mapping of tags assigned to the App Service Environment.
+* `service_ip_address` - IP address of service endpoint of the App Service Environment.
+
+* `tags` - A mapping of tags assigned to the App Service Environment.
+
+---
+
+A `cluster_setting` block exports the following:
+
+* `name` - The name of the Cluster Setting.
+
+* `value` - The value for the Cluster Setting.
+
 
 ## Timeouts
 

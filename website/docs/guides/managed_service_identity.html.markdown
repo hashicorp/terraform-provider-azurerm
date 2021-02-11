@@ -3,17 +3,16 @@ layout: "azurerm"
 page_title: "Azure Provider: Authenticating via Managed Identity"
 description: |-
   This guide will cover how to use managed identity for Azure resources as authentication for the Azure Provider.
-
 ---
 
 # Azure Provider: Authenticating using managed identities for Azure resources
 
 Terraform supports a number of different methods for authenticating to Azure:
 
-* [Authenticating to Azure using the Azure CLI](azure_cli.html)
-* Authenticating to Azure using Managed Identity (covered in this guide)
-* [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
-* [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
+- [Authenticating to Azure using the Azure CLI](azure_cli.html)
+- Authenticating to Azure using Managed Identity (covered in this guide)
+- [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
+- [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 
 ---
 
@@ -71,19 +70,41 @@ Terraform can be configured to use managed identity for authentication in one of
 
 ### Configuring with environment variables
 
-Setting the `ARM_USE_MSI` environment variable to `true` tells Terraform to use a managed identity. In addition to a properly-configured management identity, Terraform needs to know the subscription ID and tenant ID to identify the full context for the Azure provider.
+Setting the`ARM_USE_MSI` environment variable (equivalent to provider block argument [`use_msi`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_msi)) to `true` tells Terraform to use a managed identity.
+
+By default, Terraform will use the system assigned identity for authentication. To use a user assigned identity instead, you will need to specify the `ARM_CLIENT_ID` environment variable (equivalent to provider block argument [`client_id`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#client_id)) to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
+
+By default, Terraform will use a well-known MSI endpoint to get the authentication token, which covers most use cases. In other cases where the endpoint is different (e.g. when running as an Azure Function App), you must explicitly specify the endpoint using the `ARM_MSI_ENDPOINT` environment variable (equivalent to provider block argument [`msi_endpoint`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#msi_endpoint)).
+
+!> **Note:** we recommend against running Terraform inside of a Function App as the low memory ceiling can lead to Terraform being terminated and data (including the State File) being lost. Instead we’d recommend considering triggering an external process, such as Terraform Cloud or a CI System to run these longer-running more intensive processes - see [Terraform in Automation](https://learn.hashicorp.com/tutorials/terraform/automate-terraform) for more details.
+
+In addition to a properly-configured management identity, Terraform needs to know the subscription ID and tenant ID to identify the full context for the Azure provider.
 
 ```shell
 $ export ARM_USE_MSI=true
 $ export ARM_SUBSCRIPTION_ID=159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 $ export ARM_TENANT_ID=72f988bf-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+$ export ARM_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary for user assigned identity
+$ export ARM_MSI_ENDPOINT=$MSI_ENDPOINT # only necessary when the msi endpoint is different than the well-known one
 ```
 
-A provider block is _technically_ optional when using environment variables. Even so, we recommend defining a provider block so that you can pin or constrain the version of the provider being used:
+A provider block is _technically_ optional when using environment variables. Even so, we recommend defining provider blocks so that you can pin or constrain the version of the provider being used, and configure other optional settings:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  version = "~> 1.23"
+  features {}
 }
 ```
 
@@ -92,8 +113,20 @@ provider "azurerm" {
 It's also possible to configure a managed identity within the provider block:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  version = "~> 1.23"
+  features {}
 
   use_msi = true
   #...
@@ -103,8 +136,21 @@ provider "azurerm" {
 If you intend to configure a remote backend in the provider block, put `use_msi` outside of the backend block:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  version = "~> 1.23"
+  features {}
+
   use_msi = true
 
   backend "azurerm" {
