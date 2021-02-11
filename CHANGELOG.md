@@ -10,6 +10,7 @@ UPGRADE NOTES
 FEATURES:
 
 * **New Data Source:** `azurerm_key_vault_certificate_data` [GH-8184]
+* **New Resource:** `azurerm_application_insights_smart_detection_rule` [GH-10539]
 * **New Resource:** `azurerm_data_factory_integration_runtime_azure` [GH-10236]
 * **New Resource:** `azurerm_data_factory_integration_runtime_azure_ssis` [GH-10236]
 
