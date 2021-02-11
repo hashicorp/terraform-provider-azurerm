@@ -28,7 +28,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("compute_type").HasValue("General"),
 				check.That(data.ResourceName).Key("core_count").HasValue("8"),
-				check.That(data.ResourceName).Key("time_to_live").HasValue("0"),
+				check.That(data.ResourceName).Key("time_to_live_min").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -76,7 +76,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_timeToLive(t *testing.T) {
 			Config: r.timeToLive(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("time_to_live").HasValue("10"),
+				check.That(data.ResourceName).Key("time_to_live_min").HasValue("10"),
 			),
 		},
 		data.ImportStep(),
@@ -185,7 +185,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  time_to_live        = 10
+  time_to_live_min    = 10
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

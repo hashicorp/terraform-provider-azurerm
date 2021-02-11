@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `core_count` - (Optional) Core count of the cluster which will execute data flow job. Valid values are `8`, `16`, `32`, `48`, `80`, `144` and `272`. Defaults to `8`.
 
-* `time_to_live` - (Optional) Time to live (in minutes) setting of the cluster which will execute data flow job. Defaults to `0`.
+* `time_to_live_min` - (Optional) Time to live (in minutes) setting of the cluster which will execute data flow job. Defaults to `0`.
 
 ---
 

@@ -80,7 +80,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 				}),
 			},
 
-			"time_to_live": {
+			"time_to_live_min": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  0,
@@ -199,7 +199,7 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *schema.ResourceData, meta
 			}
 
 			if timeToLive := dataFlowProps.TimeToLive; timeToLive != nil {
-				d.Set("time_to_live", timeToLive)
+				d.Set("time_to_live_min", timeToLive)
 			}
 		}
 	}
@@ -236,14 +236,14 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *schema.ResourceData, me
 func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	coreCount := int32(d.Get("core_count").(int))
-	timeToLive := int32(d.Get("time_to_live").(int))
+	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
 
 	return &datafactory.IntegrationRuntimeComputeProperties{
 		Location: &location,
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
 			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
 			CoreCount:   &coreCount,
-			TimeToLive:  &timeToLive,
+			TimeToLive:  &timeToLiveMin,
 		},
 	}
 }
