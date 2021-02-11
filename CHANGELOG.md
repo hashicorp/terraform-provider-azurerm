@@ -5,11 +5,13 @@ UPGRADE NOTES
 * `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed [GH-10528]
 * `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` have been added to the `azurerm_frontdoor` resource, which are a map of name-ID references. An upcoming version of the Azure Provider will change the blocks `backend_pool`, `backend_pool_health_probe`, `backend_pool_load_balancing`, `frontend_endpoint` and `routing_rule` from a List to a Set to work around an ordering issue within the Azure API - as such you should update your Terraform Configuration to reference these new Maps, rather than the Lists directly, due to the upcoming breaking change. For example, changing `azurerm_frontdoor.example.frontend_endpoint[1].id` to `azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]` [GH-9357]
 * The provider-block field `skip_credentials_validation` is now deprecated since this was non-functional and will be removed in 3.0 of the Azure Provider [GH-10464]
+* the `azurerm_data_factory_integration_runtime_managed` resource has been renamed/deprecated in favour of `azurerm_data_factory_integration_runtime_azure_ssis` [GH-10236]
 
 FEATURES:
 
-* **New Resource:** `azurerm_iot_security_device_group` [GH-10353]
 * **New Data Source:** `azurerm_key_vault_certificate_data` [GH-8184]
+* **New Resource:** `azurerm_data_factory_integration_runtime_azure` [GH-10236]
+* **New Resource:** `azurerm_data_factory_integration_runtime_azure_ssis` [GH-10236]
 
 ENHANCEMENTS:
 
