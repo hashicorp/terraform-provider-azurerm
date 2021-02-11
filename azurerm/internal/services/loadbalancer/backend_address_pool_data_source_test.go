@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
+func TestAccDataSourceBackendAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
