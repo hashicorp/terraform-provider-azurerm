@@ -181,7 +181,6 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 
 	if d.Get("use_managed_identity").(bool) {
 		blobStorageProperties.Tenant = utils.String(d.Get("tenant").(string))
-
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
