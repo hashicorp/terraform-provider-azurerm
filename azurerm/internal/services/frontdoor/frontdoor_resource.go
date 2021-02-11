@@ -468,6 +468,47 @@ func resourceFrontDoor() *schema.Resource {
 				},
 			},
 
+			// Computed values
+			"backend_pool_health_probes": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"backend_pool_load_balancing_settings": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"backend_pools": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"frontend_endpoints": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"routing_rules": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -661,6 +702,97 @@ func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("flattening `routing_rules`: %+v", err)
 		}
 		if err := d.Set("routing_rule", flattenedRoutingRules); err != nil {
+			return fmt.Errorf("setting `routing_rules`: %+v", err)
+		}
+
+		// Populate computed values
+		bpHealthProbeSettings := make(map[string]string)
+		if props.HealthProbeSettings != nil {
+			for _, v := range *props.HealthProbeSettings {
+				if v.Name == nil || v.ID == nil {
+					continue
+				}
+				rid, err := parse.HealthProbeIDInsensitively(*v.ID)
+				if err != nil {
+					continue
+				}
+				bpHealthProbeSettings[*v.Name] = rid.ID()
+			}
+		}
+
+		if err := d.Set("backend_pool_health_probes", bpHealthProbeSettings); err != nil {
+			return fmt.Errorf("setting `backend_pool_health_probes`: %+v", err)
+		}
+
+		bpLBSettings := make(map[string]string)
+		if props.LoadBalancingSettings != nil {
+			for _, v := range *props.LoadBalancingSettings {
+				if v.Name == nil || v.ID == nil {
+					continue
+				}
+				rid, err := parse.LoadBalancingIDInsensitively(*v.ID)
+				if err != nil {
+					continue
+				}
+				bpLBSettings[*v.Name] = rid.ID()
+			}
+		}
+
+		if err := d.Set("backend_pool_load_balancing_settings", bpLBSettings); err != nil {
+			return fmt.Errorf("setting `backend_pool_load_balancing_settings`: %+v", err)
+		}
+
+		backendPools := make(map[string]string)
+		if props.BackendPools != nil {
+			for _, v := range *props.BackendPools {
+				if v.Name == nil || v.ID == nil {
+					continue
+				}
+				rid, err := parse.BackendPoolIDInsensitively(*v.ID)
+				if err != nil {
+					continue
+				}
+				backendPools[*v.Name] = rid.ID()
+			}
+		}
+
+		if err := d.Set("backend_pools", backendPools); err != nil {
+			return fmt.Errorf("setting `backend_pools`: %+v", err)
+		}
+
+		frontendEndpoints := make(map[string]string)
+		if props.FrontendEndpoints != nil {
+			for _, v := range *props.FrontendEndpoints {
+				if v.Name == nil || v.ID == nil {
+					continue
+				}
+				rid, err := parse.FrontendEndpointIDInsensitively(*v.ID)
+				if err != nil {
+					continue
+				}
+				frontendEndpoints[*v.Name] = rid.ID()
+			}
+		}
+
+		if err := d.Set("frontend_endpoints", frontendEndpoints); err != nil {
+			return fmt.Errorf("setting `frontend_endpoints`: %+v", err)
+		}
+
+		routingRules := make(map[string]string)
+		if props.RoutingRules != nil {
+			for _, v := range *props.RoutingRules {
+				if v.Name == nil || v.ID == nil {
+					continue
+				}
+				rid, err := parse.RoutingRuleIDInsensitively(*v.ID)
+				if err != nil {
+					continue
+				}
+				routingRules[*v.Name] = rid.ID()
+			}
+		}
+
+		if err := d.Set("routing_rules", routingRules); err != nil {
 			return fmt.Errorf("setting `routing_rules`: %+v", err)
 		}
 	}
