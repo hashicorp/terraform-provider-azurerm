@@ -3,15 +3,14 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,6 +27,7 @@ func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 		data.ImportStep("certificate"),
@@ -44,6 +44,7 @@ func TestAccKeyVaultCertificate_requiresImport(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 		{
@@ -58,14 +59,10 @@ func TestAccKeyVaultCertificate_disappears(t *testing.T) {
 	r := KeyVaultCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basicGenerate(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckKeyVaultCertificateDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basicGenerate,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -77,7 +74,7 @@ func TestAccKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T
 		{
 			Config: r.basicGenerate(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultDisappears("azurerm_key_vault.test"),
+				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -95,6 +92,7 @@ func TestAccKeyVaultCertificate_basicGenerate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
 			),
@@ -129,6 +127,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 		{
@@ -141,6 +140,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 			),
 		},
 	})
@@ -156,6 +156,7 @@ func TestAccKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails.#").HasValue("1"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names.#").HasValue("1"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns.#").HasValue("1"),
@@ -174,6 +175,7 @@ func TestAccKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 			),
@@ -192,6 +194,7 @@ func TestAccKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#").HasValue("3"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.0").HasValue("1.3.6.1.5.5.7.3.1"),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.1").HasValue("1.3.6.1.5.5.7.3.2"),
@@ -211,6 +214,7 @@ func TestAccKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#").HasValue("0"),
 			),
 		},
@@ -240,20 +244,23 @@ func TestAccKeyVaultCertificate_withExternalAccessPolicy(t *testing.T) {
 }
 
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	keyVaultClient := clients.KeyVault.VaultsClient
+	keyVaultsClient := clients.KeyVault
 	client := clients.KeyVault.ManagementClient
 
-	id, err := azure.ParseKeyVaultChildID(state.ID)
+	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
-	if err != nil || keyVaultId == nil {
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return nil, err
+	}
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -266,44 +273,36 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(cert.ID != nil), nil
 }
 
-func testCheckKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.DeleteCertificate(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
+func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
+	if err != nil {
+		return err
 	}
+
+	if ok == nil || !*ok {
+		return fmt.Errorf("deleting parent key vault failed")
+	}
+
+	return nil
+}
+
+func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	if err != nil {
+		return nil, err
+	}
+
+	vaultBaseUrl, err := client.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("looking up base uri for Secret %q from id %q: %+v", name, keyVaultId, err)
+	}
+
+	if _, err := client.KeyVault.ManagementClient.DeleteCertificate(ctx, *vaultBaseUrl, name); err != nil {
+		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r KeyVaultCertificateResource) basicImportPFX(data acceptance.TestData) string {

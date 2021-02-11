@@ -24,12 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetServiceEndpointStoragePolicy() *schema.Resource {
+func resourceSubnetServiceEndpointStoragePolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate,
-		Read:   resourceArmSubnetServiceEndpointStoragePolicyRead,
-		Update: resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate,
-		Delete: resourceArmSubnetServiceEndpointStoragePolicyDelete,
+		Create: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Read:   resourceSubnetServiceEndpointStoragePolicyRead,
+		Update: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SubnetServiceEndpointStoragePolicyID(id)
@@ -94,7 +94,7 @@ func resourceArmSubnetServiceEndpointStoragePolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,10 +134,10 @@ func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.Resourc
 
 	d.SetId(resourceId.ID())
 
-	return resourceArmSubnetServiceEndpointStoragePolicyRead(d, meta)
+	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
 }
 
-func resourceArmSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +172,7 @@ func resourceArmSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, m
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSubnetServiceEndpointStoragePolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

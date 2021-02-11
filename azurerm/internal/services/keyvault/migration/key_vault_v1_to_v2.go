@@ -66,7 +66,7 @@ func keyVaultV1Schema() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KeyVaultName,
+				ValidateFunc: validate.VaultName,
 			},
 
 			"location": azure.SchemaLocation(),

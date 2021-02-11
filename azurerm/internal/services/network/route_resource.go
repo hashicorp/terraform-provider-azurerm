@@ -8,20 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRoute() *schema.Resource {
+func resourceRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteCreateUpdate,
-		Read:   resourceArmRouteRead,
-		Update: resourceArmRouteCreateUpdate,
-		Delete: resourceArmRouteDelete,
+		Create: resourceRouteCreateUpdate,
+		Read:   resourceRouteRead,
+		Update: resourceRouteCreateUpdate,
+		Delete: resourceRouteDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -79,7 +79,7 @@ func resourceArmRoute() *schema.Resource {
 	}
 }
 
-func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,10 +137,10 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmRouteRead(d, meta)
+	return resourceRouteRead(d, meta)
 }
 
-func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

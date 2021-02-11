@@ -116,6 +116,7 @@ A `criteria` block supports the following:
 * `operator` - (Required) The criteria operator. Possible values are `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
 * `threshold` - (Required) The criteria threshold value that activates the alert.
 * `dimension` - (Optional) One or more `dimension` blocks as defined below.
+* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
 
 ---
 
@@ -130,6 +131,7 @@ A `dynamic_criteria` block supports the following:
 * `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points.
 * `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`.
 * `ignore_data_before` - (Optional) The [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) date from which to start learning the metric historical data and calculate the dynamic thresholds.
+* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
 
 ---
 

@@ -29,7 +29,7 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
-				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -262,7 +262,7 @@ func TestAccApiManagementApi_complete(t *testing.T) {
 	})
 }
 
-func (t ApiManagementApiResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

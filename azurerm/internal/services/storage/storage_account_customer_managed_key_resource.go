@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -50,7 +49,7 @@ func resourceStorageAccountCustomerManagedKey() *schema.Resource {
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_name": {
@@ -70,7 +69,8 @@ func resourceStorageAccountCustomerManagedKey() *schema.Resource {
 
 func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	vaultsClient := keyVaultsClient.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -104,8 +104,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	keyVaultIDRaw := d.Get("key_vault_id").(string)
-	keyVaultID, err := keyVaultParse.VaultID(keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -129,7 +128,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
 	}
 
-	keyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultsClient, keyVaultIDRaw)
+	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
 		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
 	}
@@ -152,7 +151,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 				KeyVaultProperties: &storage.KeyVaultProperties{
 					KeyName:     utils.String(keyName),
 					KeyVersion:  utils.String(keyVersion),
-					KeyVaultURI: utils.String(keyVaultBaseURL),
+					KeyVaultURI: utils.String(*keyVaultBaseURL),
 				},
 			},
 		},
@@ -168,7 +167,8 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData
 
 func resourceStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,7 +217,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
-	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultURI)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 	}

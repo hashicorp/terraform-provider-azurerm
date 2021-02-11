@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRouteFilter() *schema.Resource {
+func resourceRouteFilter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteFilterCreateUpdate,
-		Read:   resourceArmRouteFilterRead,
-		Update: resourceArmRouteFilterCreateUpdate,
-		Delete: resourceArmRouteFilterDelete,
+		Create: resourceRouteFilterCreateUpdate,
+		Read:   resourceRouteFilterRead,
+		Update: resourceRouteFilterCreateUpdate,
+		Delete: resourceRouteFilterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.RouteFilterID(id)
@@ -97,7 +97,7 @@ func resourceArmRouteFilter() *schema.Resource {
 	}
 }
 
-func resourceArmRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,10 +151,10 @@ func resourceArmRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmRouteFilterRead(d, meta)
+	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRouteFilterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

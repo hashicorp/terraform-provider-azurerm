@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Sentinel Scheduled Alert Rule be enabled? Defaults to `true`.
 
+* `event_grouping` - (Optional) A `event_grouping` block as defined below.
+
 * `incident_configuration` - (Optional) A `incident_configuration` block as defined below.
 
 * `query_frequency` - (Optional) The ISO 8601 timespan duration between two consecutive queries. Defaults to `PT5H`.
@@ -84,6 +86,12 @@ The following arguments are supported:
 * `trigger_operator` - (Optional) The alert trigger operator, combined with `trigger_threshold`, setting alert threshold of this Sentinel Scheduled Alert Rule. Possible values are `Equal`, `GreaterThan`, `LessThan`, `NotEqual`.
 
 * `trigger_threshold` - (Optional) The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule.
+
+---
+
+A `event_grouping` block supports the following:
+
+* `aggregation_method` - (Required) The aggregation type of grouping the events.
 
 ---
 

@@ -48,7 +48,7 @@ func TestAccAzureRMApiManagementGroupUser_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ApiManagementGroupUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementGroupUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -58,8 +58,7 @@ func (t ApiManagementGroupUserResource) Exists(ctx context.Context, clients *cli
 	groupName := id.Path["groups"]
 	userId := id.Path["users"]
 
-	_, err = clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
-	if err != nil {
+	if _, err = clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
 		return nil, fmt.Errorf("reading ApiManagement Group User (%s): %+v", id, err)
 	}
 

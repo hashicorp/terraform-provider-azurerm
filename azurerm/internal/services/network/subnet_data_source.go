@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSubnet() *schema.Resource {
+func dataSourceSubnet() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSubnetRead,
+		Read: dataSourceSubnetRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -77,7 +77,7 @@ func dataSourceArmSubnet() *schema.Resource {
 	}
 }
 
-func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

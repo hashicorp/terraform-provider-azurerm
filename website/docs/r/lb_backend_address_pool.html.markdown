@@ -39,9 +39,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "BackEndAddressPool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "BackEndAddressPool"
 }
 ```
 
@@ -50,18 +49,36 @@ resource "azurerm_lb_backend_address_pool" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backend Address Pool.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
+  
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
+
+* `backend_address` - (Optional) An array of `backend_address` block as defined below.
+
+-> **NOTE**: The `backend_address` can only be configured when the Backend Address Pool Load Balancer's SKU is `Standard`. See [the Azure document](https://docs.microsoft.com/en-us/azure/load-balancer/backend-pool-management#limitations) for more details.
+
+---
+
+A `backend_address` supports the following:
+
+* `name` - (Required) The name of the Backend Address.
+
+* `virtual_network_id` - (Required) The ID of the Virtual Network that is pre-allocated for this Backend Address.
+
+* `ip_address` - (Required) The IP address pre-allocated for this Backend Address with in the Virtual Network of `virtual_network_id`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Backend Address Pool.
+  
+* `backend_address` - An array of `backend_address` block as defined below.
 
 * `backend_ip_configurations` - The Backend IP Configurations associated with this Backend Address Pool.
 
 * `load_balancing_rules` - The Load Balancing Rules associated with this Backend Address Pool.
+
+* `outbound_rules` - An array of the Load Balancing Outbound Rules associated with this Backend Address Pool.
 
 ## Timeouts
 

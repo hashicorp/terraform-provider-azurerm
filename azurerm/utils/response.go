@@ -11,6 +11,10 @@ func ResponseWasNotFound(resp autorest.Response) bool {
 	return ResponseWasStatusCode(resp, http.StatusNotFound)
 }
 
+func ResponseWasBadRequest(resp autorest.Response) bool {
+	return ResponseWasStatusCode(resp, http.StatusBadRequest)
+}
+
 func ResponseWasForbidden(resp autorest.Response) bool {
 	return ResponseWasStatusCode(resp, http.StatusForbidden)
 }
