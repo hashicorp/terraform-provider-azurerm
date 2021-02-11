@@ -68,9 +68,9 @@ The following supported arguments are specific to Azure Blob Storage Linked Serv
 
 * `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage account. Incompatible with `service_principal_id` and `service_principal_key`
 
-* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account. Required if `use_managed_identity` is true.
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account. Required if `service_principal_key` is true.
 
-* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `use_managed_identity` is true.
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is true.
 
 * `tenant` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
