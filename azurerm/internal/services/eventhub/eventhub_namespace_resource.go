@@ -308,7 +308,7 @@ func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	//
 	// See: https://github.com/terraform-providers/terraform-provider-azurerm/issues/10244
 	//
-	if parameters.Sku.Tier == eventhub.SkuTierBasic && autoInflateEnabled == false {
+	if parameters.Sku.Tier == eventhub.SkuTierBasic && !autoInflateEnabled {
 		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(0)
 	}
 
