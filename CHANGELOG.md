@@ -9,6 +9,7 @@ UPGRADE NOTES
 FEATURES:
 
 * **New Resource:** `azurerm_iot_security_device_group` [GH-10353]
+* **New Data Source:** `azurerm_key_vault_certificate_data` [GH-8184]
 
 ENHANCEMENTS:
 
