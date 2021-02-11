@@ -75,7 +75,6 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 			"log_analytics_workspace_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
