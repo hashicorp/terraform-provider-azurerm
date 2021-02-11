@@ -49,19 +49,20 @@ func dataSourceKeyVaultCertificateData() *schema.Resource {
 
 			// Computed
 
-			"certificate_hex": {
+			"hex": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"certificate_pem": {
+			"pem": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"certificate_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
 			},
 
 			"certificate_expires": {
@@ -86,7 +87,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 
 	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
+		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
 	cert, err := client.GetCertificate(ctx, keyVaultBaseUri, name, version)
@@ -97,7 +98,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Key Vault Certificate: %+v", err)
+		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
 	if cert.ID == nil || *cert.ID == "" {
@@ -119,16 +120,16 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 	if contents := cert.Cer; contents != nil {
 		certificateData = strings.ToUpper(hex.EncodeToString(*contents))
 	}
-	d.Set("certificate_hex", certificateData)
+	d.Set("hex", certificateData)
 
 	timeString, err := cert.Attributes.Expires.MarshalText()
 	if err != nil {
-		return fmt.Errorf("Error parsing expiry time of certificate: %+v", err)
+		return fmt.Errorf("parsing expiry time of certificate: %+v", err)
 	}
 
 	t, err := time.Parse(time.RFC3339, string(timeString))
 	if err != nil {
-		return fmt.Errorf("Error converting text to Time struct: %+v", err)
+		return fmt.Errorf("converting text to Time struct: %+v", err)
 	}
 
 	d.Set("certificate_expires", t.Format(time.RFC3339))
@@ -136,19 +137,23 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 	// Get PFX
 	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version)
 	if err != nil {
-		return fmt.Errorf("Error retrieving cert from keyvault: %+v", err)
+		return fmt.Errorf("retrieving certificate %q from keyvault: %+v", id.Name, err)
 	}
+
 	pfxBytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
 	if err != nil {
-		return fmt.Errorf("Error decoding base64 certificate: %+v", err)
+		return fmt.Errorf("decoding base64 certificate (%q): %+v", id.Name, err)
 	}
+
+	// note PFX passwords are set to an empty string in Key Vault, this include password protected PFX uploads.
 	pfxKey, pfxCert, err := pkcs12.Decode(pfxBytes, "")
 	if err != nil {
-		return fmt.Errorf("Error decoding PFX cert: %+v", err)
+		return fmt.Errorf("decoding certificate (%q): %+v", id.Name, err)
 	}
+
 	keyX509, err := x509.MarshalPKCS8PrivateKey(pfxKey)
 	if err != nil {
-		return fmt.Errorf("Error reading key from PFX cert: %+v", err)
+		return fmt.Errorf("reading key from certificate (%q): %+v", id.Name, err)
 	}
 
 	// Encode Key and PEM
@@ -156,10 +161,11 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 		Type:  "PRIVATE KEY",
 		Bytes: keyX509,
 	}
+
 	var keyPEM bytes.Buffer
 	err = pem.Encode(&keyPEM, keyBlock)
 	if err != nil {
-		return fmt.Errorf("Error encoding Key Vault Certificate Key: %+v", err)
+		return fmt.Errorf("encoding Key Vault Certificate Key: %+v", err)
 	}
 
 	certBlock := &pem.Block{
@@ -170,11 +176,11 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 	var certPEM bytes.Buffer
 	err = pem.Encode(&certPEM, certBlock)
 	if err != nil {
-		return fmt.Errorf("Error encoding Key Vault Certificate PEM: %+v", err)
+		return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
 	}
 
-	d.Set("certificate_pem", certPEM.String())
-	d.Set("certificate_key", keyPEM.String())
+	d.Set("pem", certPEM.String())
+	d.Set("key", keyPEM.String())
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }

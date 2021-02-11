@@ -23,7 +23,7 @@ func TestAccDataSourceKeyVaultCertificateData_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate_hex").Exists(),
 				check.That(data.ResourceName).Key("certificate_pem").Exists(),
 				check.That(data.ResourceName).Key("certificate_key").Exists(),
-				check.That(data.ResourceName).Key("certificate_expires").Exists(),
+				check.That(data.ResourceName).Key("certificate_expires").HasValue("2027-10-08T08:27:55Z"),
 			),
 		},
 	})
@@ -36,6 +36,7 @@ func (KeyVaultCertificateDataDataSource) basic(data acceptance.TestData) string 
 data "azurerm_key_vault_certificate_data" "test" {
   name         = azurerm_key_vault_certificate.test.name
   key_vault_id = azurerm_key_vault.test.id
+  version      = azurerm_key_vault_certificate.test.version
 }
 `, KeyVaultCertificateResource{}.basicImportPFX(data))
 }
