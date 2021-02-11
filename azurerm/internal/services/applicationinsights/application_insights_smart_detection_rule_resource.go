@@ -63,7 +63,7 @@ func resourceApplicationInsightsSmartDetectionRule() *schema.Resource {
 				Default:  true,
 			},
 
-			"additional_emails": {
+			"additional_email_recipients": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -93,7 +93,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData,
 		Name:                           &name,
 		Enabled:                        utils.Bool(d.Get("enabled").(bool)),
 		SendEmailsToSubscriptionOwners: utils.Bool(d.Get("send_emails_to_subscription_owners").(bool)),
-		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_emails").(*schema.Set).List()),
+		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*schema.Set).List()),
 	}
 
 	_, err = client.Update(ctx, id.ResourceGroup, id.Name, name, smartDetectionRuleProperties)
@@ -132,7 +132,7 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *schema.ResourceData, m
 	d.Set("application_insights_id", parse.NewComponentID(id.SubscriptionId, id.ResourceGroup, id.ComponentName).ID())
 	d.Set("enabled", result.Enabled)
 	d.Set("send_emails_to_subscription_owners", result.SendEmailsToSubscriptionOwners)
-	d.Set("additional_emails", utils.FlattenStringSlice(result.CustomEmails))
+	d.Set("additional_email_recipients", utils.FlattenStringSlice(result.CustomEmails))
 	return nil
 }
 

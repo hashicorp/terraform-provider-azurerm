@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `send_emails_to_subscription_owners` - (Optional) Do emails get sent to subscription owners? Defaults to `true`.
 
-* `additional_emails` - (Optional) Specifies a list of additional emails that will be sent alerts on this Application Insights Smart Detection Rule.
+* `additional_email_recipients` - (Optional) Specifies a list of additional recipients that will be sent emails on this Application Insights Smart Detection Rule.
 
 -> **Note:** At least one read or write permission must be defined.
 
