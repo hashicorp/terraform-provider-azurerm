@@ -23,9 +23,6 @@ func resourceApplicationInsightsSmartDetectionRule() *schema.Resource {
 		Read:   resourceApplicationInsightsSmartDetectionRuleRead,
 		Update: resourceApplicationInsightsSmartDetectionRuleUpdate,
 		Delete: resourceApplicationInsightsSmartDetectionRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -43,14 +40,8 @@ func resourceApplicationInsightsSmartDetectionRule() *schema.Resource {
 					"Slow page load time",
 					"Slow server response time",
 					"Long dependency duration",
-					"Degredation in server response time",
-					"Degredation in dependency duration",
-					"Degradation in trace severity ratio",
-					"Abnormal rise in exception volume",
-					"Potential memory leak detected",
-					"Potential security issue detected",
-					"Abnormal rise in daily data volume",
 				}, false),
+				DiffSuppressFunc: smartDetectionRuleNameDiff,
 			},
 
 			"application_insights_id": {
@@ -61,6 +52,12 @@ func resourceApplicationInsightsSmartDetectionRule() *schema.Resource {
 			},
 
 			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"send_emails_to_subscription_owners": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -82,6 +79,8 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData,
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Samrt Detection Rule update.")
 
+	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
+	// We'll have the user submit what the name looks like in the UI and trim it behind the scenes to match what the API accepts
 	name := strings.ToLower(strings.Join(strings.Split(d.Get("name").(string), " "), ""))
 	appInsightsID := d.Get("application_insights_id").(string)
 
@@ -91,9 +90,10 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData,
 	}
 
 	smartDetectionRuleProperties := insights.ApplicationInsightsComponentProactiveDetectionConfiguration{
-		Name:         &name,
-		Enabled:      utils.Bool(d.Get("enabled").(bool)),
-		CustomEmails: utils.ExpandStringSlice(d.Get("additional_emails").(*schema.Set).List()),
+		Name:                           &name,
+		Enabled:                        utils.Bool(d.Get("enabled").(bool)),
+		SendEmailsToSubscriptionOwners: utils.Bool(d.Get("send_emails_to_subscription_owners").(bool)),
+		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_emails").(*schema.Set).List()),
 	}
 
 	_, err = client.Update(ctx, id.ResourceGroup, id.Name, name, smartDetectionRuleProperties)
@@ -101,7 +101,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *schema.ResourceData,
 		return fmt.Errorf("updating Application Insights Smart Detection Rule %q (Application Insights %q): %+v", name, id.String(), err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/SmartDetectionRule/%s", id, name))
+	d.SetId(fmt.Sprintf("%s/SmartDetectionRule/%s", id.ID(), name))
 
 	return resourceApplicationInsightsSmartDetectionRuleRead(d, meta)
 }
@@ -128,10 +128,10 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *schema.ResourceData, m
 		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %q: %+v", id.String(), err)
 	}
 
-	d.Set("application_insights_id", parse.NewComponentID(id.SubscriptionId, id.ResourceGroup, id.ComponentName))
-
 	d.Set("name", result.Name)
+	d.Set("application_insights_id", parse.NewComponentID(id.SubscriptionId, id.ResourceGroup, id.ComponentName).ID())
 	d.Set("enabled", result.Enabled)
+	d.Set("send_emails_to_subscription_owners", result.SendEmailsToSubscriptionOwners)
 	d.Set("additional_emails", utils.FlattenStringSlice(result.CustomEmails))
 	return nil
 }
@@ -161,10 +161,11 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *schema.ResourceData,
 	smartDetectionRuleProperties := insights.ApplicationInsightsComponentProactiveDetectionConfiguration{
 		Name:                           utils.String(id.SmartDetectionRuleName),
 		Enabled:                        result.RuleDefinitions.IsEnabledByDefault,
-		SendEmailsToSubscriptionOwners: utils.Bool(true),
+		SendEmailsToSubscriptionOwners: result.RuleDefinitions.SupportsEmailNotifications,
 		CustomEmails:                   utils.ExpandStringSlice([]interface{}{}),
 	}
 
+	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
 	_, err = client.Update(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName, smartDetectionRuleProperties)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
@@ -174,4 +175,12 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *schema.ResourceData,
 	}
 
 	return nil
+}
+
+// The Smart Detection Rule name from the UI doesn't match what the API accepts.
+// This Diff checks that the name UI name matches the API name when spaces are removed
+func smartDetectionRuleNameDiff(_, old string, new string, _ *schema.ResourceData) bool {
+	trimmedNew := strings.Join(strings.Split(strings.ToLower(new), " "), "")
+
+	return strings.EqualFold(old, trimmedNew)
 }
