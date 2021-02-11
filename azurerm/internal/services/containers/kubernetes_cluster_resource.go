@@ -458,6 +458,7 @@ func resourceKubernetesCluster() *schema.Resource {
 			"private_dns_zone_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true, // a Private Cluster is `System` by default even if unspecified
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					privateDnsValidate.PrivateDnsZoneID,
