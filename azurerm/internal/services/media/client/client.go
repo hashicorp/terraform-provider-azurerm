@@ -6,14 +6,15 @@ import (
 )
 
 type Client struct {
-	ServicesClient           *media.MediaservicesClient
-	AssetsClient             *media.AssetsClient
-	TransformsClient         *media.TransformsClient
-	StreamingEndpointsClient *media.StreamingEndpointsClient
-	JobsClient               *media.JobsClient
-	StreamingLocatorsClient  *media.StreamingLocatorsClient
-	ContentKeyPoliciesClient *media.ContentKeyPoliciesClient
-	StreamingPoliciesClient  *media.StreamingPoliciesClient
+	ServicesClient                   *media.MediaservicesClient
+	AssetsClient                     *media.AssetsClient
+	TransformsClient                 *media.TransformsClient
+	StreamingEndpointsClient         *media.StreamingEndpointsClient
+	JobsClient                       *media.JobsClient
+	StreamingLocatorsClient          *media.StreamingLocatorsClient
+	ContentKeyPoliciesClient         *media.ContentKeyPoliciesClient
+	StreamingPoliciesClient          *media.StreamingPoliciesClient
+	PrivateEndpointConnectionsClient *media.PrivateEndpointConnectionsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,14 +42,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	StreamingPoliciesClient := media.NewStreamingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&StreamingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateEndpointConnectionsClient := media.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateEndpointConnectionsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		ServicesClient:           &ServicesClient,
-		AssetsClient:             &AssetsClient,
-		TransformsClient:         &TransformsClient,
-		StreamingEndpointsClient: &StreamingEndpointsClient,
-		JobsClient:               &JobsClient,
-		StreamingLocatorsClient:  &StreamingLocatorsClient,
-		ContentKeyPoliciesClient: &ContentKeyPoliciesClient,
-		StreamingPoliciesClient:  &StreamingPoliciesClient,
+		ServicesClient:                   &ServicesClient,
+		AssetsClient:                     &AssetsClient,
+		TransformsClient:                 &TransformsClient,
+		StreamingEndpointsClient:         &StreamingEndpointsClient,
+		JobsClient:                       &JobsClient,
+		StreamingLocatorsClient:          &StreamingLocatorsClient,
+		ContentKeyPoliciesClient:         &ContentKeyPoliciesClient,
+		StreamingPoliciesClient:          &StreamingPoliciesClient,
+		PrivateEndpointConnectionsClient: &PrivateEndpointConnectionsClient,
 	}
 }
