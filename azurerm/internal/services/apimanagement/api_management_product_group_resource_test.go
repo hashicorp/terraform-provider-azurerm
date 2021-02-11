@@ -57,8 +57,7 @@ func (ApiManagementProductGroupResource) Exists(ctx context.Context, clients *cl
 	groupName := id.Path["groups"]
 	productId := id.Path["products"]
 
-	_, err = clients.ApiManagement.ProductGroupsClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
-	if err != nil {
+	if _, err = clients.ApiManagement.ProductGroupsClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName); err != nil {
 		return nil, fmt.Errorf("reading ApiManagement Product Group (%s): %+v", id, err)
 	}
 
