@@ -424,7 +424,7 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("auto_upgrade_channel").HasValue("rapid"),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
 			),
 		},
 		data.ImportStep(),
@@ -1213,12 +1213,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                 = "acctestaks%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  dns_prefix           = "acctestaks%d"
-  kubernetes_version   = %q
-  auto_upgrade_channel = "rapid"
+  name                      = "acctestaks%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  dns_prefix                = "acctestaks%d"
+  kubernetes_version        = %q
+  automatic_channel_upgrade = "rapid"
 
   default_node_pool {
     name       = "default"

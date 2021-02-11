@@ -72,7 +72,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
-* `auto_upgrade_channel` - (Optional) The auto-upgrade channel for this Kubernetes Cluster. Possible values are `none`, `patch`, `rapid`, and `stable`. The default value is `none`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `none`, `patch`, `rapid`, and `stable`. The default value is `none`.
 
 -> **NOTE:** Cluster auto-upgrade only updates to GA versions of Kubernetes and will not update to preview versions.
 

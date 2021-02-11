@@ -595,7 +595,7 @@ func resourceKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"auto_upgrade_channel": {
+			"automatic_channel_upgrade": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -812,7 +812,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
 			AutoUpgradeProfile: &containerservice.ManagedClusterAutoUpgradeProfile{
-				UpgradeChannel: containerservice.UpgradeChannel(d.Get("auto_upgrade_channel").(string)),
+				UpgradeChannel: containerservice.UpgradeChannel(d.Get("automatic_channel_upgrade").(string)),
 			},
 		},
 		Tags: tags.Expand(t),
@@ -1117,8 +1117,8 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
 	}
 
-	if d.HasChange("auto_upgrade_channel") {
-		existing.AutoUpgradeProfile.UpgradeChannel = containerservice.UpgradeChannel(d.Get("auto_upgrade_channel").(string))
+	if d.HasChange("automatic_channel_upgrade") {
+		existing.AutoUpgradeProfile.UpgradeChannel = containerservice.UpgradeChannel(d.Get("automatic_channel_upgrade").(string))
 	}
 
 	if updateCluster {
@@ -1243,7 +1243,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
 		if autoUpgradeProfile := props.AutoUpgradeProfile; autoUpgradeProfile != nil {
-			d.Set("auto_upgrade_channel", autoUpgradeProfile.UpgradeChannel)
+			d.Set("automatic_channel_upgrade", autoUpgradeProfile.UpgradeChannel)
 		}
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
