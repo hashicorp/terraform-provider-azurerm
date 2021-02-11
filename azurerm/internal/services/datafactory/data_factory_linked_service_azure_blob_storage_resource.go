@@ -270,10 +270,6 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
 	}
 
-	if blobStorage.SasURI != nil {
-		d.Set("sas_uri", blobStorage.SasURI)
-	}
-
 	if blobStorage.Tenant != nil {
 		d.Set("tenant", blobStorage.Tenant)
 	}
