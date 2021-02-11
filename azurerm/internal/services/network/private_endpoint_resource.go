@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -106,22 +108,18 @@ func resourcePrivateEndpoint() *schema.Resource {
 							ForceNew: true,
 						},
 						"private_connection_resource_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-								v, ok := i.(string)
-								if !ok {
-									errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-									return
-								}
-
-								if strings.HasSuffix(v, ".azure.privatelinkservice") {
-									return
-								}
-
-								return azure.ValidateResourceID(i, k)
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							ExactlyOneOf: []string{"private_service_connection.0.private_connection_resource_alias", "private_service_connection.0.private_connection_resource_id"},
+						},
+						"private_connection_resource_alias": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.PrivateConnectionResourceAlias,
+							ExactlyOneOf: []string{"private_service_connection.0.private_connection_resource_alias", "private_service_connection.0.private_connection_resource_id"},
 						},
 						"subresource_names": {
 							Type:     schema.TypeList,
@@ -508,6 +506,9 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		privateConnectonResourceId := v["private_connection_resource_id"].(string)
+		if privateConnectonResourceId == "" {
+			privateConnectonResourceId = v["private_connection_resource_alias"].(string)
+		}
 		subresourceNames := v["subresource_names"].([]interface{})
 		requestMessage := v["request_message"].(string)
 		isManual := v["is_manual_connection"].(bool)
@@ -573,13 +574,20 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 					privateConnectionId = *props.PrivateLinkServiceID
 				}
 			}
-			results = append(results, map[string]interface{}{
-				"name":                           name,
-				"is_manual_connection":           false,
-				"private_connection_resource_id": privateConnectionId,
-				"private_ip_address":             privateIPAddress,
-				"subresource_names":              subResourceNames,
-			})
+			attrs := map[string]interface{}{
+				"name":                 name,
+				"is_manual_connection": false,
+				"private_ip_address":   privateIPAddress,
+				"subresource_names":    subResourceNames,
+			}
+			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
+				attrs["private_connection_resource_alias"] = privateConnectionId
+			} else {
+				attrs["private_connection_resource_id"] = privateConnectionId
+			}
+
+			results = append(results, attrs)
+
 		}
 	}
 
@@ -606,14 +614,20 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				}
 			}
 
-			results = append(results, map[string]interface{}{
-				"name":                           name,
-				"is_manual_connection":           true,
-				"private_connection_resource_id": privateConnectionId,
-				"private_ip_address":             privateIPAddress,
-				"request_message":                requestMessage,
-				"subresource_names":              subResourceNames,
-			})
+			attrs := map[string]interface{}{
+				"name":                 name,
+				"is_manual_connection": true,
+				"private_ip_address":   privateIPAddress,
+				"request_message":      requestMessage,
+				"subresource_names":    subResourceNames,
+			}
+			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
+				attrs["private_connection_resource_alias"] = privateConnectionId
+			} else {
+				attrs["private_connection_resource_id"] = privateConnectionId
+			}
+
+			results = append(results, attrs)
 		}
 	}
 
