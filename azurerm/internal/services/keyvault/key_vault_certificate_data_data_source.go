@@ -137,7 +137,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("converting text to Time struct: %+v", err)
 	}
 
-	d.Set("certificate_expires", t.Format(time.RFC3339))
+	d.Set("expires", t.Format(time.RFC3339))
 
 	// Get PFX
 	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version)
