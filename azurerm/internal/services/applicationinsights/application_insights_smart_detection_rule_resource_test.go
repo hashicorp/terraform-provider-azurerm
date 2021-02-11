@@ -152,7 +152,7 @@ resource "azurerm_application_insights_smart_detection_rule" "test" {
   enabled                 = false
 
   send_emails_to_subscription_owners = false
-  additional_emails = ["test@example.com", "test2@example.com"]
+  additional_emails                  = ["test@example.com", "test2@example.com"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
