@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -35,13 +34,13 @@ func dataSourceKeyVaultCertificateData() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NestedItemId,
+				ValidateFunc: validate.NestedItemName,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VaultID,
 			},
 
 			"version": {
@@ -68,7 +67,7 @@ func dataSourceKeyVaultCertificateData() *schema.Resource {
 				Computed:  true,
 			},
 
-			"certificate_expires": {
+			"expires": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -113,7 +112,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 
 	d.SetId(*cert.ID)
 
-	id, err := parse.ParseNestedItemID(*cert.ID)
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}

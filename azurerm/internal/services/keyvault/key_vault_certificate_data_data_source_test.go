@@ -20,10 +20,10 @@ func TestAccDataSourceKeyVaultCertificateData_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("certificate_hex").Exists(),
-				check.That(data.ResourceName).Key("certificate_pem").Exists(),
-				check.That(data.ResourceName).Key("certificate_key").Exists(),
-				check.That(data.ResourceName).Key("certificate_expires").HasValue("2027-10-08T08:27:55Z"),
+				check.That(data.ResourceName).Key("hex").Exists(),
+				check.That(data.ResourceName).Key("pem").Exists(),
+				check.That(data.ResourceName).Key("key").Exists(),
+				check.That(data.ResourceName).Key("expires").HasValue("2027-10-08T08:27:55Z"),
 			),
 		},
 	})
