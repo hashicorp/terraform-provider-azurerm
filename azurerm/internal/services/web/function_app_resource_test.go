@@ -644,7 +644,6 @@ func TestAccFunctionApp_javaVersion(t *testing.T) {
 			Config: r.javaVersion(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.java_vesion").HasValue("1.8"),
 			),
 		},
 		data.ImportStep(),
