@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `only_critical_addons_enabled` property [GH-10307]
 * `azurerm_linux_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
 * `azurerm_media_streaming_endpoint` - exporting the field `host_name` [GH-10527]
+* `azurerm_mssql_virtual_machine` - support auto_backup [GH-10460]
 * `azurerm_windows_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
 * `azurerm_site_recovery_replicated_vm` - support for the `recovery_public_ip_address_id` property and changing `target_static_ip` or `target_static_ip` force a new resource to be created [GH-10446]
 
