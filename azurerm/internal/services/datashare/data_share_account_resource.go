@@ -176,8 +176,7 @@ func resourceDataShareAccountUpdate(d *schema.ResourceData, meta interface{}) er
 		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.Name, props)
-	if err != nil {
+	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("updating DataShare Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

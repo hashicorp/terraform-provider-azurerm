@@ -218,8 +218,7 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
-	_, err = identitySQLControlClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlControlSettings)
-	if err != nil {
+	if _, err = identitySQLControlClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlControlSettings); err != nil {
 		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
 	}
 
@@ -354,8 +353,7 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if d.HasChange("sql_identity_control_enabled") {
 		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
-		_, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
-		if err != nil {
+		if _, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings); err != nil {
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
 		}
 	}

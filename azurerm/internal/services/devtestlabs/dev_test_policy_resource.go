@@ -225,8 +225,7 @@ func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
 	}
 
-	_, err = client.Delete(ctx, resourceGroup, labName, policySetName, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, labName, policySetName, name); err != nil {
 		return fmt.Errorf("Error deleting DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
 	}
 
