@@ -99,7 +99,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *schema.ResourceData, meta inter
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
-			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, keyVaultBaseUri)
+			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, *keyVaultBaseUri)
 			d.SetId("")
 			return nil
 		}
