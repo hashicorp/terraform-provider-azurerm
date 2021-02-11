@@ -5,6 +5,10 @@ UPGRADE NOTES
 * `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed [GH-10528]
 * `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - exposed computed named attributes to allow for existing configuration to be updated before the release of breaking changes in future release. [GH-9357]
 
+FEATURES:
+
+* **New Resource:** `azurerm_iot_security_device_group` [GH-10353]
+
 ENHANCEMENTS:
 
 * dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` [GH-10521]
