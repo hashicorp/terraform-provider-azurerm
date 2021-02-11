@@ -3,7 +3,8 @@
 UPGRADE NOTES
 
 * `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed [GH-10528]
-* `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - exposed computed named attributes to allow for existing configuration to be updated before the release of breaking changes in future release. [GH-9357]
+* `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` have been added to the `azurerm_frontdoor` resource, which are a map of name-ID references. An upcoming version of the Azure Provider will change the blocks `backend_pool`, `backend_pool_health_probe`, `backend_pool_load_balancing`, `frontend_endpoint` and `routing_rule` from a List to a Set to work around an ordering issue within the Azure API - as such you should update your Terraform Configuration to reference these new Maps, rather than the Lists directly, due to the upcoming breaking change. For example, changing `azurerm_frontdoor.example.frontend_endpoint[1].id` to `azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]` [GH-9357]
+* The provider-block field `skip_credentials_validation` is now deprecated since this was non-functional and will be removed in 3.0 of the Azure Provider [GH-10464]
 
 FEATURES:
 
@@ -12,18 +13,18 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` [GH-10521]
-* `azurerm_frontdoor` - part 1 of introducing fix for force sorting of properties (part 1) [GH-9357]
-* `azurerm_frontdoor_custom_https_configuration` - part 1 of introducing fix for force sorting of properties (part 1) [GH-9357]
+* `azurerm_frontdoor` - added the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` which are a map of name-ID references [GH-9357]
 * `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block [GH-10520]
 * `azurerm_kubernetes_cluster` - support for the `only_critical_addons_enabled` property [GH-10307]
 * `azurerm_linux_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
 * `azurerm_media_streaming_endpoint` - exporting the field `host_name` [GH-10527]
-* `azurerm_mssql_virtual_machine` - support auto_backup [GH-10460]
+* `azurerm_mssql_virtual_machine` - support for `auto_backup` [GH-10460]
 * `azurerm_windows_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta [GH-10528]
 * `azurerm_site_recovery_replicated_vm` - support for the `recovery_public_ip_address_id` property and changing `target_static_ip` or `target_static_ip` force a new resource to be created [GH-10446]
 
 BUG FIXES:
 
+* provider: the provider-block field `skip_credentials_validation` is now deprecated since this was non-functional. This will be removed in 3.0 of the Azure Provider [GH-10464]
 * Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering [GH-10519]
 * `azurerm_app_service` - the `ip_restriction.x.ip_address` propertynow accepts anything other than an empty string [GH-10440]
 * `azurerm_cosmosdb_account` - validate the `key_vault_key_id` property is versionless [GH-10420]
