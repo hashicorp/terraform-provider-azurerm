@@ -151,11 +151,11 @@ func resourceSynapseWorkspace() *schema.Resource {
 				ValidateFunc: validate.ManagedResourceGroupName(),
 			},
 
-			"azure_devops_configuration": {
+			"azure_devops_repo": {
 				Type:          schema.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"github_configuration"},
+				ConflictsWith: []string{"github_repo"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"account_name": {
@@ -187,11 +187,11 @@ func resourceSynapseWorkspace() *schema.Resource {
 				},
 			},
 
-			"github_configuration": {
+			"github_repo": {
 				Type:          schema.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"azure_devops_configuration"},
+				ConflictsWith: []string{"azure_devops_repo"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"account_name": {
@@ -367,12 +367,12 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
-			if err := d.Set("azure_devops_configuration", repo); err != nil {
-				return fmt.Errorf("Error setting `azure_devops_configuration`: %+v", err)
+			if err := d.Set("azure_devops_repo", repo); err != nil {
+				return fmt.Errorf("Error setting `azure_devops_repo`: %+v", err)
 			}
 		} else if repoType == workspaceGitHubConfiguration {
-			if err := d.Set("github_configuration", repo); err != nil {
-				return fmt.Errorf("Error setting `github_configuration`: %+v", err)
+			if err := d.Set("github_repo", repo); err != nil {
+				return fmt.Errorf("Error setting `github_repo`: %+v", err)
 			}
 		}
 	}
@@ -398,7 +398,7 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password", "github_configuration", "azure_devops_configuration") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo") {
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
@@ -500,7 +500,7 @@ func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminI
 }
 
 func expandWorkspaceRepositoryConfiguration(d *schema.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
-	if azdoList, ok := d.GetOk("azure_devops_configuration"); ok {
+	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
 		azdo := azdoList.([]interface{})[0].(map[string]interface{})
 		return &synapse.WorkspaceRepositoryConfiguration{
 			Type:                utils.String(workspaceVSTSConfiguration),
@@ -512,7 +512,7 @@ func expandWorkspaceRepositoryConfiguration(d *schema.ResourceData) *synapse.Wor
 		}
 	}
 
-	if githubList, ok := d.GetOk("github_configuration"); ok {
+	if githubList, ok := d.GetOk("github_repo"); ok {
 		github := githubList.([]interface{})[0].(map[string]interface{})
 		return &synapse.WorkspaceRepositoryConfiguration{
 			Type:                utils.String(workspaceGitHubConfiguration),

@@ -101,11 +101,11 @@ func TestAccSynapseWorkspace_azdo(t *testing.T) {
 			Config: r.azdo(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_devops_configuration.0.account_name").HasValue("myorg"),
-				check.That(data.ResourceName).Key("azure_devops_configuration.0.project_name").HasValue("myproj"),
-				check.That(data.ResourceName).Key("azure_devops_configuration.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("azure_devops_configuration.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("azure_devops_configuration.0.root_folder").HasValue("/"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
 			),
 		},
 	})
@@ -120,11 +120,11 @@ func TestAccSynapseWorkspace_github(t *testing.T) {
 			Config: r.github(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("github_configuration.0.account_name").HasValue("myuser"),
-				check.That(data.ResourceName).Key("github_configuration.0.git_url").HasValue("https://github.mydomain.com"),
-				check.That(data.ResourceName).Key("github_configuration.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("github_configuration.0.root_folder").HasValue("/"),
+				check.That(data.ResourceName).Key("github_repo.0.account_name").HasValue("myuser"),
+				check.That(data.ResourceName).Key("github_repo.0.git_url").HasValue("https://github.mydomain.com"),
+				check.That(data.ResourceName).Key("github_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("github_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("github_repo.0.root_folder").HasValue("/"),
 			),
 		},
 	})
@@ -245,7 +245,7 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 
-  azure_devops_configuration {
+  azure_devops_repo {
     account_name    = "myorg"
     project_name    = "myproj"
     repository_name = "myrepo"
@@ -269,7 +269,7 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 
-  github_configuration {
+  github_repo {
     account_name    = "myuser"
     git_url         = "https://github.mydomain.com"
     repository_name = "myrepo"

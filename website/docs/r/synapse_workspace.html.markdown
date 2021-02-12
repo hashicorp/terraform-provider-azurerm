@@ -77,9 +77,9 @@ The following arguments are supported:
 
 * `aad_admin` - (Optional) An `aad_admin` block as defined below.
 
-* `azure_devops_configuration` - (Optional) An `azure_devops_configuration` block as defined below.
+* `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
 
-* `github_configuration` - (Optional) A `github_configuration` block as defined below.
+* `github_repo` - (Optional) A `github_repo` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
@@ -95,7 +95,7 @@ An `aad_admin` block supports the following:
 
 ---
 
-An `azure_devops_configuration` block supports the following:
+An `azure_devops_repo` block supports the following:
 
 * `account_name` - (Required) Specifies the Azure DevOps account name.
 
@@ -109,7 +109,7 @@ An `azure_devops_configuration` block supports the following:
 
 ---
 
-A `github_configuration` block supports the following:
+A `github_repo` block supports the following:
 
 * `account_name` - (Required) Specifies the GitHub account name.
 
