@@ -341,7 +341,7 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 			Config: r.withUpstreamSettings(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upstream_setting.#").HasValue("4"),
+				check.That(data.ResourceName).Key("upstream_endpoint.#").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -534,28 +534,31 @@ resource "azurerm_signalr_service" "test" {
     value = "False"
   }
 
-  upstream_setting {
-    url_template = "http://foo.com"
+  upstream_endpoint {
+    category_pattern = ["*"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["*"]
+    url_template     = "http://foo.com/{hub}/api/{category}/{event}"
   }
 
-  upstream_setting {
-    category_pattern = "connections,messages"
-    event_pattern    = "*"
-    hub_pattern      = "hub1"
+  upstream_endpoint {
+    category_pattern = ["connections", "messages"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["hub1"]
     url_template     = "http://foo.com"
   }
 
-  upstream_setting {
-    category_pattern = "*"
-    event_pattern    = "connect,disconnect"
-    hub_pattern      = "hub1,hub2"
+  upstream_endpoint {
+    category_pattern = ["*"]
+    event_pattern    = ["connect", "disconnect"]
+    hub_pattern      = ["hub1", "hub2"]
     url_template     = "http://foo3.com"
   }
 
-  upstream_setting {
-    category_pattern = "connections"
-    event_pattern    = "disconnect"
-    hub_pattern      = "*"
+  upstream_endpoint {
+    category_pattern = ["connections"]
+    event_pattern    = ["disconnect"]
+    hub_pattern      = ["*"]
     url_template     = "http://foo4.com"
   }
 }

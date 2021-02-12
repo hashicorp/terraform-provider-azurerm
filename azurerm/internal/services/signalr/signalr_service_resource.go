@@ -3,6 +3,7 @@ package signalr
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
@@ -13,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -100,29 +102,39 @@ func resourceArmSignalRService() *schema.Resource {
 				},
 			},
 
-			"upstream_setting": {
+			"upstream_endpoint": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"category_pattern": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"event_pattern": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"hub_pattern": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"url_template": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UrlTemplate,
 						},
 					},
 				},
@@ -217,11 +229,18 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 	featureFlags := d.Get("features").(*schema.Set).List()
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
-	upstreamSettings := d.Get("upstream_setting").(*schema.Set).List()
+	upstreamSettings := d.Get("upstream_endpoint").(*schema.Set).List()
+
+	expandedFeatures := expandSignalRFeatures(featureFlags)
+
+	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
+	if upstreamSettings != nil && !signalRIsInServerlessMode(expandedFeatures) {
+		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
+	}
 
 	properties := &signalr.Properties{
 		Cors:     expandSignalRCors(cors),
-		Features: expandSignalRFeatures(featureFlags),
+		Features: expandedFeatures,
 		Upstream: expandUpstreamSettings(upstreamSettings),
 	}
 
@@ -302,8 +321,8 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting `cors`: %+v", err)
 		}
 
-		if err := d.Set("upstream_setting", flattenUpstreamSettings(properties.Upstream)); err != nil {
-			return fmt.Errorf("Error setting `upstream_setting`: %+v", err)
+		if err := d.Set("upstream_endpoint", flattenUpstreamSettings(properties.Upstream)); err != nil {
+			return fmt.Errorf("Error setting `upstream_endpoint`: %+v", err)
 		}
 	}
 
@@ -327,7 +346,7 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 
 	resourceType := &signalr.ResourceType{}
 
-	if d.HasChanges("cors", "features", "upstream_setting") {
+	if d.HasChanges("cors", "features", "upstream_endpoint") {
 		resourceType.Properties = &signalr.Properties{}
 
 		if d.HasChange("cors") {
@@ -340,8 +359,8 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 
-		if d.HasChange("upstream_setting") {
-			featuresRaw := d.Get("upstream_setting").(*schema.Set).List()
+		if d.HasChange("upstream_endpoint") {
+			featuresRaw := d.Get("upstream_endpoint").(*schema.Set).List()
 			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
 		}
 	}
@@ -393,6 +412,20 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
+func signalRIsInServerlessMode(features *[]signalr.Feature) bool {
+	if features == nil {
+		return false
+	}
+
+	for _, feature := range *features {
+		if feature.Flag == signalr.ServiceMode && feature.Value != nil {
+			return *feature.Value == "Serverless"
+		}
+	}
+
+	return false
+}
+
 func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 	features := make([]signalr.Feature, 0)
 	for _, featureValue := range input {
@@ -436,9 +469,9 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 		setting := upstreamSetting.(map[string]interface{})
 
 		upstreamTemplate := &signalr.UpstreamTemplate{
-			HubPattern:      utils.String(setting["hub_pattern"].(string)),
-			EventPattern:    utils.String(setting["event_pattern"].(string)),
-			CategoryPattern: utils.String(setting["category_pattern"].(string)),
+			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
+			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
+			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			URLTemplate:     utils.String(setting["url_template"].(string)),
 		}
 
@@ -460,13 +493,16 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 		upstreamSetting := make(map[string]interface{})
 
 		if settings.CategoryPattern != nil {
-			upstreamSetting["category_pattern"] = *settings.CategoryPattern
+			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
+			upstreamSetting["category_pattern"] = utils.FlattenStringSlice(&categoryPatterns)
 		}
 		if settings.EventPattern != nil {
-			upstreamSetting["event_pattern"] = *settings.EventPattern
+			eventPatterns := strings.Split(*settings.EventPattern, ",")
+			upstreamSetting["event_pattern"] = utils.FlattenStringSlice(&eventPatterns)
 		}
 		if settings.HubPattern != nil {
-			upstreamSetting["hub_pattern"] = *settings.HubPattern
+			hubPatterns := strings.Split(*settings.HubPattern, ",")
+			upstreamSetting["hub_pattern"] = utils.FlattenStringSlice(&hubPatterns)
 		}
 		if settings.URLTemplate != nil {
 			upstreamSetting["url_template"] = *settings.URLTemplate

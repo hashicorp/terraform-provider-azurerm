@@ -37,10 +37,10 @@ resource "azurerm_signalr_service" "example" {
     value = "Default"
   }
 
-  upstream_setting {
-    category_pattern = "connections,messages"
-    event_pattern    = "*"
-    hub_pattern      = "hub1"
+  upstream_endpoint {
+    category_pattern = ["connections" , "messages"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["hub1"]
     url_template     = "http://foo.com"
   }
 }
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `features` - (Optional) A `features` block as documented below.
 
-* `upstream_setting` - (Optional) An `upstream_setting` block as documented below. Using this block requires the SignalR service to be Serverless.
+* `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -82,15 +82,15 @@ A `features` block supports the following:
 
 ---
 
-An `upstream_setting` block supports the following:
+An `upstream_endpoint` block supports the following:
 
-* `url_template` - (Required) The upstream URL Template. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
+* `url_template` - (Required) The upstream URL Template. This can be a url or a template such as `http://host.com/{hub}/api/{category}/{event}`.
 
-* `category_pattern` - (Optional) The matching pattern for category names. Possible values are `*`, multiple categories separated by commas `,`, and single categories. Ex: `connections,messages`, `*`, and `connections`.
+* `category_pattern` - (Optional) The categories to match on, or `*` for all.
 
-* `event_pattern` - (Optional) The matching pattern for event names.  Possible values are `*`, multiple events separated by commas `,`, and single events. Ex: `connect,disconnect`, `*`, and `connect`.
+* `event_pattern` - (Optional) The events to match on, or `*` for all.
 
-* `hub_pattern` - (Optional) The matching mattern for hub names.  Possible values are `*`, multiple hubs separated by commas `,`, and single hubs. Ex: `hub1,hub1`, `*`, `hub1`.
+* `hub_pattern` - (Optional) The hubs to match on, or `*` for all.
 
 ---
 
