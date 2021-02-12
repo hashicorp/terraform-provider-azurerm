@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/validate"
+	signalrValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -111,7 +111,8 @@ func resourceArmSignalRService() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -119,7 +120,8 @@ func resourceArmSignalRService() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -127,14 +129,15 @@ func resourceArmSignalRService() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"url_template": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UrlTemplate,
+							ValidateFunc: signalrValidate.UrlTemplate,
 						},
 					},
 				},
