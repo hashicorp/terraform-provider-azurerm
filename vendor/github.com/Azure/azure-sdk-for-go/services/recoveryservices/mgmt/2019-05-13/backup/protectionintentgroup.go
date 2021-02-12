@@ -80,6 +80,7 @@ func (client ProtectionIntentGroupClient) List(ctx context.Context, vaultName st
 	}
 	if result.pirl.hasNextLink() && result.pirl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -147,7 +148,6 @@ func (client ProtectionIntentGroupClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentGroupClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

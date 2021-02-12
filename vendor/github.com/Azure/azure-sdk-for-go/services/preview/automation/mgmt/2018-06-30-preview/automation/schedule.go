@@ -350,6 +350,7 @@ func (client ScheduleClient) ListByAutomationAccount(ctx context.Context, resour
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -411,7 +412,6 @@ func (client ScheduleClient) listByAutomationAccountNextResults(ctx context.Cont
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

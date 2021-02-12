@@ -650,82 +650,28 @@ type AccountSasParameters struct {
 // AccountsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsCreateFuture) Result(client AccountsClient) (a Account, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("storage.AccountsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.CreateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "storage.AccountsCreateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (Account, error)
 }
 
 // AccountsFailoverFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsFailoverFuture) Result(client AccountsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("storage.AccountsFailoverFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (autorest.Response, error)
 }
 
 // AccountsRestoreBlobRangesFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AccountsRestoreBlobRangesFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsRestoreBlobRangesFuture) Result(client AccountsClient) (brs BlobRestoreStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsRestoreBlobRangesFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("storage.AccountsRestoreBlobRangesFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if brs.Response.Response, err = future.GetResult(sender); err == nil && brs.Response.Response.StatusCode != http.StatusNoContent {
-		brs, err = client.RestoreBlobRangesResponder(brs.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "storage.AccountsRestoreBlobRangesFuture", "Result", brs.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (BlobRestoreStatus, error)
 }
 
 // AccountUpdateParameters the parameters that can be provided when updating the storage account

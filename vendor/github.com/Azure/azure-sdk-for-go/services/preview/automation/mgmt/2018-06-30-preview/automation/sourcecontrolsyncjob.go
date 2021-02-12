@@ -274,6 +274,7 @@ func (client SourceControlSyncJobClient) ListByAutomationAccount(ctx context.Con
 	}
 	if result.scsjlr.hasNextLink() && result.scsjlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -339,7 +340,6 @@ func (client SourceControlSyncJobClient) listByAutomationAccountNextResults(ctx 
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

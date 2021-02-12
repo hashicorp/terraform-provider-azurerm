@@ -67,7 +67,7 @@ func (client PartnerNamespacesClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client PartnerNamespacesClient) CreateOrUpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerNamespacesClient) (pn PartnerNamespace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pn.Response.Response, err = future.GetResult(sender)
+		if pn.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pn.Response.Response.StatusCode != http.StatusNoContent {
+			pn, err = client.CreateOrUpdateResponder(pn.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", pn.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -144,7 +170,7 @@ func (client PartnerNamespacesClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -180,7 +206,23 @@ func (client PartnerNamespacesClient) DeleteSender(req *http.Request) (future Pa
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerNamespacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -314,6 +356,7 @@ func (client PartnerNamespacesClient) ListByResourceGroup(ctx context.Context, r
 	}
 	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -380,7 +423,6 @@ func (client PartnerNamespacesClient) listByResourceGroupNextResults(ctx context
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -443,6 +485,7 @@ func (client PartnerNamespacesClient) ListBySubscription(ctx context.Context, fi
 	}
 	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -508,7 +551,6 @@ func (client PartnerNamespacesClient) listBySubscriptionNextResults(ctx context.
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -714,7 +756,7 @@ func (client PartnerNamespacesClient) Update(ctx context.Context, resourceGroupN
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -752,7 +794,33 @@ func (client PartnerNamespacesClient) UpdateSender(req *http.Request) (future Pa
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerNamespacesClient) (pn PartnerNamespace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pn.Response.Response, err = future.GetResult(sender)
+		if pn.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pn.Response.Response.StatusCode != http.StatusNoContent {
+			pn, err = client.UpdateResponder(pn.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", pn.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

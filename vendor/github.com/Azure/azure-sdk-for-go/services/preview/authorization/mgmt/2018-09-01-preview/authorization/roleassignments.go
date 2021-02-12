@@ -551,6 +551,7 @@ func (client RoleAssignmentsClient) List(ctx context.Context, filter string) (re
 	}
 	if result.ralr.hasNextLink() && result.ralr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -613,7 +614,6 @@ func (client RoleAssignmentsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -676,6 +676,7 @@ func (client RoleAssignmentsClient) ListForResource(ctx context.Context, resourc
 	}
 	if result.ralr.hasNextLink() && result.ralr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -743,7 +744,6 @@ func (client RoleAssignmentsClient) listForResourceNextResults(ctx context.Conte
 	result, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "listForResourceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -802,6 +802,7 @@ func (client RoleAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 	}
 	if result.ralr.hasNextLink() && result.ralr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -865,7 +866,6 @@ func (client RoleAssignmentsClient) listForResourceGroupNextResults(ctx context.
 	result, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "listForResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -924,6 +924,7 @@ func (client RoleAssignmentsClient) ListForScope(ctx context.Context, scope stri
 	}
 	if result.ralr.hasNextLink() && result.ralr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -986,7 +987,6 @@ func (client RoleAssignmentsClient) listForScopeNextResults(ctx context.Context,
 	result, err = client.ListForScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "listForScopeNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

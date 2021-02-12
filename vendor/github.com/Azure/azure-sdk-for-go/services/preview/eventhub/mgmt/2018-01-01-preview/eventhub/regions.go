@@ -84,6 +84,7 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result M
 	}
 	if result.mrlr.hasNextLink() && result.mrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -144,7 +145,6 @@ func (client RegionsClient) listBySkuNextResults(ctx context.Context, lastResult
 	result, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.RegionsClient", "listBySkuNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

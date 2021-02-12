@@ -82,7 +82,7 @@ func (client EndpointsClient) PurgeContent(ctx context.Context, resourceGroupNam
 
 	result, err = client.PurgeContentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.EndpointsClient", "PurgeContent", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.EndpointsClient", "PurgeContent", nil, "Failure sending request")
 		return
 	}
 
@@ -120,7 +120,23 @@ func (client EndpointsClient) PurgeContentSender(req *http.Request) (future Endp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.EndpointsPurgeContentFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.EndpointsPurgeContentFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

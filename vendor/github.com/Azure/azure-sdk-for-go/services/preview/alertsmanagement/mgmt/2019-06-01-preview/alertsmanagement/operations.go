@@ -74,6 +74,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationsListP
 	}
 	if result.ol.hasNextLink() && result.ol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

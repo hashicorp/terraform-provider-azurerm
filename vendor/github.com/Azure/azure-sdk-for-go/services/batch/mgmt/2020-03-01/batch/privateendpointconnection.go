@@ -179,6 +179,7 @@ func (client PrivateEndpointConnectionClient) ListByBatchAccount(ctx context.Con
 	}
 	if result.lpecr.hasNextLink() && result.lpecr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -243,7 +244,6 @@ func (client PrivateEndpointConnectionClient) listByBatchAccountNextResults(ctx 
 	result, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionClient", "listByBatchAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

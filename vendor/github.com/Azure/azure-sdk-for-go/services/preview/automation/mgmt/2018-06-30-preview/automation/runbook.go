@@ -449,6 +449,7 @@ func (client RunbookClient) ListByAutomationAccount(ctx context.Context, resourc
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -510,7 +511,6 @@ func (client RunbookClient) listByAutomationAccountNextResults(ctx context.Conte
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -563,7 +563,7 @@ func (client RunbookClient) Publish(ctx context.Context, resourceGroupName strin
 
 	result, err = client.PublishSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "Publish", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "Publish", nil, "Failure sending request")
 		return
 	}
 
@@ -600,7 +600,23 @@ func (client RunbookClient) PublishSender(req *http.Request) (future RunbookPubl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RunbookClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "automation.RunbookPublishFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("automation.RunbookPublishFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

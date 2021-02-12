@@ -571,6 +571,7 @@ func (client GatewayClient) ListByService(ctx context.Context, resourceGroupName
 	}
 	if result.gc.hasNextLink() && result.gc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -638,7 +639,6 @@ func (client GatewayClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

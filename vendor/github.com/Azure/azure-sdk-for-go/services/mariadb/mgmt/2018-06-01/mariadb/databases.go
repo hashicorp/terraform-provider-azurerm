@@ -79,7 +79,7 @@ func (client DatabasesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.DatabasesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mariadb.DatabasesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client DatabasesClient) CreateOrUpdateSender(req *http.Request) (future Da
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DatabasesClient) (d Database, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "mariadb.DatabasesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("mariadb.DatabasesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		d.Response.Response, err = future.GetResult(sender)
+		if d.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "mariadb.DatabasesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+			d, err = client.CreateOrUpdateResponder(d.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "mariadb.DatabasesCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -168,7 +194,7 @@ func (client DatabasesClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.DatabasesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mariadb.DatabasesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -205,7 +231,23 @@ func (client DatabasesClient) DeleteSender(req *http.Request) (future DatabasesD
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DatabasesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "mariadb.DatabasesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("mariadb.DatabasesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

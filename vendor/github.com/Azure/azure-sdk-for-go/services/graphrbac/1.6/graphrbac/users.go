@@ -400,6 +400,7 @@ func (client UsersClient) List(ctx context.Context, filter string, expand string
 	}
 	if result.ulr.hasNextLink() && result.ulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

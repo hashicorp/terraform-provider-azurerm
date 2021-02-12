@@ -238,6 +238,7 @@ func (client ReplicationVaultSettingClient) List(ctx context.Context) (result Va
 	}
 	if result.vsc.hasNextLink() && result.vsc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -299,7 +300,6 @@ func (client ReplicationVaultSettingClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultSettingClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -74,6 +74,7 @@ func (client ResourceUsageClient) List(ctx context.Context) (result ResourceUsag
 	}
 	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -133,7 +134,6 @@ func (client ResourceUsageClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ResourceUsageClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

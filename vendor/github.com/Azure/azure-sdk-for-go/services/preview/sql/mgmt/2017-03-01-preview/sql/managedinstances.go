@@ -77,7 +77,7 @@ func (client ManagedInstancesClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -115,7 +115,33 @@ func (client ManagedInstancesClient) CreateOrUpdateSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (mi ManagedInstance, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.CreateOrUpdateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstancesCreateOrUpdateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -155,7 +181,7 @@ func (client ManagedInstancesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -191,7 +217,23 @@ func (client ManagedInstancesClient) DeleteSender(req *http.Request) (future Man
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -316,6 +358,7 @@ func (client ManagedInstancesClient) List(ctx context.Context) (result ManagedIn
 	}
 	if result.milr.hasNextLink() && result.milr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -375,7 +418,6 @@ func (client ManagedInstancesClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -432,6 +474,7 @@ func (client ManagedInstancesClient) ListByResourceGroup(ctx context.Context, re
 	}
 	if result.milr.hasNextLink() && result.milr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -492,7 +535,6 @@ func (client ManagedInstancesClient) listByResourceGroupNextResults(ctx context.
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -538,7 +580,7 @@ func (client ManagedInstancesClient) Update(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -576,7 +618,33 @@ func (client ManagedInstancesClient) UpdateSender(req *http.Request) (future Man
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (mi ManagedInstance, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.UpdateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstancesUpdateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -230,7 +230,7 @@ func (client SchedulesClient) Execute(ctx context.Context, resourceGroupName str
 
 	result, err = client.ExecuteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Execute", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Execute", nil, "Failure sending request")
 		return
 	}
 
@@ -267,7 +267,23 @@ func (client SchedulesClient) ExecuteSender(req *http.Request) (future Schedules
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SchedulesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.SchedulesExecuteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.SchedulesExecuteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -404,6 +420,7 @@ func (client SchedulesClient) List(ctx context.Context, resourceGroupName string
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -477,7 +494,6 @@ func (client SchedulesClient) listNextResults(ctx context.Context, lastResults R
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -535,6 +551,7 @@ func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupN
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -597,7 +614,6 @@ func (client SchedulesClient) listApplicableNextResults(ctx context.Context, las
 	result, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listApplicableNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

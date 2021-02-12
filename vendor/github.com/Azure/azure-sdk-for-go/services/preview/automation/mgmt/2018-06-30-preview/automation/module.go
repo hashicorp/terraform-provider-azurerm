@@ -355,6 +355,7 @@ func (client ModuleClient) ListByAutomationAccount(ctx context.Context, resource
 	}
 	if result.mlr.hasNextLink() && result.mlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -416,7 +417,6 @@ func (client ModuleClient) listByAutomationAccountNextResults(ctx context.Contex
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

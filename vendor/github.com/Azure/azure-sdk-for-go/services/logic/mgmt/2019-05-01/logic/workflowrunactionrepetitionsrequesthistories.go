@@ -166,6 +166,7 @@ func (client WorkflowRunActionRepetitionsRequestHistoriesClient) List(ctx contex
 	}
 	if result.rhlr.hasNextLink() && result.rhlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -230,7 +231,6 @@ func (client WorkflowRunActionRepetitionsRequestHistoriesClient) listNextResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsRequestHistoriesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -362,6 +362,7 @@ func (client StreamingPoliciesClient) List(ctx context.Context, resourceGroupNam
 	}
 	if result.spc.hasNextLink() && result.spc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -432,7 +433,6 @@ func (client StreamingPoliciesClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

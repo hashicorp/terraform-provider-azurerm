@@ -77,7 +77,7 @@ func (client ManagedInstanceTdeCertificatesClient) Create(ctx context.Context, r
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceTdeCertificatesClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceTdeCertificatesClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -115,7 +115,23 @@ func (client ManagedInstanceTdeCertificatesClient) CreateSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceTdeCertificatesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceTdeCertificatesCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceTdeCertificatesCreateFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

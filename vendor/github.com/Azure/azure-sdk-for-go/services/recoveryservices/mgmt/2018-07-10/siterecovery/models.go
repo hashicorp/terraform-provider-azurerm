@@ -20003,186 +20003,64 @@ func (rerp ReplicationEligibilityResultsProperties) MarshalJSON() ([]byte, error
 // ReplicationFabricsCheckConsistencyFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationFabricsCheckConsistencyFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsCheckConsistencyFuture) Result(client ReplicationFabricsClient) (f Fabric, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsCheckConsistencyFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsCheckConsistencyFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if f.Response.Response, err = future.GetResult(sender); err == nil && f.Response.Response.StatusCode != http.StatusNoContent {
-		f, err = client.CheckConsistencyResponder(f.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsCheckConsistencyFuture", "Result", f.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (Fabric, error)
 }
 
 // ReplicationFabricsCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationFabricsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsCreateFuture) Result(client ReplicationFabricsClient) (f Fabric, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if f.Response.Response, err = future.GetResult(sender); err == nil && f.Response.Response.StatusCode != http.StatusNoContent {
-		f, err = client.CreateResponder(f.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsCreateFuture", "Result", f.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (Fabric, error)
 }
 
 // ReplicationFabricsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationFabricsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsDeleteFuture) Result(client ReplicationFabricsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (autorest.Response, error)
 }
 
 // ReplicationFabricsMigrateToAadFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationFabricsMigrateToAadFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsMigrateToAadFuture) Result(client ReplicationFabricsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsMigrateToAadFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsMigrateToAadFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (autorest.Response, error)
 }
 
 // ReplicationFabricsPurgeFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ReplicationFabricsPurgeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsPurgeFuture) Result(client ReplicationFabricsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsPurgeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsPurgeFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (autorest.Response, error)
 }
 
 // ReplicationFabricsReassociateGatewayFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationFabricsReassociateGatewayFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsReassociateGatewayFuture) Result(client ReplicationFabricsClient) (f Fabric, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsReassociateGatewayFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsReassociateGatewayFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if f.Response.Response, err = future.GetResult(sender); err == nil && f.Response.Response.StatusCode != http.StatusNoContent {
-		f, err = client.ReassociateGatewayResponder(f.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsReassociateGatewayFuture", "Result", f.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (Fabric, error)
 }
 
 // ReplicationFabricsRenewCertificateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationFabricsRenewCertificateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationFabricsRenewCertificateFuture) Result(client ReplicationFabricsClient) (f Fabric, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsRenewCertificateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsRenewCertificateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if f.Response.Response, err = future.GetResult(sender); err == nil && f.Response.Response.StatusCode != http.StatusNoContent {
-		f, err = client.RenewCertificateResponder(f.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsRenewCertificateFuture", "Result", f.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationFabricsClient) (Fabric, error)
 }
 
 // ReplicationGroupDetails replication group details. This will be used in case of San and Wvr.
@@ -20234,447 +20112,145 @@ func (rgd ReplicationGroupDetails) AsBasicConfigurationSettings() (BasicConfigur
 // ReplicationJobsCancelFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ReplicationJobsCancelFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationJobsCancelFuture) Result(client ReplicationJobsClient) (j Job, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsCancelFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsCancelFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if j.Response.Response, err = future.GetResult(sender); err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
-		j, err = client.CancelResponder(j.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsCancelFuture", "Result", j.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationJobsClient) (Job, error)
 }
 
 // ReplicationJobsExportFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ReplicationJobsExportFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationJobsExportFuture) Result(client ReplicationJobsClient) (j Job, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsExportFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsExportFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if j.Response.Response, err = future.GetResult(sender); err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
-		j, err = client.ExportResponder(j.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsExportFuture", "Result", j.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationJobsClient) (Job, error)
 }
 
 // ReplicationJobsRestartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ReplicationJobsRestartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationJobsRestartFuture) Result(client ReplicationJobsClient) (j Job, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsRestartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsRestartFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if j.Response.Response, err = future.GetResult(sender); err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
-		j, err = client.RestartResponder(j.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsRestartFuture", "Result", j.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationJobsClient) (Job, error)
 }
 
 // ReplicationJobsResumeFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ReplicationJobsResumeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationJobsResumeFuture) Result(client ReplicationJobsClient) (j Job, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsResumeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsResumeFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if j.Response.Response, err = future.GetResult(sender); err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
-		j, err = client.ResumeResponder(j.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsResumeFuture", "Result", j.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationJobsClient) (Job, error)
 }
 
 // ReplicationMigrationItemsCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationMigrationItemsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationMigrationItemsCreateFuture) Result(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mi.Response.Response, err = future.GetResult(sender); err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
-		mi, err = client.CreateResponder(mi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsCreateFuture", "Result", mi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationMigrationItemsClient) (MigrationItem, error)
 }
 
 // ReplicationMigrationItemsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationMigrationItemsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationMigrationItemsDeleteFuture) Result(client ReplicationMigrationItemsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationMigrationItemsClient) (autorest.Response, error)
 }
 
 // ReplicationMigrationItemsMigrateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationMigrationItemsMigrateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationMigrationItemsMigrateFuture) Result(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsMigrateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsMigrateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mi.Response.Response, err = future.GetResult(sender); err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
-		mi, err = client.MigrateResponder(mi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsMigrateFuture", "Result", mi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationMigrationItemsClient) (MigrationItem, error)
 }
 
 // ReplicationMigrationItemsTestMigrateCleanupFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationMigrationItemsTestMigrateCleanupFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationMigrationItemsTestMigrateCleanupFuture) Result(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mi.Response.Response, err = future.GetResult(sender); err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
-		mi, err = client.TestMigrateCleanupResponder(mi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture", "Result", mi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationMigrationItemsClient) (MigrationItem, error)
 }
 
 // ReplicationMigrationItemsTestMigrateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationMigrationItemsTestMigrateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationMigrationItemsTestMigrateFuture) Result(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsTestMigrateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mi.Response.Response, err = future.GetResult(sender); err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
-		mi, err = client.TestMigrateResponder(mi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateFuture", "Result", mi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationMigrationItemsClient) (MigrationItem, error)
 }
 
 // ReplicationMigrationItemsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationMigrationItemsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationMigrationItemsUpdateFuture) Result(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mi.Response.Response, err = future.GetResult(sender); err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
-		mi, err = client.UpdateResponder(mi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsUpdateFuture", "Result", mi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationMigrationItemsClient) (MigrationItem, error)
 }
 
 // ReplicationNetworkMappingsCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationNetworkMappingsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationNetworkMappingsCreateFuture) Result(client ReplicationNetworkMappingsClient) (nm NetworkMapping, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationNetworkMappingsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if nm.Response.Response, err = future.GetResult(sender); err == nil && nm.Response.Response.StatusCode != http.StatusNoContent {
-		nm, err = client.CreateResponder(nm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsCreateFuture", "Result", nm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationNetworkMappingsClient) (NetworkMapping, error)
 }
 
 // ReplicationNetworkMappingsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationNetworkMappingsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationNetworkMappingsDeleteFuture) Result(client ReplicationNetworkMappingsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationNetworkMappingsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationNetworkMappingsClient) (autorest.Response, error)
 }
 
 // ReplicationNetworkMappingsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationNetworkMappingsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationNetworkMappingsUpdateFuture) Result(client ReplicationNetworkMappingsClient) (nm NetworkMapping, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationNetworkMappingsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if nm.Response.Response, err = future.GetResult(sender); err == nil && nm.Response.Response.StatusCode != http.StatusNoContent {
-		nm, err = client.UpdateResponder(nm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsUpdateFuture", "Result", nm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationNetworkMappingsClient) (NetworkMapping, error)
 }
 
 // ReplicationPoliciesCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationPoliciesCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationPoliciesCreateFuture) Result(client ReplicationPoliciesClient) (p Policy, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationPoliciesCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if p.Response.Response, err = future.GetResult(sender); err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
-		p, err = client.CreateResponder(p.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesCreateFuture", "Result", p.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationPoliciesClient) (Policy, error)
 }
 
 // ReplicationPoliciesDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationPoliciesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationPoliciesDeleteFuture) Result(client ReplicationPoliciesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationPoliciesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationPoliciesClient) (autorest.Response, error)
 }
 
 // ReplicationPoliciesUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationPoliciesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationPoliciesUpdateFuture) Result(client ReplicationPoliciesClient) (p Policy, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationPoliciesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if p.Response.Response, err = future.GetResult(sender); err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
-		p, err = client.UpdateResponder(p.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesUpdateFuture", "Result", p.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationPoliciesClient) (Policy, error)
 }
 
 // ReplicationProtectedItem replication protected item.
@@ -21182,667 +20758,217 @@ func (rpip *ReplicationProtectedItemProperties) UnmarshalJSON(body []byte) error
 // ReplicationProtectedItemsAddDisksFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsAddDisksFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsAddDisksFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsAddDisksFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsAddDisksFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.AddDisksResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsAddDisksFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsApplyRecoveryPointFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsApplyRecoveryPointFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsApplyRecoveryPointFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsApplyRecoveryPointFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsApplyRecoveryPointFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.ApplyRecoveryPointResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsApplyRecoveryPointFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsCreateFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.CreateResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsCreateFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsDeleteFuture) Result(client ReplicationProtectedItemsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (autorest.Response, error)
 }
 
 // ReplicationProtectedItemsFailoverCommitFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ReplicationProtectedItemsFailoverCommitFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsFailoverCommitFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsFailoverCommitFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsFailoverCommitFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.FailoverCommitResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsFailoverCommitFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsPlannedFailoverFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ReplicationProtectedItemsPlannedFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsPlannedFailoverFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsPlannedFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsPlannedFailoverFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.PlannedFailoverResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsPlannedFailoverFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsPurgeFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsPurgeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsPurgeFuture) Result(client ReplicationProtectedItemsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsPurgeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsPurgeFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (autorest.Response, error)
 }
 
 // ReplicationProtectedItemsRemoveDisksFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsRemoveDisksFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsRemoveDisksFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsRemoveDisksFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsRemoveDisksFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.RemoveDisksResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsRemoveDisksFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsRepairReplicationFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsRepairReplicationFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsRepairReplicationFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsRepairReplicationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsRepairReplicationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.RepairReplicationResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsRepairReplicationFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsReprotectFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsReprotectFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsReprotectFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsReprotectFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsReprotectFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.ReprotectResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsReprotectFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsResolveHealthErrorsFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsResolveHealthErrorsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsResolveHealthErrorsFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.ResolveHealthErrorsResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsTestFailoverCleanupFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsTestFailoverCleanupFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsTestFailoverCleanupFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsTestFailoverCleanupFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsTestFailoverCleanupFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.TestFailoverCleanupResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsTestFailoverCleanupFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsTestFailoverFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type ReplicationProtectedItemsTestFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsTestFailoverFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsTestFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsTestFailoverFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.TestFailoverResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsTestFailoverFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsUnplannedFailoverFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsUnplannedFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsUnplannedFailoverFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsUnplannedFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsUnplannedFailoverFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.UnplannedFailoverResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsUnplannedFailoverFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationProtectedItemsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsUpdateFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.UpdateResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsUpdateFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectedItemsUpdateMobilityServiceFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsUpdateMobilityServiceFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsUpdateMobilityServiceFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsUpdateMobilityServiceFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsUpdateMobilityServiceFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.UpdateMobilityServiceResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsUpdateMobilityServiceFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectedItemsClient) (ReplicationProtectedItem, error)
 }
 
 // ReplicationProtectionContainerMappingsCreateFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectionContainerMappingsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainerMappingsCreateFuture) Result(client ReplicationProtectionContainerMappingsClient) (pcm ProtectionContainerMapping, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pcm.Response.Response, err = future.GetResult(sender); err == nil && pcm.Response.Response.StatusCode != http.StatusNoContent {
-		pcm, err = client.CreateResponder(pcm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsCreateFuture", "Result", pcm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainerMappingsClient) (ProtectionContainerMapping, error)
 }
 
 // ReplicationProtectionContainerMappingsDeleteFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectionContainerMappingsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainerMappingsDeleteFuture) Result(client ReplicationProtectionContainerMappingsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainerMappingsClient) (autorest.Response, error)
 }
 
 // ReplicationProtectionContainerMappingsPurgeFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectionContainerMappingsPurgeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainerMappingsPurgeFuture) Result(client ReplicationProtectionContainerMappingsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsPurgeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsPurgeFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainerMappingsClient) (autorest.Response, error)
 }
 
 // ReplicationProtectionContainerMappingsUpdateFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectionContainerMappingsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainerMappingsUpdateFuture) Result(client ReplicationProtectionContainerMappingsClient) (pcm ProtectionContainerMapping, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pcm.Response.Response, err = future.GetResult(sender); err == nil && pcm.Response.Response.StatusCode != http.StatusNoContent {
-		pcm, err = client.UpdateResponder(pcm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsUpdateFuture", "Result", pcm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainerMappingsClient) (ProtectionContainerMapping, error)
 }
 
 // ReplicationProtectionContainersCreateFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type ReplicationProtectionContainersCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainersCreateFuture) Result(client ReplicationProtectionContainersClient) (pc ProtectionContainer, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pc.Response.Response, err = future.GetResult(sender); err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
-		pc, err = client.CreateResponder(pc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersCreateFuture", "Result", pc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainersClient) (ProtectionContainer, error)
 }
 
 // ReplicationProtectionContainersDeleteFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type ReplicationProtectionContainersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainersDeleteFuture) Result(client ReplicationProtectionContainersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainersClient) (autorest.Response, error)
 }
 
 // ReplicationProtectionContainersDiscoverProtectableItemFuture an abstraction for monitoring and
 // retrieving the results of a long-running operation.
 type ReplicationProtectionContainersDiscoverProtectableItemFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainersDiscoverProtectableItemFuture) Result(client ReplicationProtectionContainersClient) (pc ProtectionContainer, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pc.Response.Response, err = future.GetResult(sender); err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
-		pc, err = client.DiscoverProtectableItemResponder(pc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture", "Result", pc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainersClient) (ProtectionContainer, error)
 }
 
 // ReplicationProtectionContainersSwitchProtectionFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectionContainersSwitchProtectionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectionContainersSwitchProtectionFuture) Result(client ReplicationProtectionContainersClient) (pc ProtectionContainer, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersSwitchProtectionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersSwitchProtectionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pc.Response.Response, err = future.GetResult(sender); err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
-		pc, err = client.SwitchProtectionResponder(pc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersSwitchProtectionFuture", "Result", pc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationProtectionContainersClient) (ProtectionContainer, error)
 }
 
 // ReplicationProtectionIntent replication protection intent.
@@ -22596,522 +21722,172 @@ func (rpsucmi ReplicationProviderSpecificUpdateContainerMappingInput) AsBasicRep
 // ReplicationRecoveryPlansCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationRecoveryPlansCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansCreateFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.CreateResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansCreateFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationRecoveryPlansDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansDeleteFuture) Result(client ReplicationRecoveryPlansClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (autorest.Response, error)
 }
 
 // ReplicationRecoveryPlansFailoverCommitFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type ReplicationRecoveryPlansFailoverCommitFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansFailoverCommitFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansFailoverCommitFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansFailoverCommitFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.FailoverCommitResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansFailoverCommitFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansPlannedFailoverFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ReplicationRecoveryPlansPlannedFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansPlannedFailoverFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansPlannedFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansPlannedFailoverFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.PlannedFailoverResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansPlannedFailoverFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansReprotectFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationRecoveryPlansReprotectFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansReprotectFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansReprotectFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansReprotectFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.ReprotectResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansReprotectFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansTestFailoverCleanupFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationRecoveryPlansTestFailoverCleanupFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansTestFailoverCleanupFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansTestFailoverCleanupFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansTestFailoverCleanupFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.TestFailoverCleanupResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansTestFailoverCleanupFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansTestFailoverFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationRecoveryPlansTestFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansTestFailoverFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansTestFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansTestFailoverFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.TestFailoverResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansTestFailoverFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansUnplannedFailoverFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ReplicationRecoveryPlansUnplannedFailoverFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansUnplannedFailoverFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansUnplannedFailoverFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansUnplannedFailoverFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.UnplannedFailoverResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansUnplannedFailoverFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryPlansUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationRecoveryPlansUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryPlansUpdateFuture) Result(client ReplicationRecoveryPlansClient) (rp RecoveryPlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.UpdateResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansUpdateFuture", "Result", rp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryPlansClient) (RecoveryPlan, error)
 }
 
 // ReplicationRecoveryServicesProvidersCreateFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationRecoveryServicesProvidersCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryServicesProvidersCreateFuture) Result(client ReplicationRecoveryServicesProvidersClient) (rsp RecoveryServicesProvider, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rsp.Response.Response, err = future.GetResult(sender); err == nil && rsp.Response.Response.StatusCode != http.StatusNoContent {
-		rsp, err = client.CreateResponder(rsp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersCreateFuture", "Result", rsp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryServicesProvidersClient) (RecoveryServicesProvider, error)
 }
 
 // ReplicationRecoveryServicesProvidersDeleteFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationRecoveryServicesProvidersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryServicesProvidersDeleteFuture) Result(client ReplicationRecoveryServicesProvidersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryServicesProvidersClient) (autorest.Response, error)
 }
 
 // ReplicationRecoveryServicesProvidersPurgeFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ReplicationRecoveryServicesProvidersPurgeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryServicesProvidersPurgeFuture) Result(client ReplicationRecoveryServicesProvidersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersPurgeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersPurgeFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryServicesProvidersClient) (autorest.Response, error)
 }
 
 // ReplicationRecoveryServicesProvidersRefreshProviderFuture an abstraction for monitoring and retrieving
 // the results of a long-running operation.
 type ReplicationRecoveryServicesProvidersRefreshProviderFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationRecoveryServicesProvidersRefreshProviderFuture) Result(client ReplicationRecoveryServicesProvidersClient) (rsp RecoveryServicesProvider, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rsp.Response.Response, err = future.GetResult(sender); err == nil && rsp.Response.Response.StatusCode != http.StatusNoContent {
-		rsp, err = client.RefreshProviderResponder(rsp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture", "Result", rsp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationRecoveryServicesProvidersClient) (RecoveryServicesProvider, error)
 }
 
 // ReplicationStorageClassificationMappingsCreateFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationStorageClassificationMappingsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationStorageClassificationMappingsCreateFuture) Result(client ReplicationStorageClassificationMappingsClient) (scm StorageClassificationMapping, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationStorageClassificationMappingsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if scm.Response.Response, err = future.GetResult(sender); err == nil && scm.Response.Response.StatusCode != http.StatusNoContent {
-		scm, err = client.CreateResponder(scm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsCreateFuture", "Result", scm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationStorageClassificationMappingsClient) (StorageClassificationMapping, error)
 }
 
 // ReplicationStorageClassificationMappingsDeleteFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationStorageClassificationMappingsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationStorageClassificationMappingsDeleteFuture) Result(client ReplicationStorageClassificationMappingsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationStorageClassificationMappingsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationStorageClassificationMappingsClient) (autorest.Response, error)
 }
 
 // ReplicationVaultHealthRefreshFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationVaultHealthRefreshFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationVaultHealthRefreshFuture) Result(client ReplicationVaultHealthClient) (vhd VaultHealthDetails, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthRefreshFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationVaultHealthRefreshFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vhd.Response.Response, err = future.GetResult(sender); err == nil && vhd.Response.Response.StatusCode != http.StatusNoContent {
-		vhd, err = client.RefreshResponder(vhd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthRefreshFuture", "Result", vhd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationVaultHealthClient) (VaultHealthDetails, error)
 }
 
 // ReplicationvCentersCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationvCentersCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationvCentersCreateFuture) Result(client ReplicationvCentersClient) (vc VCenter, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vc.Response.Response, err = future.GetResult(sender); err == nil && vc.Response.Response.StatusCode != http.StatusNoContent {
-		vc, err = client.CreateResponder(vc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersCreateFuture", "Result", vc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationvCentersClient) (VCenter, error)
 }
 
 // ReplicationvCentersDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationvCentersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationvCentersDeleteFuture) Result(client ReplicationvCentersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationvCentersClient) (autorest.Response, error)
 }
 
 // ReplicationvCentersUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ReplicationvCentersUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationvCentersUpdateFuture) Result(client ReplicationvCentersClient) (vc VCenter, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vc.Response.Response, err = future.GetResult(sender); err == nil && vc.Response.Response.StatusCode != http.StatusNoContent {
-		vc, err = client.UpdateResponder(vc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersUpdateFuture", "Result", vc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ReplicationvCentersClient) (VCenter, error)
 }
 
 // ReprotectAgentDetails reprotect agent details.

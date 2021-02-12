@@ -158,7 +158,7 @@ func (client ZonesClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -198,7 +198,23 @@ func (client ZonesClient) DeleteSender(req *http.Request) (future ZonesDeleteFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ZonesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dns.ZonesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dns.ZonesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -324,6 +340,7 @@ func (client ZonesClient) List(ctx context.Context, top *int32) (result ZoneList
 	}
 	if result.zlr.hasNextLink() && result.zlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -386,7 +403,6 @@ func (client ZonesClient) listNextResults(ctx context.Context, lastResults ZoneL
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -443,6 +459,7 @@ func (client ZonesClient) ListByResourceGroup(ctx context.Context, resourceGroup
 	}
 	if result.zlr.hasNextLink() && result.zlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -506,7 +523,6 @@ func (client ZonesClient) listByResourceGroupNextResults(ctx context.Context, la
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
