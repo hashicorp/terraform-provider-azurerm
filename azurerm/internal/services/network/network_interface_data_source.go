@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -168,83 +169,78 @@ func dataSourceNetworkInterface() *schema.Resource {
 
 func dataSourceNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	resp, err := client.Get(ctx, resGroup, name, "")
+	id := parse.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Network Interface %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("Error: %s was not found", id.Name, id.ResourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	iface := *resp.InterfacePropertiesFormat
-
-	d.Set("mac_address", iface.MacAddress)
-
-	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
-		configs := *iface.IPConfigurations
-
-		d.Set("private_ip_address", configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
-
-		addresses := make([]interface{}, 0)
-		for _, config := range configs {
-			if config.InterfaceIPConfigurationPropertiesFormat != nil {
-				addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
-			}
-		}
-
-		if err := d.Set("private_ip_addresses", addresses); err != nil {
-			return err
-		}
-	}
-
-	if iface.IPConfigurations != nil {
-		d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations))
-	}
-
-	if iface.VirtualMachine != nil {
-		d.Set("virtual_machine_id", iface.VirtualMachine.ID)
-	} else {
-		d.Set("virtual_machine_id", "")
-	}
-
-	var appliedDNSServers []string
-	var dnsServers []string
-	if dnsSettings := iface.DNSSettings; dnsSettings != nil {
-		if s := dnsSettings.AppliedDNSServers; s != nil {
-			appliedDNSServers = *s
-		}
-
-		if s := dnsSettings.DNSServers; s != nil {
-			dnsServers = *s
-		}
-
-		d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
-	}
-
-	if iface.NetworkSecurityGroup != nil {
-		d.Set("network_security_group_id", resp.NetworkSecurityGroup.ID)
-	} else {
-		d.Set("network_security_group_id", "")
-	}
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("applied_dns_servers", appliedDNSServers)
-	d.Set("dns_servers", dnsServers)
-	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
-	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
+	if props := resp.InterfacePropertiesFormat; props != nil {
+		d.Set("mac_address", props.MacAddress)
+
+		if configs := *props.IPConfigurations; props.IPConfigurations != nil && len(*props.IPConfigurations) > 0 {
+			d.Set("private_ip_address", configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+
+			addresses := make([]interface{}, 0)
+			for _, config := range configs {
+				if config.InterfaceIPConfigurationPropertiesFormat != nil {
+					addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+				}
+			}
+
+			if err := d.Set("private_ip_addresses", addresses); err != nil {
+				return err
+			}
+		}
+
+		d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations))
+
+		virtualMachineId := ""
+		if props.VirtualMachine != nil && props.VirtualMachine.ID != nil {
+			virtualMachineId = *props.VirtualMachine.ID
+		}
+		d.Set("virtual_machine_id", virtualMachineId)
+
+		var appliedDNSServers []string
+		var dnsServers []string
+		if dnsSettings := props.DNSSettings; dnsSettings != nil {
+			if s := dnsSettings.AppliedDNSServers; s != nil {
+				appliedDNSServers = *s
+			}
+
+			if s := dnsSettings.DNSServers; s != nil {
+				dnsServers = *s
+			}
+
+			d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
+		}
+
+		networkSecurityGroupId := ""
+		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.ID != nil {
+			networkSecurityGroupId = *props.NetworkSecurityGroup.ID
+		}
+		d.Set("network_security_group_id", networkSecurityGroupId)
+
+		d.Set("applied_dns_servers", appliedDNSServers)
+		d.Set("dns_servers", dnsServers)
+		d.Set("enable_ip_forwarding", props.EnableIPForwarding)
+		d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
