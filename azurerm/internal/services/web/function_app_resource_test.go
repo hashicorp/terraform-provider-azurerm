@@ -2351,7 +2351,7 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   version = "~3"
-  
+
   site_config {
     java_version = "1.8"
   }
