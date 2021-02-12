@@ -38,7 +38,7 @@ resource "azurerm_signalr_service" "example" {
   }
 
   upstream_endpoint {
-    category_pattern = ["connections" , "messages"]
+    category_pattern = ["connections", "messages"]
     event_pattern    = ["*"]
     hub_pattern      = ["hub1"]
     url_template     = "http://foo.com"
