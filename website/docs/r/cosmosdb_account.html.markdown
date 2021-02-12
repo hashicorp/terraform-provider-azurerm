@@ -106,6 +106,20 @@ The following arguments are supported:
 
 * `enable_multiple_write_locations` - (Optional) Enable multi-master support for this Cosmos DB account.
 
+* `backup_policy` - (Optional) Specifies a `backup_policy` resource, used to define the backup policy for this CosmosDB account.
+
+`backup_policy` Configures the backup policy and supports the following:
+
+* `mode` - (Required) The backup mode for this CosmosDB Account. Possible values are `Periodic` or `Continuous`. `Periodic` is the default value when no mode is configured.
+
+* `interval_in_minutes` - (Required) The interval in minutes between backups for this CosmosDB Account. Accepted range for this value is `60` – `1440`.
+
+~> **NOTE:** When using `interval_in_minutes` the `mode` must be `Periodic`.
+
+* `retention_in_hours` - (Required) The amount of time in hours the backup is retained for. Accepted range for this value is `8` – `720`.
+
+~> **NOTE:** When using `retention_in_hours` the `mode` must be `Periodic`.
+
 `consistency_policy` Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
