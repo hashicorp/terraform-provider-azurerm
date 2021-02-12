@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// PartitionKeyRangeIDRegionClient is the azure Cosmos DB Database Service Resource Provider REST API
+// PartitionKeyRangeIDRegionClient is the client for the PartitionKeyRangeIDRegion methods of the Documentdb service.
 type PartitionKeyRangeIDRegionClient struct {
 	BaseClient
 }
@@ -113,7 +113,7 @@ func (client PartitionKeyRangeIDRegionClient) ListMetricsPreparer(ctx context.Co
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,

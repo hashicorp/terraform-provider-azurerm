@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// CollectionPartitionClient is the azure Cosmos DB Database Service Resource Provider REST API
+// CollectionPartitionClient is the client for the CollectionPartition methods of the Documentdb service.
 type CollectionPartitionClient struct {
 	BaseClient
 }
@@ -109,7 +109,7 @@ func (client CollectionPartitionClient) ListMetricsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
@@ -206,7 +206,7 @@ func (client CollectionPartitionClient) ListUsagesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// PrivateEndpointConnectionsClient is the azure Cosmos DB Database Service Resource Provider REST API
+// PrivateEndpointConnectionsClient is the client for the PrivateEndpointConnections methods of the Documentdb service.
 type PrivateEndpointConnectionsClient struct {
 	BaseClient
 }

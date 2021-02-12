@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// NotebookWorkspacesClient is the azure Cosmos DB Database Service Resource Provider REST API
+// NotebookWorkspacesClient is the client for the NotebookWorkspaces methods of the Documentdb service.
 type NotebookWorkspacesClient struct {
 	BaseClient
 }
@@ -97,7 +97,7 @@ func (client NotebookWorkspacesClient) CreateOrUpdatePreparer(ctx context.Contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -215,7 +215,7 @@ func (client NotebookWorkspacesClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +327,7 @@ func (client NotebookWorkspacesClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -417,7 +417,7 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccountPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -508,7 +508,7 @@ func (client NotebookWorkspacesClient) ListConnectionInfoPreparer(ctx context.Co
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -592,7 +592,7 @@ func (client NotebookWorkspacesClient) RegenerateAuthTokenPreparer(ctx context.C
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -697,7 +697,7 @@ func (client NotebookWorkspacesClient) StartPreparer(ctx context.Context, resour
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

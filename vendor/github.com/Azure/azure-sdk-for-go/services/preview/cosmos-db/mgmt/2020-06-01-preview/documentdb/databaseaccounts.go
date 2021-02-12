@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// DatabaseAccountsClient is the azure Cosmos DB Database Service Resource Provider REST API
+// DatabaseAccountsClient is the client for the DatabaseAccounts methods of the Documentdb service.
 type DatabaseAccountsClient struct {
 	BaseClient
 }
@@ -94,7 +94,7 @@ func (client DatabaseAccountsClient) CheckNameExistsPreparer(ctx context.Context
 		"accountName": autorest.Encode("path", accountName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -153,19 +153,19 @@ func (client DatabaseAccountsClient) CreateOrUpdate(ctx context.Context, resourc
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
 				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}},
 		{TargetValue: createUpdateParameters,
-			Constraints: []validation.Constraint{{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.InclusiveMaximum, Rule: int64(2147483647), Chain: nil},
-							{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+			Constraints: []validation.Constraint{{Target: "createUpdateParameters.Properties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.InclusiveMaximum, Rule: int64(2147483647), Chain: nil},
+							{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 						}},
-						{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.InclusiveMaximum, Rule: int64(86400), Chain: nil},
-								{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.InclusiveMinimum, Rule: int64(5), Chain: nil},
+						{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.InclusiveMaximum, Rule: int64(86400), Chain: nil},
+								{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.InclusiveMinimum, Rule: int64(5), Chain: nil},
 							}},
 					}},
-					{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.Locations", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.DatabaseAccountOfferType", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "createUpdateParameters.Properties.Locations", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "createUpdateParameters.Properties.DatabaseAccountOfferType", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.DatabaseAccountsClient", "CreateOrUpdate", err.Error())
 	}
@@ -193,7 +193,7 @@ func (client DatabaseAccountsClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -310,7 +310,7 @@ func (client DatabaseAccountsClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -419,7 +419,7 @@ func (client DatabaseAccountsClient) FailoverPriorityChangePreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -532,7 +532,7 @@ func (client DatabaseAccountsClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -622,7 +622,7 @@ func (client DatabaseAccountsClient) GetReadOnlyKeysPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -699,7 +699,7 @@ func (client DatabaseAccountsClient) ListPreparer(ctx context.Context) (*http.Re
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -783,7 +783,7 @@ func (client DatabaseAccountsClient) ListByResourceGroupPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -873,7 +873,7 @@ func (client DatabaseAccountsClient) ListConnectionStringsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -963,7 +963,7 @@ func (client DatabaseAccountsClient) ListKeysPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1053,7 +1053,7 @@ func (client DatabaseAccountsClient) ListMetricDefinitionsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1146,7 +1146,7 @@ func (client DatabaseAccountsClient) ListMetricsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
@@ -1237,7 +1237,7 @@ func (client DatabaseAccountsClient) ListReadOnlyKeysPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1329,7 +1329,7 @@ func (client DatabaseAccountsClient) ListUsagesPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1418,7 +1418,7 @@ func (client DatabaseAccountsClient) OfflineRegionPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1527,7 +1527,7 @@ func (client DatabaseAccountsClient) OnlineRegionPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1634,7 +1634,7 @@ func (client DatabaseAccountsClient) RegenerateKeyPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1741,7 +1741,7 @@ func (client DatabaseAccountsClient) UpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

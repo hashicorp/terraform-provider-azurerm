@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Cosmos DB Database Service Resource Provider REST API
+// OperationsClient is the client for the Operations methods of the Documentdb service.
 type OperationsClient struct {
 	BaseClient
 }
@@ -82,7 +82,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -19,14 +19,15 @@ package documentdb
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
-// MongoDBResourcesClient is the azure Cosmos DB Database Service Resource Provider REST API
+// MongoDBResourcesClient is the client for the MongoDBResources methods of the Documentdb service.
 type MongoDBResourcesClient struct {
 	BaseClient
 }
@@ -106,7 +107,7 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBCollectionPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -232,7 +233,7 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBDatabasePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -353,7 +354,7 @@ func (client MongoDBResourcesClient) DeleteMongoDBCollectionPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -459,7 +460,7 @@ func (client MongoDBResourcesClient) DeleteMongoDBDatabasePreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -574,7 +575,7 @@ func (client MongoDBResourcesClient) GetMongoDBCollectionPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -669,7 +670,7 @@ func (client MongoDBResourcesClient) GetMongoDBCollectionThroughputPreparer(ctx 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -762,7 +763,7 @@ func (client MongoDBResourcesClient) GetMongoDBDatabasePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -855,7 +856,7 @@ func (client MongoDBResourcesClient) GetMongoDBDatabaseThroughputPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -947,7 +948,7 @@ func (client MongoDBResourcesClient) ListMongoDBCollectionsPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1037,7 +1038,7 @@ func (client MongoDBResourcesClient) ListMongoDBDatabasesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1062,481 +1063,6 @@ func (client MongoDBResourcesClient) ListMongoDBDatabasesResponder(resp *http.Re
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// MigrateMongoDBCollectionToAutoscale migrate an Azure Cosmos DB MongoDB collection from manual throughput to
-// autoscale
-// Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// accountName - cosmos DB database account name.
-// databaseName - cosmos DB database name.
-// collectionName - cosmos DB collection name.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToAutoscale(ctx context.Context, resourceGroupName string, accountName string, databaseName string, collectionName string) (result MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MongoDBResourcesClient.MigrateMongoDBCollectionToAutoscale")
-		defer func() {
-			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: accountName,
-			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToAutoscale", err.Error())
-	}
-
-	req, err := client.MigrateMongoDBCollectionToAutoscalePreparer(ctx, resourceGroupName, accountName, databaseName, collectionName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToAutoscale", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.MigrateMongoDBCollectionToAutoscaleSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToAutoscale", nil, "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// MigrateMongoDBCollectionToAutoscalePreparer prepares the MigrateMongoDBCollectionToAutoscale request.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToAutoscalePreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string, collectionName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"accountName":       autorest.Encode("path", accountName),
-		"collectionName":    autorest.Encode("path", collectionName),
-		"databaseName":      autorest.Encode("path", databaseName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/mongodbDatabases/{databaseName}/collections/{collectionName}/throughputSettings/default/migrateToAutoscale", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// MigrateMongoDBCollectionToAutoscaleSender sends the MigrateMongoDBCollectionToAutoscale request. The method will close the
-// http.Response Body if it receives an error.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToAutoscaleSender(req *http.Request) (future MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
-		var done bool
-		done, err = future.DoneWithContext(context.Background(), client)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", future.Response(), "Polling failure")
-			return
-		}
-		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture")
-			return
-		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		tsgr.Response.Response, err = future.GetResult(sender)
-		if tsgr.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
-			tsgr, err = client.MigrateMongoDBCollectionToAutoscaleResponder(tsgr.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
-			}
-		}
-		return
-	}
-	return
-}
-
-// MigrateMongoDBCollectionToAutoscaleResponder handles the response to the MigrateMongoDBCollectionToAutoscale request. The method always
-// closes the http.Response Body.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToAutoscaleResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// MigrateMongoDBCollectionToManualThroughput migrate an Azure Cosmos DB MongoDB collection from autoscale to manual
-// throughput
-// Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// accountName - cosmos DB database account name.
-// databaseName - cosmos DB database name.
-// collectionName - cosmos DB collection name.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToManualThroughput(ctx context.Context, resourceGroupName string, accountName string, databaseName string, collectionName string) (result MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MongoDBResourcesClient.MigrateMongoDBCollectionToManualThroughput")
-		defer func() {
-			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: accountName,
-			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToManualThroughput", err.Error())
-	}
-
-	req, err := client.MigrateMongoDBCollectionToManualThroughputPreparer(ctx, resourceGroupName, accountName, databaseName, collectionName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToManualThroughput", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.MigrateMongoDBCollectionToManualThroughputSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToManualThroughput", nil, "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// MigrateMongoDBCollectionToManualThroughputPreparer prepares the MigrateMongoDBCollectionToManualThroughput request.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToManualThroughputPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string, collectionName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"accountName":       autorest.Encode("path", accountName),
-		"collectionName":    autorest.Encode("path", collectionName),
-		"databaseName":      autorest.Encode("path", databaseName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/mongodbDatabases/{databaseName}/collections/{collectionName}/throughputSettings/default/migrateToManualThroughput", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// MigrateMongoDBCollectionToManualThroughputSender sends the MigrateMongoDBCollectionToManualThroughput request. The method will close the
-// http.Response Body if it receives an error.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToManualThroughputSender(req *http.Request) (future MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
-		var done bool
-		done, err = future.DoneWithContext(context.Background(), client)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", future.Response(), "Polling failure")
-			return
-		}
-		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture")
-			return
-		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		tsgr.Response.Response, err = future.GetResult(sender)
-		if tsgr.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
-			tsgr, err = client.MigrateMongoDBCollectionToManualThroughputResponder(tsgr.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
-			}
-		}
-		return
-	}
-	return
-}
-
-// MigrateMongoDBCollectionToManualThroughputResponder handles the response to the MigrateMongoDBCollectionToManualThroughput request. The method always
-// closes the http.Response Body.
-func (client MongoDBResourcesClient) MigrateMongoDBCollectionToManualThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// MigrateMongoDBDatabaseToAutoscale migrate an Azure Cosmos DB MongoDB database from manual throughput to autoscale
-// Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// accountName - cosmos DB database account name.
-// databaseName - cosmos DB database name.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToAutoscale(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MongoDBResourcesClient.MigrateMongoDBDatabaseToAutoscale")
-		defer func() {
-			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: accountName,
-			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToAutoscale", err.Error())
-	}
-
-	req, err := client.MigrateMongoDBDatabaseToAutoscalePreparer(ctx, resourceGroupName, accountName, databaseName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToAutoscale", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.MigrateMongoDBDatabaseToAutoscaleSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToAutoscale", nil, "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// MigrateMongoDBDatabaseToAutoscalePreparer prepares the MigrateMongoDBDatabaseToAutoscale request.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToAutoscalePreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"accountName":       autorest.Encode("path", accountName),
-		"databaseName":      autorest.Encode("path", databaseName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/mongodbDatabases/{databaseName}/throughputSettings/default/migrateToAutoscale", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// MigrateMongoDBDatabaseToAutoscaleSender sends the MigrateMongoDBDatabaseToAutoscale request. The method will close the
-// http.Response Body if it receives an error.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToAutoscaleSender(req *http.Request) (future MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
-		var done bool
-		done, err = future.DoneWithContext(context.Background(), client)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", future.Response(), "Polling failure")
-			return
-		}
-		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture")
-			return
-		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		tsgr.Response.Response, err = future.GetResult(sender)
-		if tsgr.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
-			tsgr, err = client.MigrateMongoDBDatabaseToAutoscaleResponder(tsgr.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
-			}
-		}
-		return
-	}
-	return
-}
-
-// MigrateMongoDBDatabaseToAutoscaleResponder handles the response to the MigrateMongoDBDatabaseToAutoscale request. The method always
-// closes the http.Response Body.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToAutoscaleResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// MigrateMongoDBDatabaseToManualThroughput migrate an Azure Cosmos DB MongoDB database from autoscale to manual
-// throughput
-// Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// accountName - cosmos DB database account name.
-// databaseName - cosmos DB database name.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToManualThroughput(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MongoDBResourcesClient.MigrateMongoDBDatabaseToManualThroughput")
-		defer func() {
-			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: accountName,
-			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToManualThroughput", err.Error())
-	}
-
-	req, err := client.MigrateMongoDBDatabaseToManualThroughputPreparer(ctx, resourceGroupName, accountName, databaseName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToManualThroughput", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.MigrateMongoDBDatabaseToManualThroughputSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToManualThroughput", nil, "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// MigrateMongoDBDatabaseToManualThroughputPreparer prepares the MigrateMongoDBDatabaseToManualThroughput request.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToManualThroughputPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"accountName":       autorest.Encode("path", accountName),
-		"databaseName":      autorest.Encode("path", databaseName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/mongodbDatabases/{databaseName}/throughputSettings/default/migrateToManualThroughput", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// MigrateMongoDBDatabaseToManualThroughputSender sends the MigrateMongoDBDatabaseToManualThroughput request. The method will close the
-// http.Response Body if it receives an error.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToManualThroughputSender(req *http.Request) (future MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
-		var done bool
-		done, err = future.DoneWithContext(context.Background(), client)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", future.Response(), "Polling failure")
-			return
-		}
-		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture")
-			return
-		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		tsgr.Response.Response, err = future.GetResult(sender)
-		if tsgr.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
-			tsgr, err = client.MigrateMongoDBDatabaseToManualThroughputResponder(tsgr.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
-			}
-		}
-		return
-	}
-	return
-}
-
-// MigrateMongoDBDatabaseToManualThroughputResponder handles the response to the MigrateMongoDBDatabaseToManualThroughput request. The method always
-// closes the http.Response Body.
-func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToManualThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -1608,7 +1134,7 @@ func (client MongoDBResourcesClient) UpdateMongoDBCollectionThroughputPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1736,7 +1262,7 @@ func (client MongoDBResourcesClient) UpdateMongoDBDatabaseThroughputPreparer(ctx
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2020-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

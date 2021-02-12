@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// PrivateLinkResourcesClient is the azure Cosmos DB Database Service Resource Provider REST API
+// PrivateLinkResourcesClient is the client for the PrivateLinkResources methods of the Documentdb service.
 type PrivateLinkResourcesClient struct {
 	BaseClient
 }

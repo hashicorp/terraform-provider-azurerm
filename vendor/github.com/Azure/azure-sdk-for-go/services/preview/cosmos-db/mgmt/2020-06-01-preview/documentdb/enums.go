@@ -60,6 +60,58 @@ func PossibleConnectorOfferValues() []ConnectorOffer {
 	return []ConnectorOffer{Small}
 }
 
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
+
+const (
+	// Application ...
+	Application CreatedByType = "Application"
+	// Key ...
+	Key CreatedByType = "Key"
+	// ManagedIdentity ...
+	ManagedIdentity CreatedByType = "ManagedIdentity"
+	// User ...
+	User CreatedByType = "User"
+)
+
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{Application, Key, ManagedIdentity, User}
+}
+
+// CreateMode enumerates the values for create mode.
+type CreateMode string
+
+const (
+	// Default ...
+	Default CreateMode = "Default"
+	// Restore ...
+	Restore CreateMode = "Restore"
+)
+
+// PossibleCreateModeValues returns an array of possible values for the CreateMode const type.
+func PossibleCreateModeValues() []CreateMode {
+	return []CreateMode{Default, Restore}
+}
+
+// CreateModeBasicDatabaseAccountCreateUpdateProperties enumerates the values for create mode basic database
+// account create update properties.
+type CreateModeBasicDatabaseAccountCreateUpdateProperties string
+
+const (
+	// CreateModeDatabaseAccountCreateUpdateProperties ...
+	CreateModeDatabaseAccountCreateUpdateProperties CreateModeBasicDatabaseAccountCreateUpdateProperties = "DatabaseAccountCreateUpdateProperties"
+	// CreateModeDefault ...
+	CreateModeDefault CreateModeBasicDatabaseAccountCreateUpdateProperties = "Default"
+	// CreateModeRestore ...
+	CreateModeRestore CreateModeBasicDatabaseAccountCreateUpdateProperties = "Restore"
+)
+
+// PossibleCreateModeBasicDatabaseAccountCreateUpdatePropertiesValues returns an array of possible values for the CreateModeBasicDatabaseAccountCreateUpdateProperties const type.
+func PossibleCreateModeBasicDatabaseAccountCreateUpdatePropertiesValues() []CreateModeBasicDatabaseAccountCreateUpdateProperties {
+	return []CreateModeBasicDatabaseAccountCreateUpdateProperties{CreateModeDatabaseAccountCreateUpdateProperties, CreateModeDefault, CreateModeRestore}
+}
+
 // DatabaseAccountKind enumerates the values for database account kind.
 type DatabaseAccountKind string
 
@@ -240,6 +292,53 @@ func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
 	return []PublicNetworkAccess{Disabled, Enabled}
 }
 
+// ResourceIdentityType enumerates the values for resource identity type.
+type ResourceIdentityType string
+
+const (
+	// ResourceIdentityTypeNone ...
+	ResourceIdentityTypeNone ResourceIdentityType = "None"
+	// ResourceIdentityTypeSystemAssigned ...
+	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
+	// ResourceIdentityTypeSystemAssignedUserAssigned ...
+	ResourceIdentityTypeSystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned,UserAssigned"
+	// ResourceIdentityTypeUserAssigned ...
+	ResourceIdentityTypeUserAssigned ResourceIdentityType = "UserAssigned"
+)
+
+// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
+func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
+	return []ResourceIdentityType{ResourceIdentityTypeNone, ResourceIdentityTypeSystemAssigned, ResourceIdentityTypeSystemAssignedUserAssigned, ResourceIdentityTypeUserAssigned}
+}
+
+// RestoreMode enumerates the values for restore mode.
+type RestoreMode string
+
+const (
+	// PointInTime ...
+	PointInTime RestoreMode = "PointInTime"
+)
+
+// PossibleRestoreModeValues returns an array of possible values for the RestoreMode const type.
+func PossibleRestoreModeValues() []RestoreMode {
+	return []RestoreMode{PointInTime}
+}
+
+// RoleDefinitionType enumerates the values for role definition type.
+type RoleDefinitionType string
+
+const (
+	// BuiltInRole ...
+	BuiltInRole RoleDefinitionType = "BuiltInRole"
+	// CustomRole ...
+	CustomRole RoleDefinitionType = "CustomRole"
+)
+
+// PossibleRoleDefinitionTypeValues returns an array of possible values for the RoleDefinitionType const type.
+func PossibleRoleDefinitionTypeValues() []RoleDefinitionType {
+	return []RoleDefinitionType{BuiltInRole, CustomRole}
+}
+
 // ServerVersion enumerates the values for server version.
 type ServerVersion string
 
@@ -308,6 +407,23 @@ const (
 // PossibleTriggerTypeValues returns an array of possible values for the TriggerType const type.
 func PossibleTriggerTypeValues() []TriggerType {
 	return []TriggerType{Post, Pre}
+}
+
+// Type enumerates the values for type.
+type Type string
+
+const (
+	// TypeBackupPolicy ...
+	TypeBackupPolicy Type = "BackupPolicy"
+	// TypeContinuous ...
+	TypeContinuous Type = "Continuous"
+	// TypePeriodic ...
+	TypePeriodic Type = "Periodic"
+)
+
+// PossibleTypeValues returns an array of possible values for the Type const type.
+func PossibleTypeValues() []Type {
+	return []Type{TypeBackupPolicy, TypeContinuous, TypePeriodic}
 }
 
 // UnitType enumerates the values for unit type.

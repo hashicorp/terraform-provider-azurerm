@@ -1,6 +1,6 @@
 // Package documentdb implements the Azure ARM Documentdb service API version .
 //
-// Azure Cosmos DB Database Service Resource Provider REST API
+//
 package documentdb
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
