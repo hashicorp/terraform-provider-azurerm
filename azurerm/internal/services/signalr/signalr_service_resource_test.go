@@ -338,7 +338,7 @@ func TestAccSignalRService_upstreamSetting(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.withUpstreamSettings(data),
+			Config: r.withUpstreamEndpoints(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("upstream_endpoint.#").HasValue("4"),
@@ -498,7 +498,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
 }
 
-func (r SignalRServiceResource) withUpstreamSettings(data acceptance.TestData) string {
+func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
