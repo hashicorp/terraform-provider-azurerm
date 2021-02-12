@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -260,15 +259,12 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 }
 
 func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, networkName, name, "")
+	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
@@ -277,21 +273,18 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	future, err := client.Network.SubnetsClient.Delete(ctx, resourceGroup, networkName, name)
+	future, err := client.Network.SubnetsClient.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of subnet %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for deletion of Subnet %q: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
