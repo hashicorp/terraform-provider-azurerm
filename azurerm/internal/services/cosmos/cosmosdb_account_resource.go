@@ -1130,11 +1130,11 @@ func expandBackupPolicy(d *schema.ResourceData) (documentdb.BasicBackupPolicy, e
 	mode := input["mode"].(string)
 
 	if mode == string(documentdb.TypePeriodic) {
-		backupInterval, ok := input["interval_in_minutes"].(int)
+		backupInterval, ok := input["interval_in_minutes"].(int32)
 		if !ok {
 			return nil, fmt.Errorf("`interval_in_minutes` must be provided when the CosmosDb account is in periodic backup mode")
 		}
-		retentionInterval, ok := input["retention_in_hours"].(int)
+		retentionInterval, ok := input["retention_in_hours"].(int32)
 		if !ok {
 			return nil, fmt.Errorf("`retention_in_hours` must be provided when the CosmosDb account is in periodic backup mode")
 		}
@@ -1142,8 +1142,8 @@ func expandBackupPolicy(d *schema.ResourceData) (documentdb.BasicBackupPolicy, e
 		return documentdb.PeriodicModeBackupPolicy{
 			Type: documentdb.TypePeriodic,
 			PeriodicModeProperties: &documentdb.PeriodicModeProperties{
-				BackupIntervalInMinutes:        utils.Int32(int32(backupInterval)),
-				BackupRetentionIntervalInHours: utils.Int32(int32(retentionInterval)),
+				BackupIntervalInMinutes:        utils.Int32(backupInterval),
+				BackupRetentionIntervalInHours: utils.Int32(retentionInterval),
 			},
 		}, nil
 	}
