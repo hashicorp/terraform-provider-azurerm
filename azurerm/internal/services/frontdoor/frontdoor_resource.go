@@ -151,7 +151,8 @@ func resourceFrontDoor() *schema.Resource {
 							Required: true,
 							MaxItems: 25,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 						"frontend_endpoints": {
@@ -159,7 +160,8 @@ func resourceFrontDoor() *schema.Resource {
 							Required: true,
 							MaxItems: 100,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 						"redirect_configuration": {
