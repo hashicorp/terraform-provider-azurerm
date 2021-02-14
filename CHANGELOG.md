@@ -1,3 +1,9 @@
+## 2.48.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_mariadb_firewall_rule` - correctly validate the `name` property [GH-10579]
+
 ## 2.47.0 (February 11, 2021)
 
 UPGRADE NOTES
