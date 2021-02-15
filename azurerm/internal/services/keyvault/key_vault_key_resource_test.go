@@ -277,7 +277,7 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basicEC(data),
+			Config:  r.basicEC(data),
 			Destroy: true,
 		},
 	})

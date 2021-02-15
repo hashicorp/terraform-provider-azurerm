@@ -211,7 +211,7 @@ func TestAccKeyVaultSecret_purge(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basic(data),
+			Config:  r.basic(data),
 			Destroy: true,
 		},
 	})
