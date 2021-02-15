@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
+func resourceKustoClusterPrincipalAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterPrincipalAssignmentCreateUpdate,
-		Read:   resourceArmKustoClusterPrincipalAssignmentRead,
-		Delete: resourceArmKustoClusterPrincipalAssignmentDelete,
+		Create: resourceKustoClusterPrincipalAssignmentCreateUpdate,
+		Read:   resourceKustoClusterPrincipalAssignmentRead,
+		Delete: resourceKustoClusterPrincipalAssignmentDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,7 +99,7 @@ func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,31 +157,31 @@ func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKustoClusterPrincipalAssignmentRead(d, meta)
+	return resourceKustoClusterPrincipalAssignmentRead(d, meta)
 }
 
-func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterPrincipalAssignmentID(d.Id())
+	id, err := parse.ClusterPrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("name", id.Name)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("name", id.PrincipalAssignmentName)
 
 	tenantID := ""
 	if resp.TenantID != nil {
@@ -216,23 +216,23 @@ func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterPrincipalAssignmentID(d.Id())
+	id, err := parse.ClusterPrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	return nil

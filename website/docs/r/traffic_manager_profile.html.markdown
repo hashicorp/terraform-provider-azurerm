@@ -70,9 +70,15 @@ The following arguments are supported:
   * `Subnet` - Traffic is routed based on a mapping of sets of end-user IP address ranges to a specific Endpoint within a Traffic Manager profile.
   * `Weighted` - Traffic is spread across Endpoints proportional to their `weight` value.
 
+* `traffic_view_enabled` - (Optional) Indicates whether Traffic View is enabled for the Traffic Manager profile.
+
 * `dns_config` - (Required) This block specifies the DNS configuration of the Profile, it supports the fields documented below.
 
 * `monitor_config` - (Required) This block specifies the Endpoint monitoring configuration for the Profile, it supports the fields documented below.
+
+* `max_return` - (Optional) The amount of endpoints to return for DNS queries to this Profile. Possible values range from `1` to `8`.
+
+~> **NOTE**: `max_return` must be set when the `traffic_routing_method` is `MultiValue`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

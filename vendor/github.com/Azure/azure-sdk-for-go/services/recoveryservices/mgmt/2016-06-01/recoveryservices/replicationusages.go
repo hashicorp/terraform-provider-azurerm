@@ -73,6 +73,7 @@ func (client ReplicationUsagesClient) List(ctx context.Context, resourceGroupNam
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.ReplicationUsagesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

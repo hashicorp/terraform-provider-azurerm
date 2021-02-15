@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -19,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSpatialAnchorsAccount() *schema.Resource {
+func resourceSpatialAnchorsAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSpatialAnchorsAccountCreate,
-		Read:   resourceArmSpatialAnchorsAccountRead,
-		Delete: resourceArmSpatialAnchorsAccountDelete,
+		Create: resourceSpatialAnchorsAccountCreate,
+		Read:   resourceSpatialAnchorsAccountRead,
+		Delete: resourceSpatialAnchorsAccountDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SpatialAnchorsAccountID(id)
 			return err
@@ -56,7 +55,7 @@ func resourceArmSpatialAnchorsAccount() *schema.Resource {
 	}
 }
 
-func resourceArmSpatialAnchorsAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpatialAnchorsAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -66,7 +65,7 @@ func resourceArmSpatialAnchorsAccountCreate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -99,10 +98,10 @@ func resourceArmSpatialAnchorsAccountCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSpatialAnchorsAccountRead(d, meta)
+	return resourceSpatialAnchorsAccountRead(d, meta)
 }
 
-func resourceArmSpatialAnchorsAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpatialAnchorsAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +130,7 @@ func resourceArmSpatialAnchorsAccountRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSpatialAnchorsAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpatialAnchorsAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

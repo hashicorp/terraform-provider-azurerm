@@ -72,7 +72,7 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interf
 	}
 
 	if props := resp.DdosProtectionPlanPropertiesFormat; props != nil {
-		vNetIDs := flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
+		vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
 		if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_ids`: %+v", err)
 		}

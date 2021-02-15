@@ -10,16 +10,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMarketplaceAgreement() *schema.Resource {
+func resourceMarketplaceAgreement() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMarketplaceAgreementCreateUpdate,
-		Read:   resourceArmMarketplaceAgreementRead,
-		Delete: resourceArmMarketplaceAgreementDelete,
+		Create: resourceMarketplaceAgreementCreateUpdate,
+		Read:   resourceMarketplaceAgreementRead,
+		Delete: resourceMarketplaceAgreementDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +65,7 @@ func resourceArmMarketplaceAgreement() *schema.Resource {
 	}
 }
 
-func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -77,30 +76,28 @@ func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta in
 
 	log.Printf("[DEBUG] Retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
 
-	if features.ShouldResourcesBeImported() {
-		term, err := client.Get(ctx, publisher, offer, plan)
+	term, err := client.Get(ctx, publisher, offer, plan)
+	if err != nil {
+		if !utils.ResponseWasNotFound(term.Response) {
+			return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		}
+	}
+
+	accepted := false
+	if props := term.AgreementProperties; props != nil {
+		if acc := props.Accepted; acc != nil {
+			accepted = *acc
+		}
+	}
+
+	if accepted {
+		agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
 		if err != nil {
-			if !utils.ResponseWasNotFound(term.Response) {
-				return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+			if !utils.ResponseWasNotFound(agreement.Response) {
+				return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
 			}
 		}
-
-		accepted := false
-		if props := term.AgreementProperties; props != nil {
-			if acc := props.Accepted; acc != nil {
-				accepted = *acc
-			}
-		}
-
-		if accepted {
-			agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
-			if err != nil {
-				if !utils.ResponseWasNotFound(agreement.Response) {
-					return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
-				}
-			}
-			return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
-		}
+		return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
 	}
 
 	terms, err := client.Get(ctx, publisher, offer, plan)
@@ -126,10 +123,10 @@ func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*agreement.ID)
 
-	return resourceArmMarketplaceAgreementRead(d, meta)
+	return resourceMarketplaceAgreementRead(d, meta)
 }
 
-func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +167,7 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmMarketplaceAgreementDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

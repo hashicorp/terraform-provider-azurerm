@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualNetwork() *schema.Resource {
+func dataSourceVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVnetRead,
+		Read: dataSourceVnetRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -71,7 +71,7 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 	}
 }
 
-func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

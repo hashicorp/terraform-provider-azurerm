@@ -13,7 +13,7 @@ Manages an App Service Hybrid Connection for an existing App Service, Relay and 
 
 ## Example Usage
 
-This example provisions an App Service, a Relay Hybrid Connection, and a Service Bus using their outputs to create the App Service Hybrid Connection. 
+This example provisions an App Service, a Relay Hybrid Connection, and a Service Bus using their outputs to create the App Service Hybrid Connection.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -73,14 +73,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the App Service.  Changing this forces a new resource to be created.
 
-* `relay_id` - (Required) The Resource ID of Service Bus relay.  Changing this forces a new resource to be created.
+* `relay_id` - (Required) The ID of the Service Bus Relay. Changing this forces a new resource to be created.
 
 * `hostname` - (Optional) The hostname of the endpoint.
 
 * `port` - (Required) The port of the endpoint.
 
-* `send_key_name` - (Required) The name of the Service Bus key.
-
+* `send_key_name` - (Optional) The name of the Service Bus key which has Send permissions. Defaults to `RootManageSharedAccessKey`.
 
 ## Attributes Reference
 
@@ -101,5 +100,5 @@ The following attributes are exported:
 App Service Hybrid Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_hybrid_connection.example /subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/exampleResourceGroup1/providers/Microsoft.Web/sites/exampleAppService1/hybridConnectionNamespaces/exampleRN1/relays/exampleRHC1 
+terraform import azurerm_app_service_hybrid_connection.example /subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/exampleResourceGroup1/providers/Microsoft.Web/sites/exampleAppService1/hybridConnectionNamespaces/exampleRN1/relays/exampleRHC1
 ```

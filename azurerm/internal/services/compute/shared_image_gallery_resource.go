@@ -5,27 +5,30 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSharedImageGallery() *schema.Resource {
+func resourceSharedImageGallery() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSharedImageGalleryCreateUpdate,
-		Read:   resourceArmSharedImageGalleryRead,
-		Update: resourceArmSharedImageGalleryCreateUpdate,
-		Delete: resourceArmSharedImageGalleryDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceSharedImageGalleryCreateUpdate,
+		Read:   resourceSharedImageGalleryRead,
+		Update: resourceSharedImageGalleryCreateUpdate,
+		Delete: resourceSharedImageGalleryDelete,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SharedImageGalleryID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -61,14 +64,13 @@ func resourceArmSharedImageGallery() *schema.Resource {
 	}
 }
 
-func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Image Gallery creation.")
 
-	// TODO: support for Timeouts/Requiring Import
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -116,35 +118,32 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmSharedImageGalleryRead(d, meta)
+	return resourceSharedImageGalleryRead(d, meta)
 }
 
-func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SharedImageGalleryID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["galleries"]
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image Gallery %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] Shared Image Gallery %q (Resource Group %q) was not found - removing from state", id.GalleryName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.GalleryName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -159,32 +158,29 @@ func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSharedImageGalleryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SharedImageGalleryID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["galleries"]
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName)
 	if err != nil {
 		// deleted outside of Terraform
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for the deletion of Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 		}
 	}
 

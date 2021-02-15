@@ -79,6 +79,7 @@ func (client RestoresClient) Trigger(ctx context.Context, vaultName string, reso
 	result, err = client.TriggerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.RestoresClient", "Trigger", resp, "Failure responding to request")
+		return
 	}
 
 	return

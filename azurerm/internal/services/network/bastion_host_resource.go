@@ -12,18 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBastionHost() *schema.Resource {
+func resourceBastionHost() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBastionHostCreateUpdate,
-		Read:   resourceArmBastionHostRead,
-		Update: resourceArmBastionHostCreateUpdate,
-		Delete: resourceArmBastionHostDelete,
+		Create: resourceBastionHostCreateUpdate,
+		Read:   resourceBastionHostRead,
+		Update: resourceBastionHostCreateUpdate,
+		Delete: resourceBastionHostDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -83,7 +82,7 @@ func resourceArmBastionHost() *schema.Resource {
 	}
 }
 
-func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -95,7 +94,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -111,7 +110,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	parameters := network.BastionHost{
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
-			IPConfigurations: expandArmBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -132,10 +131,10 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmBastionHostRead(d, meta)
+	return resourceBastionHostRead(d, meta)
 }
 
-func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBastionHostRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +168,7 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("dns_name", props.DNSName)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
-			if err := d.Set("ip_configuration", flattenArmBastionHostIPConfiguration(ipConfigs)); err != nil {
+			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {
 				return fmt.Errorf("Error flattening `ip_configuration`: %+v", err)
 			}
 		}
@@ -178,7 +177,7 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +238,7 @@ func validateAzureRMBastionIPConfigName(v interface{}, k string) (warnings []str
 	return warnings, errors
 }
 
-func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network.BastionHostIPConfiguration) {
+func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network.BastionHostIPConfiguration) {
 	if len(input) == 0 {
 		return nil
 	}
@@ -264,7 +263,7 @@ func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]netw
 	}
 }
 
-func flattenArmBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {
+func flattenBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {
 	result := make([]interface{}, 0)
 	if ipConfigs == nil {
 		return result

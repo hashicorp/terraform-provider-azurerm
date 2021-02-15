@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `allowed_tenants` - (Required) List of allowed AAD Tenants.
 
+* `signin_tenant` - (Optional) The AAD Tenant to use instead of Common when logging into Active Directory
+
 ---
 
 ## Attributes Reference

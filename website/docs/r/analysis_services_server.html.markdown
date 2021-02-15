@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Analysis Services Server should be exist. Changing this forces a new resource to be created.
 
-* `sku` - (Required) SKU for the Analysis Services Server. Possible values are: `D1`, `B1`, `B2`, `S0`, `S1`, `S2`, `S4`, `S8` and `S9`
+* `sku` - (Required) SKU for the Analysis Services Server. Possible values are: `D1`, `B1`, `B2`, `S0`, `S1`, `S2`, `S4`, `S8`, `S9`, `S8v2` and `S9v2`.
 
 * `admin_users` - (Optional) List of email addresses of admin users.
 

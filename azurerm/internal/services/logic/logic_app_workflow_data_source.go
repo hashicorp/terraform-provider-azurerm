@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmLogicAppWorkflow() *schema.Resource {
+func dataSourceLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmLogicAppWorkflowRead,
+		Read: dataSourceLogicAppWorkflowRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -86,8 +86,9 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 		},
 	}
 }
-func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+
+func dataSourceLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

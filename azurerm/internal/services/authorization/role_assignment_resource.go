@@ -12,10 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	managementGroupValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
+	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
+	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,6 +52,12 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.Any(
+					managementGroupValidate.ManagementGroupID,
+					subscriptionValidate.SubscriptionID,
+					resourceValidate.ResourceGroupID,
+					azure.ValidateResourceID,
+				),
 			},
 
 			"role_definition_id": {
@@ -128,17 +137,15 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := roleAssignmentsClient.Get(ctx, scope, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
-			}
+	existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
@@ -149,37 +156,20 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
-
 	if skipPrincipalCheck {
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
-	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
+	if err := resource.Retry(d.Timeout(schema.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
+
 	read, err := roleAssignmentsClient.Get(ctx, scope, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Role Assignment ID for %q (Scope %q)", name, scope)
-	}
-
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{
-			"pending",
-		},
-		Target: []string{
-			"ready",
-		},
-		Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *read.ID),
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   d.Timeout(schema.TimeoutCreate),
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -257,12 +247,33 @@ func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name strin
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return resource.RetryableError(err)
-			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+			} else if utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
 				// When waiting for service principal to become available
 				return resource.RetryableError(err)
 			}
 
 			return resource.NonRetryableError(err)
+		}
+
+		if resp.ID == nil {
+			return resource.NonRetryableError(fmt.Errorf("creation of Role Assignment %q did not return an id value", name))
+		}
+
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{
+				"pending",
+			},
+			Target: []string{
+				"ready",
+			},
+			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *resp.ID),
+			MinTimeout:                5 * time.Second,
+			ContinuousTargetOccurence: 5,
+			Timeout:                   d.Timeout(schema.TimeoutCreate),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return resource.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err))
 		}
 
 		return nil

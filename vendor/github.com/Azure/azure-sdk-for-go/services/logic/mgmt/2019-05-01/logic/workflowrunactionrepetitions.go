@@ -76,6 +76,7 @@ func (client WorkflowRunActionRepetitionsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client WorkflowRunActionRepetitionsClient) List(ctx context.Context, resou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +238,7 @@ func (client WorkflowRunActionRepetitionsClient) ListExpressionTraces(ctx contex
 	result, err = client.ListExpressionTracesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsClient", "ListExpressionTraces", resp, "Failure responding to request")
+		return
 	}
 
 	return

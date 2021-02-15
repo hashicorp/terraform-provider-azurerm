@@ -74,6 +74,7 @@ func (client PolicySetsClient) EvaluatePolicies(ctx context.Context, resourceGro
 	result, err = client.EvaluatePoliciesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.PolicySetsClient", "EvaluatePolicies", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -49,7 +49,7 @@ func NewProductSettingsClientWithBaseURI(baseURI string, subscriptionID string) 
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// settingsName - the setting name. Supports- EyesOn
+// settingsName - the setting name. Supports - EyesOn, EntityAnalytics, Ueba
 func (client ProductSettingsClient) Delete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, settingsName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProductSettingsClient.Delete")
@@ -90,6 +90,7 @@ func (client ProductSettingsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client ProductSettingsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ProductSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -143,7 +143,7 @@ func (client ProductSettingsClient) DeleteResponder(resp *http.Response) (result
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// settingsName - the setting name. Supports- EyesOn
+// settingsName - the setting name. Supports - EyesOn, EntityAnalytics, Ueba
 func (client ProductSettingsClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, settingsName string) (result SettingsModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProductSettingsClient.Get")
@@ -184,6 +184,7 @@ func (client ProductSettingsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -223,7 +224,6 @@ func (client ProductSettingsClient) GetSender(req *http.Request) (*http.Response
 func (client ProductSettingsClient) GetResponder(resp *http.Response) (result SettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -278,6 +278,7 @@ func (client ProductSettingsClient) GetAll(ctx context.Context, resourceGroupNam
 	result, err = client.GetAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "GetAll", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,7 +317,6 @@ func (client ProductSettingsClient) GetAllSender(req *http.Request) (*http.Respo
 func (client ProductSettingsClient) GetAllResponder(resp *http.Response) (result SettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -331,7 +331,7 @@ func (client ProductSettingsClient) GetAllResponder(resp *http.Response) (result
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// settingsName - the setting name. Supports- EyesOn
+// settingsName - the setting name. Supports - EyesOn, EntityAnalytics, Ueba
 // settings - the setting
 func (client ProductSettingsClient) Update(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, settingsName string, settings BasicSettings) (result SettingsModel, err error) {
 	if tracing.IsEnabled() {
@@ -373,6 +373,7 @@ func (client ProductSettingsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -414,7 +415,6 @@ func (client ProductSettingsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client ProductSettingsClient) UpdateResponder(resp *http.Response) (result SettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

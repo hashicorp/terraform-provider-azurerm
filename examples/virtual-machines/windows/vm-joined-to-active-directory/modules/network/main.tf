@@ -8,14 +8,14 @@ resource "azurerm_virtual_network" "example" {
 
 resource "azurerm_subnet" "domain-controllers" {
   name                 = "domain-controllers"
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.example.name
 }
 
 resource "azurerm_subnet" "domain-members" {
   name                 = "domain-members"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.example.name
 }

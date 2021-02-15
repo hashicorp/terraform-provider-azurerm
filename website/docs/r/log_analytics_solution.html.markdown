@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `solution_name` - (Required) Specifies the name of the solution to be deployed. See [here for options](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-add-solutions).Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Log Analytics solution is created. Changing this forces a new resource to be created. Note: The solution and it's related workspace can only exist in the same resource group.
+* `resource_group_name` - (Required) The name of the resource group in which the Log Analytics solution is created. Changing this forces a new resource to be created. Note: The solution and its related workspace can only exist in the same resource group.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -63,6 +63,8 @@ The following arguments are supported:
 * `workspace_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
 * `plan` - (Required) A `plan` block as documented below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

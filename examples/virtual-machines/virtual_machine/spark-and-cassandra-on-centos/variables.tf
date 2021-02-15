@@ -47,7 +47,7 @@ variable "vm_primary_vm_size" {
 }
 
 variable "vm_number_of_secondarys" {
-  description = "Number of VMs to create to support the secondarys.  Each secondary is created on it's own VM.  Minimum of 2 & Maximum of 200 VMs. min = 2, max = 200"
+  description = "Number of VMs to create to support the secondarys.  Each secondary is created on its own VM.  Minimum of 2 & Maximum of 200 VMs. min = 2, max = 200"
   default     = 2
 }
 

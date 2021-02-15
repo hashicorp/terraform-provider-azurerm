@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPlatformImage() *schema.Resource {
+func dataSourcePlatformImage() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPlatformImageRead,
+		Read: dataSourcePlatformImageRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -47,7 +47,7 @@ func dataSourceArmPlatformImage() *schema.Resource {
 	}
 }
 
-func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePlatformImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMImageClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

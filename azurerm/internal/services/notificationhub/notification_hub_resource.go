@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -24,17 +23,19 @@ import (
 
 var notificationHubResourceName = "azurerm_notification_hub"
 
-const apnsProductionName = "Production"
-const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
-const apnsSandboxName = "Sandbox"
-const apnsSandboxEndpoint = "https://api.development.push.apple.com:443/3/device"
+const (
+	apnsProductionName     = "Production"
+	apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
+	apnsSandboxName        = "Sandbox"
+	apnsSandboxEndpoint    = "https://api.development.push.apple.com:443/3/device"
+)
 
-func resourceArmNotificationHub() *schema.Resource {
+func resourceNotificationHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNotificationHubCreateUpdate,
-		Read:   resourceArmNotificationHubRead,
-		Update: resourceArmNotificationHubCreateUpdate,
-		Delete: resourceArmNotificationHubDelete,
+		Create: resourceNotificationHubCreateUpdate,
+		Read:   resourceNotificationHubRead,
+		Update: resourceNotificationHubCreateUpdate,
+		Delete: resourceNotificationHubDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NotificationHubID(id)
@@ -145,7 +146,7 @@ func resourceArmNotificationHub() *schema.Resource {
 	}
 }
 
-func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +156,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -212,7 +213,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmNotificationHubRead(d, meta)
+	return resourceNotificationHubRead(d, meta)
 }
 
 func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
@@ -230,7 +231,7 @@ func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhu
 	}
 }
 
-func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +279,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

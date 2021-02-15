@@ -11,20 +11,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMapsAccount() *schema.Resource {
+func resourceMapsAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMapsAccountCreateUpdate,
-		Read:   resourceArmMapsAccountRead,
-		Update: resourceArmMapsAccountCreateUpdate,
-		Delete: resourceArmMapsAccountDelete,
+		Create: resourceMapsAccountCreateUpdate,
+		Read:   resourceMapsAccountRead,
+		Update: resourceMapsAccountCreateUpdate,
+		Delete: resourceMapsAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +34,7 @@ func resourceArmMapsAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MapsAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -43,7 +43,7 @@ func resourceArmMapsAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -80,7 +80,7 @@ func resourceArmMapsAccount() *schema.Resource {
 	}
 }
 
-func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,7 +92,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	sku := d.Get("sku_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -128,15 +128,15 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmMapsAccountRead(d, meta)
+	return resourceMapsAccountRead(d, meta)
 }
 
-func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MapsAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,12 +170,12 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MapsAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}

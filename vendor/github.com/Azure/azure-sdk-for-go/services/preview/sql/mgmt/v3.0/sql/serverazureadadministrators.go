@@ -50,7 +50,7 @@ func NewServerAzureADAdministratorsClientWithBaseURI(baseURI string, subscriptio
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// parameters - the required parameters for creating or updating an Active Directory Administrator.
+// parameters - the requested Azure Active Directory administrator Resource state.
 func (client ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, parameters ServerAzureADAdministrator) (result ServerAzureADAdministratorsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.CreateOrUpdate")
@@ -80,7 +80,7 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdateSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerAzureADAdministratorsClient) (saaa ServerAzureADAdministrator, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		saaa.Response.Response, err = future.GetResult(sender)
+		if saaa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && saaa.Response.Response.StatusCode != http.StatusNoContent {
+			saaa, err = client.CreateOrUpdateResponder(saaa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", saaa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -159,7 +185,7 @@ func (client ServerAzureADAdministratorsClient) Delete(ctx context.Context, reso
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -196,7 +222,23 @@ func (client ServerAzureADAdministratorsClient) DeleteSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerAzureADAdministratorsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -208,82 +250,6 @@ func (client ServerAzureADAdministratorsClient) DeleteResponder(resp *http.Respo
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
-	return
-}
-
-// DisableAzureADOnlyAuthentication disables Azure Active Directory only authentication on logical Server.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serverName - the name of the server.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthentication(ctx context.Context, resourceGroupName string, serverName string) (result ServerAzureADAdministratorsDisableAzureADOnlyAuthenticationFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.DisableAzureADOnlyAuthentication")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.DisableAzureADOnlyAuthenticationPreparer(ctx, resourceGroupName, serverName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "DisableAzureADOnlyAuthentication", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.DisableAzureADOnlyAuthenticationSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "DisableAzureADOnlyAuthentication", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// DisableAzureADOnlyAuthenticationPreparer prepares the DisableAzureADOnlyAuthentication request.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serverName":        autorest.Encode("path", serverName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2019-06-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/disableAzureADOnlyAuthentication", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// DisableAzureADOnlyAuthenticationSender sends the DisableAzureADOnlyAuthentication request. The method will close the
-// http.Response Body if it receives an error.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationSender(req *http.Request) (future ServerAzureADAdministratorsDisableAzureADOnlyAuthenticationFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// DisableAzureADOnlyAuthenticationResponder handles the response to the DisableAzureADOnlyAuthentication request. The method always
-// closes the http.Response Body.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -319,6 +285,7 @@ func (client ServerAzureADAdministratorsClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -397,6 +364,11 @@ func (client ServerAzureADAdministratorsClient) ListByServer(ctx context.Context
 	result.alr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

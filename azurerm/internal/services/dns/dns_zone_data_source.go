@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDnsZone() *schema.Resource {
+func dataSourceDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDnsZoneRead,
+		Read: dataSourceDnsZoneRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -56,7 +56,7 @@ func dataSourceArmDnsZone() *schema.Resource {
 	}
 }
 
-func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -77,19 +77,24 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
-		rgClient := meta.(*clients.Client).Resource.GroupsClient
-
-		resp, resourceGroup, err = findZone(client, rgClient, ctx, name)
+		var zone *dns.Zone
+		zone, resourceGroup, err = findZone(client, ctx, name)
 		if err != nil {
 			return err
 		}
 
-		if resourceGroup == "" {
+		if zone == nil {
 			return fmt.Errorf("Error: DNS Zone %q was not found", name)
 		}
+
+		resp = *zone
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("failed reading ID for DNS Zone %q (Resource Group %q)", name, resourceGroup)
+	}
 	d.SetId(*resp.ID)
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
@@ -109,26 +114,33 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func findZone(client *dns.ZonesClient, rgClient *resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
-	groups, err := rgClient.List(ctx, "", nil)
+func findZone(client *dns.ZonesClient, ctx context.Context, name string) (*dns.Zone, string, error) {
+	zonesIterator, err := client.ListComplete(ctx, nil)
 	if err != nil {
-		return dns.Zone{}, "", fmt.Errorf("Error listing Resource Groups: %+v", err)
+		return nil, "", fmt.Errorf("listing DNS Zones: %+v", err)
 	}
 
-	for _, g := range groups.Values() {
-		resourceGroup := *g.Name
-
-		zones, err := client.ListByResourceGroup(ctx, resourceGroup, nil)
-		if err != nil {
-			return dns.Zone{}, "", fmt.Errorf("Error listing DNS Zones (Resource Group: %s): %+v", resourceGroup, err)
-		}
-
-		for _, z := range zones.Values() {
-			if *z.Name == name {
-				return z, resourceGroup, nil
+	var found *dns.Zone
+	for zonesIterator.NotDone() {
+		zone := zonesIterator.Value()
+		if zone.Name != nil && *zone.Name == name {
+			if found != nil {
+				return nil, "", fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
 			}
+			found = &zone
+		}
+		if err := zonesIterator.NextWithContext(ctx); err != nil {
+			return nil, "", fmt.Errorf("listing DNS Zones: %+v", err)
 		}
 	}
 
-	return dns.Zone{}, "", nil
+	if found == nil || found.ID == nil {
+		return nil, "", fmt.Errorf("could not find DNS zone with name: %q", name)
+	}
+
+	id, err := parse.DnsZoneID(*found.ID)
+	if err != nil {
+		return nil, "", fmt.Errorf("DNS zone id not valid: %+v", err)
+	}
+	return found, id.ResourceGroup, nil
 }

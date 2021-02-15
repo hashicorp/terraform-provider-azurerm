@@ -6,22 +6,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationJobSchedule() *schema.Resource {
+func resourceAutomationJobSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationJobScheduleCreate,
-		Read:   resourceArmAutomationJobScheduleRead,
-		Delete: resourceArmAutomationJobScheduleDelete,
+		Create: resourceAutomationJobScheduleCreate,
+		Read:   resourceAutomationJobScheduleRead,
+		Delete: resourceAutomationJobScheduleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -42,21 +43,21 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"runbook_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationRunbookName(),
+				ValidateFunc: validate.RunbookName(),
 			},
 
 			"schedule_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationScheduleName(),
+				ValidateFunc: validate.ScheduleName(),
 			},
 
 			"parameters": {
@@ -95,23 +96,23 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
-	jobScheduleUUID := uuid.NewV4()
-	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
-		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
-	}
-
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
 
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
+
+	jobScheduleUUID := uuid.NewV4()
+	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
+		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
@@ -123,6 +124,29 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_automation_job_schedule", *existing.ID)
+		}
+	}
+
+	// fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
+	// When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
+	// We need to delete the job schedule id if exists to recreate the job schedule
+	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, resourceGroup, accountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+		if err != nil {
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)
+		}
+		if props := jsIterator.Value().JobScheduleProperties; props != nil {
+			if props.Schedule.Name != nil && *props.Schedule.Name == scheduleName && props.Runbook.Name != nil && *props.Runbook.Name == runbookName {
+				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accountName, err)
+				}
+				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				if err != nil {
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+				}
+				if _, err := client.Delete(ctx, resourceGroup, accountName, jsId); err != nil {
+					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+				}
+			}
 		}
 	}
 
@@ -168,10 +192,10 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationJobScheduleRead(d, meta)
+	return resourceAutomationJobScheduleRead(d, meta)
 }
 
-func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +241,7 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

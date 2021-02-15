@@ -76,7 +76,7 @@ func (client AccountsClient) CreateOrUpdate(ctx context.Context, body Account, r
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -117,7 +117,33 @@ func (client AccountsClient) CreateOrUpdateSender(req *http.Request) (future Acc
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (a Account, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.AccountsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("netapp.AccountsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		a.Response.Response, err = future.GetResult(sender)
+		if a.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "netapp.AccountsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
+			a, err = client.CreateOrUpdateResponder(a.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "netapp.AccountsCreateOrUpdateFuture", "Result", a.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -164,7 +190,7 @@ func (client AccountsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -200,7 +226,23 @@ func (client AccountsClient) DeleteSender(req *http.Request) (future AccountsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.AccountsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("netapp.AccountsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -254,6 +296,7 @@ func (client AccountsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,6 +379,7 @@ func (client AccountsClient) List(ctx context.Context, resourceGroupName string)
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -419,6 +463,7 @@ func (client AccountsClient) Update(ctx context.Context, body AccountPatch, reso
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

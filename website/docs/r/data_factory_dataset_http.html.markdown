@@ -32,13 +32,13 @@ resource "azurerm_data_factory_linked_service_web" "example" {
   url                 = "https://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_delimited_text" "example" {
+resource "azurerm_data_factory_dataset_http" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
   linked_service_name = azurerm_data_factory_linked_service_web.example.name
 
-  url            = "http://www.bing.com"
+  relative_url   = "http://www.bing.com"
   request_body   = "foo=bar"
   request_method = "POST"
 

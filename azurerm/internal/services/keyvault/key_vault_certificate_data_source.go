@@ -10,16 +10,17 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVaultCertificate() *schema.Resource {
+func dataSourceKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultCertificateRead,
+		Read: dataSourceKeyVaultCertificateRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -29,13 +30,13 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildName,
+				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"version": {
@@ -210,6 +211,11 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"certificate_data_base64": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"thumbprint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -220,25 +226,28 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+func dataSourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	if err != nil {
+		return err
+	}
 	version := d.Get("version").(string)
 
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
+		return fmt.Errorf("looking up base uri for Key %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	cert, err := client.GetCertificate(ctx, keyVaultBaseUri, name, version)
+	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
-			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, keyVaultBaseUri)
+			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, *keyVaultBaseUri)
 			d.SetId("")
 			return nil
 		}
@@ -252,7 +261,7 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 
 	d.SetId(*cert.ID)
 
-	id, err := azure.ParseKeyVaultChildID(*cert.ID)
+	id, err := parse.ParseNestedItemID(*cert.ID)
 	if err != nil {
 		return err
 	}
@@ -273,6 +282,12 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("certificate_data", certificateData)
 
+	certificateDataBase64 := ""
+	if contents := cert.Cer; contents != nil {
+		certificateDataBase64 = base64.StdEncoding.EncodeToString(*contents)
+	}
+	d.Set("certificate_data_base64", certificateDataBase64)
+
 	thumbprint := ""
 	if v := cert.X509Thumbprint; v != nil {
 		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
@@ -288,23 +303,50 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		issuerParams := make(map[string]interface{})
-		issuerParams["name"] = *params.Name
-		policy["issuer_parameters"] = []interface{}{issuerParams}
+		var name string
+		if params.Name != nil {
+			name = *params.Name
+		}
+		policy["issuer_parameters"] = []interface{}{
+			map[string]interface{}{
+				"name": name,
+			},
+		}
 	}
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
-		keyProps := make(map[string]interface{})
-		keyProps["exportable"] = *props.Exportable
-		keyProps["key_size"] = int(*props.KeySize)
-		keyProps["key_type"] = *props.KeyType
-		keyProps["reuse_key"] = *props.ReuseKey
+		var exportable, reuseKey bool
+		var keySize int
+		var keyType string
+		if props.Exportable != nil {
+			exportable = *props.Exportable
+		}
+		if props.ReuseKey != nil {
+			reuseKey = *props.ReuseKey
+		}
+		if props.KeySize != nil {
+			keySize = int(*props.KeySize)
+		}
+		if props.KeyType != nil {
+			keyType = *props.KeyType
+		}
 
-		policy["key_properties"] = []interface{}{keyProps}
+		policy["key_properties"] = []interface{}{
+			map[string]interface{}{
+				"exportable": exportable,
+				"key_size":   keySize,
+				"key_type":   keyType,
+				"reuse_key":  reuseKey,
+			},
+		}
 	}
 
 	// lifetime actions
@@ -337,45 +379,53 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		keyProps := make(map[string]interface{})
-		keyProps["content_type"] = *props.ContentType
-
-		policy["secret_properties"] = []interface{}{keyProps}
+		var contentType string
+		if props.ContentType != nil {
+			contentType = *props.ContentType
+		}
+		policy["secret_properties"] = []interface{}{
+			map[string]interface{}{
+				"content_type": contentType,
+			},
+		}
 	}
 
 	// x509 Certificate Properties
 	if props := input.X509CertificateProperties; props != nil {
-		certProps := make(map[string]interface{})
+		var subject string
+		var validityInMonths int
+		if props.Subject != nil {
+			subject = *props.Subject
+		}
+		if props.ValidityInMonths != nil {
+			validityInMonths = int(*props.ValidityInMonths)
+		}
 
 		usages := make([]string, 0)
-		for _, usage := range *props.KeyUsage {
-			usages = append(usages, string(usage))
+		if props.KeyUsage != nil {
+			for _, usage := range *props.KeyUsage {
+				usages = append(usages, string(usage))
+			}
 		}
 
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
-			sanOutput := make(map[string]interface{})
-			if emails := san.Emails; emails != nil {
-				sanOutput["emails"] = *emails
-			}
-			if dnsNames := san.DNSNames; dnsNames != nil {
-				sanOutput["dns_names"] = *dnsNames
-			}
-			if upns := san.Upns; upns != nil {
-				sanOutput["upns"] = *upns
-			}
-
-			sanOutputs = append(sanOutputs, sanOutput)
+			sanOutputs = append(sanOutputs, map[string]interface{}{
+				"emails":    utils.FlattenStringSlice(san.Emails),
+				"dns_names": utils.FlattenStringSlice(san.DNSNames),
+				"upns":      utils.FlattenStringSlice(san.Upns),
+			})
 		}
 
-		certProps["key_usage"] = usages
-		certProps["subject"] = *props.Subject
-		certProps["validity_in_months"] = int(*props.ValidityInMonths)
-		if props.Ekus != nil {
-			certProps["extended_key_usage"] = props.Ekus
+		policy["x509_certificate_properties"] = []interface{}{
+			map[string]interface{}{
+				"key_usage":                 usages,
+				"subject":                   subject,
+				"validity_in_months":        validityInMonths,
+				"extended_key_usage":        utils.FlattenStringSlice(props.Ekus),
+				"subject_alternative_names": sanOutputs,
+			},
 		}
-		certProps["subject_alternative_names"] = sanOutputs
-		policy["x509_certificate_properties"] = []interface{}{certProps}
 	}
 
 	return []interface{}{policy}

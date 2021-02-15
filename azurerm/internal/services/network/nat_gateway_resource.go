@@ -21,12 +21,12 @@ import (
 
 var natGatewayResourceName = "azurerm_nat_gateway"
 
-func resourceArmNatGateway() *schema.Resource {
+func resourceNatGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNatGatewayCreate,
-		Read:   resourceArmNatGatewayRead,
-		Update: resourceArmNatGatewayUpdate,
-		Delete: resourceArmNatGatewayDelete,
+		Create: resourceNatGatewayCreate,
+		Read:   resourceNatGatewayRead,
+		Update: resourceNatGatewayUpdate,
+		Delete: resourceNatGatewayDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -100,7 +100,7 @@ func resourceArmNatGateway() *schema.Resource {
 	}
 }
 
-func resourceArmNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,8 +133,8 @@ func resourceArmNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 		Location: utils.String(location),
 		NatGatewayPropertiesFormat: &network.NatGatewayPropertiesFormat{
 			IdleTimeoutInMinutes: utils.Int32(int32(idleTimeoutInMinutes)),
-			PublicIPAddresses:    expandArmNatGatewaySubResourceID(publicIpAddressIds),
-			PublicIPPrefixes:     expandArmNatGatewaySubResourceID(publicIpPrefixIds),
+			PublicIPAddresses:    expandNetworkSubResourceID(publicIpAddressIds),
+			PublicIPPrefixes:     expandNetworkSubResourceID(publicIpPrefixIds),
 		},
 		Sku: &network.NatGatewaySku{
 			Name: network.NatGatewaySkuName(skuName),
@@ -160,10 +160,10 @@ func resourceArmNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNatGatewayRead(d, meta)
+	return resourceNatGatewayRead(d, meta)
 }
 
-func resourceArmNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,12 +216,12 @@ func resourceArmNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("public_ip_address_ids") {
 		publicIpAddressIds := d.Get("public_ip_address_ids").(*schema.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandArmNatGatewaySubResourceID(publicIpAddressIds)
+		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
 	}
 
 	if d.HasChange("public_ip_prefix_ids") {
 		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*schema.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandArmNatGatewaySubResourceID(publicIpPrefixIds)
+		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
 	}
 
 	if d.HasChange("tags") {
@@ -237,10 +237,10 @@ func resourceArmNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("waiting for update of NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmNatGatewayRead(d, meta)
+	return resourceNatGatewayRead(d, meta)
 }
 
-func resourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,11 +275,11 @@ func resourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		d.Set("resource_guid", props.ResourceGUID)
 
-		if err := d.Set("public_ip_address_ids", flattenArmNatGatewaySubResourceID(props.PublicIPAddresses)); err != nil {
+		if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
 			return fmt.Errorf("Error setting `public_ip_address_ids`: %+v", err)
 		}
 
-		if err := d.Set("public_ip_prefix_ids", flattenArmNatGatewaySubResourceID(props.PublicIPPrefixes)); err != nil {
+		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
 			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)
 		}
 	}
@@ -291,7 +291,7 @@ func resourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,31 +319,4 @@ func resourceArmNatGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
-}
-
-func expandArmNatGatewaySubResourceID(input []interface{}) *[]network.SubResource {
-	results := make([]network.SubResource, 0)
-	for _, item := range input {
-		id := item.(string)
-
-		results = append(results, network.SubResource{
-			ID: utils.String(id),
-		})
-	}
-	return &results
-}
-
-func flattenArmNatGatewaySubResourceID(input *[]network.SubResource) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if item.ID != nil {
-			results = append(results, *item.ID)
-		}
-	}
-
-	return results
 }

@@ -60,7 +60,7 @@ The following arguments are supported:
 * `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
 * `zones` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in.
 
--> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+-> **Please Note**: Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Load Balancer that do not specify a zone are zone redundant by default.
 
 ## Attributes Reference
 

@@ -5,24 +5,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySQLAdministrator() *schema.Resource {
+func resourceMySQLAdministrator() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySQLAdministratorCreateUpdate,
-		Read:   resourceArmMySQLAdministratorRead,
-		Update: resourceArmMySQLAdministratorCreateUpdate,
-		Delete: resourceArmMySQLAdministratorDelete,
+		Create: resourceMySQLAdministratorCreateUpdate,
+		Read:   resourceMySQLAdministratorRead,
+		Update: resourceMySQLAdministratorCreateUpdate,
+		Delete: resourceMySQLAdministratorDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -63,7 +62,7 @@ func resourceArmMySQLAdministrator() *schema.Resource {
 	}
 }
 
-func resourceArmMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -74,7 +73,7 @@ func resourceArmMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta inte
 	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, serverName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -115,7 +114,7 @@ func resourceArmMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmMySQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +147,7 @@ func resourceArmMySQLAdministratorRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,8 +160,7 @@ func resourceArmMySQLAdministratorDelete(d *schema.ResourceData, meta interface{
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 
-	_, err = client.Delete(ctx, resourceGroup, serverName)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, serverName); err != nil {
 		return fmt.Errorf("Error deleting MySQL AD Administrator: %+v", err)
 	}
 

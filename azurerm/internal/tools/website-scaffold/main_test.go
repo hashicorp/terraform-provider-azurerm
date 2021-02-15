@@ -173,7 +173,7 @@ func runTest(t *testing.T, expected, actual string) {
 }
 
 func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGenerator {
-	var toStrPtr = func(input string) *string {
+	toStrPtr := func(input string) *string {
 		return &input
 	}
 	return documentationGenerator{

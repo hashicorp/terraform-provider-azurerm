@@ -70,6 +70,7 @@ func (client GeographicHierarchiesClient) GetDefault(ctx context.Context) (resul
 	result, err = client.GetDefaultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.GeographicHierarchiesClient", "GetDefault", resp, "Failure responding to request")
+		return
 	}
 
 	return

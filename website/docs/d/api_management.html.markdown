@@ -33,7 +33,7 @@ output "api_management_id" {
 
 * `id` - The ID of the API Management Service.
 
-* `additional_location` - One or more `additional_location` blocks as defined below
+* `additional_location` - Zero or more `additional_location` blocks as defined below
 
 * `location` - The Azure location where the API Management Service exists.
 
@@ -55,6 +55,8 @@ output "api_management_id" {
 
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
+* `private_ip_addresses` - The Private IP addresses of the API Management Service.
+
 * `publisher_name` - The name of the Publisher/Company of the API Management Service.
 
 * `publisher_email` - The email of Publisher/Company of the API Management Service.
@@ -74,6 +76,8 @@ A `additional_location` block exports the following:
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+
+* `private_ip_addresses` - Private IP addresses of the API Management service in the additional location, for instances using virtual network mode.
 
 ---
 
@@ -163,6 +167,9 @@ A `sku` block exports the following:
 * `name` - Specifies the plan's pricing tier.
 
 * `capacity` - Specifies the number of units associated with this API Management service.
+
+---
+
 
 ## Timeouts
 

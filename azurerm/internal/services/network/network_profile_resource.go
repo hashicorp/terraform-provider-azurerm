@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -20,12 +19,12 @@ import (
 
 const azureNetworkProfileResourceName = "azurerm_network_profile"
 
-func resourceArmNetworkProfile() *schema.Resource {
+func resourceNetworkProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkProfileCreateUpdate,
-		Read:   resourceArmNetworkProfileRead,
-		Update: resourceArmNetworkProfileCreateUpdate,
-		Delete: resourceArmNetworkProfileDelete,
+		Create: resourceNetworkProfileCreateUpdate,
+		Read:   resourceNetworkProfileRead,
+		Update: resourceNetworkProfileCreateUpdate,
+		Delete: resourceNetworkProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -95,7 +94,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +104,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -158,10 +157,10 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*profile.ID)
 
-	return resourceArmNetworkProfileRead(d, meta)
+	return resourceNetworkProfileRead(d, meta)
 }
 
-func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +204,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, profile.Tags)
 }
 
-func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,11 +309,11 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]s
 			subnetName := subnetResourceID.Path["subnets"]
 			vnetName := subnetResourceID.Path["virtualNetworks"]
 
-			if !azure.SliceContainsValue(subnetNames, subnetName) {
+			if !utils.SliceContainsValue(subnetNames, subnetName) {
 				subnetNames = append(subnetNames, subnetName)
 			}
 
-			if !azure.SliceContainsValue(vnetNames, vnetName) {
+			if !utils.SliceContainsValue(vnetNames, vnetName) {
 				vnetNames = append(vnetNames, vnetName)
 			}
 		}

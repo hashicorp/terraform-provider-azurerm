@@ -63,7 +63,6 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 			Constraints: []validation.Constraint{{Target: "parameters.AlertRule", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.AlertRule.Name", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.AlertRule.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.AlertRule.Condition", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("insights.AlertRulesClient", "CreateOrUpdate", err.Error())
 	}
@@ -84,6 +83,7 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +161,7 @@ func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,6 +236,7 @@ func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +311,7 @@ func (client AlertRulesClient) ListByResourceGroup(ctx context.Context, resource
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRulesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -380,6 +383,7 @@ func (client AlertRulesClient) ListBySubscription(ctx context.Context) (result A
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRulesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -454,6 +458,7 @@ func (client AlertRulesClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

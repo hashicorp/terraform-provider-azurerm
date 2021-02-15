@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 files=$(find . | egrep "/azurerm/internal/services/[a-z]+/[a-z_]+(resource|data_source)[a-z_]+\.go$" | egrep "test.go")
 error=false
@@ -7,8 +7,7 @@ echo "==> Checking that acceptance test packages are used..."
 
 for f in $files; do
   line=$(head -n 1 $f)
-  regex="_test$"
-  if [[ ! $line =~ $regex ]]; then
+  if [ "$line" = "${line%%_test}" ]; then
     echo $f
     error=true
   fi

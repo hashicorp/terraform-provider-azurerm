@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -23,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppAccount() *schema.Resource {
+func resourceNetAppAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppAccountCreateUpdate,
-		Read:   resourceArmNetAppAccountRead,
-		Update: resourceArmNetAppAccountCreateUpdate,
-		Delete: resourceArmNetAppAccountDelete,
+		Create: resourceNetAppAccountCreateUpdate,
+		Read:   resourceNetAppAccountRead,
+		Update: resourceNetAppAccountCreateUpdate,
+		Delete: resourceNetAppAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -37,7 +36,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.NetAppAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -107,7 +106,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,7 +114,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -133,7 +132,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	accountParameters := netapp.Account{
 		Location: utils.String(location),
 		AccountProperties: &netapp.AccountProperties{
-			ActiveDirectories: expandArmNetAppActiveDirectories(activeDirectories),
+			ActiveDirectories: expandNetAppActiveDirectories(activeDirectories),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -155,27 +154,27 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppAccountRead(d, meta)
+	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Accounts %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Accounts %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading NetApp Accounts %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -187,31 +186,31 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName)
 	if err != nil {
-		return fmt.Errorf("Error deleting NetApp Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting NetApp Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 		}
 	}
 
 	return nil
 }
 
-func expandArmNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
+func expandNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
 	results := make([]netapp.ActiveDirectory, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})

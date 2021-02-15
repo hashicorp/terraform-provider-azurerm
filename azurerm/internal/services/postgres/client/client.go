@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -10,6 +10,7 @@ type Client struct {
 	DatabasesClient                   *postgresql.DatabasesClient
 	FirewallRulesClient               *postgresql.FirewallRulesClient
 	ServersClient                     *postgresql.ServersClient
+	ServerKeysClient                  *postgresql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient *postgresql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient         *postgresql.VirtualNetworkRulesClient
 	ServerAdministratorsClient        *postgresql.ServerAdministratorsClient
@@ -28,6 +29,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	serversClient := postgresql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
+	serverKeysClient := postgresql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	serverSecurityAlertPoliciesClient := postgresql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -42,6 +46,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabasesClient:                   &databasesClient,
 		FirewallRulesClient:               &firewallRulesClient,
 		ServersClient:                     &serversClient,
+		ServerKeysClient:                  &serverKeysClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:         &virtualNetworkRulesClient,
 		ServerAdministratorsClient:        &serverAdministratorsClient,

@@ -28,6 +28,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_frontdoor":                 resourceArmFrontDoor(),
-		"azurerm_frontdoor_firewall_policy": resourceArmFrontDoorFirewallPolicy()}
+		"azurerm_frontdoor":                            resourceFrontDoor(),
+		"azurerm_frontdoor_firewall_policy":            resourceFrontDoorFirewallPolicy(),
+		"azurerm_frontdoor_custom_https_configuration": resourceFrontDoorCustomHttpsConfiguration(),
+	}
 }

@@ -73,6 +73,7 @@ func (client OperationResultsClient) Get(ctx context.Context, locationName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.OperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

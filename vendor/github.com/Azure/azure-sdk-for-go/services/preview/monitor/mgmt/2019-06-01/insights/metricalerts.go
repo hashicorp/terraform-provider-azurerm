@@ -66,7 +66,6 @@ func (client MetricAlertsClient) CreateOrUpdate(ctx context.Context, resourceGro
 					{Target: "parameters.MetricAlertProperties.Enabled", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.MetricAlertProperties.EvaluationFrequency", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.MetricAlertProperties.WindowSize", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.MetricAlertProperties.Criteria", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("insights.MetricAlertsClient", "CreateOrUpdate", err.Error())
 	}
@@ -87,6 +86,7 @@ func (client MetricAlertsClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +164,7 @@ func (client MetricAlertsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +239,7 @@ func (client MetricAlertsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +314,7 @@ func (client MetricAlertsClient) ListByResourceGroup(ctx context.Context, resour
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -383,6 +386,7 @@ func (client MetricAlertsClient) ListBySubscription(ctx context.Context) (result
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -457,6 +461,7 @@ func (client MetricAlertsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -17,32 +17,25 @@ Manages a Key Vault Access Policy.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = azurerm_resource_group.example.location
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "testvault"
+  name                = "examplekeyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku_name = "standard"
-
-  tenant_id = "22222222-2222-2222-2222-222222222222"
-
-  enabled_for_disk_encryption = true
-
-  tags = {
-    environment = "Production"
-  }
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
-
-  tenant_id = "00000000-0000-0000-0000-000000000000"
-  object_id = "11111111-1111-1111-1111-111111111111"
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
     "get",
@@ -76,11 +69,11 @@ The following arguments are supported:
     the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`,
     `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
-* `key_permissions` - (Required) List of key permissions, must be one or more from
+* `key_permissions` - (Optional) List of key permissions, must be one or more from
     the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`,
     `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
-* `secret_permissions` - (Required) List of secret permissions, must be one or more
+* `secret_permissions` - (Optional) List of secret permissions, must be one or more
     from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
 
 * `storage_permissions` - (Optional) List of storage permissions, must be one or more from the following: `backup`, `delete`, `deletesas`, `get`, `getsas`, `list`, `listsas`, `purge`, `recover`, `regeneratekey`, `restore`, `set`, `setsas` and `update`.

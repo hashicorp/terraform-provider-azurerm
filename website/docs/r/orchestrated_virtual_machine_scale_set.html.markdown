@@ -10,9 +10,9 @@ description: |-
 
 Manages an Orchestrated Virtual Machine Scale Set.
 
--> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
+-> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
 
--> **Note:** Azure has deprecated the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set since api-version 2019-12-01 and there is a breaking change in the Orchestrated Virtual Machine Scale Set. If you have an Orchestrated Virtual Machine Scale Set created using `azurerm` provider version `<=2.13.0` you will have to remove the `single_placement_group` attribute in your config and recreate the resource to have it managed by terraform.
+-> **Note:** Azure is planning to deprecate the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set starting from api-version `2019-12-01` and there will be a breaking change in the Orchestrated Virtual Machine Scale Set.
 
 ## Example Usage
 
@@ -49,9 +49,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
-* `single_placement_group` - (Optional / **Deprecated**) Should the Orchestrated Virtual Machine Scale Set use single placement group?
-
-~> **NOTE:** Due to a limitation of the Azure API at this time, you can only assign `single_placement_group` to `false`.
+* `single_placement_group` - (Optional) Should the Orchestrated Virtual Machine Scale Set use single placement group? Defaults to `false`.
 
 * `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
 

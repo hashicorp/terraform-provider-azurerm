@@ -43,10 +43,19 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Cosmos DB Mongo Collection. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
 * `database_name` - (Required) The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
-* `default_ttl_seconds` - (Required) The default Time To Live in seconds. If the value is `0` items are not automatically expired.
+* `default_ttl_seconds` - (Required) The default Time To Live in seconds. If the value is `-1` or `0`, items are not automatically expired.
 * `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
 * `index` - (Optional) One or more `index` blocks as defined below.
 * `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+* `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `shard_key` to be set.
+
+~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
+
+---
+
+An `autoscale_settings` block supports the following:
+
+* `max_throughput` - (Optional) The maximum throughput of the MongoDB collection (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 ---
 
@@ -86,5 +95,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 CosmosDB Mongo Collection can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_mongo_collection.collection1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/mongodb/databases/db1/collections/collection1
+terraform import azurerm_cosmosdb_mongo_collection.collection1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/mongodbDatabases/db1/collections/collection1
 ```

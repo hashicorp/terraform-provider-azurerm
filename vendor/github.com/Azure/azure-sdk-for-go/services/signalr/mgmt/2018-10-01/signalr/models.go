@@ -30,84 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
 
-// FeatureFlags enumerates the values for feature flags.
-type FeatureFlags string
-
-const (
-	// EnableConnectivityLogs ...
-	EnableConnectivityLogs FeatureFlags = "EnableConnectivityLogs"
-	// ServiceMode ...
-	ServiceMode FeatureFlags = "ServiceMode"
-)
-
-// PossibleFeatureFlagsValues returns an array of possible values for the FeatureFlags const type.
-func PossibleFeatureFlagsValues() []FeatureFlags {
-	return []FeatureFlags{EnableConnectivityLogs, ServiceMode}
-}
-
-// KeyType enumerates the values for key type.
-type KeyType string
-
-const (
-	// Primary ...
-	Primary KeyType = "Primary"
-	// Secondary ...
-	Secondary KeyType = "Secondary"
-)
-
-// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
-func PossibleKeyTypeValues() []KeyType {
-	return []KeyType{Primary, Secondary}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Moving ...
-	Moving ProvisioningState = "Moving"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Unknown ...
-	Unknown ProvisioningState = "Unknown"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleting, Failed, Moving, Running, Succeeded, Unknown, Updating}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// Basic ...
-	Basic SkuTier = "Basic"
-	// Free ...
-	Free SkuTier = "Free"
-	// Premium ...
-	Premium SkuTier = "Premium"
-	// Standard ...
-	Standard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Basic, Free, Premium, Standard}
-}
-
 // CorsSettings cross-Origin Resource Sharing (CORS) settings.
 type CorsSettings struct {
 	// AllowedOrigins - Gets or sets the list of origins that should be allowed to make cross-origin calls (for example: http://example.com:12345). Use "*" to allow all. If omitted, allow all by default.
@@ -117,30 +39,10 @@ type CorsSettings struct {
 // CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CreateOrUpdateFuture) Result(client Client) (rt ResourceType, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "signalr.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("signalr.CreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rt.Response.Response, err = future.GetResult(sender); err == nil && rt.Response.Response.StatusCode != http.StatusNoContent {
-		rt, err = client.CreateOrUpdateResponder(rt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "signalr.CreateOrUpdateFuture", "Result", rt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (ResourceType, error)
 }
 
 // CreateOrUpdateProperties settings used to provision or configure the resource.
@@ -194,24 +96,10 @@ func (cp CreateParameters) MarshalJSON() ([]byte, error) {
 
 // DeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DeleteFuture) Result(client Client) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "signalr.DeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("signalr.DeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (autorest.Response, error)
 }
 
 // Dimension specifications of the Dimension of metrics.
@@ -437,10 +325,15 @@ func (ol OperationList) IsEmpty() bool {
 	return ol.Value == nil || len(*ol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ol OperationList) hasNextLink() bool {
+	return ol.NextLink != nil && len(*ol.NextLink) != 0
+}
+
 // operationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ol.NextLink == nil || len(to.String(ol.NextLink)) < 1 {
+	if !ol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -468,11 +361,16 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ol)
+		if err != nil {
+			return err
+		}
+		page.ol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ol = next
 	return nil
 }
 
@@ -502,8 +400,11 @@ func (page OperationListPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListPage type.
-func NewOperationListPage(getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
-	return OperationListPage{fn: getNextPage}
+func NewOperationListPage(cur OperationList, getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
+	return OperationListPage{
+		fn: getNextPage,
+		ol: cur,
+	}
 }
 
 // OperationProperties extra Operation properties.
@@ -541,33 +442,31 @@ type Properties struct {
 	Cors *CorsSettings `json:"cors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Properties.
+func (p Properties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if p.Version != nil {
+		objectMap["version"] = p.Version
+	}
+	if p.HostNamePrefix != nil {
+		objectMap["hostNamePrefix"] = p.HostNamePrefix
+	}
+	if p.Features != nil {
+		objectMap["features"] = p.Features
+	}
+	if p.Cors != nil {
+		objectMap["cors"] = p.Cors
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegenerateKeyFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type RegenerateKeyFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegenerateKeyFuture) Result(client Client) (kVar Keys, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "signalr.RegenerateKeyFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("signalr.RegenerateKeyFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if kVar.Response.Response, err = future.GetResult(sender); err == nil && kVar.Response.Response.StatusCode != http.StatusNoContent {
-		kVar, err = client.RegenerateKeyResponder(kVar.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "signalr.RegenerateKeyFuture", "Result", kVar.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (Keys, error)
 }
 
 // RegenerateKeyParameters parameters describes the request to regenerate access keys
@@ -664,10 +563,15 @@ func (rl ResourceList) IsEmpty() bool {
 	return rl.Value == nil || len(*rl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rl ResourceList) hasNextLink() bool {
+	return rl.NextLink != nil && len(*rl.NextLink) != 0
+}
+
 // resourceListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rl ResourceList) resourceListPreparer(ctx context.Context) (*http.Request, error) {
-	if rl.NextLink == nil || len(to.String(rl.NextLink)) < 1 {
+	if !rl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -695,11 +599,16 @@ func (page *ResourceListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rl)
+		if err != nil {
+			return err
+		}
+		page.rl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rl = next
 	return nil
 }
 
@@ -729,8 +638,11 @@ func (page ResourceListPage) Values() []ResourceType {
 }
 
 // Creates a new instance of the ResourceListPage type.
-func NewResourceListPage(getNextPage func(context.Context, ResourceList) (ResourceList, error)) ResourceListPage {
-	return ResourceListPage{fn: getNextPage}
+func NewResourceListPage(cur ResourceList, getNextPage func(context.Context, ResourceList) (ResourceList, error)) ResourceListPage {
+	return ResourceListPage{
+		fn: getNextPage,
+		rl: cur,
+	}
 }
 
 // ResourceSku the billing information of the SignalR resource.
@@ -872,24 +784,10 @@ func (rt *ResourceType) UnmarshalJSON(body []byte) error {
 
 // RestartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type RestartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RestartFuture) Result(client Client) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "signalr.RestartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("signalr.RestartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (autorest.Response, error)
 }
 
 // ServiceSpecification an object that describes a specification.
@@ -928,30 +826,10 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 
 // UpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type UpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *UpdateFuture) Result(client Client) (rt ResourceType, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "signalr.UpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("signalr.UpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rt.Response.Response, err = future.GetResult(sender); err == nil && rt.Response.Response.StatusCode != http.StatusNoContent {
-		rt, err = client.UpdateResponder(rt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "signalr.UpdateFuture", "Result", rt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (ResourceType, error)
 }
 
 // UpdateParameters parameters for SignalR service update operation
@@ -1071,10 +949,15 @@ func (ul UsageList) IsEmpty() bool {
 	return ul.Value == nil || len(*ul.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ul UsageList) hasNextLink() bool {
+	return ul.NextLink != nil && len(*ul.NextLink) != 0
+}
+
 // usageListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ul UsageList) usageListPreparer(ctx context.Context) (*http.Request, error) {
-	if ul.NextLink == nil || len(to.String(ul.NextLink)) < 1 {
+	if !ul.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1102,11 +985,16 @@ func (page *UsageListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ul)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ul)
+		if err != nil {
+			return err
+		}
+		page.ul = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ul = next
 	return nil
 }
 
@@ -1136,8 +1024,11 @@ func (page UsageListPage) Values() []Usage {
 }
 
 // Creates a new instance of the UsageListPage type.
-func NewUsageListPage(getNextPage func(context.Context, UsageList) (UsageList, error)) UsageListPage {
-	return UsageListPage{fn: getNextPage}
+func NewUsageListPage(cur UsageList, getNextPage func(context.Context, UsageList) (UsageList, error)) UsageListPage {
+	return UsageListPage{
+		fn: getNextPage,
+		ul: cur,
+	}
 }
 
 // UsageName localizable String object containing the name and a localized value.

@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNetAppAccount() *schema.Resource {
+func dataSourceNetAppAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNetAppAccountRead,
+		Read: dataSourceNetAppAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -35,7 +35,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

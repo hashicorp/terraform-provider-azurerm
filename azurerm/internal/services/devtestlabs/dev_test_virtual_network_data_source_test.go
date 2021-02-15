@@ -7,10 +7,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
+type ArmDevTestVirtualNetworkDataSource struct {
+}
+
+func TestAccArmDevTestVirtualNetworkDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_virtual_network", "test")
+	r := ArmDevTestVirtualNetworkDataSource{}
 
 	name := fmt.Sprintf("acctestdtvn%d", data.RandomInteger)
 	labName := fmt.Sprintf("acctestdtl%d", data.RandomInteger)
@@ -18,31 +23,27 @@ func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
 	subnetName := name + "Subnet"
 	subnetResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, name, subnetName)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceArmDevTestVirtualNetwork_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
-					resource.TestCheckResourceAttr(data.ResourceName, "lab_name", labName),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resGroup),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_subnets.0.allow_public_ip", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_subnets.0.lab_subnet_name", subnetName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_subnets.0.resource_id", subnetResourceID),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.lab_subnet_name", subnetName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.resource_id", subnetResourceID),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.use_in_vm_creation_permission", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.use_public_ip_address_permission", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.virtual_network_pool_name", ""),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("lab_name").HasValue(labName),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resGroup),
+				check.That(data.ResourceName).Key("allowed_subnets.0.allow_public_ip").HasValue("Allow"),
+				check.That(data.ResourceName).Key("allowed_subnets.0.lab_subnet_name").HasValue(subnetName),
+				check.That(data.ResourceName).Key("allowed_subnets.0.resource_id").HasValue(subnetResourceID),
+				check.That(data.ResourceName).Key("subnet_overrides.0.lab_subnet_name").HasValue(subnetName),
+				check.That(data.ResourceName).Key("subnet_overrides.0.resource_id").HasValue(subnetResourceID),
+				check.That(data.ResourceName).Key("subnet_overrides.0.use_in_vm_creation_permission").HasValue("Allow"),
+				check.That(data.ResourceName).Key("subnet_overrides.0.use_public_ip_address_permission").HasValue("Allow"),
+				check.That(data.ResourceName).Key("subnet_overrides.0.virtual_network_pool_name").HasValue(""),
+			),
 		},
 	})
 }
 
-func testAccDataSourceArmDevTestVirtualNetwork_basic(data acceptance.TestData) string {
+func (ArmDevTestVirtualNetworkDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -131,7 +131,7 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 		d.Set("metadata", metadataStr)
 	}
 
-	if parametersStr, err := flattenParameterDefintionsValueToString(policyDefinition.Parameters); err == nil {
+	if parametersStr, err := flattenParameterDefinitionsValueToString(policyDefinition.Parameters); err == nil {
 		d.Set("parameters", parametersStr)
 	} else {
 		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", name, err)

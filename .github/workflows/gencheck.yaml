@@ -1,0 +1,21 @@
+---
+name: Generation Check
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.go'
+      - 'azurerm/**'
+      - '.github/workflows/**'
+
+jobs:
+  gencheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: make gencheck

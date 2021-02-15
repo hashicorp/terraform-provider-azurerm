@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `bandwidth_in_mbps` - (Required) The bandwidth in Mbps of the circuit being created.
 
-~> **NOTE:** Once you increase your bandwidth, you will not be able to decrease it to it's previous value.
+~> **NOTE:** Once you increase your bandwidth, you will not be able to decrease it to its previous value.
 
 * `sku` - (Required) A `sku` block for the ExpressRoute circuit as documented below.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the ExpressRoute circuit.
+* `id` - The ID of the ExpressRoute circuit.
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 

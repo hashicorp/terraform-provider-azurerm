@@ -14,18 +14,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
+func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorScheduledQueryRulesAlertCreateUpdate,
-		Read:   resourceArmMonitorScheduledQueryRulesAlertRead,
-		Update: resourceArmMonitorScheduledQueryRulesAlertCreateUpdate,
-		Delete: resourceArmMonitorScheduledQueryRulesAlertDelete,
+		Create: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Read:   resourceMonitorScheduledQueryRulesAlertRead,
+		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,9 +72,11 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 							},
 						},
 						"custom_webhook_payload": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "{}",
+							Type:     schema.TypeString,
+							Optional: true,
+							// TODO remove `Computed: true` in 3.0. This is a breaking change where the Default used to be "{}"
+							// We'll keep Computed: true for users who expect the same functionality but will remove it in 3.0
+							Computed:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
@@ -199,7 +200,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -225,7 +226,7 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 		}
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -278,10 +279,10 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorScheduledQueryRulesAlertRead(d, meta)
+	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -358,7 +359,7 @@ func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -418,7 +419,9 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *insights.
 		actionGroups := v["action_group"].(*schema.Set).List()
 		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
 		result.EmailSubject = utils.String(v["email_subject"].(string))
-		result.CustomWebhookPayload = utils.String(v["custom_webhook_payload"].(string))
+		if v := v["custom_webhook_payload"].(string); v != "" {
+			result.CustomWebhookPayload = utils.String(v)
+		}
 	}
 
 	return &result

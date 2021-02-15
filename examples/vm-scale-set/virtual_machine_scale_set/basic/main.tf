@@ -18,7 +18,7 @@ resource "azurerm_subnet" "example" {
   name                 = "internal"
   virtual_network_name = "${azurerm_virtual_network.example.name}"
   resource_group_name  = "${azurerm_resource_group.example.name}"
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {

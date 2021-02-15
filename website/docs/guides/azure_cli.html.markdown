@@ -21,8 +21,8 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## Important Notes about Authenticating using the Azure CLI
 
-* Prior to version 1.20 the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
-* Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets is not supported.
+* Prior to version 1.20, the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such, we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
+* Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets are not supported.
 * Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (for example via `az login --service-principal`) you should instead authenticate via the Service Principal directly (either using a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html)).
 
 ---
@@ -83,9 +83,20 @@ Now that we're logged into the Azure CLI - we can configure Terraform to use the
 To configure Terraform to use the Default Subscription defined in the Azure CLI - we can use the following Provider block:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 }
 ```
 
@@ -98,9 +109,20 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 It's also possible to configure Terraform to use a specific Subscription - for example:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
 }
@@ -115,9 +137,20 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 If you're looking to use Terraform across Tenants - it's possible to do this by configuring the Tenant ID field in the Provider block, as shown below:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
   tenant_id       = "11111111-1111-1111-1111-111111111111"

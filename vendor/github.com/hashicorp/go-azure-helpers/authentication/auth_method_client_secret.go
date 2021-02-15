@@ -13,6 +13,7 @@ type servicePrincipalClientSecretAuth struct {
 	clientSecret   string
 	subscriptionId string
 	tenantId       string
+	tenantOnly     bool
 }
 
 func (a servicePrincipalClientSecretAuth) build(b Builder) (authMethod, error) {
@@ -21,6 +22,7 @@ func (a servicePrincipalClientSecretAuth) build(b Builder) (authMethod, error) {
 		clientSecret:   b.ClientSecret,
 		subscriptionId: b.SubscriptionID,
 		tenantId:       b.TenantID,
+		tenantOnly:     b.TenantOnly,
 	}
 	return method, nil
 }
@@ -58,7 +60,7 @@ func (a servicePrincipalClientSecretAuth) validate() error {
 
 	fmtErrorMessage := "A %s must be configured when authenticating as a Service Principal using a Client Secret."
 
-	if a.subscriptionId == "" {
+	if !a.tenantOnly && a.subscriptionId == "" {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Subscription ID"))
 	}
 	if a.clientId == "" {

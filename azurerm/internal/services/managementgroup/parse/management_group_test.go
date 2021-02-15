@@ -39,8 +39,22 @@ func TestManagementGroupID(t *testing.T) {
 			},
 		},
 		{
+			Name:  "Management Group ID in Readable ID",
+			Input: "/providers/Microsoft.Management/ManagementGroups/myGroup",
+			Expected: &ManagementGroupId{
+				Name: "myGroup",
+			},
+		},
+		{
 			Name:  "Management Group ID in UUID with wrong casing",
 			Input: "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000",
+			Expected: &ManagementGroupId{
+				Name: "00000000-0000-0000-0000-000000000000",
+			},
+		},
+		{
+			Name:  "Management Group ID in UUID with wrong casing",
+			Input: "/providers/microsoft.management/Managementgroups/00000000-0000-0000-0000-000000000000",
 			Expected: &ManagementGroupId{
 				Name: "00000000-0000-0000-0000-000000000000",
 			},

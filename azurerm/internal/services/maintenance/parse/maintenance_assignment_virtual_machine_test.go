@@ -56,8 +56,9 @@ func TestMaintenanceAssignmentVirtualMachineID(t *testing.T) {
 			Expect: &MaintenanceAssignmentVirtualMachineId{
 				VirtualMachineIdRaw: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1",
 				VirtualMachineId: &parseCompute.VirtualMachineId{
-					ResourceGroup: "resGroup1",
-					Name:          "vm1",
+					SubscriptionId: "00000000-0000-0000-0000-000000000000",
+					ResourceGroup:  "resGroup1",
+					Name:           "vm1",
 				},
 				Name: "assign1",
 			},

@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	AlertRulesClient *securityinsight.AlertRulesClient
+	AlertRulesClient         *securityinsight.AlertRulesClient
+	AlertRuleTemplatesClient *securityinsight.AlertRuleTemplatesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	alertRulesClient := securityinsight.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&alertRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	alertRuleTemplatesClient := securityinsight.NewAlertRuleTemplatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&alertRuleTemplatesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		AlertRulesClient: &alertRulesClient,
+		AlertRulesClient:         &alertRulesClient,
+		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
 	}
 }

@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sql_server"
+page_title: "Azure Resource Manager: azurerm_mssql_server"
 description: |-
   Manages a Microsoft SQL Azure Database Server.
 
@@ -37,6 +37,7 @@ resource "azurerm_mssql_server" "example" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
+  minimum_tls_version          = "1.2"
 
   azuread_administrator {
     login_username = "AzureAD Admin"
@@ -79,6 +80,10 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`.
+
+~> **NOTE:** Once `minimum_tls_version` is set it is not possible to remove this setting and must be given a valid value for any further updates to the resource.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -99,6 +104,8 @@ The following attributes are exported:
 
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
 
+* `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the server.
+
 ---
 
 `identity` exports the following:
@@ -107,11 +114,11 @@ The following attributes are exported:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
--> You can access the Principal ID via `${azurerm_sql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_sql_server.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `azurerm_mssql_server.example.identity.0.principal_id` and the Tenant ID via `azurerm_mssql_server.example.identity.0.tenant_id`
 
 ---
 
-A `azuread_administrator` block supports the following:
+An `azuread_administrator` block supports the following:
 
 * `login_username` - (Required)  The login username of the Azure AD Administrator of this SQL Server.
 
@@ -121,7 +128,7 @@ A `azuread_administrator` block supports the following:
 
 ---
 
-A `extended_auditing_policy` block supports the following:
+An `extended_auditing_policy` block supports the following:
 
 * `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
 
