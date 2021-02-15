@@ -160,6 +160,16 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"skip_nodes_with_local_storage": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"skip_nodes_with_system_pods": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 					},
 				},
 			},
@@ -2035,6 +2045,16 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		scanInterval = *profile.ScanInterval
 	}
 
+	skipNodesWithLocalStorage := true
+	if profile.SkipNodesWithLocalStorage != nil {
+		skipNodesWithLocalStorage = strings.EqualFold(*profile.SkipNodesWithLocalStorage, "true")
+	}
+
+	skipNodesWithSystemPods := true
+	if profile.SkipNodesWithSystemPods != nil {
+		skipNodesWithSystemPods = strings.EqualFold(*profile.SkipNodesWithSystemPods, "true")
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
@@ -2047,6 +2067,8 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"scale_down_unready":               scaleDownUnreadyTime,
 			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
 			"scan_interval":                    scanInterval,
+			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
+			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
 		},
 	}
 }
@@ -2068,6 +2090,8 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
 	scanInterval := config["scan_interval"].(string)
+	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
+	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
@@ -2080,5 +2104,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
 		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
 		ScanInterval:                  utils.String(scanInterval),
+		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
+		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
 }
