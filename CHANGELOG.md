@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_mariadb_firewall_rule` - correctly validate the `name` property [GH-10579]
+* `azurerm_resource_group_template_deployment` - fixing an issue where the API version for nested items couldn't be found during deletion [GH-10565]
 
 ## 2.47.0 (February 11, 2021)
 
