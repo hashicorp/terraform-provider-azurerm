@@ -76,9 +76,9 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 			return nil
 		}
 		if strings.Contains(err.Error(), "is currently being deleted") {
-			return resource.RetryableError(fmt.Errorf("Secret is currently being deleted, retrying"))
+			return resource.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
 		}
-		return resource.NonRetryableError(fmt.Errorf("Error purging for Secret %s : %+v", description, err))
+		return resource.NonRetryableError(fmt.Errorf("Error purging of %s : %+v", description, err))
 	})
 	if err != nil {
 		return err
