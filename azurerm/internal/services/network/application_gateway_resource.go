@@ -1480,7 +1480,7 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 	if stopApplicationGateway {
 		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("starting %S: %+v", id, err)
+			return fmt.Errorf("starting %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
