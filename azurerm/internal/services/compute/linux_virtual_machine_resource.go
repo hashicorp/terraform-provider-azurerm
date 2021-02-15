@@ -702,13 +702,11 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if features.VMDataDiskBeta() {
-			if profile.DataDisks != nil {
-				dataDisks, err := flattenVirtualMachineDataDisks(profile.DataDisks)
-				if err != nil {
-					return err
-				}
-				d.Set("data_disks", dataDisks)
+			dataDisks, err := flattenVirtualMachineDataDisks(profile.DataDisks)
+			if err != nil {
+				return err
 			}
+			d.Set("data_disks", dataDisks)
 		}
 	}
 

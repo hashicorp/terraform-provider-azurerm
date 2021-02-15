@@ -742,13 +742,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		}
 
 		if features.VMDataDiskBeta() {
-			if props.StorageProfile.DataDisks != nil {
-				dataDisks, err := flattenVirtualMachineDataDisks(props.StorageProfile.DataDisks)
-				if err != nil {
-					return err
-				}
-				d.Set("data_disks", dataDisks)
+			dataDisks, err := flattenVirtualMachineDataDisks(props.StorageProfile.DataDisks)
+			if err != nil {
+				return err
 			}
+			d.Set("data_disks", dataDisks)
 		}
 	}
 
