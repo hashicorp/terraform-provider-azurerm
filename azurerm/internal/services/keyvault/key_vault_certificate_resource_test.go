@@ -260,7 +260,7 @@ func TestAccKeyVaultCertificate_purge(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basicGenerate(data),
+			Config:  r.basicGenerate(data),
 			Destroy: true,
 		},
 	})
