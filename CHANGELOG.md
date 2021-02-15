@@ -1,5 +1,9 @@
 ## 2.48.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
+
 BUG FIXES:
 
 * `azurerm_mariadb_firewall_rule` - correctly validate the `name` property [GH-10579]
