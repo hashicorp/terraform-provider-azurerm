@@ -247,7 +247,7 @@ func resourcePointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.P2sVpnGatewayName)

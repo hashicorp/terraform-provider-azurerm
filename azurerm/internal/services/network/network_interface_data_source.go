@@ -177,9 +177,9 @@ func dataSourceNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: %s was not found", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Error: %s was not found", id)
 		}
-		return fmt.Errorf("retrieving %s: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
