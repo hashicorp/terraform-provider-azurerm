@@ -21,14 +21,6 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-<<<<<<< HEAD
-		"azurerm_storage_account_blob_container_sas": dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
-		"azurerm_storage_account_sas":                dataSourceArmStorageAccountSharedAccessSignature(),
-		"azurerm_storage_account":                    dataSourceArmStorageAccount(),
-		"azurerm_storage_container":                  dataSourceArmStorageContainer(),
-		"azurerm_storage_management_policy":          dataSourceArmStorageManagementPolicy(),
-		"azurerm_storage_account_table_sas":          dataSourceArmStorageAccountTableSharedAccessSignature(),
-=======
 		"azurerm_storage_account_blob_container_sas": dataSourceStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                dataSourceStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                    dataSourceStorageAccount(),
@@ -37,7 +29,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
 		"azurerm_storage_sync":                       dataSourceStorageSync(),
 		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
->>>>>>> master
 	}
 }
 
