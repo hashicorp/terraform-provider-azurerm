@@ -511,6 +511,7 @@ func TestAccApiManagement_tenantAccess(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tenant_access.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tenant_access.0.id").Exists(),
 				check.That(data.ResourceName).Key("tenant_access.0.primary_key").Exists(),
 				check.That(data.ResourceName).Key("tenant_access.0.secondary_key").Exists(),
 			),

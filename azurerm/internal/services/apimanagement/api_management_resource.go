@@ -531,12 +531,17 @@ func resourceApiManagementService() *schema.Resource {
 			"tenant_access": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"primary_key": {
 							Type:      schema.TypeString,
@@ -1658,14 +1663,13 @@ func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.
 }
 
 func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
-	enabled := false
-
 	result := make(map[string]interface{})
 
-	if input.Enabled != nil {
-		enabled = *input.Enabled
+	result["enabled"] = *input.Enabled
+
+	if input.ID != nil {
+		result["id"] = *input.ID
 	}
-	result["enabled"] = enabled
 
 	if input.PrimaryKey != nil {
 		result["primary_key"] = *input.PrimaryKey
