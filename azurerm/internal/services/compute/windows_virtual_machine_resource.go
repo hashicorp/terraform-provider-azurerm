@@ -405,7 +405,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	dataDisks := &[]compute.DataDisk{}
 
 	if features.VMDataDiskBeta() {
-		dataDisks, err = expandVirtualMachineDataDisks(d, meta)
+		dataDisks, err = expandVirtualMachineDataDisks(ctx, d, meta)
 		if err != nil {
 			return err
 		}
@@ -1210,7 +1210,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 	if features.VMDataDiskBeta() && d.HasChanges("data_disks.0.local", "data_disks.0.existing") {
 		shouldUpdate = true
-		dataDisks, err := expandVirtualMachineDataDisks(d, meta)
+		dataDisks, err := expandVirtualMachineDataDisks(ctx, d, meta)
 		if err != nil {
 			return err
 		}
@@ -1404,7 +1404,7 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	}
 
 	if features.VMDataDiskBeta() {
-		deleteDataDiskOnDeletion := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDiskOnDeletion
+		deleteDataDiskOnDeletion := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 
 		// delete any disks created with the VM if feature toggled to do so. "existing" disks are not affected.
 		if deleteDataDiskOnDeletion {

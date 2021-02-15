@@ -458,19 +458,19 @@ func virtualMachineLocalDataDiskSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
-					// whilst this appears in the Update block the API returns this when changing:
-					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
 
@@ -509,6 +509,7 @@ func virtualMachineExistingDataDiskSchema() *schema.Schema {
 				"managed_disk_id": {
 					Type:         schema.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validate.ManagedDiskID,
 				},
 
@@ -531,13 +532,12 @@ func virtualMachineExistingDataDiskSchema() *schema.Schema {
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
-					// whilst this appears in the Update block the API returns this when changing:
-					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
 
@@ -551,7 +551,7 @@ func virtualMachineExistingDataDiskSchema() *schema.Schema {
 	}
 }
 
-func expandVirtualMachineDataDisks(d *schema.ResourceData, meta interface{}) (*[]compute.DataDisk, error) {
+func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, meta interface{}) (*[]compute.DataDisk, error) {
 	input, ok := d.GetOk("data_disks")
 	if !ok {
 		return &[]compute.DataDisk{}, nil
@@ -567,7 +567,7 @@ func expandVirtualMachineDataDisks(d *schema.ResourceData, meta interface{}) (*[
 		if d.IsNewResource() {
 			newDisks = expandVirtualMachineNewDataDisksForCreate(newDisksRaw)
 		} else {
-			newDisks, err = expandVirtualMachineLocalDataDisksForUpdate(newDisksRaw, d, meta)
+			newDisks, err = expandVirtualMachineLocalDataDisksForUpdate(ctx, newDisksRaw, d, meta)
 			if err != nil {
 				return nil, err
 			}
@@ -617,15 +617,12 @@ func expandVirtualMachineNewDataDisksForCreate(input interface{}) []compute.Data
 	return dataDisks
 }
 
-func expandVirtualMachineLocalDataDisksForUpdate(input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
+func expandVirtualMachineLocalDataDisksForUpdate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
 	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return []compute.DataDisk{}, nil
 	}
 
 	diskClient := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
 	var dataDisks []compute.DataDisk
 	resourceGroup := d.Get("resource_group_name").(string)
 

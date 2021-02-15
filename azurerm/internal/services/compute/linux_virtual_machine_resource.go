@@ -372,7 +372,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	dataDisks := &[]compute.DataDisk{}
 
 	if features.VMDataDiskBeta() {
-		dataDisks, err = expandVirtualMachineDataDisks(d, meta)
+		dataDisks, err = expandVirtualMachineDataDisks(ctx, d, meta)
 		if err != nil {
 			return err
 		}
@@ -1152,12 +1152,13 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 	if features.VMDataDiskBeta() && d.HasChanges("data_disks.0.local", "data_disks.0.existing") {
 		shouldUpdate = true
-		dataDisks, err := expandVirtualMachineDataDisks(d, meta)
+		dataDisks, err := expandVirtualMachineDataDisks(ctx, d, meta)
 		if err != nil {
 			return err
 		}
 
 		// Do we have disks to resize or change encryption set?
+		// TODO - Turn this into a helper for re-use on both OS Types and enable parallelism.
 		for _, v := range dataDisksForEncrypt {
 			diskName, ok := v["name"].(string)
 			if !ok {
@@ -1165,7 +1166,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			}
 			diskEncryptionSetID, ok := v["disk_encryption_set_id"].(string)
 			if !ok {
-				return fmt.Errorf("failed to read new disk Encryption Eet ID for Data Disk %q (resource group %q)", diskName, id.ResourceGroup)
+				return fmt.Errorf("failed to read new Disk Encryption Set ID for Data Disk %q (resource group %q)", diskName, id.ResourceGroup)
 			}
 			diskUpdate := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
@@ -1184,6 +1185,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 
+		// TODO - Turn this into a helper for re-use on both OS Types and enable parallelism.
 		for _, v := range dataDisksForGrow {
 			diskName, ok := v["name"].(string)
 			if !ok {
@@ -1346,12 +1348,13 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	if features.VMDataDiskBeta() {
-		deleteDataDiskOnDeletion := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDiskOnDeletion
+		deleteDataDiskOnDeletion := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 
 		// delete any disks created with the VM if feature toggled to do so. "existing" disks are not affected.
 		if deleteDataDiskOnDeletion {
 			if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.DataDisks != nil {
 				dataDisks := *props.StorageProfile.DataDisks
+				// TODO - pull this out to a func to allow parallel ops
 				for _, v := range dataDisks {
 					if v.CreateOption == compute.DiskCreateOptionTypesEmpty && v.Name != nil {
 						deleteFuture, err := disksClient.Delete(ctx, id.ResourceGroup, *v.Name)
@@ -1360,7 +1363,7 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 						}
 
 						if err = deleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-							return fmt.Errorf("failure waiting for deletion of Data Disk%q (Virtual Machine %q / resource group %q): %+v", *v.Name, id.Name, id.ResourceGroup, err)
+							return fmt.Errorf("failure waiting for deletion of Data Disk %q (Virtual Machine %q / resource group %q): %+v", *v.Name, id.Name, id.ResourceGroup, err)
 						}
 					}
 				}

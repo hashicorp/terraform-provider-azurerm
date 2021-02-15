@@ -33,9 +33,6 @@ func TestAccLinuxVirtualMachine_dataDisksComplete(t *testing.T) {
 		t.Skip("skipping as In-line Data Disk beta is not enabled")
 	}
 
-	if !features.VMDataDiskBeta() {
-		t.Skip("skipping as In-line Data Disk beta is not enabled")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
@@ -205,6 +202,32 @@ func TestAccLinuxVirtualMachine_dataDisksExistingDisk(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.dataDisksExistingDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_dataDisksExistingDiskResize(t *testing.T) {
+	if !features.VMDataDiskBeta() {
+		t.Skip("skipping as In-line Data Disk beta is not enabled")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dataDisksExistingDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dataDisksExistingDiskResize(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -755,6 +778,69 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  data_disks {
+    existing {
+      managed_disk_id      = azurerm_managed_disk.test.id
+      lun                  = 1
+      caching              = "None"
+      storage_account_type = "Standard_LRS"
+    }
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) dataDisksExistingDiskResize(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctested-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "2"
 
   tags = {
     environment = "acctest"
