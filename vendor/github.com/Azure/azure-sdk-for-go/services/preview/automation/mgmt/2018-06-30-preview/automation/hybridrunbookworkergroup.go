@@ -259,6 +259,7 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context
 	}
 	if result.hrwglr.hasNextLink() && result.hrwglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -323,7 +324,6 @@ func (client HybridRunbookWorkerGroupClient) listByAutomationAccountNextResults(
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

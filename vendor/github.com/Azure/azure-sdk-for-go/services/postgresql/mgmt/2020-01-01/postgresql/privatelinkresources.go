@@ -179,6 +179,7 @@ func (client PrivateLinkResourcesClient) ListByServer(ctx context.Context, resou
 	}
 	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -240,7 +241,6 @@ func (client PrivateLinkResourcesClient) listByServerNextResults(ctx context.Con
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresql.PrivateLinkResourcesClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

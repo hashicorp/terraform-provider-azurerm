@@ -231,6 +231,7 @@ func (client ReplicationProtectionIntentsClient) List(ctx context.Context) (resu
 	}
 	if result.rpic.hasNextLink() && result.rpic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -292,7 +293,6 @@ func (client ReplicationProtectionIntentsClient) listNextResults(ctx context.Con
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionIntentsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

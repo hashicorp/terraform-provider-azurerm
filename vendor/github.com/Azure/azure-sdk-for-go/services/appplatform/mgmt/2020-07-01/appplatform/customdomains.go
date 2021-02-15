@@ -68,7 +68,7 @@ func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGr
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,33 @@ func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (futur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomDomainsClient) (cdr CustomDomainResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cdr.Response.Response, err = future.GetResult(sender)
+		if cdr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cdr.Response.Response.StatusCode != http.StatusNoContent {
+			cdr, err = client.CreateOrUpdateResponder(cdr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsCreateOrUpdateFuture", "Result", cdr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -150,7 +176,7 @@ func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +214,23 @@ func (client CustomDomainsClient) DeleteSender(req *http.Request) (future Custom
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomDomainsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -322,6 +364,7 @@ func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName st
 	}
 	if result.cdrc.hasNextLink() && result.cdrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -384,7 +427,6 @@ func (client CustomDomainsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -432,7 +474,7 @@ func (client CustomDomainsClient) Update(ctx context.Context, resourceGroupName 
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -472,7 +514,33 @@ func (client CustomDomainsClient) UpdateSender(req *http.Request) (future Custom
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomDomainsClient) (cdr CustomDomainResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.CustomDomainsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cdr.Response.Response, err = future.GetResult(sender)
+		if cdr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cdr.Response.Response.StatusCode != http.StatusNoContent {
+			cdr, err = client.UpdateResponder(cdr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsUpdateFuture", "Result", cdr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

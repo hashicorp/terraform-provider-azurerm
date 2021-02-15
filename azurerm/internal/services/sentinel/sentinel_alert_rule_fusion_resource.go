@@ -28,7 +28,7 @@ func resourceSentinelAlertRuleFusion() *schema.Resource {
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.AlertRuleID(id)
 			return err
-		}, importSentinelAlertRule(securityinsight.Fusion)),
+		}, importSentinelAlertRule(securityinsight.AlertRuleKindFusion)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -110,7 +110,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta in
 			return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Value, securityinsight.Fusion); err != nil {
+		if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindFusion); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 		params.Etag = resp.Value.(securityinsight.FusionAlertRule).Etag
@@ -146,7 +146,7 @@ func resourceSentinelAlertRuleFusionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
-	if err := assertAlertRuleKind(resp.Value, securityinsight.Fusion); err != nil {
+	if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindFusion); err != nil {
 		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 	}
 	rule := resp.Value.(securityinsight.FusionAlertRule)

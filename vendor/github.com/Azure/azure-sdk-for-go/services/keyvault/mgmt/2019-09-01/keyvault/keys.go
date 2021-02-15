@@ -354,6 +354,7 @@ func (client KeysClient) List(ctx context.Context, resourceGroupName string, vau
 	}
 	if result.klr.hasNextLink() && result.klr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -415,7 +416,6 @@ func (client KeysClient) listNextResults(ctx context.Context, lastResults KeyLis
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -481,6 +481,7 @@ func (client KeysClient) ListVersions(ctx context.Context, resourceGroupName str
 	}
 	if result.klr.hasNextLink() && result.klr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -543,7 +544,6 @@ func (client KeysClient) listVersionsNextResults(ctx context.Context, lastResult
 	result, err = client.ListVersionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "listVersionsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

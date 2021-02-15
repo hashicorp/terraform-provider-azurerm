@@ -144,7 +144,7 @@ func (client ConfigServersClient) UpdatePatch(ctx context.Context, resourceGroup
 
 	result, err = client.UpdatePatchSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePatch", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePatch", nil, "Failure sending request")
 		return
 	}
 
@@ -182,7 +182,33 @@ func (client ConfigServersClient) UpdatePatchSender(req *http.Request) (future C
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigServersClient) (csr ConfigServerResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePatchFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersUpdatePatchFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		csr.Response.Response, err = future.GetResult(sender)
+		if csr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePatchFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && csr.Response.Response.StatusCode != http.StatusNoContent {
+			csr, err = client.UpdatePatchResponder(csr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePatchFuture", "Result", csr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -234,7 +260,7 @@ func (client ConfigServersClient) UpdatePut(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdatePutSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePut", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "UpdatePut", nil, "Failure sending request")
 		return
 	}
 
@@ -272,7 +298,33 @@ func (client ConfigServersClient) UpdatePutSender(req *http.Request) (future Con
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigServersClient) (csr ConfigServerResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePutFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersUpdatePutFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		csr.Response.Response, err = future.GetResult(sender)
+		if csr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePutFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && csr.Response.Response.StatusCode != http.StatusNoContent {
+			csr, err = client.UpdatePutResponder(csr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.ConfigServersUpdatePutFuture", "Result", csr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -320,7 +372,7 @@ func (client ConfigServersClient) Validate(ctx context.Context, resourceGroupNam
 
 	result, err = client.ValidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "Validate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ConfigServersClient", "Validate", nil, "Failure sending request")
 		return
 	}
 
@@ -358,7 +410,33 @@ func (client ConfigServersClient) ValidateSender(req *http.Request) (future Conf
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigServersClient) (cssvr ConfigServerSettingsValidateResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersValidateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.ConfigServersValidateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cssvr.Response.Response, err = future.GetResult(sender)
+		if cssvr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ConfigServersValidateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cssvr.Response.Response.StatusCode != http.StatusNoContent {
+			cssvr, err = client.ValidateResponder(cssvr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.ConfigServersValidateFuture", "Result", cssvr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

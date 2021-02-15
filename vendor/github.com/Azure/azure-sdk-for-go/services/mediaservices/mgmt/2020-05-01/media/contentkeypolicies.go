@@ -404,6 +404,7 @@ func (client ContentKeyPoliciesClient) List(ctx context.Context, resourceGroupNa
 	}
 	if result.ckpc.hasNextLink() && result.ckpc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -474,7 +475,6 @@ func (client ContentKeyPoliciesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

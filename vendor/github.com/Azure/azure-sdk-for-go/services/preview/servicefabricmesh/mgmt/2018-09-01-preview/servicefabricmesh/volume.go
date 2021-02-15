@@ -322,6 +322,7 @@ func (client VolumeClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	}
 	if result.vrdl.hasNextLink() && result.vrdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -382,7 +383,6 @@ func (client VolumeClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.VolumeClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -437,6 +437,7 @@ func (client VolumeClient) ListBySubscription(ctx context.Context) (result Volum
 	}
 	if result.vrdl.hasNextLink() && result.vrdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -496,7 +497,6 @@ func (client VolumeClient) listBySubscriptionNextResults(ctx context.Context, la
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.VolumeClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

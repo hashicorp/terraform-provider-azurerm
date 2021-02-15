@@ -246,6 +246,7 @@ func (client DatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx context.Cont
 	}
 	if result.dbaplr.hasNextLink() && result.dbaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -308,7 +309,6 @@ func (client DatabaseBlobAuditingPoliciesClient) listByDatabaseNextResults(ctx c
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

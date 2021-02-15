@@ -85,7 +85,7 @@ func (client LiveOutputsClient) Create(ctx context.Context, resourceGroupName st
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -125,7 +125,33 @@ func (client LiveOutputsClient) CreateSender(req *http.Request) (future LiveOutp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LiveOutputsClient) (lo LiveOutput, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "media.LiveOutputsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("media.LiveOutputsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		lo.Response.Response, err = future.GetResult(sender)
+		if lo.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "media.LiveOutputsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && lo.Response.Response.StatusCode != http.StatusNoContent {
+			lo, err = client.CreateResponder(lo.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "media.LiveOutputsCreateFuture", "Result", lo.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -178,7 +204,7 @@ func (client LiveOutputsClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -216,7 +242,23 @@ func (client LiveOutputsClient) DeleteSender(req *http.Request) (future LiveOutp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LiveOutputsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "media.LiveOutputsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("media.LiveOutputsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -368,6 +410,7 @@ func (client LiveOutputsClient) List(ctx context.Context, resourceGroupName stri
 	}
 	if result.lolr.hasNextLink() && result.lolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -430,7 +473,6 @@ func (client LiveOutputsClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

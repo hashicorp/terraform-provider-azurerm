@@ -323,6 +323,7 @@ func (client VirtualNetworkRulesClient) ListByAccount(ctx context.Context, resou
 	}
 	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -384,7 +385,6 @@ func (client VirtualNetworkRulesClient) listByAccountNextResults(ctx context.Con
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

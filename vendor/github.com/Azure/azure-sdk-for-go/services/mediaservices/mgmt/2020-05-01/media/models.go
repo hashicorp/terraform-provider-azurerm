@@ -6565,174 +6565,64 @@ func (lep LiveEventProperties) MarshalJSON() ([]byte, error) {
 // LiveEventsAllocateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsAllocateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsAllocateFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsAllocateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsAllocateFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (autorest.Response, error)
 }
 
 // LiveEventsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsCreateFuture) Result(client LiveEventsClient) (le LiveEvent, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if le.Response.Response, err = future.GetResult(sender); err == nil && le.Response.Response.StatusCode != http.StatusNoContent {
-		le, err = client.CreateResponder(le.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "media.LiveEventsCreateFuture", "Result", le.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (LiveEvent, error)
 }
 
 // LiveEventsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsDeleteFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (autorest.Response, error)
 }
 
 // LiveEventsResetFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsResetFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsResetFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsResetFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsResetFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (autorest.Response, error)
 }
 
 // LiveEventsStartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsStartFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (autorest.Response, error)
 }
 
 // LiveEventsStopFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsStopFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsStopFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsStopFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (autorest.Response, error)
 }
 
 // LiveEventsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveEventsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveEventsUpdateFuture) Result(client LiveEventsClient) (le LiveEvent, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveEventsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveEventsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if le.Response.Response, err = future.GetResult(sender); err == nil && le.Response.Response.StatusCode != http.StatusNoContent {
-		le, err = client.UpdateResponder(le.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "media.LiveEventsUpdateFuture", "Result", le.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveEventsClient) (LiveEvent, error)
 }
 
 // LiveEventTranscription describes the transcription tracks in the output of a live event, generated using
@@ -7032,53 +6922,19 @@ func (lop LiveOutputProperties) MarshalJSON() ([]byte, error) {
 // LiveOutputsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveOutputsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveOutputsCreateFuture) Result(client LiveOutputsClient) (lo LiveOutput, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveOutputsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveOutputsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if lo.Response.Response, err = future.GetResult(sender); err == nil && lo.Response.Response.StatusCode != http.StatusNoContent {
-		lo, err = client.CreateResponder(lo.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "media.LiveOutputsCreateFuture", "Result", lo.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveOutputsClient) (LiveOutput, error)
 }
 
 // LiveOutputsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LiveOutputsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LiveOutputsDeleteFuture) Result(client LiveOutputsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.LiveOutputsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.LiveOutputsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LiveOutputsClient) (autorest.Response, error)
 }
 
 // Location ...
@@ -9125,151 +8981,55 @@ func (sep StreamingEndpointProperties) MarshalJSON() ([]byte, error) {
 // StreamingEndpointsCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type StreamingEndpointsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingEndpointsCreateFuture) Result(client StreamingEndpointsClient) (se StreamingEndpoint, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.StreamingEndpointsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if se.Response.Response, err = future.GetResult(sender); err == nil && se.Response.Response.StatusCode != http.StatusNoContent {
-		se, err = client.CreateResponder(se.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "media.StreamingEndpointsCreateFuture", "Result", se.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingEndpointsClient) (StreamingEndpoint, error)
 }
 
 // StreamingEndpointsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type StreamingEndpointsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingEndpointsDeleteFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.StreamingEndpointsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingEndpointsClient) (autorest.Response, error)
 }
 
 // StreamingEndpointsScaleFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type StreamingEndpointsScaleFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingEndpointsScaleFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsScaleFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.StreamingEndpointsScaleFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingEndpointsClient) (autorest.Response, error)
 }
 
 // StreamingEndpointsStartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type StreamingEndpointsStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingEndpointsStartFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.StreamingEndpointsStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingEndpointsClient) (autorest.Response, error)
 }
 
 // StreamingEndpointsStopFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type StreamingEndpointsStopFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingEndpointsStopFuture) Result(client StreamingEndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.StreamingEndpointsStopFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingEndpointsClient) (autorest.Response, error)
 }
 
 // StreamingEndpointsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type StreamingEndpointsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingEndpointsUpdateFuture) Result(client StreamingEndpointsClient) (se StreamingEndpoint, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("media.StreamingEndpointsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if se.Response.Response, err = future.GetResult(sender); err == nil && se.Response.Response.StatusCode != http.StatusNoContent {
-		se, err = client.UpdateResponder(se.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "media.StreamingEndpointsUpdateFuture", "Result", se.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingEndpointsClient) (StreamingEndpoint, error)
 }
 
 // StreamingEntityScaleUnit scale units definition

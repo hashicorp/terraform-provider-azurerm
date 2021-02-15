@@ -76,6 +76,7 @@ func (client TenantsClient) List(ctx context.Context) (result TenantListResultPa
 	}
 	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client TenantsClient) listNextResults(ctx context.Context, lastResults Ten
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

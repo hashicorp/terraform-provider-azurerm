@@ -80,6 +80,7 @@ func (client PermissionsClient) ListForResource(ctx context.Context, resourceGro
 	}
 	if result.pgr.hasNextLink() && result.pgr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -144,7 +145,6 @@ func (client PermissionsClient) listForResourceNextResults(ctx context.Context, 
 	result, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "listForResourceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -200,6 +200,7 @@ func (client PermissionsClient) ListForResourceGroup(ctx context.Context, resour
 	}
 	if result.pgr.hasNextLink() && result.pgr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -260,7 +261,6 @@ func (client PermissionsClient) listForResourceGroupNextResults(ctx context.Cont
 	result, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "listForResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

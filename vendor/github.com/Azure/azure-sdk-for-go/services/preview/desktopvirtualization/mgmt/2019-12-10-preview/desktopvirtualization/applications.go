@@ -377,6 +377,7 @@ func (client ApplicationsClient) List(ctx context.Context, resourceGroupName str
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -438,7 +439,6 @@ func (client ApplicationsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -157,6 +157,7 @@ func (client LoadBalancerFrontendIPConfigurationsClient) List(ctx context.Contex
 	}
 	if result.lbficlr.hasNextLink() && result.lbficlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -218,7 +219,6 @@ func (client LoadBalancerFrontendIPConfigurationsClient) listNextResults(ctx con
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancerFrontendIPConfigurationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

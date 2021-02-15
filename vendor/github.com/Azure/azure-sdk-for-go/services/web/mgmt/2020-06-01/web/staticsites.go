@@ -1116,6 +1116,7 @@ func (client StaticSitesClient) GetStaticSiteBuilds(ctx context.Context, resourc
 	}
 	if result.ssbc.hasNextLink() && result.ssbc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1177,7 +1178,6 @@ func (client StaticSitesClient) getStaticSiteBuildsNextResults(ctx context.Conte
 	result, err = client.GetStaticSiteBuildsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "getStaticSiteBuildsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1241,6 +1241,7 @@ func (client StaticSitesClient) GetStaticSitesByResourceGroup(ctx context.Contex
 	}
 	if result.ssc.hasNextLink() && result.ssc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1301,7 +1302,6 @@ func (client StaticSitesClient) getStaticSitesByResourceGroupNextResults(ctx con
 	result, err = client.GetStaticSitesByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "getStaticSitesByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1355,6 +1355,7 @@ func (client StaticSitesClient) List(ctx context.Context) (result StaticSiteColl
 	}
 	if result.ssc.hasNextLink() && result.ssc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1414,7 +1415,6 @@ func (client StaticSitesClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1566,6 +1566,7 @@ func (client StaticSitesClient) ListStaticSiteBuildFunctions(ctx context.Context
 	}
 	if result.ssfoc.hasNextLink() && result.ssfoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1628,7 +1629,6 @@ func (client StaticSitesClient) listStaticSiteBuildFunctionsNextResults(ctx cont
 	result, err = client.ListStaticSiteBuildFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "listStaticSiteBuildFunctionsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1693,6 +1693,7 @@ func (client StaticSitesClient) ListStaticSiteCustomDomains(ctx context.Context,
 	}
 	if result.sscdoc.hasNextLink() && result.sscdoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1754,7 +1755,6 @@ func (client StaticSitesClient) listStaticSiteCustomDomainsNextResults(ctx conte
 	result, err = client.ListStaticSiteCustomDomainsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "listStaticSiteCustomDomainsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1903,6 +1903,7 @@ func (client StaticSitesClient) ListStaticSiteFunctions(ctx context.Context, res
 	}
 	if result.ssfoc.hasNextLink() && result.ssfoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1964,7 +1965,6 @@ func (client StaticSitesClient) listStaticSiteFunctionsNextResults(ctx context.C
 	result, err = client.ListStaticSiteFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "listStaticSiteFunctionsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -2114,6 +2114,7 @@ func (client StaticSitesClient) ListStaticSiteUsers(ctx context.Context, resourc
 	}
 	if result.ssuc.hasNextLink() && result.ssuc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -2176,7 +2177,6 @@ func (client StaticSitesClient) listStaticSiteUsersNextResults(ctx context.Conte
 	result, err = client.ListStaticSiteUsersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "listStaticSiteUsersNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

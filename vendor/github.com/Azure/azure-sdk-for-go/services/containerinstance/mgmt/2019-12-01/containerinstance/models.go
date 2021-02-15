@@ -903,105 +903,37 @@ type ContainerGroupPropertiesInstanceView struct {
 // ContainerGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ContainerGroupsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsCreateOrUpdateFuture) Result(client ContainerGroupsClient) (cg ContainerGroup, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cg.Response.Response, err = future.GetResult(sender); err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
-		cg, err = client.CreateOrUpdateResponder(cg.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", cg.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (ContainerGroup, error)
 }
 
 // ContainerGroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ContainerGroupsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsDeleteFuture) Result(client ContainerGroupsClient) (cg ContainerGroup, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cg.Response.Response, err = future.GetResult(sender); err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
-		cg, err = client.DeleteResponder(cg.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", cg.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (ContainerGroup, error)
 }
 
 // ContainerGroupsRestartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ContainerGroupsRestartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsRestartFuture) Result(client ContainerGroupsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsRestartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsRestartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (autorest.Response, error)
 }
 
 // ContainerGroupsStartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ContainerGroupsStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsStartFuture) Result(client ContainerGroupsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (autorest.Response, error)
 }
 
 // ContainerHTTPGet the container Http Get settings, for liveness or readiness probe

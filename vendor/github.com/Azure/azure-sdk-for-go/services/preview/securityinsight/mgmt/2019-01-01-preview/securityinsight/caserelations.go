@@ -394,6 +394,7 @@ func (client CaseRelationsClient) List(ctx context.Context, resourceGroupName st
 	}
 	if result.crl.hasNextLink() && result.crl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -469,7 +470,6 @@ func (client CaseRelationsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -96,6 +96,7 @@ func (client TenantActivityLogsClient) List(ctx context.Context, filter string, 
 	}
 	if result.edc.hasNextLink() && result.edc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -157,7 +158,6 @@ func (client TenantActivityLogsClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.TenantActivityLogsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
