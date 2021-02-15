@@ -16,7 +16,6 @@ import (
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -576,7 +575,7 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	if existingDisksRaw, ok := dataDisks["existing"]; ok {
-		existingDisks, err := expandVirtualMachineExistingDataDisksForCreate(existingDisksRaw, d, meta)
+		existingDisks, err := expandVirtualMachineExistingDataDisksForCreate(ctx, existingDisksRaw, d, meta)
 		if err != nil {
 			return nil, err
 		}
@@ -669,14 +668,12 @@ func expandVirtualMachineLocalDataDisksForUpdate(ctx context.Context, input inte
 	return dataDisks, nil
 }
 
-func expandVirtualMachineExistingDataDisksForCreate(input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
+func expandVirtualMachineExistingDataDisksForCreate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
 	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return []compute.DataDisk{}, nil
 	}
 
 	disksClient := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	var dataDisks []compute.DataDisk
 
