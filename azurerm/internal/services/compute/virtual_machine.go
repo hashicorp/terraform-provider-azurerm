@@ -423,9 +423,9 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"local": virtualMachineLocalDataDiskSchema(),
+				"create": virtualMachineLocalDataDiskSchema(),
 
-				"existing": virtualMachineExistingDataDiskSchema(),
+				"attach": virtualMachineExistingDataDiskSchema(),
 			},
 		},
 	}
@@ -561,7 +561,7 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 
 	result := make([]compute.DataDisk, 0)
 	dataDisks := dataDisksRaw[0].(map[string]interface{})
-	if newDisksRaw, ok := dataDisks["local"]; ok {
+	if newDisksRaw, ok := dataDisks["create"]; ok {
 		var newDisks []compute.DataDisk
 		if d.IsNewResource() {
 			newDisks = expandVirtualMachineNewDataDisksForCreate(newDisksRaw)
@@ -574,13 +574,13 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 		result = append(result, newDisks...)
 	}
 
-	if existingDisksRaw, ok := dataDisks["existing"]; ok {
-		existingDisks, err := expandVirtualMachineExistingDataDisksForCreate(ctx, existingDisksRaw, d, meta)
+	if attachDisksRaw, ok := dataDisks["attach"]; ok {
+		attachDisks, err := expandVirtualMachineExistingDataDisksForCreate(ctx, attachDisksRaw, d, meta)
 		if err != nil {
 			return nil, err
 		}
 
-		result = append(result, existingDisks...)
+		result = append(result, attachDisks...)
 	}
 
 	return &result, nil
@@ -688,18 +688,18 @@ func expandVirtualMachineExistingDataDisksForCreate(ctx context.Context, input i
 			}
 			continue
 		}
-		existing, err := disksClient.Get(ctx, diskID.ResourceGroup, diskID.DiskName)
+		attach, err := disksClient.Get(ctx, diskID.ResourceGroup, diskID.DiskName)
 		if err != nil {
-			return nil, fmt.Errorf("failed retrieving details for existing Managed Disk %q (resource group %q: %+v", diskID.DiskName, diskID.ResourceGroup, err)
+			return nil, fmt.Errorf("failed retrieving details for attached Managed Disk %q (resource group %q: %+v", diskID.DiskName, diskID.ResourceGroup, err)
 		}
 		dataDisk := compute.DataDisk{}
 		dataDisk.Name = &diskID.DiskName
 		dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
 
-		if existing.DiskSizeGB == nil {
-			return nil, fmt.Errorf("failed reading `disk_size_gb` from existing Managed Disk %q (resource group %q)", diskID.DiskName, diskID.ResourceGroup)
+		if attach.DiskSizeGB == nil {
+			return nil, fmt.Errorf("failed reading `disk_size_gb` from attached Managed Disk %q (resource group %q)", diskID.DiskName, diskID.ResourceGroup)
 		}
-		dataDisk.DiskSizeGB = existing.DiskSizeGB
+		dataDisk.DiskSizeGB = attach.DiskSizeGB
 
 		dataDisk.Caching = compute.CachingTypes(disk["caching"].(string))
 		dataDisk.Lun = utils.Int32(int32(disk["lun"].(int)))
@@ -724,8 +724,8 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 	}
 
 	var newDisks []interface{}
-	var existingDisks []interface{}
-	// we need to split into new and "existing", we can use `createOption` as indicator
+	var attachDisks []interface{}
+	// we need to split into new and "attach", we can use `createOption` as indicator
 
 	for _, v := range *input {
 		dataDisk := make(map[string]interface{})
@@ -784,7 +784,7 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 			dataDisk["storage_account_type"] = storageAccountType
 
 			dataDisk["managed_disk_id"] = managedDiskID
-			existingDisks = append(existingDisks, dataDisk)
+			attachDisks = append(attachDisks, dataDisk)
 
 		default:
 			return nil, fmt.Errorf("unsupported `createOption` type while flattening: %s", string(createOption))
@@ -792,8 +792,8 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"local":    schema.NewSet(resourceArmVirtualMachineNewDataDiskHash, newDisks),
-			"existing": existingDisks,
+			"create": schema.NewSet(resourceArmVirtualMachineNewDataDiskHash, newDisks),
+			"attach": attachDisks,
 		},
 	}, nil
 }

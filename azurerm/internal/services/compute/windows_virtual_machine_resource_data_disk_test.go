@@ -263,7 +263,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                 = "acctest-localdisk"
       lun                  = 1
       caching              = "None"
@@ -371,7 +371,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                 = "acctest-localdisk"
       lun                  = 1
       caching              = "None"
@@ -379,7 +379,7 @@ resource "azurerm_windows_virtual_machine" "test" {
       disk_size_gb         = 1
     }
 
-    local {
+    create {
       name                 = "acctest-localdisk2"
       lun                  = 2
       caching              = "ReadOnly"
@@ -387,7 +387,7 @@ resource "azurerm_windows_virtual_machine" "test" {
       disk_size_gb         = 2
     }
 
-    local {
+    create {
       name                 = "acctest-localdisk3"
       lun                  = 3
       caching              = "ReadWrite"
@@ -395,14 +395,14 @@ resource "azurerm_windows_virtual_machine" "test" {
       disk_size_gb         = 3
     }
 
-    existing {
+    attach {
       managed_disk_id      = azurerm_managed_disk.test1.id
       lun                  = 10
       caching              = "None"
       storage_account_type = "Standard_LRS"
     }
 
-    existing {
+    attach {
       managed_disk_id      = azurerm_managed_disk.test2.id
       lun                  = 11
       caching              = "ReadOnly"
@@ -477,7 +477,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                 = "acctest-localdisk"
       lun                  = 1
       caching              = "None"
@@ -485,7 +485,7 @@ resource "azurerm_windows_virtual_machine" "test" {
       disk_size_gb         = 1
     }
 
-    local {
+    create {
       name                 = "acctest-localdisk2"
       lun                  = 2
       caching              = "ReadOnly"
@@ -493,14 +493,14 @@ resource "azurerm_windows_virtual_machine" "test" {
       disk_size_gb         = 4
     }
 
-    existing {
+    attach {
       managed_disk_id      = azurerm_managed_disk.test1.id
       lun                  = 10
       caching              = "None"
       storage_account_type = "Standard_LRS"
     }
 
-    existing {
+    attach {
       managed_disk_id      = azurerm_managed_disk.test2.id
       lun                  = 11
       caching              = "ReadWrite"
@@ -546,7 +546,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                 = "acctest-localdisk"
       lun                  = 1
       caching              = "ReadOnly"
@@ -589,7 +589,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                   = "acctest-localdisk"
       lun                    = 1
       caching                = "ReadOnly"
@@ -659,7 +659,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                   = "acctest-localdisk"
       lun                    = 1
       caching                = "ReadOnly"
@@ -707,7 +707,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    local {
+    create {
       name                 = "acctest-localdisk"
       lun                  = 1
       caching              = "ReadOnly"
@@ -715,7 +715,7 @@ resource "azurerm_windows_virtual_machine" "test" {
       disk_size_gb         = 2
     }
 
-    local {
+    create {
       name                 = "acctest-localdisk2"
       lun                  = 2
       caching              = "ReadOnly"
@@ -776,7 +776,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    existing {
+    attach {
       managed_disk_id      = azurerm_managed_disk.test.id
       lun                  = 1
       caching              = "None"
@@ -836,7 +836,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   data_disks {
-    existing {
+    attach {
       managed_disk_id      = azurerm_managed_disk.test.id
       lun                  = 1
       caching              = "None"

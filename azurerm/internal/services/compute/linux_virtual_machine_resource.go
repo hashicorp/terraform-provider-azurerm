@@ -902,7 +902,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	if features.VMDataDiskBeta() && d.HasChange("data_disks") {
 		shouldUpdate = true
 
-		oldRaw, newRaw := d.GetChange("data_disks.0.local")
+		oldRaw, newRaw := d.GetChange("data_disks.0.create")
 		oldDisks := oldRaw.(*schema.Set).List()
 		newDisks := newRaw.(*schema.Set).List()
 		for _, o := range oldDisks {
@@ -912,7 +912,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 					newDisk := n.(map[string]interface{})
 					if newDiskName, ok := newDisk["name"]; ok && oldDiskName.(string) == newDiskName.(string) {
 						if newDisk["disk_size_gb"].(int) < oldDisk["disk_size_gb"].(int) {
-							return fmt.Errorf("new disk size cannot be smaller than existing for %q, in Virtual Machine %q (resource group %q)", oldDisk["name"], id.Name, id.ResourceGroup)
+							return fmt.Errorf("new disk size cannot be smaller than current size for %q, in Virtual Machine %q (resource group %q)", oldDisk["name"], id.Name, id.ResourceGroup)
 						} else if newDisk["disk_size_gb"].(int) > oldDisk["disk_size_gb"].(int) {
 							shouldShutDown = true
 							shouldDeallocate = true
@@ -926,13 +926,13 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 		// EncryptionSet changes for "existing" disks
-		oldExistingRaw, newExistingRaw := d.GetChange("data_disks.0.existing")
-		oldExisting := oldExistingRaw.(*schema.Set).List()
-		newExisting := newExistingRaw.(*schema.Set).List()
-		for _, o := range oldExisting {
+		oldAttachedRaw, newAttachedRaw := d.GetChange("data_disks.0.attach")
+		oldAttached := oldAttachedRaw.(*schema.Set).List()
+		newAttached := newAttachedRaw.(*schema.Set).List()
+		for _, o := range oldAttached {
 			oldDisk := o.(map[string]interface{})
 			if oldDiskID, ok := oldDisk["managed_disk_id"]; ok {
-				for _, n := range newExisting {
+				for _, n := range newAttached {
 					newDisk := n.(map[string]interface{})
 					if newDiskID, ok := newDisk["managed_disk_id"]; ok && oldDiskID.(string) == newDiskID.(string) {
 						if newDisk["disk_encryption_set_id"].(string) != oldDisk["disk_encryption_set_id"].(string) {
@@ -1148,7 +1148,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if features.VMDataDiskBeta() && d.HasChanges("data_disks.0.local", "data_disks.0.existing") {
+	if features.VMDataDiskBeta() && d.HasChanges("data_disks.0.create", "data_disks.0.attach") {
 		shouldUpdate = true
 		dataDisks, err := expandVirtualMachineDataDisks(ctx, d, meta)
 		if err != nil {
