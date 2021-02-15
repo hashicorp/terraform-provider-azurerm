@@ -12,6 +12,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func schemaNetworkProfileForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem:     resourceVirtualMachineScaleSet().Schema["network_profile"].Elem,
+	}
+}
+
 func dataSourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceVirtualMachineScaleSetRead,
@@ -30,6 +38,8 @@ func dataSourceVirtualMachineScaleSet() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
+
+			"network_profile": schemaNetworkProfileForDataSource(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -87,7 +97,12 @@ func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
+		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
+	}
+
+	flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(resp.VirtualMachineProfile.NetworkProfile)
+	if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
 	}
 
 	return nil
