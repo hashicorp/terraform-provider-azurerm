@@ -184,6 +184,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Streaming Endpoint.
 
+* `host_name` - The host name of the Streaming Endpoint.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

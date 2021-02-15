@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
@@ -29,7 +30,7 @@ func resourceRouteTable() *schema.Resource {
 		Delete: resourceRouteTableDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseRouteTableID(id)
+			_, err := parse.RouteTableID(id)
 			return err
 		}),
 
@@ -174,7 +175,7 @@ func resourceRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteTableID(d.Id())
+	id, err := parse.RouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -213,7 +214,7 @@ func resourceRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteTableID(d.Id())
+	id, err := parse.RouteTableID(d.Id())
 	if err != nil {
 		return err
 	}

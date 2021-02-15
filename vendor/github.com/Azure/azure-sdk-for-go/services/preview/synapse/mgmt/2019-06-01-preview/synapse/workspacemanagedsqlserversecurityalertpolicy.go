@@ -78,7 +78,7 @@ func (client WorkspaceManagedSQLServerSecurityAlertPolicyClient) CreateOrUpdate(
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -117,7 +117,33 @@ func (client WorkspaceManagedSQLServerSecurityAlertPolicyClient) CreateOrUpdateS
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkspaceManagedSQLServerSecurityAlertPolicyClient) (ssap ServerSecurityAlertPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.WorkspaceManagedSQLServerSecurityAlertPolicyCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ssap.Response.Response, err = future.GetResult(sender)
+		if ssap.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ssap.Response.Response.StatusCode != http.StatusNoContent {
+			ssap, err = client.CreateOrUpdateResponder(ssap.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerSecurityAlertPolicyCreateOrUpdateFuture", "Result", ssap.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

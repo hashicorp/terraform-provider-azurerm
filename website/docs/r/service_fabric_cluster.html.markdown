@@ -72,11 +72,13 @@ The following arguments are supported:
 
 * `certificate` - (Optional) A `certificate` block as defined below. Conflicts with `certificate_common_names`.
 
-* `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
+* `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below. Conflicts with `reverse_proxy_certificate_common_names`.
 
-* `client_certificate_thumbprint` - (Optional) One or more `client_certificate_thumbprint` blocks as defined below. 
+* `reverse_proxy_certificate_common_names` - (Optional) A `reverse_proxy_certificate_common_names` block as defined below. Conflicts with `reverse_proxy_certificate`.
 
-* `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below. 
+* `client_certificate_thumbprint` - (Optional) One or more `client_certificate_thumbprint` blocks as defined below.
+
+* `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below.
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
@@ -131,6 +133,14 @@ A `reverse_proxy_certificate` block supports the following:
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
 * `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `reverse_proxy_certificate_common_names` block supports the following:
+
+* `common_names` - (Required) A `common_names` block as defined below.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 

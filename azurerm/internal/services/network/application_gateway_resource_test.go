@@ -562,7 +562,7 @@ func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testin
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_certificate.0.name").HasValue("acctestcertificate1"),
-				testCheckApplicationGatewayChangeCert(data.ResourceName, "acctestcertificate2"),
+				data.CheckWithClient(r.changeCert("acctestcertificate2")),
 			),
 		},
 		{
@@ -3796,21 +3796,12 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func testCheckApplicationGatewayChangeCert(resourceName, certName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		gatewayName := state.Attributes["name"]
+		resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		gatewayName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		agw, err := client.Get(ctx, resourceGroup, gatewayName)
+		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on ApplicationGatewaysClient: %+v", err)
 		}
@@ -3823,7 +3814,7 @@ func testCheckApplicationGatewayChangeCert(resourceName, certName string) resour
 
 		newSslCertificates := make([]network.ApplicationGatewaySslCertificate, 1)
 		newSslCertificates[0] = network.ApplicationGatewaySslCertificate{
-			Name: utils.String(certName),
+			Name: utils.String(certificateName),
 			Etag: utils.String("*"),
 
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
@@ -3834,12 +3825,12 @@ func testCheckApplicationGatewayChangeCert(resourceName, certName string) resour
 
 		agw.SslCertificates = &newSslCertificates
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
+		future, err := clients.Network.ApplicationGatewaysClient.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
 		if err != nil {
 			return fmt.Errorf("Bad: updating AGW: %+v", err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err := future.WaitForCompletionRef(ctx, clients.Network.ApplicationGatewaysClient.Client); err != nil {
 			return fmt.Errorf("Bad: waiting for update of AGW: %+v", err)
 		}
 

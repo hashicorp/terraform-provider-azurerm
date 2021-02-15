@@ -79,7 +79,7 @@ func (client ImportExportClient) Import(ctx context.Context, resourceGroupName s
 
 	result, err = client.ImportSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ImportExportClient", "Import", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ImportExportClient", "Import", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client ImportExportClient) ImportSender(req *http.Request) (future ImportE
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ImportExportClient) (ieor ImportExportOperationResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ImportExportImportFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ImportExportImportFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ieor.Response.Response, err = future.GetResult(sender)
+		if ieor.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ImportExportImportFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ieor.Response.Response.StatusCode != http.StatusNoContent {
+			ieor, err = client.ImportResponder(ieor.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ImportExportImportFuture", "Result", ieor.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

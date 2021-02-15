@@ -30,7 +30,7 @@ func resourceSentinelAlertRuleScheduled() *schema.Resource {
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.AlertRuleID(id)
 			return err
-		}, importSentinelAlertRule(securityinsight.Scheduled)),
+		}, importSentinelAlertRule(securityinsight.AlertRuleKindScheduled)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -331,7 +331,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta
 			return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Value, securityinsight.Scheduled); err != nil {
+		if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindScheduled); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 		param.Etag = resp.Value.(securityinsight.ScheduledAlertRule).Etag
@@ -367,7 +367,7 @@ func resourceSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q: %+v", id, err)
 	}
 
-	if err := assertAlertRuleKind(resp.Value, securityinsight.Scheduled); err != nil {
+	if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindScheduled); err != nil {
 		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 	}
 	rule := resp.Value.(securityinsight.ScheduledAlertRule)

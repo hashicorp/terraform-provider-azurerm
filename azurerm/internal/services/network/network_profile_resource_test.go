@@ -113,8 +113,7 @@ func (NetworkProfileResource) Destroy(ctx context.Context, client *clients.Clien
 	resourceGroup := id.ResourceGroup
 	name := id.Path["networkProfiles"]
 
-	_, err = client.Network.ProfileClient.Delete(ctx, resourceGroup, name)
-	if err != nil {
+	if _, err = client.Network.ProfileClient.Delete(ctx, resourceGroup, name); err != nil {
 		return nil, fmt.Errorf("deleting on Network Profile %q: %+v", id, err)
 	}
 

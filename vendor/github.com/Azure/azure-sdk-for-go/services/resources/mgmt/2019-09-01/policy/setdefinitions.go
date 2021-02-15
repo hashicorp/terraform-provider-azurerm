@@ -624,6 +624,7 @@ func (client SetDefinitionsClient) List(ctx context.Context) (result SetDefiniti
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -683,7 +684,6 @@ func (client SetDefinitionsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -737,6 +737,7 @@ func (client SetDefinitionsClient) ListBuiltIn(ctx context.Context) (result SetD
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -792,7 +793,6 @@ func (client SetDefinitionsClient) listBuiltInNextResults(ctx context.Context, l
 	result, err = client.ListBuiltInResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "listBuiltInNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -849,6 +849,7 @@ func (client SetDefinitionsClient) ListByManagementGroup(ctx context.Context, ma
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -908,7 +909,6 @@ func (client SetDefinitionsClient) listByManagementGroupNextResults(ctx context.
 	result, err = client.ListByManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "listByManagementGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -235,6 +235,7 @@ func (client WorkflowRunsClient) List(ctx context.Context, resourceGroupName str
 	}
 	if result.wrlr.hasNextLink() && result.wrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -302,7 +303,6 @@ func (client WorkflowRunsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

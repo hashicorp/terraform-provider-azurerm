@@ -11,19 +11,22 @@ import (
 )
 
 var kubernetesOtherTests = map[string]func(t *testing.T){
-	"basicAvailabilitySet":     testAccKubernetesCluster_basicAvailabilitySet,
-	"basicVMSS":                testAccKubernetesCluster_basicVMSS,
-	"requiresImport":           testAccKubernetesCluster_requiresImport,
-	"linuxProfile":             testAccKubernetesCluster_linuxProfile,
-	"nodeLabels":               testAccKubernetesCluster_nodeLabels,
-	"nodeResourceGroup":        testAccKubernetesCluster_nodeResourceGroup,
-	"paidSku":                  testAccKubernetesCluster_paidSku,
-	"upgradeConfig":            testAccKubernetesCluster_upgrade,
-	"tags":                     testAccKubernetesCluster_tags,
-	"windowsProfile":           testAccKubernetesCluster_windowsProfile,
-	"outboundTypeLoadBalancer": testAccKubernetesCluster_outboundTypeLoadBalancer,
-	"privateClusterOn":         testAccKubernetesCluster_privateClusterOn,
-	"privateClusterOff":        testAccKubernetesCluster_privateClusterOff,
+	"basicAvailabilitySet":           testAccKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                      testAccKubernetesCluster_basicVMSS,
+	"requiresImport":                 testAccKubernetesCluster_requiresImport,
+	"criticalAddonsTaint":            testAccKubernetesCluster_criticalAddonsTaint,
+	"linuxProfile":                   testAccKubernetesCluster_linuxProfile,
+	"nodeLabels":                     testAccKubernetesCluster_nodeLabels,
+	"nodeResourceGroup":              testAccKubernetesCluster_nodeResourceGroup,
+	"paidSku":                        testAccKubernetesCluster_paidSku,
+	"upgradeConfig":                  testAccKubernetesCluster_upgrade,
+	"tags":                           testAccKubernetesCluster_tags,
+	"windowsProfile":                 testAccKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer":       testAccKubernetesCluster_outboundTypeLoadBalancer,
+	"privateClusterOn":               testAccKubernetesCluster_privateClusterOn,
+	"privateClusterOff":              testAccKubernetesCluster_privateClusterOff,
+	"privateClusterPrivateDNS":       testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
+	"privateClusterPrivateDNSSystem": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
 }
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
@@ -142,6 +145,27 @@ func testAccKubernetesCluster_requiresImport(t *testing.T) {
 			Config:      r.requiresImportConfig(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_cluster"),
 		},
+	})
+}
+
+func TestAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_criticalAddonsTaint(t)
+}
+
+func testAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.criticalAddonsTaintConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.only_critical_addons_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -666,6 +690,38 @@ resource "azurerm_kubernetes_cluster" "import" {
 `, r.basicVMSSConfig(data))
 }
 
+func (KubernetesClusterResource) criticalAddonsTaintConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                         = "default"
+    node_count                   = 1
+    type                         = "AvailabilitySet"
+    vm_size                      = "Standard_DS2_v2"
+    only_critical_addons_enabled = true
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) linuxProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -970,7 +1026,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   windows_profile {
     admin_username = "azureuser"
-    admin_password = "P@55W0rd1234!"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
   }
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource

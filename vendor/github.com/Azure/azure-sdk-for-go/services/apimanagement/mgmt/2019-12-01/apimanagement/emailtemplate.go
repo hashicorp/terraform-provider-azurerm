@@ -459,6 +459,7 @@ func (client EmailTemplateClient) ListByService(ctx context.Context, resourceGro
 	}
 	if result.etc.hasNextLink() && result.etc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -529,7 +530,6 @@ func (client EmailTemplateClient) listByServiceNextResults(ctx context.Context, 
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

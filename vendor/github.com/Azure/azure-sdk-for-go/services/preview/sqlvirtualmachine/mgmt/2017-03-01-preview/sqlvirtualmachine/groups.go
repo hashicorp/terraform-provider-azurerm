@@ -68,7 +68,7 @@ func (client GroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -106,7 +106,33 @@ func (client GroupsClient) CreateOrUpdateSender(req *http.Request) (future Group
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (g Group, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		g.Response.Response, err = future.GetResult(sender)
+		if g.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && g.Response.Response.StatusCode != http.StatusNoContent {
+			g, err = client.CreateOrUpdateResponder(g.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", g.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -146,7 +172,7 @@ func (client GroupsClient) Delete(ctx context.Context, resourceGroupName string,
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -182,7 +208,23 @@ func (client GroupsClient) DeleteSender(req *http.Request) (future GroupsDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -307,6 +349,7 @@ func (client GroupsClient) List(ctx context.Context) (result GroupListResultPage
 	}
 	if result.glr.hasNextLink() && result.glr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -366,7 +409,6 @@ func (client GroupsClient) listNextResults(ctx context.Context, lastResults Grou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -423,6 +465,7 @@ func (client GroupsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	}
 	if result.glr.hasNextLink() && result.glr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -483,7 +526,6 @@ func (client GroupsClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -529,7 +571,7 @@ func (client GroupsClient) Update(ctx context.Context, resourceGroupName string,
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -567,7 +609,33 @@ func (client GroupsClient) UpdateSender(req *http.Request) (future GroupsUpdateF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (g Group, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		g.Response.Response, err = future.GetResult(sender)
+		if g.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && g.Response.Response.StatusCode != http.StatusNoContent {
+			g, err = client.UpdateResponder(g.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", g.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

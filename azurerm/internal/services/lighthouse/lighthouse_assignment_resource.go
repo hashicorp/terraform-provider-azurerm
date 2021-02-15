@@ -155,8 +155,7 @@ func resourceLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.Scope, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.Scope, id.Name); err != nil {
 		return fmt.Errorf("Error deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
 	}
 

@@ -246,7 +246,7 @@ func (client GroupsClient) Delete(ctx context.Context, resourceGroupName string)
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -281,7 +281,23 @@ func (client GroupsClient) DeleteSender(req *http.Request) (future GroupsDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.GroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.GroupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -327,7 +343,7 @@ func (client GroupsClient) ExportTemplate(ctx context.Context, resourceGroupName
 
 	result, err = client.ExportTemplateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "ExportTemplate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "ExportTemplate", nil, "Failure sending request")
 		return
 	}
 
@@ -364,7 +380,33 @@ func (client GroupsClient) ExportTemplateSender(req *http.Request) (future Group
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (ger GroupExportResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.GroupsExportTemplateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.GroupsExportTemplateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ger.Response.Response, err = future.GetResult(sender)
+		if ger.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "resources.GroupsExportTemplateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ger.Response.Response.StatusCode != http.StatusNoContent {
+			ger, err = client.ExportTemplateResponder(ger.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "resources.GroupsExportTemplateFuture", "Result", ger.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -499,6 +541,7 @@ func (client GroupsClient) List(ctx context.Context, filter string, top *int32) 
 	}
 	if result.glr.hasNextLink() && result.glr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -564,7 +607,6 @@ func (client GroupsClient) listNextResults(ctx context.Context, lastResults Grou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

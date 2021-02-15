@@ -149,6 +149,7 @@ func (client DeletedWebAppsClient) List(ctx context.Context) (result DeletedWebA
 	}
 	if result.dwac.hasNextLink() && result.dwac.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -208,7 +209,6 @@ func (client DeletedWebAppsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DeletedWebAppsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -262,6 +262,7 @@ func (client DeletedWebAppsClient) ListByLocation(ctx context.Context, location 
 	}
 	if result.dwac.hasNextLink() && result.dwac.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -322,7 +323,6 @@ func (client DeletedWebAppsClient) listByLocationNextResults(ctx context.Context
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DeletedWebAppsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -87,6 +87,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroup(ct
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -154,7 +155,6 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForManagementGroupNex
 	result, err = client.ListQueryResultsForManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForManagementGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -219,6 +219,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResource(ctx conte
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -285,7 +286,6 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForResourceNextResult
 	result, err = client.ListQueryResultsForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForResourceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -351,6 +351,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroup(ctx 
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -418,7 +419,6 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForResourceGroupNextR
 	result, err = client.ListQueryResultsForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -483,6 +483,7 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscription(ctx c
 	}
 	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -549,7 +550,6 @@ func (client PolicyTrackedResourcesClient) listQueryResultsForSubscriptionNextRe
 	result, err = client.ListQueryResultsForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "listQueryResultsForSubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

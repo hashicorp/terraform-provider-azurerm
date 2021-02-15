@@ -45,8 +45,8 @@ func eventSubscriptionSchemaEventSubscriptionName() *schema.Schema {
 		ValidateFunc: validation.All(
 			validation.StringIsNotEmpty,
 			validation.StringMatch(
-				regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-				"EventGrid subscription name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				regexp.MustCompile("^[-a-zA-Z0-9]{3,64}$"),
+				"EventGrid subscription name must be 3 - 64 characters long, contain only letters, numbers and hyphens.",
 			),
 		),
 	}

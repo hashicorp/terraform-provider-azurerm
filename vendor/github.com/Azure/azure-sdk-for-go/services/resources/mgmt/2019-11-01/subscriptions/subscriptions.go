@@ -149,6 +149,7 @@ func (client Client) List(ctx context.Context) (result ListResultPage, err error
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -204,7 +205,6 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

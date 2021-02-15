@@ -186,8 +186,7 @@ func resourceNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

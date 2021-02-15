@@ -101,6 +101,7 @@ func (client APIRevisionClient) ListByService(ctx context.Context, resourceGroup
 	}
 	if result.arc.hasNextLink() && result.arc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -172,7 +173,6 @@ func (client APIRevisionClient) listByServiceNextResults(ctx context.Context, la
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIRevisionClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

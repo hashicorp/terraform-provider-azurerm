@@ -420,6 +420,7 @@ func (client RulesClient) ListBySubscriptions(ctx context.Context, resourceGroup
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -489,7 +490,6 @@ func (client RulesClient) listBySubscriptionsNextResults(ctx context.Context, la
 	result, err = client.ListBySubscriptionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "listBySubscriptionsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

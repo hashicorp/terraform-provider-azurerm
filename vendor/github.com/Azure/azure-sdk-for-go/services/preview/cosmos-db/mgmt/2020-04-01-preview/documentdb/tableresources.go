@@ -87,7 +87,7 @@ func (client TableResourcesClient) CreateUpdateTable(ctx context.Context, resour
 
 	result, err = client.CreateUpdateTableSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "CreateUpdateTable", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "CreateUpdateTable", nil, "Failure sending request")
 		return
 	}
 
@@ -126,7 +126,33 @@ func (client TableResourcesClient) CreateUpdateTableSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TableResourcesClient) (tgr TableGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesCreateUpdateTableFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesCreateUpdateTableFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tgr.Response.Response, err = future.GetResult(sender)
+		if tgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesCreateUpdateTableFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tgr.Response.Response.StatusCode != http.StatusNoContent {
+			tgr, err = client.CreateUpdateTableResponder(tgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.TableResourcesCreateUpdateTableFuture", "Result", tgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -180,7 +206,7 @@ func (client TableResourcesClient) DeleteTable(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteTableSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "DeleteTable", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "DeleteTable", nil, "Failure sending request")
 		return
 	}
 
@@ -217,7 +243,23 @@ func (client TableResourcesClient) DeleteTableSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TableResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesDeleteTableFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesDeleteTableFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -545,7 +587,7 @@ func (client TableResourcesClient) MigrateTableToAutoscale(ctx context.Context, 
 
 	result, err = client.MigrateTableToAutoscaleSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "MigrateTableToAutoscale", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "MigrateTableToAutoscale", nil, "Failure sending request")
 		return
 	}
 
@@ -582,7 +624,33 @@ func (client TableResourcesClient) MigrateTableToAutoscaleSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TableResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesMigrateTableToAutoscaleFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToAutoscaleFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateTableToAutoscaleResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -636,7 +704,7 @@ func (client TableResourcesClient) MigrateTableToManualThroughput(ctx context.Co
 
 	result, err = client.MigrateTableToManualThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "MigrateTableToManualThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "MigrateTableToManualThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -673,7 +741,33 @@ func (client TableResourcesClient) MigrateTableToManualThroughputSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TableResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesMigrateTableToManualThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToManualThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateTableToManualThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -735,7 +829,7 @@ func (client TableResourcesClient) UpdateTableThroughput(ctx context.Context, re
 
 	result, err = client.UpdateTableThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "UpdateTableThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesClient", "UpdateTableThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -774,7 +868,33 @@ func (client TableResourcesClient) UpdateTableThroughputSender(req *http.Request
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TableResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesUpdateTableThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesUpdateTableThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesUpdateTableThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.UpdateTableThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.TableResourcesUpdateTableThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

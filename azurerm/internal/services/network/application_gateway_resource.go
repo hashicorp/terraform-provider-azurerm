@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -1192,13 +1193,13 @@ func resourceApplicationGateway() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "OWASP",
-							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
+							ValidateFunc: validate2.ValidateWebApplicationFirewallPolicyRuleSetType,
 						},
 
 						"rule_set_version": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
+							ValidateFunc: validate2.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 						},
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
@@ -1225,7 +1226,7 @@ func resourceApplicationGateway() *schema.Resource {
 									"rule_group_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+										ValidateFunc: validate2.ValidateWebApplicationFirewallPolicyRuleGroupName,
 									},
 
 									"rules": {

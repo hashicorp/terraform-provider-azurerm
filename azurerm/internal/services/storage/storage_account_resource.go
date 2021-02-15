@@ -251,7 +251,7 @@ func resourceStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cors_rule": azure.SchemaStorageAccountCorsRule(true),
+						"cors_rule": schemaStorageAccountCorsRule(true),
 						"delete_retention_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -278,7 +278,7 @@ func resourceStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cors_rule": azure.SchemaStorageAccountCorsRule(false),
+						"cors_rule": schemaStorageAccountCorsRule(false),
 						"logging": {
 							Type:     schema.TypeList,
 							Optional: true,
