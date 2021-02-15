@@ -34,6 +34,11 @@ func dataSourceSubscriptions() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"resource_manager_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"subscription_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -99,6 +104,9 @@ func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error
 
 		s := make(map[string]interface{})
 
+		if v := val.ID; v != nil {
+			s["resource_manager_id"] = *v
+		}
 		if v := val.SubscriptionID; v != nil {
 			s["subscription_id"] = *v
 		}
