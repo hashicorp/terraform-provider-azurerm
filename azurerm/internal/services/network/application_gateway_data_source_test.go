@@ -34,5 +34,5 @@ data "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_application_gateway.test.resource_group_name
   name                = azurerm_application_gateway.test.name
 }
-`, AppGatewayResource{}.basic(data))
+`, ApplicationGatewayResource{}.basic(data))
 }
