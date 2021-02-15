@@ -108,7 +108,8 @@ func schemaStoragePermissions() *schema.Schema {
 				string(keyvault.StoragePermissionsSet),
 				string(keyvault.StoragePermissionsSetsas),
 				string(keyvault.StoragePermissionsUpdate),
-			}, false),
+			}, true),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
 }
