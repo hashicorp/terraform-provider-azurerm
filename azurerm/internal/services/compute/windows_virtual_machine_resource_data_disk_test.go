@@ -211,6 +211,32 @@ func TestAccWindowsVirtualMachine_dataDisksExistingDisk(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_dataDisksExistingDiskResize(t *testing.T) {
+	if !features.VMDataDiskBeta() {
+		t.Skip("skipping as In-line Data Disk beta is not enabled")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dataDisksExistingDisk(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.dataDisksExistingDiskResize(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func (r WindowsVirtualMachineResource) dataDisksBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -725,6 +751,66 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  data_disks {
+    existing {
+      managed_disk_id      = azurerm_managed_disk.test.id
+      lun                  = 1
+      caching              = "None"
+      storage_account_type = "Standard_LRS"
+    }
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+
+`, template, data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineResource) dataDisksExistingDiskResize(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctested-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "2"
 
   tags = {
     environment = "acctest"
