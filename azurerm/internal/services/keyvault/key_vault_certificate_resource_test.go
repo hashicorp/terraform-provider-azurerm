@@ -243,6 +243,29 @@ func TestAccKeyVaultCertificate_withExternalAccessPolicy(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultCertificate_purge(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicGenerate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("secret_id").Exists(),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
+			),
+		},
+		{
+			Config: r.basicGenerate(data),
+			Destroy: true,
+		},
+	})
+}
+
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	keyVaultsClient := clients.KeyVault
 	client := clients.KeyVault.ManagementClient

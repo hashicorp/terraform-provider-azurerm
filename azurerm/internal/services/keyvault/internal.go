@@ -70,7 +70,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	err := resource.Retry(100000000000, func() *resource.RetryError {
+	err := resource.Retry(time.Until(timeout), func() *resource.RetryError {
 		_, err := helper.PurgeNestedItem(ctx)
 		if err == nil {
 			return nil
