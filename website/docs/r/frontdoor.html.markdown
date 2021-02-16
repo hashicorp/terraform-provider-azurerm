@@ -68,7 +68,6 @@ resource "azurerm_frontdoor" "example" {
   frontend_endpoint {
     name                              = "exampleFrontendEndpoint1"
     host_name                         = "example-FrontDoor.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 }
 ```
@@ -148,10 +147,6 @@ The `frontend_endpoint` block supports the following:
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
-
-* `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for a custom domain associated with the Front Door?
-
-* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
 
 -> **NOTE:** This block is required when `custom_https_provisioning_enabled` is set to `true`.
 
@@ -236,24 +231,6 @@ The `redirect_configuration` block supports the following:
 * `custom_path` - (Optional) The path to retain as per the incoming request, or update in the URL for the redirection.
 
 * `custom_query_string` - (Optional) Replace any existing query string from the incoming request URL.
-
----
-
-The `custom_https_configuration` block supports the following:
-
-* `certificate_source` - (Optional) Certificate source to encrypted `HTTPS` traffic with. Allowed values are `FrontDoor` or `AzureKeyVault`. Defaults to `FrontDoor`.
-
-The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
-
-* `azure_key_vault_certificate_vault_id` - (Required) The ID of the Key Vault containing the SSL certificate.
-
-* `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
-
-* `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
-
-~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
-
--> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
 
 ---
 
