@@ -432,27 +432,27 @@ func resourceFrontDoor() *schema.Resource {
 							Optional: true,
 							Default:  0,
 						},
-						"custom_https_provisioning_enabled": {
-							Type:       schema.TypeBool,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
-						},
+						// "custom_https_provisioning_enabled": {
+						// 	Type:       schema.TypeBool,
+						// 	Optional:   true,
+						// 	Computed:   true,
+						// 	Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
+						// },
 						"web_application_firewall_policy_link_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							// TODO: validation that this is a resource id
 						},
-						"custom_https_configuration": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
-							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
-							Elem: &schema.Resource{
-								Schema: schemaCustomHttpsConfiguration(),
-							},
-						},
+						// "custom_https_configuration": {
+						// 	Type:       schema.TypeList,
+						// 	Optional:   true,
+						// 	Computed:   true,
+						// 	MaxItems:   1,
+						// 	Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
+						// 	Elem: &schema.Resource{
+						// 		Schema: schemaCustomHttpsConfiguration(),
+						// 	},
+						// },
 					},
 				},
 			},
@@ -592,7 +592,7 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	for _, v := range frontendEndpoints {
 		frontendEndpoint := v.(map[string]interface{})
-		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
+		//customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
 		endpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
@@ -603,14 +603,14 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 		if properties := resp.FrontendEndpointProperties; properties != nil {
 			frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
+			//customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
 			frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
 			input := customHttpsConfigurationUpdateInput{
 				customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
-				customHttpsConfigurationNew:     customHttpsConfigurationNew,
-				customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
-				frontendEndpointId:              frontendInputId,
-				provisioningState:               properties.CustomHTTPSProvisioningState,
+				//customHttpsConfigurationNew:     customHttpsConfigurationNew,
+				//customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
+				frontendEndpointId: frontendInputId,
+				provisioningState:  properties.CustomHTTPSProvisioningState,
 			}
 			if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
 				return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
@@ -1372,8 +1372,8 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 			name = *item.Name
 		}
 
-		customHTTPSConfiguration := make([]interface{}, 0)
-		customHttpsProvisioningEnabled := false
+		//customHTTPSConfiguration := make([]interface{}, 0)
+		//customHttpsProvisioningEnabled := false
 		hostName := ""
 		sessionAffinityEnabled := false
 		sessionAffinityTlsSeconds := 0
@@ -1401,19 +1401,19 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 				webApplicationFirewallPolicyLinkId = parsed.ID()
 			}
 
-			flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
-			customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
-			customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
+			//flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
+			//customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
+			//customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
 		}
 
 		results = append(results, map[string]interface{}{
-			"custom_https_configuration":        customHTTPSConfiguration,
-			"custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
-			"host_name":                         hostName,
-			"id":                                id,
-			"name":                              name,
-			"session_affinity_enabled":          sessionAffinityEnabled,
-			"session_affinity_ttl_seconds":      sessionAffinityTlsSeconds,
+			//"custom_https_configuration":        customHTTPSConfiguration,
+			//"custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
+			"host_name":                    hostName,
+			"id":                           id,
+			"name":                         name,
+			"session_affinity_enabled":     sessionAffinityEnabled,
+			"session_affinity_ttl_seconds": sessionAffinityTlsSeconds,
 			"web_application_firewall_policy_link_id": webApplicationFirewallPolicyLinkId,
 		})
 	}
