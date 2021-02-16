@@ -1,7 +1,6 @@
 package resource_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -30,11 +29,11 @@ func TestAccDataSourceTemplateSpecVersion(t *testing.T) {
 }
 
 func (TemplateSpecVersionDataSource) basic() string {
-	return fmt.Sprintf(`
+	return `
 data "azurerm_template_spec_version" "test" {
   name                = "acctest-standing-data-empty"
   resource_group_name = "standing-data-for-acctest"
   version             = "v1.0.0"
 }
-`)
+`
 }
