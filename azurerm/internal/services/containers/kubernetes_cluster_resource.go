@@ -1254,7 +1254,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
 		upgradeChannel := ""
-		if profile := props.AutoUpgradeProfile; profile != nil {
+		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
 			upgradeChannel = string(profile.UpgradeChannel)
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
