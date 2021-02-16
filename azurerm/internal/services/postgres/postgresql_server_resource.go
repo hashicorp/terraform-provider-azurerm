@@ -596,12 +596,15 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}
 
+	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
 	properties := postgresql.ServerUpdateParameters{
 		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        publicAccess,
 			SslEnforcement:             ssl,
+			MinimalTLSVersion:          tlsMin,
 			StorageProfile:             expandPostgreSQLStorageProfile(d),
 			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
 		},
