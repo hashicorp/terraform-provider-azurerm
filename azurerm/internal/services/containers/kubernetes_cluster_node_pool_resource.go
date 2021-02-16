@@ -765,13 +765,13 @@ func expandUpgradeSettings(input []interface{}) *containerservice.AgentPoolUpgra
 }
 
 func flattenUpgradeSettings(input *containerservice.AgentPoolUpgradeSettings) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	maxSurge := ""
+	if input != nil && input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
 	}
 
-	maxSurge := ""
-	if input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
+	if maxSurge == "" {
+		return []interface{}{}
 	}
 
 	return []interface{}{
