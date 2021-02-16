@@ -17,6 +17,7 @@ func TestAccDataSourceSubscriptions_basic(t *testing.T) {
 		{
 			Config: SubscriptionsDataSource{}.basic(),
 			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("subscriptions.0.id").Exists(),
 				check.That(data.ResourceName).Key("subscriptions.0.subscription_id").Exists(),
 				check.That(data.ResourceName).Key("subscriptions.0.display_name").Exists(),
 				check.That(data.ResourceName).Key("subscriptions.0.tenant_id").Exists(),
