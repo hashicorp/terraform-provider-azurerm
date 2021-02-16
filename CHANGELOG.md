@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
 * Data Source: `azurerm_subscriptions` - adding the field `id` to the `subscriptions` block [GH-10598]
+* `azurerm_kubernetes_cluster` - support for `automatic_channel_upgrade` [GH-10530]
 * `azurerm_kubernetes_cluster` - support for `skip_nodes_with_local_storage` within the `auto_scaler_profile` block [GH-10531]
 * `azurerm_kubernetes_cluster` - support for `skip_nodes_with_system_pods` within the `auto_scaler_profile` block [GH-10531]
 
