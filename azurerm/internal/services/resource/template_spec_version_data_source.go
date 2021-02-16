@@ -23,6 +23,7 @@ func dataSourceTemplateSpecVersion() *schema.Resource {
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
+		//lintignore:S033
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
