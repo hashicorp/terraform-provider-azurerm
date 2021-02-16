@@ -538,6 +538,45 @@ func (client GremlinResourcesClient) GetGremlinDatabase(ctx context.Context, res
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.GremlinResourcesClient", "GetGremlinDatabase", err.Error())
+	}
+
+	req, err := client.GetGremlinDatabasePreparer(ctx, resourceGroupName, accountName, databaseName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabase", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetGremlinDatabaseSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabase", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetGremlinDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabase", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetGremlinDatabasePreparer prepares the GetGremlinDatabase request.
+func (client GremlinResourcesClient) GetGremlinDatabasePreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 

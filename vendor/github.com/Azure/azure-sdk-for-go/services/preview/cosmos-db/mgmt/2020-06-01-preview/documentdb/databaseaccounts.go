@@ -151,22 +151,7 @@ func (client DatabaseAccountsClient) CreateOrUpdate(ctx context.Context, resourc
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}},
-		{TargetValue: createUpdateParameters,
-			Constraints: []validation.Constraint{{Target: "createUpdateParameters.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.InclusiveMaximum, Rule: int64(2147483647), Chain: nil},
-							{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxStalenessPrefix", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-						}},
-						{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.InclusiveMaximum, Rule: int64(86400), Chain: nil},
-								{Target: "createUpdateParameters.Properties.ConsistencyPolicy.MaxIntervalInSeconds", Name: validation.InclusiveMinimum, Rule: int64(5), Chain: nil},
-							}},
-					}},
-					{Target: "createUpdateParameters.Properties.Locations", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "createUpdateParameters.Properties.DatabaseAccountOfferType", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("documentdb.DatabaseAccountsClient", "CreateOrUpdate", err.Error())
 	}
 

@@ -343,7 +343,7 @@ func (client SQLResourcesClient) CreateUpdateSQLRoleAssignment(ctx context.Conte
 
 	result, err = client.CreateUpdateSQLRoleAssignmentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "CreateUpdateSQLRoleAssignment", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "CreateUpdateSQLRoleAssignment", nil, "Failure sending request")
 		return
 	}
 
@@ -382,7 +382,33 @@ func (client SQLResourcesClient) CreateUpdateSQLRoleAssignmentSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLResourcesClient) (sragr SQLRoleAssignmentGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesCreateUpdateSQLRoleAssignmentFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesCreateUpdateSQLRoleAssignmentFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sragr.Response.Response, err = future.GetResult(sender)
+		if sragr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesCreateUpdateSQLRoleAssignmentFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sragr.Response.Response.StatusCode != http.StatusNoContent {
+			sragr, err = client.CreateUpdateSQLRoleAssignmentResponder(sragr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesCreateUpdateSQLRoleAssignmentFuture", "Result", sragr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -437,7 +463,7 @@ func (client SQLResourcesClient) CreateUpdateSQLRoleDefinition(ctx context.Conte
 
 	result, err = client.CreateUpdateSQLRoleDefinitionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "CreateUpdateSQLRoleDefinition", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "CreateUpdateSQLRoleDefinition", nil, "Failure sending request")
 		return
 	}
 
@@ -476,7 +502,33 @@ func (client SQLResourcesClient) CreateUpdateSQLRoleDefinitionSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLResourcesClient) (srdgr SQLRoleDefinitionGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesCreateUpdateSQLRoleDefinitionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesCreateUpdateSQLRoleDefinitionFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		srdgr.Response.Response, err = future.GetResult(sender)
+		if srdgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesCreateUpdateSQLRoleDefinitionFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && srdgr.Response.Response.StatusCode != http.StatusNoContent {
+			srdgr, err = client.CreateUpdateSQLRoleDefinitionResponder(srdgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesCreateUpdateSQLRoleDefinitionFuture", "Result", srdgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1135,7 +1187,7 @@ func (client SQLResourcesClient) DeleteSQLRoleAssignment(ctx context.Context, ro
 
 	result, err = client.DeleteSQLRoleAssignmentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLRoleAssignment", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLRoleAssignment", nil, "Failure sending request")
 		return
 	}
 
@@ -1179,11 +1231,11 @@ func (client SQLResourcesClient) DeleteSQLRoleAssignmentSender(req *http.Request
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLStoredProcedureFuture", "Result", future.Response(), "Polling failure")
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLRoleAssignmentFuture", "Result", future.Response(), "Polling failure")
 			return
 		}
 		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLStoredProcedureFuture")
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLRoleAssignmentFuture")
 			return
 		}
 		ar.Response = future.Response()
@@ -1241,7 +1293,7 @@ func (client SQLResourcesClient) DeleteSQLRoleDefinition(ctx context.Context, ro
 
 	result, err = client.DeleteSQLRoleDefinitionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLRoleDefinition", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLRoleDefinition", nil, "Failure sending request")
 		return
 	}
 
@@ -1285,11 +1337,11 @@ func (client SQLResourcesClient) DeleteSQLRoleDefinitionSender(req *http.Request
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLTriggerFuture", "Result", future.Response(), "Polling failure")
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLRoleDefinitionFuture", "Result", future.Response(), "Polling failure")
 			return
 		}
 		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLTriggerFuture")
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLRoleDefinitionFuture")
 			return
 		}
 		ar.Response = future.Response()
@@ -1349,7 +1401,7 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedure(ctx context.Context, r
 
 	result, err = client.DeleteSQLStoredProcedureSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLStoredProcedure", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLStoredProcedure", nil, "Failure sending request")
 		return
 	}
 
@@ -1395,11 +1447,11 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedureSender(req *http.Reques
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLUserDefinedFunctionFuture", "Result", future.Response(), "Polling failure")
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLStoredProcedureFuture", "Result", future.Response(), "Polling failure")
 			return
 		}
 		if !done {
-			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLUserDefinedFunctionFuture")
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLStoredProcedureFuture")
 			return
 		}
 		ar.Response = future.Response()
@@ -1459,7 +1511,7 @@ func (client SQLResourcesClient) DeleteSQLTrigger(ctx context.Context, resourceG
 
 	result, err = client.DeleteSQLTriggerSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLTrigger", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLTrigger", nil, "Failure sending request")
 		return
 	}
 
@@ -1498,7 +1550,23 @@ func (client SQLResourcesClient) DeleteSQLTriggerSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLTriggerFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLTriggerFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1553,7 +1621,7 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunction(ctx context.Contex
 
 	result, err = client.DeleteSQLUserDefinedFunctionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLUserDefinedFunction", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "DeleteSQLUserDefinedFunction", nil, "Failure sending request")
 		return
 	}
 
@@ -1592,7 +1660,23 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionSender(req *http.Re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesDeleteSQLUserDefinedFunctionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesDeleteSQLUserDefinedFunctionFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
