@@ -1372,8 +1372,8 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 			name = *item.Name
 		}
 
-		//customHTTPSConfiguration := make([]interface{}, 0)
-		//customHttpsProvisioningEnabled := false
+		// customHTTPSConfiguration := make([]interface{}, 0)
+		// customHttpsProvisioningEnabled := false
 		hostName := ""
 		sessionAffinityEnabled := false
 		sessionAffinityTlsSeconds := 0
