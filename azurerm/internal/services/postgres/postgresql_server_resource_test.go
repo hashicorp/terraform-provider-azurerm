@@ -810,12 +810,12 @@ resource "azurerm_postgresql_server" "test" {
   version    = "%[3]s"
   storage_mb = 640000
 
-  backup_retention_days        = 7
-  auto_grow_enabled            = true
+  backup_retention_days = 7
+  auto_grow_enabled     = true
 
-  public_network_access_enabled     = false
-  ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "%[4]s"
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
 }
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }
@@ -843,11 +843,11 @@ resource "azurerm_postgresql_server" "test" {
   version    = "%[3]s"
   storage_mb = 640000
 
-  backup_retention_days        = 7
-  auto_grow_enabled            = true
+  backup_retention_days = 7
+  auto_grow_enabled     = true
 
-  ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "%[4]s"
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
 
 }
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
