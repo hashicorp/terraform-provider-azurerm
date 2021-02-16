@@ -872,6 +872,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	}
 
 	for _, profile := range *input {
+		agentType := ""
+		if profile.Type != "" {
+			agentType = string(profile.Type)
+		}
+
 		count := 0
 		if profile.Count != nil {
 			count = int(*profile.Count)
@@ -897,6 +902,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			name = *profile.Name
 		}
 
+		vmSize := ""
+		if profile.VMSize != "" {
+			vmSize = string(profile.VMSize)
+		}
+
 		osDiskSizeGb := 0
 		if profile.OsDiskSizeGB != nil {
 			osDiskSizeGb = int(*profile.OsDiskSizeGB)
@@ -905,6 +915,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 		vnetSubnetId := ""
 		if profile.VnetSubnetID != nil {
 			vnetSubnetId = *profile.VnetSubnetID
+		}
+
+		osType := ""
+		if profile.OsType != "" {
+			osType = string(profile.OsType)
 		}
 
 		orchestratorVersion := ""
@@ -951,11 +966,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			"node_taints":           nodeTaints,
 			"orchestrator_version":  orchestratorVersion,
 			"os_disk_size_gb":       osDiskSizeGb,
-			"os_type":               string(profile.OsType),
+			"os_type":               osType,
 			"tags":                  tags.Flatten(profile.Tags),
-			"type":                  string(profile.Type),
+			"type":                  agentType,
 			"upgrade_settings":      flattenUpgradeSettings(profile.UpgradeSettings),
-			"vm_size":               string(profile.VMSize),
+			"vm_size":               vmSize,
 			"vnet_subnet_id":        vnetSubnetId,
 		})
 	}
