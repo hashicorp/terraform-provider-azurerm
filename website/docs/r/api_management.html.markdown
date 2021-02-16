@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
 
+* `tenant_access` - (Optional) A `tenant_access` block as defined below.
+
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
 
@@ -296,6 +298,12 @@ A `sign_up` block supports the following:
 * `enabled` - (Required) Can users sign up on the development portal?
 
 * `terms_of_service` - (Required) A `terms_of_service` block as defined below.
+
+---
+
+A `tenant_access` block supports the following:
+
+* `enabled` - (Required) Should the access to the management api be enabled?
 
 ---
 
