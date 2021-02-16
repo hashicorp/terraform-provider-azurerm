@@ -72,6 +72,8 @@ resource "azurerm_netapp_volume" "example" {
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
 
+  # Following section is only required if deploying a data protection volume (secondary)
+  # to enable Cross-Region Replication feature
   data_protection_replication {
     endpoint_type             = "dst"
     remote_volume_location    = azurerm_resource_group.example_primary.location
