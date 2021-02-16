@@ -87,12 +87,12 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          string(documentdb.GlobalDocumentDB),
+				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.GlobalDocumentDB),
-					string(documentdb.MongoDB),
-					string(documentdb.Parse),
+					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
+					string(documentdb.DatabaseAccountKindMongoDB),
+					string(documentdb.DatabaseAccountKindParse),
 				}, true),
 			},
 

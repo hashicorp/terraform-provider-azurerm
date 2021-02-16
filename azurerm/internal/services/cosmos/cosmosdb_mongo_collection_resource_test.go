@@ -333,7 +333,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"}), data.RandomInteger)
 }
 
 func (CosmosMongoCollectionResource) serverless(data acceptance.TestData) string {

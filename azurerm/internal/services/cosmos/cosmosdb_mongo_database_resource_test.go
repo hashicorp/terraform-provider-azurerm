@@ -118,7 +118,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindMongoDB, documentdb.Strong), data.RandomInteger)
 }
 
 func (CosmosMongoDatabaseResource) complete(data acceptance.TestData) string {
@@ -131,7 +131,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = 700
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindMongoDB, documentdb.Strong), data.RandomInteger)
 }
 
 func (CosmosMongoDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -146,7 +146,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindMongoDB, documentdb.Strong), data.RandomInteger, maxThroughput)
 }
 
 func (CosmosMongoDatabaseResource) serverless(data acceptance.TestData) string {
@@ -158,5 +158,5 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindMongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
 }

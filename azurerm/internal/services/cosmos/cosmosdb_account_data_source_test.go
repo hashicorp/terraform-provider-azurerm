@@ -55,7 +55,7 @@ data "azurerm_cosmosdb_account" "test" {
   name                = azurerm_cosmosdb_account.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.GlobalDocumentDB, documentdb.BoundedStaleness))
+`, CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.BoundedStaleness))
 }
 
 func (CosmosDBAccountDataSourceResource) complete(data acceptance.TestData) string {
@@ -66,5 +66,5 @@ data "azurerm_cosmosdb_account" "test" {
   name                = azurerm_cosmosdb_account.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, CosmosDBAccountResource{}.complete(data, documentdb.GlobalDocumentDB, documentdb.BoundedStaleness))
+`, CosmosDBAccountResource{}.complete(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.BoundedStaleness))
 }

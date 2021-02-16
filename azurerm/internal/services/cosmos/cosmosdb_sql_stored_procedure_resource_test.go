@@ -114,7 +114,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
 }
-`, data.Locations.Primary, data.RandomInteger, string(documentdb.GlobalDocumentDB), string(documentdb.Session))
+`, data.Locations.Primary, data.RandomInteger, string(documentdb.DatabaseAccountKindGlobalDocumentDB), string(documentdb.Session))
 }
 
 func (r CosmosSqlStoredProcedureResource) basic(data acceptance.TestData) string {
