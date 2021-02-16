@@ -141,16 +141,16 @@ func TestAccKeyVault_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("create"),
-				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("set"),
+				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
+				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 		{
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
 				check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
 				check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
@@ -239,7 +239,7 @@ func TestAccKeyVault_justCert(t *testing.T) {
 			Config: r.justCert(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_policy.0.certificate_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("access_policy.0.certificate_permissions.0").HasValue("Get"),
 			),
 		},
 		data.ImportStep(),
