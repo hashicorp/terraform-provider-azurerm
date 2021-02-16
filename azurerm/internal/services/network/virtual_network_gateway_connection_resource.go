@@ -461,8 +461,9 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta 
 		return err
 	}
 
-	locks.ByName(name, virtualNetworkGatewayConnectionResourceName)
-	defer locks.UnlockByName(name, virtualNetworkGatewayConnectionResourceName)
+	// We do not know the gateway name here, so have to lock on a fake name
+	locks.ByName(virtualNetworkGatewayConnectionResourceName, virtualNetworkGatewayConnectionResourceName)
+	defer locks.UnlockByName(virtualNetworkGatewayConnectionResourceName, virtualNetworkGatewayConnectionResourceName)
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
