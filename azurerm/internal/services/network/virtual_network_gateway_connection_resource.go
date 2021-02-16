@@ -301,9 +301,6 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData,
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(name, virtualNetworkGatewayConnectionResourceName)
-	defer locks.UnlockByName(name, virtualNetworkGatewayConnectionResourceName)
-
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -331,6 +328,9 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData,
 		Tags:     tags.Expand(t),
 		VirtualNetworkGatewayConnectionPropertiesFormat: properties,
 	}
+
+	locks.ByName(*properties.VirtualNetworkGateway1.Name, virtualNetworkGatewayConnectionResourceName)
+	defer locks.UnlockByName(*properties.VirtualNetworkGateway1.Name, virtualNetworkGatewayConnectionResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, connection)
 	if err != nil {
