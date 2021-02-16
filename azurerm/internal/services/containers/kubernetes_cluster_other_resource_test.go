@@ -420,11 +420,39 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion),
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "rapid"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// unset = none
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
 			),
 		},
 		data.ImportStep(),
@@ -1201,7 +1229,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string) string {
+func (KubernetesClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string, upgradeChannel string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1218,7 +1246,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   dns_prefix                = "acctestaks%d"
   kubernetes_version        = %q
-  automatic_channel_upgrade = "rapid"
+  automatic_channel_upgrade = %q != "" ? %q : null
 
   default_node_pool {
     name       = "default"
@@ -1230,5 +1258,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel, upgradeChannel)
 }

@@ -598,9 +598,7 @@ func resourceKubernetesCluster() *schema.Resource {
 			"automatic_channel_upgrade": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.UpgradeChannelNone),
 					string(containerservice.UpgradeChannelPatch),
 					string(containerservice.UpgradeChannelRapid),
 					string(containerservice.UpgradeChannelStable),
@@ -811,11 +809,14 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 			WindowsProfile:         windowsProfile,
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
-			AutoUpgradeProfile: &containerservice.ManagedClusterAutoUpgradeProfile{
-				UpgradeChannel: containerservice.UpgradeChannel(d.Get("automatic_channel_upgrade").(string)),
-			},
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
+			UpgradeChannel: containerservice.UpgradeChannel(v),
+		}
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
@@ -1118,7 +1119,17 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("automatic_channel_upgrade") {
-		existing.AutoUpgradeProfile.UpgradeChannel = containerservice.UpgradeChannel(d.Get("automatic_channel_upgrade").(string))
+		updateCluster = true
+		if existing.ManagedClusterProperties.AutoUpgradeProfile == nil {
+			existing.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{}
+		}
+
+		channel := containerservice.UpgradeChannelNone
+		if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+			channel = containerservice.UpgradeChannel(v)
+		}
+
+		existing.ManagedClusterProperties.AutoUpgradeProfile.UpgradeChannel = channel
 	}
 
 	if updateCluster {
@@ -1242,9 +1253,11 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
-		if autoUpgradeProfile := props.AutoUpgradeProfile; autoUpgradeProfile != nil {
-			d.Set("automatic_channel_upgrade", autoUpgradeProfile.UpgradeChannel)
+		upgradeChannel := ""
+		if profile := props.AutoUpgradeProfile; profile != nil {
+			upgradeChannel = string(profile.UpgradeChannel)
 		}
+		d.Set("automatic_channel_upgrade", upgradeChannel)
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
