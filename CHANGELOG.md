@@ -1,5 +1,9 @@
 ## 2.48.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_application_gateway` [GH-10268]
+
 ENHANCEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
