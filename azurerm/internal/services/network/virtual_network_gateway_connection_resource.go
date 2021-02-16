@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"log"
 	"time"
 
@@ -16,6 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var virtualNetworkGatewayConnectionResourceName = "azurerm_virtual_network_gateway_connection"
 
 func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 	return &schema.Resource{
@@ -298,6 +301,9 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData,
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	locks.ByName(name, virtualNetworkGatewayConnectionResourceName)
+	defer locks.UnlockByName(name, virtualNetworkGatewayConnectionResourceName)
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -454,6 +460,9 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta 
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(name, virtualNetworkGatewayConnectionResourceName)
+	defer locks.UnlockByName(name, virtualNetworkGatewayConnectionResourceName)
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
