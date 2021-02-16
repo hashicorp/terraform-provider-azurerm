@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -36,6 +38,14 @@ func dataSourceTemplateSpecVersion() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty, //TODO - Check validation for version string
 			},
 			// Should only need ID from here, but we can potentially surface JSON body data etc if needed
+
+			"template_body": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				StateFunc: utils.NormalizeJson,
+			},
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -46,11 +56,7 @@ func dataSourceTemplateSpecVersionRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	version := d.Get("version").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewTemplateSpecVersionID(subscriptionId, resourceGroup, name, version)
+	id := parse.NewTemplateSpecVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string), d.Get("version").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.TemplateSpecName, id.VersionName)
 	if err != nil {
@@ -60,7 +66,18 @@ func dataSourceTemplateSpecVersionRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("reading Templatespec %q, with version name %q (resource group %q): %+v", id.TemplateSpecName, id.VersionName, id.ResourceGroup, err)
 	}
 
+	templateBody := "{}"
+	if props := resp.VersionProperties; props != nil && props.Template != nil {
+		templateBodyRaw, err := flattenTemplateDeploymentBody(props.Template)
+		if err != nil {
+			return err
+		}
+
+		templateBody = *templateBodyRaw
+	}
+	d.Set("template_body", templateBody)
+
 	d.SetId(id.ID())
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
