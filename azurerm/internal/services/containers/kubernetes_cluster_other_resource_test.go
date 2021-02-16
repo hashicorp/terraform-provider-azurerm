@@ -1230,6 +1230,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string, upgradeChannel string) string {
+	if upgradeChannel != "" {
+		upgradeChannel = fmt.Sprintf("%q", upgradeChannel)
+	} else {
+		upgradeChannel = "null"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1246,7 +1252,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   dns_prefix                = "acctestaks%d"
   kubernetes_version        = %q
-  automatic_channel_upgrade = %q != "" ? %q : null
+  automatic_channel_upgrade = %s
 
   default_node_pool {
     name       = "default"
@@ -1258,5 +1264,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel, upgradeChannel)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel)
 }
