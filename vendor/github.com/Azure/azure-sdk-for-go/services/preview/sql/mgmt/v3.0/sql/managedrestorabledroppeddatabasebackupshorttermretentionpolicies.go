@@ -70,7 +70,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient) (mbstrp ManagedBackupShortTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mbstrp.Response.Response, err = future.GetResult(sender)
+		if mbstrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mbstrp.Response.Response.StatusCode != http.StatusNoContent {
+			mbstrp, err = client.CreateOrUpdateResponder(mbstrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", mbstrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -242,6 +268,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	}
 	if result.mbstrplr.hasNextLink() && result.mbstrplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -304,7 +331,6 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	result, err = client.ListByRestorableDroppedDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "listByRestorableDroppedDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -350,7 +376,7 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -390,7 +416,33 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient) (mbstrp ManagedBackupShortTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mbstrp.Response.Response, err = future.GetResult(sender)
+		if mbstrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mbstrp.Response.Response.StatusCode != http.StatusNoContent {
+			mbstrp, err = client.UpdateResponder(mbstrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesUpdateFuture", "Result", mbstrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -68,7 +68,7 @@ func (client ClustersClient) AddLanguageExtensions(ctx context.Context, resource
 
 	result, err = client.AddLanguageExtensionsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "AddLanguageExtensions", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "AddLanguageExtensions", nil, "Failure sending request")
 		return
 	}
 
@@ -106,7 +106,23 @@ func (client ClustersClient) AddLanguageExtensionsSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersAddLanguageExtensionsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersAddLanguageExtensionsFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -252,7 +268,7 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -290,7 +306,33 @@ func (client ClustersClient) CreateOrUpdateSender(req *http.Request) (future Clu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateOrUpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "kusto.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -329,7 +371,7 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -365,7 +407,23 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -411,7 +469,7 @@ func (client ClustersClient) DetachFollowerDatabases(ctx context.Context, resour
 
 	result, err = client.DetachFollowerDatabasesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DetachFollowerDatabases", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DetachFollowerDatabases", nil, "Failure sending request")
 		return
 	}
 
@@ -450,7 +508,23 @@ func (client ClustersClient) DetachFollowerDatabasesSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersDetachFollowerDatabasesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersDetachFollowerDatabasesFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -489,7 +563,7 @@ func (client ClustersClient) DiagnoseVirtualNetwork(ctx context.Context, resourc
 
 	result, err = client.DiagnoseVirtualNetworkSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DiagnoseVirtualNetwork", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DiagnoseVirtualNetwork", nil, "Failure sending request")
 		return
 	}
 
@@ -525,7 +599,33 @@ func (client ClustersClient) DiagnoseVirtualNetworkSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (dvnr DiagnoseVirtualNetworkResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersDiagnoseVirtualNetworkFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersDiagnoseVirtualNetworkFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dvnr.Response.Response, err = future.GetResult(sender)
+		if dvnr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersDiagnoseVirtualNetworkFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dvnr.Response.Response.StatusCode != http.StatusNoContent {
+			dvnr, err = client.DiagnoseVirtualNetworkResponder(dvnr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "kusto.ClustersDiagnoseVirtualNetworkFuture", "Result", dvnr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1086,7 +1186,7 @@ func (client ClustersClient) RemoveLanguageExtensions(ctx context.Context, resou
 
 	result, err = client.RemoveLanguageExtensionsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "RemoveLanguageExtensions", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "RemoveLanguageExtensions", nil, "Failure sending request")
 		return
 	}
 
@@ -1124,7 +1224,23 @@ func (client ClustersClient) RemoveLanguageExtensionsSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersRemoveLanguageExtensionsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersRemoveLanguageExtensionsFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1162,7 +1278,7 @@ func (client ClustersClient) Start(ctx context.Context, resourceGroupName string
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -1198,7 +1314,23 @@ func (client ClustersClient) StartSender(req *http.Request) (future ClustersStar
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersStartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1236,7 +1368,7 @@ func (client ClustersClient) Stop(ctx context.Context, resourceGroupName string,
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -1272,7 +1404,23 @@ func (client ClustersClient) StopSender(req *http.Request) (future ClustersStopF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersStopFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1311,7 +1459,7 @@ func (client ClustersClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -1349,7 +1497,33 @@ func (client ClustersClient) UpdateSender(req *http.Request) (future ClustersUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.ClustersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "kusto.ClustersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.UpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "kusto.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

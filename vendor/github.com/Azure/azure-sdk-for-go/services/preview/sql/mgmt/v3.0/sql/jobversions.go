@@ -165,6 +165,7 @@ func (client JobVersionsClient) ListByJob(ctx context.Context, resourceGroupName
 	}
 	if result.jvlr.hasNextLink() && result.jvlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -228,7 +229,6 @@ func (client JobVersionsClient) listByJobNextResults(ctx context.Context, lastRe
 	result, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "listByJobNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

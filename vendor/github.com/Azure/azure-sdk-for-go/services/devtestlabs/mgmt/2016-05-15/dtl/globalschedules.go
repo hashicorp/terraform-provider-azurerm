@@ -225,7 +225,7 @@ func (client GlobalSchedulesClient) Execute(ctx context.Context, resourceGroupNa
 
 	result, err = client.ExecuteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "Execute", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "Execute", nil, "Failure sending request")
 		return
 	}
 
@@ -261,7 +261,23 @@ func (client GlobalSchedulesClient) ExecuteSender(req *http.Request) (future Glo
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GlobalSchedulesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesExecuteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.GlobalSchedulesExecuteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -395,6 +411,7 @@ func (client GlobalSchedulesClient) ListByResourceGroup(ctx context.Context, res
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -467,7 +484,6 @@ func (client GlobalSchedulesClient) listByResourceGroupNextResults(ctx context.C
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -526,6 +542,7 @@ func (client GlobalSchedulesClient) ListBySubscription(ctx context.Context, expa
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -597,7 +614,6 @@ func (client GlobalSchedulesClient) listBySubscriptionNextResults(ctx context.Co
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -642,7 +658,7 @@ func (client GlobalSchedulesClient) Retarget(ctx context.Context, resourceGroupN
 
 	result, err = client.RetargetSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "Retarget", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "Retarget", nil, "Failure sending request")
 		return
 	}
 
@@ -680,7 +696,23 @@ func (client GlobalSchedulesClient) RetargetSender(req *http.Request) (future Gl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GlobalSchedulesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesRetargetFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.GlobalSchedulesRetargetFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

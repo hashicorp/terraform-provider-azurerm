@@ -75,6 +75,7 @@ func (client ClassicAdministratorsClient) List(ctx context.Context) (result Clas
 	}
 	if result.calr.hasNextLink() && result.calr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -134,7 +135,6 @@ func (client ClassicAdministratorsClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ClassicAdministratorsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

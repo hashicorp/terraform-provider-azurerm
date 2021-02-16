@@ -347,7 +347,7 @@ resource "azurerm_backup_policy_vm" "import" {
     count = 10
   }
 }
-`, r.template(data))
+`, r.basicDaily(data))
 }
 
 func (r BackupProtectionPolicyVMResource) basicWeekly(data acceptance.TestData) string {

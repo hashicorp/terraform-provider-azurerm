@@ -184,7 +184,7 @@ func (client VirtualHubBgpConnectionsClient) ListAdvertisedRoutes(ctx context.Co
 
 	result, err = client.ListAdvertisedRoutesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "ListAdvertisedRoutes", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "ListAdvertisedRoutes", nil, "Failure sending request")
 		return
 	}
 
@@ -221,7 +221,33 @@ func (client VirtualHubBgpConnectionsClient) ListAdvertisedRoutesSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualHubBgpConnectionsClient) (prl PeerRouteList, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsListAdvertisedRoutesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualHubBgpConnectionsListAdvertisedRoutesFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		prl.Response.Response, err = future.GetResult(sender)
+		if prl.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsListAdvertisedRoutesFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && prl.Response.Response.StatusCode != http.StatusNoContent {
+			prl, err = client.ListAdvertisedRoutesResponder(prl.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsListAdvertisedRoutesFuture", "Result", prl.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -261,7 +287,7 @@ func (client VirtualHubBgpConnectionsClient) ListLearnedRoutes(ctx context.Conte
 
 	result, err = client.ListLearnedRoutesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "ListLearnedRoutes", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "ListLearnedRoutes", nil, "Failure sending request")
 		return
 	}
 
@@ -298,7 +324,33 @@ func (client VirtualHubBgpConnectionsClient) ListLearnedRoutesSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualHubBgpConnectionsClient) (prl PeerRouteList, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsListLearnedRoutesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualHubBgpConnectionsListLearnedRoutesFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		prl.Response.Response, err = future.GetResult(sender)
+		if prl.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsListLearnedRoutesFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && prl.Response.Response.StatusCode != http.StatusNoContent {
+			prl, err = client.ListLearnedRoutesResponder(prl.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsListLearnedRoutesFuture", "Result", prl.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

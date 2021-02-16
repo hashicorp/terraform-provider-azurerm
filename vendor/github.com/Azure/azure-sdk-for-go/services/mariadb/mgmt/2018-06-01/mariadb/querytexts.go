@@ -181,6 +181,7 @@ func (client QueryTextsClient) ListByServer(ctx context.Context, resourceGroupNa
 	}
 	if result.qtrl.hasNextLink() && result.qtrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -243,7 +244,6 @@ func (client QueryTextsClient) listByServerNextResults(ctx context.Context, last
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.QueryTextsClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -192,82 +192,28 @@ func (idpd IotDpsPropertiesDescription) MarshalJSON() ([]byte, error) {
 // IotDpsResourceCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type IotDpsResourceCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IotDpsResourceCreateOrUpdateFuture) Result(client IotDpsResourceClient) (psd ProvisioningServiceDescription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if psd.Response.Response, err = future.GetResult(sender); err == nil && psd.Response.Response.StatusCode != http.StatusNoContent {
-		psd, err = client.CreateOrUpdateResponder(psd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdateFuture", "Result", psd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IotDpsResourceClient) (ProvisioningServiceDescription, error)
 }
 
 // IotDpsResourceDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type IotDpsResourceDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IotDpsResourceDeleteFuture) Result(client IotDpsResourceClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IotDpsResourceClient) (autorest.Response, error)
 }
 
 // IotDpsResourceUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type IotDpsResourceUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IotDpsResourceUpdateFuture) Result(client IotDpsResourceClient) (psd ProvisioningServiceDescription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if psd.Response.Response, err = future.GetResult(sender); err == nil && psd.Response.Response.StatusCode != http.StatusNoContent {
-		psd, err = client.UpdateResponder(psd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceUpdateFuture", "Result", psd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IotDpsResourceClient) (ProvisioningServiceDescription, error)
 }
 
 // IotDpsSkuDefinition available SKUs of tier and units.

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -52,14 +52,14 @@ func resourcePointToSiteVPNGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.VirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVpnServerConfigurationID,
+				ValidateFunc: networkValidate.VpnServerConfigurationID,
 			},
 
 			"connection_configuration": {
@@ -104,7 +104,7 @@ func resourcePointToSiteVPNGateway() *schema.Resource {
 									"associated_route_table_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate2.HubRouteTableID,
+										ValidateFunc: networkValidate.HubRouteTableID,
 									},
 
 									"propagated_route_table": {
@@ -118,7 +118,7 @@ func resourcePointToSiteVPNGateway() *schema.Resource {
 													Required: true,
 													Elem: &schema.Schema{
 														Type:         schema.TypeString,
-														ValidateFunc: validate2.HubRouteTableID,
+														ValidateFunc: networkValidate.HubRouteTableID,
 													},
 												},
 

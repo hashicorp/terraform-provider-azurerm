@@ -98,7 +98,7 @@ func (client VirtualNetworkTapsClient) CreateOrUpdate(ctx context.Context, resou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -137,7 +137,33 @@ func (client VirtualNetworkTapsClient) CreateOrUpdateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualNetworkTapsClient) (vnt VirtualNetworkTap, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualNetworkTapsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vnt.Response.Response, err = future.GetResult(sender)
+		if vnt.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vnt.Response.Response.StatusCode != http.StatusNoContent {
+			vnt, err = client.CreateOrUpdateResponder(vnt.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsCreateOrUpdateFuture", "Result", vnt.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -176,7 +202,7 @@ func (client VirtualNetworkTapsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -212,7 +238,23 @@ func (client VirtualNetworkTapsClient) DeleteSender(req *http.Request) (future V
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualNetworkTapsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualNetworkTapsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -336,6 +378,7 @@ func (client VirtualNetworkTapsClient) ListAll(ctx context.Context) (result Virt
 	}
 	if result.vntlr.hasNextLink() && result.vntlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -395,7 +438,6 @@ func (client VirtualNetworkTapsClient) listAllNextResults(ctx context.Context, l
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsClient", "listAllNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -451,6 +493,7 @@ func (client VirtualNetworkTapsClient) ListByResourceGroup(ctx context.Context, 
 	}
 	if result.vntlr.hasNextLink() && result.vntlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -511,7 +554,6 @@ func (client VirtualNetworkTapsClient) listByResourceGroupNextResults(ctx contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkTapsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

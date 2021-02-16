@@ -76,6 +76,7 @@ func (client UsagesClient) List(ctx context.Context, location string) (result Us
 	}
 	if result.ul.hasNextLink() && result.ul.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -136,7 +137,6 @@ func (client UsagesClient) listNextResults(ctx context.Context, lastResults Usag
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.UsagesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

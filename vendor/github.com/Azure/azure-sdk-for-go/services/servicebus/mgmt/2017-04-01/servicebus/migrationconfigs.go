@@ -171,7 +171,7 @@ func (client MigrationConfigsClient) CreateAndStartMigration(ctx context.Context
 
 	result, err = client.CreateAndStartMigrationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsClient", "CreateAndStartMigration", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsClient", "CreateAndStartMigration", nil, "Failure sending request")
 		return
 	}
 
@@ -210,7 +210,33 @@ func (client MigrationConfigsClient) CreateAndStartMigrationSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MigrationConfigsClient) (mcp MigrationConfigProperties, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("servicebus.MigrationConfigsCreateAndStartMigrationFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mcp.Response.Response, err = future.GetResult(sender)
+		if mcp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mcp.Response.Response.StatusCode != http.StatusNoContent {
+			mcp, err = client.CreateAndStartMigrationResponder(mcp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", mcp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -445,6 +471,7 @@ func (client MigrationConfigsClient) List(ctx context.Context, resourceGroupName
 	}
 	if result.mclr.hasNextLink() && result.mclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -506,7 +533,6 @@ func (client MigrationConfigsClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

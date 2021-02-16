@@ -328,6 +328,7 @@ func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName 
 	}
 	if result.rwcas.hasNextLink() && result.rwcas.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -401,7 +402,6 @@ func (client ArtifactSourcesClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

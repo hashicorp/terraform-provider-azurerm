@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +31,7 @@ func resourceNetworkSecurityGroup() *schema.Resource {
 		Delete: resourceNetworkSecurityGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseNetworkSecurityGroupID(id)
+			_, err := parse.NetworkSecurityGroupID(id)
 			return err
 		}),
 
@@ -246,7 +247,7 @@ func resourceNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseNetworkSecurityGroupID(d.Id())
+	id, err := parse.NetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -281,7 +282,7 @@ func resourceNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseNetworkSecurityGroupID(d.Id())
+	id, err := parse.NetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
 	}

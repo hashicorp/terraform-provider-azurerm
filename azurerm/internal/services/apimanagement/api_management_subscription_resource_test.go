@@ -122,7 +122,7 @@ func TestAccApiManagementSubscription_complete(t *testing.T) {
 	})
 }
 
-func (t ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionID(state.ID)
 	if err != nil {
 		return nil, err

@@ -28,7 +28,7 @@ output "traffic_routing_method" {
 
 * `name` - Specifies the name of the Traffic Manager Profile.
 
-* `resource_grop_name` - Specifies the name of the resource group the Traffic Manager Profile is located in.
+* `resource_group_name` - Specifies the name of the resource group the Traffic Manager Profile is located in.
 
 ## Attributes Reference
 

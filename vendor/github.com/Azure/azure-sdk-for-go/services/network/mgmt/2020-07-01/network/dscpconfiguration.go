@@ -66,7 +66,7 @@ func (client DscpConfigurationClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.DscpConfigurationClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.DscpConfigurationClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client DscpConfigurationClient) CreateOrUpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DscpConfigurationClient) (dc DscpConfiguration, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.DscpConfigurationCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.DscpConfigurationCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dc.Response.Response, err = future.GetResult(sender)
+		if dc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.DscpConfigurationCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dc.Response.Response.StatusCode != http.StatusNoContent {
+			dc, err = client.CreateOrUpdateResponder(dc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.DscpConfigurationCreateOrUpdateFuture", "Result", dc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -144,7 +170,7 @@ func (client DscpConfigurationClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.DscpConfigurationClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.DscpConfigurationClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -180,7 +206,23 @@ func (client DscpConfigurationClient) DeleteSender(req *http.Request) (future Ds
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DscpConfigurationClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.DscpConfigurationDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.DscpConfigurationDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

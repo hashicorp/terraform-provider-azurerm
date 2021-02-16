@@ -74,7 +74,7 @@ func (client CustomResourceProviderClient) CreateOrUpdate(ctx context.Context, r
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client CustomResourceProviderClient) CreateOrUpdateSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomResourceProviderClient) (crm CustomRPManifest, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		crm.Response.Response, err = future.GetResult(sender)
+		if crm.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && crm.Response.Response.StatusCode != http.StatusNoContent {
+			crm, err = client.CreateOrUpdateResponder(crm.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", crm.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -158,7 +184,7 @@ func (client CustomResourceProviderClient) Delete(ctx context.Context, resourceG
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -194,7 +220,23 @@ func (client CustomResourceProviderClient) DeleteSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomResourceProviderClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -327,6 +369,7 @@ func (client CustomResourceProviderClient) ListByResourceGroup(ctx context.Conte
 	}
 	if result.lbcrm.hasNextLink() && result.lbcrm.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -387,7 +430,6 @@ func (client CustomResourceProviderClient) listByResourceGroupNextResults(ctx co
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -441,6 +483,7 @@ func (client CustomResourceProviderClient) ListBySubscription(ctx context.Contex
 	}
 	if result.lbcrm.hasNextLink() && result.lbcrm.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -500,7 +543,6 @@ func (client CustomResourceProviderClient) listBySubscriptionNextResults(ctx con
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

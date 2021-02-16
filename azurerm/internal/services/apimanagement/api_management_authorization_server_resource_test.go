@@ -62,7 +62,7 @@ func TestAccApiManagementAuthorizationServer_complete(t *testing.T) {
 	})
 }
 
-func (t ApiManagementAuthorizationServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementAuthorizationServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

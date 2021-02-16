@@ -44,7 +44,7 @@ func resourceBackupProtectedFileShare() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 
 			"source_storage_account_id": {
@@ -179,7 +179,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error creating/updating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
@@ -278,7 +278,7 @@ func resourceBackupProtectedFileShareDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting Azure File Share backups item %s (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {

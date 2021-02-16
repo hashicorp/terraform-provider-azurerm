@@ -86,7 +86,7 @@ func (client DscNodeConfigurationClient) CreateOrUpdate(ctx context.Context, res
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -125,7 +125,33 @@ func (client DscNodeConfigurationClient) CreateOrUpdateSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DscNodeConfigurationClient) (dnc DscNodeConfiguration, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("automation.DscNodeConfigurationCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dnc.Response.Response, err = future.GetResult(sender)
+		if dnc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dnc.Response.Response.StatusCode != http.StatusNoContent {
+			dnc, err = client.CreateOrUpdateResponder(dnc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationCreateOrUpdateFuture", "Result", dnc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -360,6 +386,7 @@ func (client DscNodeConfigurationClient) ListByAutomationAccount(ctx context.Con
 	}
 	if result.dnclr.hasNextLink() && result.dnclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -433,7 +460,6 @@ func (client DscNodeConfigurationClient) listByAutomationAccountNextResults(ctx 
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

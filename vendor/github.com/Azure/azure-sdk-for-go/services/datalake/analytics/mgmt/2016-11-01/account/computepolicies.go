@@ -329,6 +329,7 @@ func (client ComputePoliciesClient) ListByAccount(ctx context.Context, resourceG
 	}
 	if result.cplr.hasNextLink() && result.cplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -390,7 +391,6 @@ func (client ComputePoliciesClient) listByAccountNextResults(ctx context.Context
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

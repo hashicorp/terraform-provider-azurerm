@@ -18,10 +18,6 @@ type VirtualHubBGPConnectionResource struct {
 }
 
 func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	r := VirtualHubBGPConnectionResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -36,10 +32,6 @@ func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 }
 
 func TestAccVirtualHubBgpConnection_requiresImport(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	r := VirtualHubBGPConnectionResource{}
 	data.ResourceTest(t, r, []resource.TestStep{

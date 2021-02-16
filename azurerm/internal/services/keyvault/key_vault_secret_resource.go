@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -88,7 +87,7 @@ func resourceKeyVaultSecret() *schema.Resource {
 }
 
 func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,17 +95,20 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		return err
 	}
 
-	existing, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
+	}
+
+	existing, err := client.GetSecret(ctx, *keyVaultBaseUrl, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Secret %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 
@@ -137,11 +139,11 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
 
-	if resp, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
+	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-			recoveredSecret, err := client.RecoverDeletedSecret(ctx, keyVaultBaseUrl, name)
+			recoveredSecret, err := client.RecoverDeletedSecret(ctx, *keyVaultBaseUrl, name)
 			if err != nil {
 				return err
 			}
@@ -170,13 +172,13 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+	read, err := client.GetSecret(ctx, *keyVaultBaseUrl, name, "")
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, keyVaultBaseUrl)
+		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
 	d.SetId(*read.ID)
@@ -185,8 +187,9 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
@@ -196,15 +199,19 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -257,9 +264,9 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// "" indicates the latest version
-	read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
-	if err2 != nil {
-		return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
+	read, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
 	if _, err = parse.ParseNestedItemID(*read.ID); err != nil {
@@ -273,8 +280,9 @@ func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -283,17 +291,21 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -339,8 +351,9 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -349,15 +362,19 @@ func resourceKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}

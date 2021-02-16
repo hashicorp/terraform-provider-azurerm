@@ -173,6 +173,7 @@ func (client PrivateLinkResourcesClient) ListByConfigurationStore(ctx context.Co
 	}
 	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -234,7 +235,6 @@ func (client PrivateLinkResourcesClient) listByConfigurationStoreNextResults(ctx
 	result, err = client.ListByConfigurationStoreResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.PrivateLinkResourcesClient", "listByConfigurationStoreNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
-	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -66,7 +66,7 @@ func resourceApiManagementService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementName(),
+			"name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -75,13 +75,13 @@ func resourceApiManagementService() *schema.Resource {
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementServicePublisherName,
+				ValidateFunc: apimValidate.ApiManagementServicePublisherName,
 			},
 
 			"publisher_email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementServicePublisherEmail,
+				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
 			},
 
 			"sku_name": {
@@ -122,7 +122,7 @@ func resourceApiManagementService() *schema.Resource {
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
+								ValidateFunc: validate.UserAssignedIdentityID,
 							},
 						},
 					},
@@ -1029,7 +1029,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 			if valsRaw, ok := v[configType]; ok {
 				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 	}

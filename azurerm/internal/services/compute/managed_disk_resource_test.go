@@ -3,7 +3,6 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
@@ -71,23 +70,23 @@ func TestAccManagedDisk_import(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 	vm := VirtualMachineResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then delete it so we can use the vhd to test import
-			Config:             VirtualMachineResource{}.basicLinuxMachine(data),
+			Config:             vm.basicLinuxMachine(data),
 			Destroy:            false,
 			ExpectNonEmptyPlan: true,
 			Check: resource.ComposeTestCheckFunc(
+				// TODO: switch to using `azurerm_linux_virtual_machine` once Binary Testing is enabled
 				check.That("azurerm_virtual_machine.test").ExistsInAzure(vm),
-				testDeleteVirtualMachine("azurerm_virtual_machine.test"),
+				data.CheckWithClientForResource(r.destroyVirtualMachine, "azurerm_virtual_machine.test"),
 			),
 		},
 		{
 			Config: r.importConfig(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -96,13 +95,12 @@ func TestAccManagedDisk_import(t *testing.T) {
 func TestAccManagedDisk_copy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.copy(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -111,13 +109,12 @@ func TestAccManagedDisk_copy(t *testing.T) {
 func TestAccManagedDisk_fromPlatformImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.platformImage(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -126,13 +123,12 @@ func TestAccManagedDisk_fromPlatformImage(t *testing.T) {
 func TestAccManagedDisk_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("tags.cost-center").HasValue("ops"),
@@ -143,7 +139,7 @@ func TestAccManagedDisk_update(t *testing.T) {
 		{
 			Config: r.empty_updated(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
@@ -156,13 +152,12 @@ func TestAccManagedDisk_update(t *testing.T) {
 func TestAccManagedDisk_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.encryption(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.#").HasValue("1"),
@@ -179,13 +174,12 @@ func TestAccManagedDisk_encryption(t *testing.T) {
 func TestAccManagedDisk_importEmpty_withZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.empty_withZone(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -195,13 +189,12 @@ func TestAccManagedDisk_importEmpty_withZone(t *testing.T) {
 func TestAccManagedDisk_create_withUltraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.create_withUltraSSD(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -211,13 +204,12 @@ func TestAccManagedDisk_create_withUltraSSD(t *testing.T) {
 func TestAccManagedDisk_update_withUltraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.create_withUltraSSD(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disk_iops_read_write").HasValue("101"),
 				check.That(data.ResourceName).Key("disk_mbps_read_write").HasValue("10"),
 			),
@@ -225,7 +217,7 @@ func TestAccManagedDisk_update_withUltraSSD(t *testing.T) {
 		{
 			Config: r.update_withUltraSSD(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disk_iops_read_write").HasValue("102"),
 				check.That(data.ResourceName).Key("disk_mbps_read_write").HasValue("11"),
 			),
@@ -236,32 +228,27 @@ func TestAccManagedDisk_update_withUltraSSD(t *testing.T) {
 func TestAccManagedDisk_import_withUltraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.create_withUltraSSD(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.import_withUltraSSD(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
-		},
+		data.RequiresImportErrorStep(r.import_withUltraSSD),
 	})
 }
 
 func TestAccManagedDisk_diskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.diskEncryptionSetEncrypted(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -271,20 +258,19 @@ func TestAccManagedDisk_diskEncryptionSet(t *testing.T) {
 func TestAccManagedDisk_diskEncryptionSet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.diskEncryptionSetUnencrypted(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.diskEncryptionSetEncrypted(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -294,20 +280,19 @@ func TestAccManagedDisk_diskEncryptionSet_update(t *testing.T) {
 func TestAccManagedDisk_attachedDiskUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.managedDiskAttached(data, 10),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.managedDiskAttached(data, 20),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("20"),
 			),
 		},
@@ -318,93 +303,26 @@ func TestAccManagedDisk_attachedDiskUpdate(t *testing.T) {
 func TestAccManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
-	var d compute.Disk
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.storageTypeUpdateWhilstAttached(data, "Standard_LRS"),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.storageTypeUpdateWhilstAttached(data, "Premium_LRS"),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckManagedDiskExists(data.ResourceName, &d, true),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-// nolint unparam
-func testCheckManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		dName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on diskClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound && shouldExist {
-			return fmt.Errorf("Bad: ManagedDisk %q (resource group %q) does not exist", dName, resourceGroup)
-		}
-		if resp.StatusCode != http.StatusNotFound && !shouldExist {
-			return fmt.Errorf("Bad: ManagedDisk %q (resource group %q) still exists", dName, resourceGroup)
-		}
-
-		*d = resp
-
-		return nil
-	}
-}
-
-func testDeleteVirtualMachine(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		vmName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
-		}
-
-		// this is a preview feature we don't want to use right now
-		var forceDelete *bool = nil
-		future, err := client.Delete(ctx, resourceGroup, vmName, forceDelete)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func (t ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ManagedDiskID(state.ID)
 	if err != nil {
 		return nil, err
@@ -416,6 +334,24 @@ func (t ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func (ManagedDiskResource) destroyVirtualMachine(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	vmName := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
+
+	// this is a preview feature we don't want to use right now
+	var forceDelete *bool = nil
+	future, err := client.Compute.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
+	if err != nil {
+		return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+	}
+
+	return nil
 }
 
 func (ManagedDiskResource) empty(data acceptance.TestData) string {

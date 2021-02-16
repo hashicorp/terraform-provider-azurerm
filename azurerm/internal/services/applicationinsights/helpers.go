@@ -1,0 +1,33 @@
+package applicationinsights
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+)
+
+func expandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {
+	if v == nil {
+		return &[]string{}
+	}
+
+	result := make([]string, v.Len())
+	for i, prop := range v.List() {
+		result[i] = fmt.Sprintf("%s/%s", appInsightsId, prop)
+	}
+	return &result
+}
+
+func flattenApplicationInsightsAPIKeyLinkedProperties(props *[]string) *[]string {
+	if props == nil {
+		return &[]string{}
+	}
+
+	result := make([]string, len(*props))
+	for i, prop := range *props {
+		elems := strings.Split(prop, "/")
+		result[i] = elems[len(elems)-1]
+	}
+	return &result
+}

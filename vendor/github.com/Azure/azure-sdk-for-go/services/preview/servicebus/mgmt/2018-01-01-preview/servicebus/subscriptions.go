@@ -392,6 +392,7 @@ func (client SubscriptionsClient) ListByTopic(ctx context.Context, resourceGroup
 	}
 	if result.sslr.hasNextLink() && result.sslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -460,7 +461,6 @@ func (client SubscriptionsClient) listByTopicNextResults(ctx context.Context, la
 	result, err = client.ListByTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.SubscriptionsClient", "listByTopicNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

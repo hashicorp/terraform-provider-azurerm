@@ -91,6 +91,7 @@ The following attributes are exported:
 
 * `id` - The Key Vault Key ID.
 * `version` - The current version of the Key Vault Key.
+* `versionless_id` - The Base ID of the Key Vault Key.
 * `n` - The RSA modulus of this Key Vault Key.
 * `e` - The RSA public exponent of this Key Vault Key.
 * `x` - The EC X component of this Key Vault Key.

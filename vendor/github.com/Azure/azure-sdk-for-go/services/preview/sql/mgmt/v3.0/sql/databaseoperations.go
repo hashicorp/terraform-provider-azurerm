@@ -163,6 +163,7 @@ func (client DatabaseOperationsClient) ListByDatabase(ctx context.Context, resou
 	}
 	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -225,7 +226,6 @@ func (client DatabaseOperationsClient) listByDatabaseNextResults(ctx context.Con
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

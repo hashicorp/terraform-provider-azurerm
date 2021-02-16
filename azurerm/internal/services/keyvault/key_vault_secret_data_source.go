@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
@@ -57,24 +56,27 @@ func dataSourceKeyVaultSecret() *schema.Resource {
 }
 
 func dataSourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		return err
+	}
+
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
 	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, keyVaultBaseUri, name, "")
+	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, keyVaultBaseUri)
+			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
 		}
 		return fmt.Errorf("Error making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
@@ -88,7 +90,7 @@ func dataSourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(*resp.ID)
 
 	d.Set("name", respID.Name)
-	d.Set("key_vault_id", keyVaultId)
+	d.Set("key_vault_id", keyVaultId.ID())
 	d.Set("value", resp.Value)
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)

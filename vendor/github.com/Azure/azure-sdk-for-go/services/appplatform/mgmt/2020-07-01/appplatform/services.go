@@ -151,7 +151,7 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -189,7 +189,33 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ServicesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.ServicesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ServicesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.CreateOrUpdateResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.ServicesCreateOrUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -229,7 +255,7 @@ func (client ServicesClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -265,7 +291,23 @@ func (client ServicesClient) DeleteSender(req *http.Request) (future ServicesDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ServicesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.ServicesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -546,6 +588,7 @@ func (client ServicesClient) List(ctx context.Context, resourceGroupName string)
 	}
 	if result.srl.hasNextLink() && result.srl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -606,7 +649,6 @@ func (client ServicesClient) listNextResults(ctx context.Context, lastResults Se
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -660,6 +702,7 @@ func (client ServicesClient) ListBySubscription(ctx context.Context) (result Ser
 	}
 	if result.srl.hasNextLink() && result.srl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -719,7 +762,6 @@ func (client ServicesClient) listBySubscriptionNextResults(ctx context.Context, 
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -922,7 +964,7 @@ func (client ServicesClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -960,7 +1002,33 @@ func (client ServicesClient) UpdateSender(req *http.Request) (future ServicesUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ServicesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.ServicesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ServicesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.UpdateResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.ServicesUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

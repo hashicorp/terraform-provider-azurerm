@@ -11,6 +11,9 @@ description: |-
 
 Manages a Function App.
 
+~> **Note:** To connect an Azure Function App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
+For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
+
 ## Example Usage (with App Service Plan)
 
 ```hcl

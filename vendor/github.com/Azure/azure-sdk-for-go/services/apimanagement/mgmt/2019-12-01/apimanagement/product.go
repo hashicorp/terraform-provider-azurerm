@@ -480,6 +480,7 @@ func (client ProductClient) ListByService(ctx context.Context, resourceGroupName
 	}
 	if result.pc.hasNextLink() && result.pc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -556,7 +557,6 @@ func (client ProductClient) listByServiceNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -637,6 +637,7 @@ func (client ProductClient) ListByTags(ctx context.Context, resourceGroupName st
 	}
 	if result.trc.hasNextLink() && result.trc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -710,7 +711,6 @@ func (client ProductClient) listByTagsNextResults(ctx context.Context, lastResul
 	result, err = client.ListByTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductClient", "listByTagsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

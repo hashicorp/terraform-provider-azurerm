@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -358,23 +357,26 @@ func resourceKeyVaultCertificate() *schema.Resource {
 }
 
 func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
+		return err
 	}
 
-	existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
+	}
+
+	existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 
@@ -394,7 +396,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 			CertificatePolicy:        &policy,
 			Tags:                     tags.Expand(t),
 		}
-		if _, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters); err != nil {
+		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
 			return err
 		}
 	} else {
@@ -403,9 +405,9 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 			CertificatePolicy: &policy,
 			Tags:              tags.Expand(t),
 		}
-		if resp, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
+		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
+				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, *keyVaultBaseUrl, name)
 				if err != nil {
 					return err
 				}
@@ -431,11 +433,11 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 			}
 		}
 
-		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
+		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
-			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
+			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
@@ -448,11 +450,11 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 
-	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	resp, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 	if err != nil {
 		return err
 	}
@@ -485,8 +487,9 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 }
 
 func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -495,22 +498,27 @@ func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return err
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("checking if %s for Certificate %q exists: %v", *keyVaultId, id.Name, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Certificate %q was not found in %s - removing from state", id.Name, *keyVaultId)
 		d.SetId("")
 		return nil
 	}
@@ -568,8 +576,9 @@ func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -578,15 +587,20 @@ func resourceKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	if keyVaultId == nil {
+	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}

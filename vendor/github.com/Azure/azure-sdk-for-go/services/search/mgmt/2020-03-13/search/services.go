@@ -179,7 +179,7 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "search.ServicesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "search.ServicesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -221,7 +221,33 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (s Service, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "search.ServicesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("search.ServicesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "search.ServicesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.CreateOrUpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "search.ServicesCreateOrUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -442,6 +468,7 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -506,7 +533,6 @@ func (client ServicesClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -563,6 +589,7 @@ func (client ServicesClient) ListBySubscription(ctx context.Context, clientReque
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -626,7 +653,6 @@ func (client ServicesClient) listBySubscriptionNextResults(ctx context.Context, 
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
