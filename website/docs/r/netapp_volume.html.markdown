@@ -145,6 +145,8 @@ An `data_protection_replication` is used when enabling the Cross-Region Replicat
   
 * `replication_schedule` - (Required) Replication frequency, supported values are '_10minutely', 'hourly', 'daily'
 
+-> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
+
 ---
 
 ## Attributes Reference
