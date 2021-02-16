@@ -608,10 +608,28 @@ func testAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data),
+			Config: r.upgradeSettingsConfig(data, "2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, "4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -1371,7 +1389,14 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+	template := r.templateConfig(data)
+	if maxSurge != "" {
+		maxSurge = fmt.Sprintf(`upgrade_settings {
+    max_surge = %q
+  }`, maxSurge)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1384,11 +1409,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 3
-  upgrade_settings {
-    max_surge = "2"
-  }
+  %s
 }
-`, r.templateConfig(data))
+`, template, maxSurge)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {

@@ -304,6 +304,7 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 		Type:                   containerservice.VirtualMachineScaleSets,
 		VMSize:                 containerservice.VMSizeTypes(vmSize),
 		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
+		UpgradeSettings:        expandUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
@@ -365,10 +366,6 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
-	}
-
-	if upgradeSettingsRaw, ok := d.Get("upgrade_settings").([]interface{}); ok && len(upgradeSettingsRaw) > 0 {
-		profile.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	maxCount := d.Get("max_count").(int)
@@ -693,7 +690,9 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
 
-		d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings))
+		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -730,7 +729,22 @@ func upgradeSettingsSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"max_surge": {
 					Type:     schema.TypeString,
-					Optional: true,
+					Required: true,
+				},
+			},
+		},
+	}
+}
+
+func upgradeSettingsForDataSourceSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"max_surge": {
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -738,25 +752,31 @@ func upgradeSettingsSchema() *schema.Schema {
 }
 
 func expandUpgradeSettings(input []interface{}) *containerservice.AgentPoolUpgradeSettings {
+	setting := &containerservice.AgentPoolUpgradeSettings{}
 	if len(input) == 0 {
-		return nil
+		return setting
 	}
-	upgradeSettingInput := input[0].(map[string]interface{})
-	upgradeSetting := containerservice.AgentPoolUpgradeSettings{}
 
-	if maxSurgeRaw := upgradeSettingInput["max_surge"].(string); maxSurgeRaw != "" {
-		upgradeSetting.MaxSurge = utils.String(maxSurgeRaw)
+	v := input[0].(map[string]interface{})
+	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
+		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
-	return &upgradeSetting
+	return setting
 }
 
 func flattenUpgradeSettings(input *containerservice.AgentPoolUpgradeSettings) []interface{} {
-	upgradeSettings := make([]interface{}, 0)
-
 	if input == nil {
-		return upgradeSettings
+		return []interface{}{}
 	}
-	nodePoolSetting := make(map[string]interface{})
-	nodePoolSetting["max_surge"] = *input.MaxSurge
-	return append(upgradeSettings, nodePoolSetting)
+
+	maxSurge := ""
+	if input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"max_surge": maxSurge,
+		},
+	}
 }

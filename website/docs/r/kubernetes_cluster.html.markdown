@@ -450,12 +450,11 @@ A `windows_profile` block supports the following:
 
 ---
 
-A `upgrade_settings` block exports the following:
+A `upgrade_settings` block supports the following:
 
-* `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+* `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
 -> **Note:** If a percentage is provided, the number of surge nodes is calculated from the `node_count` value on the current cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
-
 
 ## Attributes Reference
 

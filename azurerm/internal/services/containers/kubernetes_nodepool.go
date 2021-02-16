@@ -246,6 +246,8 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// since this is the "default" node pool we can assume this is a system node pool
 		Mode: containerservice.System,
 
+		UpgradeSettings: expandUpgradeSettings(raw["upgrade_settings"].([]interface{})),
+
 		// // TODO: support these in time
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
@@ -282,10 +284,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	if proximityPlacementGroupId := raw["proximity_placement_group_id"].(string); proximityPlacementGroupId != "" {
 		profile.ProximityPlacementGroupID = utils.String(proximityPlacementGroupId)
-	}
-
-	if upgradeSettingsRaw, ok := raw["upgrade_settings"].([]interface{}); ok && len(upgradeSettingsRaw) > 0 {
-		profile.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	count := raw["node_count"].(int)

@@ -140,7 +140,7 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 
 			"tags": tags.SchemaDataSource(),
 
-			"upgrade_settings": upgradeSettingsSchema(),
+			"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 
 			"vm_size": {
 				Type:     schema.TypeString,
@@ -278,7 +278,9 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("spot_max_price", spotMaxPrice)
 
-		d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings))
+		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))

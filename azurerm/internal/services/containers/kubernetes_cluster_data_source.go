@@ -216,7 +216,7 @@ func dataSourceKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
-						"upgrade_settings": upgradeSettingsSchema(),
+						"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 					},
 				},
 			},
@@ -872,79 +872,107 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	}
 
 	for _, profile := range *input {
-		agentPoolProfile := make(map[string]interface{})
-
+		agentType := ""
 		if profile.Type != "" {
-			agentPoolProfile["type"] = string(profile.Type)
+			agentType = string(profile.Type)
 		}
 
+		count := 0
 		if profile.Count != nil {
-			agentPoolProfile["count"] = int(*profile.Count)
+			count = int(*profile.Count)
 		}
 
+		minCount := 0
 		if profile.MinCount != nil {
-			agentPoolProfile["min_count"] = int(*profile.MinCount)
+			minCount = int(*profile.MinCount)
 		}
 
+		maxCount := 0
 		if profile.MaxCount != nil {
-			agentPoolProfile["max_count"] = int(*profile.MaxCount)
+			maxCount = int(*profile.MaxCount)
 		}
 
+		enableAutoScaling := false
 		if profile.EnableAutoScaling != nil {
-			agentPoolProfile["enable_auto_scaling"] = *profile.EnableAutoScaling
+			enableAutoScaling = *profile.EnableAutoScaling
 		}
 
-		agentPoolProfile["availability_zones"] = utils.FlattenStringSlice(profile.AvailabilityZones)
-
+		name := ""
 		if profile.Name != nil {
-			agentPoolProfile["name"] = *profile.Name
+			name = *profile.Name
 		}
 
+		vmSize := ""
 		if profile.VMSize != "" {
-			agentPoolProfile["vm_size"] = string(profile.VMSize)
+			vmSize = string(profile.VMSize)
 		}
 
+		osDiskSizeGb := 0
 		if profile.OsDiskSizeGB != nil {
-			agentPoolProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
+			osDiskSizeGb = int(*profile.OsDiskSizeGB)
 		}
 
+		vnetSubnetId := ""
 		if profile.VnetSubnetID != nil {
-			agentPoolProfile["vnet_subnet_id"] = *profile.VnetSubnetID
+			vnetSubnetId = *profile.VnetSubnetID
 		}
 
+		osType := ""
 		if profile.OsType != "" {
-			agentPoolProfile["os_type"] = string(profile.OsType)
+			osType = string(profile.OsType)
 		}
 
+		orchestratorVersion := ""
 		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
-			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
+			orchestratorVersion = *profile.OrchestratorVersion
 		}
 
+		maxPods := 0
 		if profile.MaxPods != nil {
-			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
+			maxPods = int(*profile.MaxPods)
 		}
 
+		nodeLabels := make(map[string]string)
 		if profile.NodeLabels != nil {
-			agentPoolProfile["node_labels"] = profile.NodeLabels
+			for k, v := range profile.NodeLabels {
+				if v == nil {
+					continue
+				}
+
+				nodeLabels[k] = *v
+			}
 		}
 
+		nodeTaints := make([]string, 0)
 		if profile.NodeTaints != nil {
-			agentPoolProfile["node_taints"] = *profile.NodeTaints
+			nodeTaints = *profile.NodeTaints
 		}
 
+		enableNodePublicIP := false
 		if profile.EnableNodePublicIP != nil {
-			agentPoolProfile["enable_node_public_ip"] = *profile.EnableNodePublicIP
+			enableNodePublicIP = *profile.EnableNodePublicIP
 		}
 
-		if profile.Tags != nil {
-			agentPoolProfile["tags"] = tags.Flatten(profile.Tags)
-		}
-
-		if profile.UpgradeSettings != nil {
-			agentPoolProfile["upgrade_settings"] = flattenUpgradeSettings(profile.UpgradeSettings)
-		}
-
-		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
+		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
+			"availability_zones":    utils.FlattenStringSlice(profile.AvailabilityZones),
+			"count":                 count,
+			"enable_auto_scaling":   enableAutoScaling,
+			"enable_node_public_ip": enableNodePublicIP,
+			"max_count":             maxCount,
+			"max_pods":              maxPods,
+			"min_count":             minCount,
+			"name":                  name,
+			"node_labels":           nodeLabels,
+			"node_taints":           nodeTaints,
+			"orchestrator_version":  orchestratorVersion,
+			"os_disk_size_gb":       osDiskSizeGb,
+			"os_type":               osType,
+			"tags":                  tags.Flatten(profile.Tags),
+			"type":                  agentType,
+			"upgrade_settings":      flattenUpgradeSettings(profile.UpgradeSettings),
+			"vm_size":               vmSize,
+			"vnet_subnet_id":        vnetSubnetId,
+		})
 	}
 
 	return agentPoolProfiles
