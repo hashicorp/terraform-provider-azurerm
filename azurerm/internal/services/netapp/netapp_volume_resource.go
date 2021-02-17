@@ -795,7 +795,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 
 	return []interface{}{
 		map[string]interface{}{
-			"endpoint_type":             string(input.Replication.EndpointType),
+			"endpoint_type":             strings.ToLower(string(input.Replication.EndpointType)),
 			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
 			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
 			"replication_schedule":      input.Replication.ReplicationSchedule,
