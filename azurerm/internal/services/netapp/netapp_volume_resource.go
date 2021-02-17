@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -200,11 +199,13 @@ func resourceNetAppVolume() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"endpoint_type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "dst",
 							ValidateFunc: validation.StringInSlice([]string{
 								"dst",
 							}, true),
@@ -213,8 +214,9 @@ func resourceNetAppVolume() *schema.Resource {
 						"remote_volume_location": azure.SchemaLocation(),
 
 						"remote_volume_resource_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"replication_schedule": {
@@ -224,11 +226,10 @@ func resourceNetAppVolume() *schema.Resource {
 								"_10minutely",
 								"daily",
 								"hourly",
-							}, true),
+							}, false),
 						},
 					},
 				},
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
@@ -343,7 +344,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	d.SetId(string(id.ID()))
+	d.SetId(id.ID())
 
 	return resourceNetAppVolumeRead(d, meta)
 }
@@ -413,10 +414,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
 	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
-
-		replVolumeID := id
-
+	if replVolumeID := id; dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
 		if strings.ToLower(string(dataProtectionReplication.Replication.EndpointType)) != "dst" {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replVolumeID, err = parse.VolumeID(*dataProtectionReplication.Replication.RemoteVolumeResourceID)
@@ -427,7 +425,6 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 
 		// Checking replication status before deletion, it need to be broken before proceeding with deletion
 		if res, err := client.ReplicationStatusMethod(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err == nil {
-
 			// Wait for replication state = "mirrored"
 			if strings.ToLower(string(res.MirrorState)) == "uninitialized" {
 				if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(schema.TimeoutDelete), "mirrored"); err != nil {
@@ -584,7 +581,6 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *netapp.VolumesCli
 }
 
 func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, desiredState string) resource.StateRefreshFunc {
-
 	validStates := []string{"mirrored", "broken", "uninitialized"}
 
 	return func() (interface{}, string, error) {
@@ -604,7 +600,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 			}
 		}
 
-		if strings.ToLower(string(res.MirrorState)) == strings.ToLower(desiredState) {
+		if strings.EqualFold(string(res.MirrorState), desiredState) {
 			// return 204 if state matches desired state
 			response = 204
 		}
@@ -620,10 +616,8 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *netapp
 			if res.StatusCode == 400 && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
 				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
 				// TODO: remove this workaround when above bug is fixed
-			} else {
-				if !utils.ResponseWasNotFound(res.Response) {
-					return nil, "", fmt.Errorf("Error retrieving replication status from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
-				}
+			} else if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Error retrieving replication status from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 			}
 		}
 
@@ -689,7 +683,6 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 }
 
 func expandNetAppVolumeDataProtectionReplication(input []interface{}) *netapp.VolumePropertiesDataProtection {
-
 	if len(input) == 0 || input[0] == nil {
 		return &netapp.VolumePropertiesDataProtection{}
 	}
@@ -808,5 +801,4 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 			"replication_schedule":      input.Replication.ReplicationSchedule,
 		},
 	}
-
 }

@@ -78,25 +78,25 @@ func dataSourceNetAppVolume() *schema.Resource {
 
 			"data_protection_replication": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"endpoint_type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
 						"remote_volume_location": azure.SchemaLocationForDataSource(),
 
 						"remote_volume_resource_id": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
 						"replication_schedule": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},

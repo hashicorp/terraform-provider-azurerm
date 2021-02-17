@@ -137,13 +137,13 @@ An `export_policy_rule` block supports the following:
 
 An `data_protection_replication` is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported region pair and it supports the following:
 
-* `endpoint_type` - (Required) The endpoint type, supported value is `dst` for destination.
+* `endpoint_type` - (Optional) The endpoint type, default value is `dst` for destination.
   
 * `remote_volume_location` - (Required) Primary volume's location.
 
 * `remote_volume_resource_id` - (Required) Primary volume's resource id.
   
-* `replication_schedule` - (Required) Replication frequency, supported values are '_10minutely', 'hourly', 'daily'
+* `replication_schedule` - (Required) Replication frequency, supported values are '_10minutely', 'hourly', 'daily', values are case sensitive.
 
 -> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
 

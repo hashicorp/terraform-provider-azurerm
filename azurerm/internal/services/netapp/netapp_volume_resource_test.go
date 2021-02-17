@@ -51,13 +51,13 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_crr(t *testing.T) {
+func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
 	r := NetAppVolumeResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.crr(data),
+			Config: r.crossRegionReplication(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("Dst"),
@@ -264,8 +264,8 @@ resource "azurerm_netapp_volume" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetAppVolumeResource) crr(data acceptance.TestData) string {
-	template := NetAppVolumeResource{}.templateForCRR(data)
+func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.templateForCrossRegionReplication(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -291,32 +291,32 @@ resource "azurerm_netapp_volume" "test_primary" {
 }
 
 resource "azurerm_netapp_volume" "test_secondary" {
-	name                = "acctest-NetAppVolume-secondary-%[2]d"
-	location            = "%[3]s"
-	resource_group_name = azurerm_resource_group.test.name
-	account_name        = azurerm_netapp_account.test_secondary.name
-	pool_name           = azurerm_netapp_pool.test_secondary.name
-	volume_path         = "my-unique-file-path-secondary-%[2]d"
-	service_level       = "Standard"
-	subnet_id           = azurerm_subnet.test_secondary.id
-	protocols           = ["NFSv3"]
-	storage_quota_in_gb = 100
-  
-	export_policy_rule {
-	  rule_index        = 1
-	  allowed_clients   = ["0.0.0.0/0"]
-	  protocols_enabled = ["NFSv3"]
-	  unix_read_only    = false
-	  unix_read_write   = true
-	}
+  name                = "acctest-NetAppVolume-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test_secondary.name
+  pool_name           = azurerm_netapp_pool.test_secondary.name
+  volume_path         = "my-unique-file-path-secondary-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test_secondary.id
+  protocols           = ["NFSv3"]
+  storage_quota_in_gb = 100
 
-	data_protection_replication {
-		endpoint_type             = "dst"
-		remote_volume_location    = azurerm_resource_group.test.location
-		remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
-		replication_schedule      = "_10minutely"
-	}	
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["0.0.0.0/0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_schedule      = "_10minutely"
+  }
+}
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
@@ -460,7 +460,7 @@ resource "azurerm_netapp_volume" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetAppVolumeResource) templateForCRR(data acceptance.TestData) string {
+func (r NetAppVolumeResource) templateForCrossRegionReplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -480,7 +480,7 @@ resource "azurerm_subnet" "test_secondary" {
   delegation {
     name = "testdelegation"
 
-	service_delegation {
+    service_delegation {
       name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
