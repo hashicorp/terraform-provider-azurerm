@@ -17,6 +17,7 @@ BUG FIXES:
 * `azurerm_key_vault` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields within the `access_policy` block [GH-10593]
 * `azurerm_key_vault_access_policy ` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields [GH-10593]
 * `azurerm_mariadb_firewall_rule` - correctly validate the `name` property [GH-10579]
+* `azurerm_postgresql_server` - correctly change `ssl_minimal_tls_version_enforced` on update [GH-10606]
 * `azurerm_resource_group_template_deployment` - fixing an issue where the API version for nested items couldn't be found during deletion [GH-10565]
 
 ## 2.47.0 (February 11, 2021)
