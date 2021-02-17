@@ -10,6 +10,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 )
 
+type DataDiskUpdate struct {
+	ManagedDiskID *string
+	Patch         *compute.DiskUpdate
+}
+
 // DeleteManagedDisk takes a list of managed disks and attempts to delete those created from "Empty"
 // It is intended to be used with Virtual Machine resources for deletion of Data Disks that are created in-line with
 // the VM. This may be parallelised at a later date.

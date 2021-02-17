@@ -423,15 +423,15 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"create": virtualMachineLocalDataDiskSchema(),
+				"create": virtualMachineCreateDataDiskSchema(),
 
-				"attach": virtualMachineExistingDataDiskSchema(),
+				"attach": virtualMachineAttachDataDiskSchema(),
 			},
 		},
 	}
 }
 
-func virtualMachineLocalDataDiskSchema() *schema.Schema {
+func virtualMachineCreateDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
@@ -495,11 +495,11 @@ func virtualMachineLocalDataDiskSchema() *schema.Schema {
 				},
 			},
 		},
-		Set: resourceArmVirtualMachineNewDataDiskHash,
+		Set: resourceArmVirtualMachineCreateDataDiskHash,
 	}
 }
 
-func virtualMachineExistingDataDiskSchema() *schema.Schema {
+func virtualMachineAttachDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
@@ -564,9 +564,9 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 	if newDisksRaw, ok := dataDisks["create"]; ok {
 		var newDisks []compute.DataDisk
 		if d.IsNewResource() {
-			newDisks = expandVirtualMachineNewDataDisksForCreate(newDisksRaw)
+			newDisks = expandVirtualMachineCreateDataDisksForCreate(newDisksRaw)
 		} else {
-			newDisks, err = expandVirtualMachineLocalDataDisksForUpdate(ctx, newDisksRaw, d, meta)
+			newDisks, err = expandVirtualMachineCreateDataDisksForUpdate(ctx, newDisksRaw, d, meta)
 			if err != nil {
 				return nil, err
 			}
@@ -575,7 +575,7 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	if attachDisksRaw, ok := dataDisks["attach"]; ok {
-		attachDisks, err := expandVirtualMachineExistingDataDisksForCreate(ctx, attachDisksRaw, d, meta)
+		attachDisks, err := expandVirtualMachineAttachDataDisksForCreate(ctx, attachDisksRaw, d, meta)
 		if err != nil {
 			return nil, err
 		}
@@ -586,7 +586,7 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 	return &result, nil
 }
 
-func expandVirtualMachineNewDataDisksForCreate(input interface{}) []compute.DataDisk {
+func expandVirtualMachineCreateDataDisksForCreate(input interface{}) []compute.DataDisk {
 	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return []compute.DataDisk{}
 	}
@@ -616,7 +616,7 @@ func expandVirtualMachineNewDataDisksForCreate(input interface{}) []compute.Data
 	return dataDisks
 }
 
-func expandVirtualMachineLocalDataDisksForUpdate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
+func expandVirtualMachineCreateDataDisksForUpdate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
 	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return []compute.DataDisk{}, nil
 	}
@@ -668,7 +668,7 @@ func expandVirtualMachineLocalDataDisksForUpdate(ctx context.Context, input inte
 	return dataDisks, nil
 }
 
-func expandVirtualMachineExistingDataDisksForCreate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
+func expandVirtualMachineAttachDataDisksForCreate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
 	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return []compute.DataDisk{}, nil
 	}
@@ -723,7 +723,7 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 		return []interface{}{}, nil
 	}
 
-	var newDisks []interface{}
+	var createDisks []interface{}
 	var attachDisks []interface{}
 	// we need to split into new and "attach", we can use `createOption` as indicator
 
@@ -772,7 +772,7 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 			}
 			dataDisk["disk_size_gb"] = diskSizeGB
 
-			newDisks = append(newDisks, dataDisk)
+			createDisks = append(createDisks, dataDisk)
 
 		case compute.DiskCreateOptionTypesAttach:
 			if managedDisk := v.ManagedDisk; managedDisk != nil {
@@ -792,13 +792,13 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"create": schema.NewSet(resourceArmVirtualMachineNewDataDiskHash, newDisks),
+			"create": schema.NewSet(resourceArmVirtualMachineCreateDataDiskHash, createDisks),
 			"attach": attachDisks,
 		},
 	}, nil
 }
 
-func resourceArmVirtualMachineNewDataDiskHash(v interface{}) int {
+func resourceArmVirtualMachineCreateDataDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
