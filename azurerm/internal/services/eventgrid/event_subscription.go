@@ -384,7 +384,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeFloat,
 								},
@@ -405,7 +405,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeFloat,
 								},
@@ -426,7 +426,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
 								},
@@ -447,7 +447,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
 								},
@@ -468,7 +468,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
 								},
@@ -489,7 +489,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
 								},
@@ -510,7 +510,7 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 							"values": {
 								Type:     schema.TypeList,
 								Required: true,
-								MaxItems: 5,
+								MaxItems: 25,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
 								},
