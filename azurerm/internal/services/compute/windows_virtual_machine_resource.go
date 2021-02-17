@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/helpers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -1407,18 +1408,15 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 		// delete any disks created with the VM if feature toggled to do so. "existing" disks are not affected.
 		if deleteDataDiskOnDeletion {
 			if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.DataDisks != nil {
-				dataDisks := *props.StorageProfile.DataDisks
-				for _, v := range dataDisks {
-					if v.CreateOption == compute.DiskCreateOptionTypesEmpty && v.Name != nil {
-						deleteFuture, err := disksClient.Delete(ctx, id.ResourceGroup, *v.Name)
-						if err != nil {
-							return fmt.Errorf("failure deleting Data Disk %q (Virtual Machine %q / resource group %q): %+v", *v.Name, id.Name, id.ResourceGroup, err)
-						}
-
-						if err = deleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-							return fmt.Errorf("failure waiting for deletion of Data Disk%q (Virtual Machine %q / resource group %q): %+v", *v.Name, id.Name, id.ResourceGroup, err)
-						}
+				dataDisksForDelete := make([]compute.DataDisk, 0)
+				for _, v := range *props.StorageProfile.DataDisks {
+					if v.CreateOption == compute.DiskCreateOptionTypesEmpty {
+						dataDisksForDelete = append(dataDisksForDelete, v)
 					}
+				}
+				err = helpers.DeleteManagedDisks(ctx, meta.(*clients.Client), &dataDisksForDelete)
+				if err != nil {
+					return err
 				}
 			}
 		}
