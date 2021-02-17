@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to use Go 1.16 [GH-10615]
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
 * Data Source: `azurerm_subscriptions` - adding the field `id` to the `subscriptions` block [GH-10598]
 * `azurerm_kubernetes_cluster` - support for `automatic_channel_upgrade` [GH-10530]
