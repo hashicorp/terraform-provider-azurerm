@@ -5,13 +5,16 @@ FEATURES:
 * **New Data Source:** `azurerm_application_gateway` [GH-10268]
 
 ENHANCEMENTS:
-
 * dependencies: updating to build using Go 1.16 [GH-10615]
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
 * Data Source: `azurerm_subscriptions` - adding the field `id` to the `subscriptions` block [GH-10598]
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `upgrade_settings` block [GH-10376]
+* Data Source: `azurerm_kubernetes_cluster_node_pool` - exposing the `upgrade_settings` block [GH-10376]
+* `azurerm_kubernetes_cluster` - support for configuring the `upgrade_settings` block [GH-10376]
 * `azurerm_kubernetes_cluster` - support for `automatic_channel_upgrade` [GH-10530]
 * `azurerm_kubernetes_cluster` - support for `skip_nodes_with_local_storage` within the `auto_scaler_profile` block [GH-10531]
 * `azurerm_kubernetes_cluster` - support for `skip_nodes_with_system_pods` within the `auto_scaler_profile` block [GH-10531]
+* `azurerm_kubernetes_cluster_node_pool` - support for configuring the `upgrade_settings` block [GH-10376]
 
 BUG FIXES:
 
