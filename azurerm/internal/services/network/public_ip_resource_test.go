@@ -349,7 +349,7 @@ func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, s
 
 	resp, err := clients.Network.PublicIPsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Public IP (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Public IP %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -363,11 +363,11 @@ func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, sta
 
 	future, err := client.Network.PublicIPsClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Public IP %q: %+v", id, err)
+		return nil, fmt.Errorf("deleting Public IP %q: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Public IP %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for Deletion of Public IP %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

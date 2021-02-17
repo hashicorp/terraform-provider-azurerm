@@ -346,7 +346,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)

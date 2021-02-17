@@ -66,6 +66,20 @@ func TestAccBastionHost_requiresImport(t *testing.T) {
 	})
 }
 
+func (BastionHostResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.BastionHostID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Network.BastionHostsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Bastion Host (%s): %+v", *id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
 func (BastionHostResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -179,18 +193,4 @@ resource "azurerm_bastion_host" "import" {
   }
 }
 `, r.basic(data))
-}
-
-func (t BastionHostResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.BastionHostID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := clients.Network.BastionHostsClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("reading Bastion Host (%s): %+v", id, err)
-	}
-
-	return utils.Bool(resp.ID != nil), nil
 }

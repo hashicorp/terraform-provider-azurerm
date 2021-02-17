@@ -193,22 +193,33 @@ func dataSourceNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) er
 	if props := resp.InterfacePropertiesFormat; props != nil {
 		d.Set("mac_address", props.MacAddress)
 
-		if configs := *props.IPConfigurations; props.IPConfigurations != nil && len(*props.IPConfigurations) > 0 {
-			d.Set("private_ip_address", configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
-
-			addresses := make([]interface{}, 0)
-			for _, config := range configs {
-				if config.InterfaceIPConfigurationPropertiesFormat != nil {
-					addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+		privateIpAddress := ""
+		privateIpAddresses := make([]interface{}, 0)
+		if configs := props.IPConfigurations; configs != nil {
+			for _, config := range *configs {
+				if config.InterfaceIPConfigurationPropertiesFormat == nil {
+					continue
 				}
-			}
+				if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress == nil {
+					continue
+				}
 
-			if err := d.Set("private_ip_addresses", addresses); err != nil {
-				return err
+				ipAddress := *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
+				if privateIpAddress == "" {
+					privateIpAddress = ipAddress
+				}
+
+				privateIpAddresses = append(privateIpAddresses, ipAddress)
 			}
 		}
+		d.Set("private_ip_address", privateIpAddress)
+		if err := d.Set("private_ip_addresses", privateIpAddresses); err != nil {
+			return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
+		}
 
-		d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations))
+		if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
+		}
 
 		virtualMachineId := ""
 		if props.VirtualMachine != nil && props.VirtualMachine.ID != nil {
