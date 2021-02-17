@@ -90,7 +90,7 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
 			},
 
-			"capacity_reservation_level": {
+			"reservation_capcity_in_gb_per_day": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
@@ -217,16 +217,16 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	capacityReservationLevel, ok := d.GetOk("capacity_reservation_level")
+	capacityReservationLevel, ok := d.GetOk("reservation_capcity_in_gb_per_day")
 	if ok {
 		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
 			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
 		} else {
-			return fmt.Errorf("`capacity_reservation_level` can only be used with the `CapacityReservation` SKU")
+			return fmt.Errorf("`reservation_capcity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
 		}
 	} else {
 		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
-			return fmt.Errorf("`capacity_reservation_level` must be set when using the `CapacityReservation` SKU")
+			return fmt.Errorf("`reservation_capcity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
 		}
 	}
 
@@ -278,7 +278,7 @@ func resourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{})
 		d.Set("sku", sku.Name)
 
 		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
-			d.Set("capacity_reservation_level", capacityReservationLevel)
+			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
 		}
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
