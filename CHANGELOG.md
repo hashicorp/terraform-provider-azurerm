@@ -1,3 +1,5 @@
+## 2.49.0 (Unreleased)
+
 ## 2.48.0 (February 18, 2021)
 
 FEATURES:
