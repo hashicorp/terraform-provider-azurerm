@@ -136,7 +136,7 @@ func TestAccApiManagementSubscription_withoutUser(t *testing.T) {
 				check.That(data.ResourceName).Key("subscription_id").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
-				check.That(data.ResourceName).Key("user_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("user_id").HasValue(""),
 			),
 		},
 		data.ImportStep(),
