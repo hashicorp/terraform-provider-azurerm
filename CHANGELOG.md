@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_route` - support for enhanced import validation [GH-10570]
 * `azurerm_subnet` - updating to use a Resource ID Formatter [GH-10570]
 * `azurerm_subnet` - support for enhanced import validation [GH-10570]
+* `synapse_workspace_resource` - support for the `azure_devops_repo` and `github_repo` blocks [GH-10157]
 * `azurerm_virtual_network` - updating to use a Resource ID Formatter [GH-10570]
 * `azurerm_virtual_network` - support for enhanced import validation [GH-10570]
 
