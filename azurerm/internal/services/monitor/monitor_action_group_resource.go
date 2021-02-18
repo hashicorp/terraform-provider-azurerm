@@ -178,27 +178,34 @@ func resourceMonitorActionGroup() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"use_aad_auth": {
-							Type:     schema.TypeBool,
+
+						"aad_auth": {
+							Type:     schema.TypeList,
 							Optional: true,
-							Default:  false,
-						},
-						"aad_auth_object_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"aad_auth_identifier_uri": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsURLWithScheme([]string{"api"}),
-						},
-						"aad_auth_tenant_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"object_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsUUID,
+									},
+
+									"identifier_uri": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IsURLWithScheme([]string{"api"}),
+									},
+
+									"tenant_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IsUUID,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -387,6 +394,7 @@ func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	itsmReceiversRaw := d.Get("itsm_receiver").([]interface{})
 	azureAppPushReceiversRaw := d.Get("azure_app_push_receiver").([]interface{})
 	smsReceiversRaw := d.Get("sms_receiver").([]interface{})
+	webhookReceiversRaw := d.Get("webhook_receiver").([]interface{})
 	automationRunbookReceiversRaw := d.Get("automation_runbook_receiver").([]interface{})
 	voiceReceiversRaw := d.Get("voice_receiver").([]interface{})
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
@@ -395,11 +403,6 @@ func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interfa
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
-
-	expanedWebhookReceivers, err := expandMonitorActionGroupWebHookReceiver(d.Get("webhook_receiver").([]interface{}))
-	if err != nil {
-		return err
-	}
 
 	parameters := insights.ActionGroupResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
@@ -410,7 +413,7 @@ func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interfa
 			AzureAppPushReceivers:      expandMonitorActionGroupAzureAppPushReceiver(azureAppPushReceiversRaw),
 			ItsmReceivers:              expandMonitorActionGroupItsmReceiver(itsmReceiversRaw),
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
-			WebhookReceivers:           expanedWebhookReceivers,
+			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(webhookReceiversRaw),
 			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
 			VoiceReceivers:             expandMonitorActionGroupVoiceReceiver(voiceReceiversRaw),
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
@@ -586,28 +589,25 @@ func expandMonitorActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceive
 	return &receivers
 }
 
-func expandMonitorActionGroupWebHookReceiver(v []interface{}) (*[]insights.WebhookReceiver, error) {
+func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiver {
 	receivers := make([]insights.WebhookReceiver, 0)
-
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
-		useAADAuth := val["use_aad_auth"].(bool)
-		objectId := val["aad_auth_object_id"].(string)
-		if useAADAuth && objectId == "" {
-			return nil, fmt.Errorf("`aad_auth_object_id` is required when `use_aad_auth` is true")
-		}
 		receiver := insights.WebhookReceiver{
 			Name:                 utils.String(val["name"].(string)),
 			ServiceURI:           utils.String(val["service_uri"].(string)),
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
-			UseAadAuth:           utils.Bool(useAADAuth),
-			ObjectID:             utils.String(objectId),
-			IdentifierURI:        utils.String(val["aad_auth_identifier_uri"].(string)),
-			TenantID:             utils.String(val["aad_auth_tenant_id"].(string)),
+		}
+		if v, ok := val["aad_auth"].([]interface{}); ok && len(v) > 0 {
+			secureWebhook := v[0].(map[string]interface{})
+			receiver.UseAadAuth = utils.Bool(true)
+			receiver.ObjectID = utils.String(secureWebhook["object_id"].(string))
+			receiver.IdentifierURI = utils.String(secureWebhook["identifier_uri"].(string))
+			receiver.TenantID = utils.String(secureWebhook["tenant_id"].(string))
 		}
 		receivers = append(receivers, receiver)
 	}
-	return &receivers, nil
+	return &receivers
 }
 
 func expandMonitorActionGroupAutomationRunbookReceiver(v []interface{}) *[]insights.AutomationRunbookReceiver {
@@ -775,8 +775,8 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			var useAADAuth, useCommonAlert bool
-			var name, serviceUri, objectId, identifierUri, tenantId string
+			var useCommonAlert bool
+			var name, serviceUri string
 			if receiver.Name != nil {
 				name = *receiver.Name
 			}
@@ -787,31 +787,40 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 				useCommonAlert = *receiver.UseCommonAlertSchema
 			}
 
-			if v := receiver.UseAadAuth; v != nil {
-				useAADAuth = *v
-			}
-
-			if v := receiver.ObjectID; v != nil {
-				objectId = *v
-			}
-			if v := receiver.IdentifierURI; v != nil {
-				identifierUri = *v
-			}
-			if v := receiver.TenantID; v != nil {
-				tenantId = *v
-			}
 			result = append(result, map[string]interface{}{
 				"name":                    name,
 				"service_uri":             serviceUri,
 				"use_common_alert_schema": useCommonAlert,
-				"use_aad_auth":            useAADAuth,
-				"aad_auth_object_id":      objectId,
-				"aad_auth_identifier_uri": identifierUri,
-				"aad_auth_tenant_id":      tenantId,
+				"aad_auth":                flattenMonitorActionGroupSecureWebHookReceiver(&receiver),
 			})
 		}
 	}
 	return result
+}
+
+func flattenMonitorActionGroupSecureWebHookReceiver(receiver *insights.WebhookReceiver) []interface{} {
+	if !*receiver.UseAadAuth {
+		return []interface{}{}
+	}
+
+	var objectId, identifierUri, tenantId string
+
+	if v := receiver.ObjectID; v != nil {
+		objectId = *v
+	}
+	if v := receiver.IdentifierURI; v != nil {
+		identifierUri = *v
+	}
+	if v := receiver.TenantID; v != nil {
+		tenantId = *v
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"object_id":      objectId,
+			"identifier_uri": identifierUri,
+			"tenant_id":      tenantId,
+		},
+	}
 }
 
 func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]insights.AutomationRunbookReceiver) []interface{} {

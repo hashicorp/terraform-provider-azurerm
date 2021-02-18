@@ -206,11 +206,16 @@ The following arguments are supported:
 * `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `service_uri` - (Required) The URI where webhooks should be sent.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
-* `use_aad_auth` - (Optional) Use AAD authentication?
-~> **NOTE:** Before adding a secure webhook receiver by enabling `use_aad_auth` and setting `aad_auth_object_id`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook). 
-* `aad_auth_object_id` - (Optional) The webhook app object Id for aad auth. Required when `use_aad_auth` is `true`.
-* `aad_auth_identifier_uri` - (Optional) The identifier uri for aad auth.
-* `aad_auth_tenant_id` - (Optional) The tenant id for aad auth.
+* `aad_auth` - (Optional) The `aad_auth` block as defined below
+~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook). 
+
+---
+
+`aad_auth` supports the following:.
+
+* `object_id` - (Required) The webhook application object Id for aad auth.
+* `identifier_uri` - (Optional) The identifier uri for aad auth.
+* `tenant_id` - (Optional) The tenant id for aad auth.
 
 ## Attributes Reference
 
