@@ -70,9 +70,9 @@ A `catalog_info` block supports the following:
 
 * `server_endpoint` - (Required) The endpoint of an Azure SQL Server that will be used to host the SSIS catalog.
 
-* `administrator_login` - (Required) Administrator login name for the SQL Server.
+* `administrator_login` - (Optional) Administrator login name for the SQL Server.
 
-* `administrator_password` - (Required) Administrator login password for the SQL Server.
+* `administrator_password` - (Optional) Administrator login password for the SQL Server.
 
 * `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
 
