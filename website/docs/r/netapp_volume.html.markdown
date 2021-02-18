@@ -147,6 +147,8 @@ An `data_protection_replication` is used when enabling the Cross-Region Replicat
 
 -> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
 
+~> **NOTE:** `data_protection_replication` can be defined only once per secondary volume, adding a second instance of it is not supported.
+
 ---
 
 ## Attributes Reference

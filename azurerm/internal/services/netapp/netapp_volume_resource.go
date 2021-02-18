@@ -208,7 +208,7 @@ func resourceNetAppVolume() *schema.Resource {
 							Default:  "dst",
 							ValidateFunc: validation.StringInSlice([]string{
 								"dst",
-							}, falsee),
+							}, false),
 						},
 
 						"remote_volume_location": azure.SchemaLocation(),
@@ -701,7 +701,7 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *netapp.Vo
 		replicationObject.RemoteVolumeResourceID = utils.String(v.(string))
 	}
 	if v, ok := replicationRaw["replication_schedule"]; ok {
-		replicationObject.ReplicationSchedule = netapp.ReplicationSchedule(v.(string))
+		replicationObject.ReplicationSchedule = netapp.ReplicationSchedule(translateTFSchedule(v.(string)))
 	}
 
 	return &netapp.VolumePropertiesDataProtection{
@@ -798,7 +798,23 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 			"endpoint_type":             strings.ToLower(string(input.Replication.EndpointType)),
 			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
 			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
-			"replication_schedule":      input.Replication.ReplicationSchedule,
+			"replication_schedule":      translateSDKSchedule(strings.ToLower(string(input.Replication.ReplicationSchedule))),
 		},
 	}
+}
+
+func translateTFSchedule(scheduleName string) string {
+	if strings.EqualFold(scheduleName, "10minutes") {
+		return "_10minutely"
+	}
+
+	return scheduleName
+}
+
+func translateSDKSchedule(scheduleName string) string {
+	if strings.EqualFold(scheduleName, "_10minutely") {
+		return "10minutes"
+	}
+
+	return scheduleName
 }
