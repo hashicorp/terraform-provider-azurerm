@@ -956,12 +956,10 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	dataDisksForGrow := make([]map[string]interface{}, 0)
-	// list of disks with encryption set changes
-	dataDisksForEncrypt := make([]map[string]interface{}, 0)
+	// list of disks for supported update operations - `Attach` disks are not managed here
+	diskUpdates := make([]helpers.DataDiskUpdate, 0)
 	if features.VMDataDiskBeta() && d.HasChange("data_disks") {
 		shouldUpdate = true
-
 		oldRaw, newRaw := d.GetChange("data_disks.0.local")
 		oldDisks := oldRaw.(*schema.Set).List()
 		newDisks := newRaw.(*schema.Set).List()
@@ -969,6 +967,8 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			oldDisk := o.(map[string]interface{})
 			if oldDiskName, ok := oldDisk["name"]; ok {
 				for _, n := range newDisks {
+					var updateSize *int32
+					var updateEncryptionSetId *string
 					newDisk := n.(map[string]interface{})
 					if newDiskName, ok := newDisk["name"]; ok && oldDiskName.(string) == newDiskName.(string) {
 						if newDisk["disk_size_gb"].(int) < oldDisk["disk_size_gb"].(int) {
@@ -976,27 +976,21 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 						} else if newDisk["disk_size_gb"].(int) > oldDisk["disk_size_gb"].(int) {
 							shouldShutDown = true
 							shouldDeallocate = true
-							dataDisksForGrow = append(dataDisksForGrow, newDisk)
+							updateSize = utils.Int32(int32(newDisk["disk_size_gb"].(int)))
 						}
 						if newDisk["disk_encryption_set_id"].(string) != oldDisk["disk_encryption_set_id"].(string) {
-							dataDisksForEncrypt = append(dataDisksForEncrypt, newDisk)
+							updateEncryptionSetId = utils.String(newDisk["disk_encryption_set_id"].(string))
 						}
-					}
-				}
-			}
-		}
-		// EncryptionSet changes for "existing" disks
-		oldExistingRaw, newExistingRaw := d.GetChange("data_disks.0.existing")
-		oldExisting := oldExistingRaw.(*schema.Set).List()
-		newExisting := newExistingRaw.(*schema.Set).List()
-		for _, o := range oldExisting {
-			oldDisk := o.(map[string]interface{})
-			if oldDiskID, ok := oldDisk["managed_disk_id"]; ok {
-				for _, n := range newExisting {
-					newDisk := n.(map[string]interface{})
-					if newDiskID, ok := newDisk["managed_disk_id"]; ok && oldDiskID.(string) == newDiskID.(string) {
-						if newDisk["disk_encryption_set_id"].(string) != oldDisk["disk_encryption_set_id"].(string) {
-							dataDisksForEncrypt = append(dataDisksForEncrypt, newDisk)
+						if existing.StorageProfile.DataDisks != nil {
+							for _, disk := range *existing.StorageProfile.DataDisks {
+								if newDiskName == *disk.Name {
+									diskUpdates = append(diskUpdates, helpers.DataDiskUpdate{
+										ManagedDiskID:      disk.ManagedDisk.ID,
+										NewDiskSize:        updateSize,
+										NewEncryptionSetID: updateEncryptionSetId,
+									})
+								}
+							}
 						}
 					}
 				}
@@ -1214,56 +1208,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return err
 		}
 
+		//diskUpdates := make([]helpers.DataDiskUpdate, 0)
 		// Do we have disks to resize or change encryption set?
-		for _, v := range dataDisksForEncrypt {
-			diskName, ok := v["name"].(string)
-			if !ok {
-				return fmt.Errorf("could not resize data disk, empty value for `name`")
-			}
-			diskEncryptionSetID, ok := v["disk_encryption_set_id"].(string)
-			if !ok {
-				return fmt.Errorf("failed to read new disk Encryption Eet ID for Data Disk %q (resource group %q)", diskName, id.ResourceGroup)
-			}
-			diskUpdate := compute.DiskUpdate{
-				DiskUpdateProperties: &compute.DiskUpdateProperties{
-					Encryption: &compute.Encryption{
-						DiskEncryptionSetID: utils.String(diskEncryptionSetID),
-					},
-				},
-			}
-
-			encryptionUpdateFuture, err := disksClient.Update(ctx, id.ResourceGroup, diskName, diskUpdate)
-			if err != nil {
-				return fmt.Errorf("failed resizing Data Disk %q for Virtual Machine %q (resource group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-			}
-			if err = encryptionUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("failed waiting for resize of Data Disk %q for Virtual Machine %q (resource group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-			}
-		}
-
-		for _, v := range dataDisksForGrow {
-			diskName, ok := v["name"].(string)
-			if !ok {
-				return fmt.Errorf("could not resize data disk, empty value for `name`")
-			}
-			diskSizeGB, ok := v["disk_size_gb"].(int)
-			if !ok {
-				return fmt.Errorf("failed to read new disk size for Data Disk %q (resource group %q)", diskName, id.ResourceGroup)
-			}
-
-			diskUpdate := compute.DiskUpdate{
-				DiskUpdateProperties: &compute.DiskUpdateProperties{
-					DiskSizeGB: utils.Int32(int32(diskSizeGB)),
-				},
-			}
-
-			resizeFuture, err := disksClient.Update(ctx, id.ResourceGroup, diskName, diskUpdate)
-			if err != nil {
-				return fmt.Errorf("failed resizing Data Disk %q for Virtual Machine %q (resource group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-			}
-			if err = resizeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("failed waiting for resize of Data Disk %q for Virtual Machine %q (resource group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-			}
+		err = helpers.UpdateManagedDisks(ctx, disksClient, diskUpdates)
+		if err != nil {
+			return err
 		}
 
 		// now disks are resized, we can put the new list into the VMUpdate

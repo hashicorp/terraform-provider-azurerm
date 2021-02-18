@@ -11,8 +11,9 @@ import (
 )
 
 type DataDiskUpdate struct {
-	ManagedDiskID *string
-	Patch         *compute.DiskUpdate
+	ManagedDiskID      *string
+	NewDiskSize        *int32
+	NewEncryptionSetID *string
 }
 
 // DeleteManagedDisk takes a list of managed disks and attempts to delete those created from "Empty"
@@ -43,5 +44,42 @@ func DeleteManagedDisks(ctx context.Context, client *clients.Client, dataDisks *
 		log.Printf("[DEBUG] Successfully deleted %s", *id)
 	}
 
+	return nil
+}
+
+func UpdateManagedDisks(ctx context.Context, client *compute.DisksClient, dataDiskUpdates []DataDiskUpdate) error {
+	if dataDiskUpdates == nil || len(dataDiskUpdates) == 0 {
+		return nil
+	}
+
+	for _, v := range dataDiskUpdates {
+		id, err := parse.ManagedDiskID(*v.ManagedDiskID)
+		if err != nil {
+			return err
+		}
+
+		diskUpdate := compute.DiskUpdate{
+			DiskUpdateProperties: &compute.DiskUpdateProperties{},
+		}
+
+		if v.NewDiskSize != nil {
+			diskUpdate.DiskSizeGB = v.NewDiskSize
+		}
+
+		if v.NewEncryptionSetID != nil {
+			diskUpdate.Encryption = &compute.Encryption{
+				DiskEncryptionSetID: v.NewEncryptionSetID,
+			}
+		}
+
+		updateFuture, err := client.Update(ctx, id.ResourceGroup, id.DiskName, diskUpdate)
+		if err != nil {
+			return fmt.Errorf("failed updating Data Disk %q (resource group %q): %+v", id.DiskName, id.ResourceGroup, err)
+		}
+
+		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("failed waiting for update of Data Disk %q (resource group %q): %+v", id.DiskName, id.ResourceGroup, err)
+		}
+	}
 	return nil
 }

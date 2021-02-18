@@ -802,9 +802,9 @@ func resourceArmVirtualMachineCreateDataDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
-		buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
 		buf.WriteString(fmt.Sprintf("%s-", m["storage_account_type"].(string)))
 		buf.WriteString(fmt.Sprintf("%d-", m["disk_size_gb"].(int)))
 		// Due to potential case diff in API response needs to be normalised

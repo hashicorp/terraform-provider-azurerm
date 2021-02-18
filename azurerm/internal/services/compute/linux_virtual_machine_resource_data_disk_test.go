@@ -435,7 +435,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 
 func (r LinuxVirtualMachineResource) dataDisksCompleteUpdate(data acceptance.TestData) string {
 	template := r.template(data)
-	// Updates localdisk2 to 4GiB, removes localdisk3, and updates existingdisk1 to LUN-15, existingdisk2 to ReadWrite caching,
+	// Updates localdisk2 to 4GiB, removes localdisk3, and existingdisk2 to ReadWrite caching,
 	return fmt.Sprintf(`
 %s
 
@@ -567,7 +567,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     create {
       name                 = "acctest-localdisk"
       lun                  = 1
-      caching              = "ReadOnly"
+      caching              = "None"
       storage_account_type = "Standard_LRS"
       disk_size_gb         = 2
     }

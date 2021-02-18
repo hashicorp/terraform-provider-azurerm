@@ -549,7 +549,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     create {
       name                 = "acctest-localdisk"
       lun                  = 1
-      caching              = "ReadOnly"
+      caching              = "None"
       storage_account_type = "Standard_LRS"
       disk_size_gb         = 2
     }
