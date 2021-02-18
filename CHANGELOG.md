@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
 
+BUG FIXES:
+
+* `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
+
 ## 2.48.0 (February 18, 2021)
 
 FEATURES:
