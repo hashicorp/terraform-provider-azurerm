@@ -223,7 +223,7 @@ func resourceNetAppVolume() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"_10minutely",
+								"10minutes",
 								"daily",
 								"hourly",
 							}, false),
