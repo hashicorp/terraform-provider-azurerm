@@ -74,7 +74,7 @@ func resourceLighthouseDefinition() *schema.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 
-						"principal_id_display_name": {
+						"principal_display_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -237,9 +237,9 @@ func flattenLighthouseDefinitionAuthorization(input *[]managedservices.Authoriza
 		}
 
 		results = append(results, map[string]interface{}{
-			"role_definition_id":        roleDefinitionID,
-			"principal_id":              principalID,
-			"principal_id_display_name": principalIDDisplayName,
+			"role_definition_id":     roleDefinitionID,
+			"principal_id":           principalID,
+			"principal_display_name": principalIDDisplayName,
 		})
 	}
 
@@ -253,7 +253,7 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) *[]managedserv
 		result := managedservices.Authorization{
 			RoleDefinitionID:       utils.String(v["role_definition_id"].(string)),
 			PrincipalID:            utils.String(v["principal_id"].(string)),
-			PrincipalIDDisplayName: utils.String(v["principal_id_display_name"].(string)),
+			PrincipalIDDisplayName: utils.String(v["principal_display_name"].(string)),
 		}
 		results = append(results, result)
 	}
