@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for `skip_nodes_with_local_storage` within the `auto_scaler_profile` block [GH-10531]
 * `azurerm_kubernetes_cluster` - support for `skip_nodes_with_system_pods` within the `auto_scaler_profile` block [GH-10531]
 * `azurerm_kubernetes_cluster_node_pool` - support for configuring the `upgrade_settings` block [GH-10376]
+* `azurerm_lighthouse_definition` - add support for `principal_id_display_name` property [GH-10613]
 * `azurerm_log_analytics_workspace` - Support for `capacity_reservation_level` property and `CapacityReservation` SKU [GH-10612]
 * `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter [GH-10570]
 * `azurerm_point_to_site_vpn_gateway` - support for enhanced import validation [GH-10570]
