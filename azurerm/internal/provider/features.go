@@ -32,7 +32,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"permanent_delete": {
+					"permanently_delete_on_destroy": {
 						Type:     schema.TypeBool,
 						Required: true,
 					},
