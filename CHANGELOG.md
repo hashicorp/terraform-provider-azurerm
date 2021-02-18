@@ -33,6 +33,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_eventgrid_event_subscription` - change the number of possible `advanced_filter` items from `5` to `25` [GH-10625]
 * `azurerm_key_vault` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields within the `access_policy` block [GH-10593]
 * `azurerm_key_vault_access_policy ` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields [GH-10593]
 * `azurerm_mariadb_firewall_rule` - correctly validate the `name` property [GH-10579]
