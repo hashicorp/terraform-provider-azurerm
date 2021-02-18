@@ -364,6 +364,7 @@ func (client SourceControlClient) ListByAutomationAccount(ctx context.Context, r
 	}
 	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -428,7 +429,6 @@ func (client SourceControlClient) listByAutomationAccountNextResults(ctx context
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

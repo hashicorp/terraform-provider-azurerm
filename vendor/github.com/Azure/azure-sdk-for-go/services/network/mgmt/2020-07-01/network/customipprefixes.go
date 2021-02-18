@@ -66,7 +66,7 @@ func (client CustomIPPrefixesClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client CustomIPPrefixesClient) CreateOrUpdateSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomIPPrefixesClient) (cip CustomIPPrefix, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.CustomIPPrefixesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cip.Response.Response, err = future.GetResult(sender)
+		if cip.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cip.Response.Response.StatusCode != http.StatusNoContent {
+			cip, err = client.CreateOrUpdateResponder(cip.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesCreateOrUpdateFuture", "Result", cip.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -144,7 +170,7 @@ func (client CustomIPPrefixesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -180,7 +206,23 @@ func (client CustomIPPrefixesClient) DeleteSender(req *http.Request) (future Cus
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomIPPrefixesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.CustomIPPrefixesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.CustomIPPrefixesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

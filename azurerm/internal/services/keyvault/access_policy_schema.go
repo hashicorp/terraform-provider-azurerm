@@ -1,6 +1,8 @@
 package keyvault
 
 import (
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -8,30 +10,127 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
+func certificatePermissions() []string {
+	return []string{
+		"Backup",
+		"Create",
+		"Delete",
+		"DeleteIssuers",
+		"Get",
+		"GetIssuers",
+		"Import",
+		"List",
+		"ListIssuers",
+		"ManageContacts",
+		"ManageIssuers",
+		"Purge",
+		"Recover",
+		"Restore",
+		"SetIssuers",
+		"Update",
+	}
+}
+
+func flattenCertificatePermission(input string) string {
+	for _, permission := range certificatePermissions() {
+		if strings.EqualFold(input, permission) {
+			return permission
+		}
+	}
+
+	return input
+}
+
+func keyPermissions() []string {
+	return []string{
+		"Backup",
+		"Create",
+		"Decrypt",
+		"Delete",
+		"Encrypt",
+		"Get",
+		"Import",
+		"List",
+		"Purge",
+		"Recover",
+		"Restore",
+		"Sign",
+		"UnwrapKey",
+		"Update",
+		"Verify",
+		"WrapKey",
+	}
+}
+
+func flattenKeyPermission(input string) string {
+	for _, permission := range keyPermissions() {
+		if strings.EqualFold(input, permission) {
+			return permission
+		}
+	}
+
+	return input
+}
+
+func secretPermissions() []string {
+	return []string{
+		"Backup",
+		"Delete",
+		"Get",
+		"List",
+		"Purge",
+		"Recover",
+		"Restore",
+		"Set",
+	}
+}
+
+func flattenSecretPermission(input string) string {
+	for _, permission := range secretPermissions() {
+		if strings.EqualFold(input, permission) {
+			return permission
+		}
+	}
+
+	return input
+}
+
+func storagePermissions() []string {
+	return []string{
+		"Backup",
+		"Delete",
+		"DeleteSAS",
+		"Get",
+		"GetSAS",
+		"List",
+		"ListSAS",
+		"Purge",
+		"Recover",
+		"RegenerateKey",
+		"Restore",
+		"Set",
+		"SetSAS",
+		"Update",
+	}
+}
+
+func flattenStoragePermission(input string) string {
+	for _, permission := range storagePermissions() {
+		if strings.EqualFold(input, permission) {
+			return permission
+		}
+	}
+
+	return input
+}
+
 func schemaCertificatePermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.Backup),
-				string(keyvault.Create),
-				string(keyvault.Delete),
-				string(keyvault.Deleteissuers),
-				string(keyvault.Get),
-				string(keyvault.Getissuers),
-				string(keyvault.Import),
-				string(keyvault.List),
-				string(keyvault.Listissuers),
-				string(keyvault.Managecontacts),
-				string(keyvault.Manageissuers),
-				string(keyvault.Purge),
-				string(keyvault.Recover),
-				string(keyvault.Restore),
-				string(keyvault.Setissuers),
-				string(keyvault.Update),
-			}, true),
+			Type:             schema.TypeString,
+			ValidateFunc:     validation.StringInSlice(certificatePermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
@@ -42,25 +141,8 @@ func schemaKeyPermissions() *schema.Schema {
 		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.KeyPermissionsBackup),
-				string(keyvault.KeyPermissionsCreate),
-				string(keyvault.KeyPermissionsDecrypt),
-				string(keyvault.KeyPermissionsDelete),
-				string(keyvault.KeyPermissionsEncrypt),
-				string(keyvault.KeyPermissionsGet),
-				string(keyvault.KeyPermissionsImport),
-				string(keyvault.KeyPermissionsList),
-				string(keyvault.KeyPermissionsPurge),
-				string(keyvault.KeyPermissionsRecover),
-				string(keyvault.KeyPermissionsRestore),
-				string(keyvault.KeyPermissionsSign),
-				string(keyvault.KeyPermissionsUnwrapKey),
-				string(keyvault.KeyPermissionsUpdate),
-				string(keyvault.KeyPermissionsVerify),
-				string(keyvault.KeyPermissionsWrapKey),
-			}, true),
+			Type:             schema.TypeString,
+			ValidateFunc:     validation.StringInSlice(keyPermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
@@ -71,17 +153,8 @@ func schemaSecretPermissions() *schema.Schema {
 		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.SecretPermissionsBackup),
-				string(keyvault.SecretPermissionsDelete),
-				string(keyvault.SecretPermissionsGet),
-				string(keyvault.SecretPermissionsList),
-				string(keyvault.SecretPermissionsPurge),
-				string(keyvault.SecretPermissionsRecover),
-				string(keyvault.SecretPermissionsRestore),
-				string(keyvault.SecretPermissionsSet),
-			}, true),
+			Type:             schema.TypeString,
+			ValidateFunc:     validation.StringInSlice(secretPermissions(), true),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
@@ -92,23 +165,9 @@ func schemaStoragePermissions() *schema.Schema {
 		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.StoragePermissionsBackup),
-				string(keyvault.StoragePermissionsDelete),
-				string(keyvault.StoragePermissionsDeletesas),
-				string(keyvault.StoragePermissionsGet),
-				string(keyvault.StoragePermissionsGetsas),
-				string(keyvault.StoragePermissionsList),
-				string(keyvault.StoragePermissionsListsas),
-				string(keyvault.StoragePermissionsPurge),
-				string(keyvault.StoragePermissionsRecover),
-				string(keyvault.StoragePermissionsRegeneratekey),
-				string(keyvault.StoragePermissionsRestore),
-				string(keyvault.StoragePermissionsSet),
-				string(keyvault.StoragePermissionsSetsas),
-				string(keyvault.StoragePermissionsUpdate),
-			}, false),
+			Type:             schema.TypeString,
+			ValidateFunc:     validation.StringInSlice(storagePermissions(), true),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
 }
@@ -206,7 +265,8 @@ func flattenCertificatePermissions(input *[]keyvault.CertificatePermissions) []i
 
 	if input != nil {
 		for _, certificatePermission := range *input {
-			output = append(output, string(certificatePermission))
+			permission := flattenCertificatePermission(string(certificatePermission))
+			output = append(output, permission)
 		}
 	}
 
@@ -227,7 +287,8 @@ func flattenKeyPermissions(input *[]keyvault.KeyPermissions) []interface{} {
 
 	if input != nil {
 		for _, keyPermission := range *input {
-			output = append(output, string(keyPermission))
+			permission := flattenKeyPermission(string(keyPermission))
+			output = append(output, permission)
 		}
 	}
 
@@ -249,7 +310,8 @@ func flattenSecretPermissions(input *[]keyvault.SecretPermissions) []interface{}
 
 	if input != nil {
 		for _, secretPermission := range *input {
-			output = append(output, string(secretPermission))
+			permission := flattenSecretPermission(string(secretPermission))
+			output = append(output, permission)
 		}
 	}
 
@@ -271,7 +333,8 @@ func flattenStoragePermissions(input *[]keyvault.StoragePermissions) []interface
 
 	if input != nil {
 		for _, storagePermission := range *input {
-			output = append(output, string(storagePermission))
+			permission := flattenStoragePermission(string(storagePermission))
+			output = append(output, permission)
 		}
 	}
 

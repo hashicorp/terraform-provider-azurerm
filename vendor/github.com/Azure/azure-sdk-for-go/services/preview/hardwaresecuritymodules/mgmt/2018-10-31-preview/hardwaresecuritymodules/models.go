@@ -168,53 +168,19 @@ func (dh *DedicatedHsm) UnmarshalJSON(body []byte) error {
 // DedicatedHsmCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type DedicatedHsmCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DedicatedHsmCreateOrUpdateFuture) Result(client DedicatedHsmClient) (dh DedicatedHsm, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dh.Response.Response, err = future.GetResult(sender); err == nil && dh.Response.Response.StatusCode != http.StatusNoContent {
-		dh, err = client.CreateOrUpdateResponder(dh.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture", "Result", dh.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DedicatedHsmClient) (DedicatedHsm, error)
 }
 
 // DedicatedHsmDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DedicatedHsmDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DedicatedHsmDeleteFuture) Result(client DedicatedHsmClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DedicatedHsmClient) (autorest.Response, error)
 }
 
 // DedicatedHsmError the error exception.
@@ -465,30 +431,10 @@ func (dhp DedicatedHsmProperties) MarshalJSON() ([]byte, error) {
 // DedicatedHsmUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DedicatedHsmUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DedicatedHsmUpdateFuture) Result(client DedicatedHsmClient) (dh DedicatedHsm, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dh.Response.Response, err = future.GetResult(sender); err == nil && dh.Response.Response.StatusCode != http.StatusNoContent {
-		dh, err = client.UpdateResponder(dh.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmUpdateFuture", "Result", dh.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DedicatedHsmClient) (DedicatedHsm, error)
 }
 
 // Error the key vault server error.

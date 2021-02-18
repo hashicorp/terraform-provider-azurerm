@@ -187,8 +187,7 @@ func resourceCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	_, err = client.GetMongoDBDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
-	if err != nil {
+	if _, err = client.GetMongoDBDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name); err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Mongo Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 

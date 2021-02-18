@@ -62,7 +62,7 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: eventhubValidate.ValidateEventHubName(),
 			},
 
 			"eventhub_authorization_rule_id": {
@@ -75,7 +75,6 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 			"log_analytics_workspace_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 

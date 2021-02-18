@@ -14,9 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	msiParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -46,9 +48,10 @@ func resourceApplicationGateway() *schema.Resource {
 		Read:   resourceApplicationGatewayRead,
 		Update: resourceApplicationGatewayCreateUpdate,
 		Delete: resourceApplicationGatewayDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ApplicationGatewayID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
@@ -1193,13 +1196,13 @@ func resourceApplicationGateway() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "OWASP",
-							ValidateFunc: validate2.ValidateWebApplicationFirewallPolicyRuleSetType,
+							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetType,
 						},
 
 						"rule_set_version": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate2.ValidateWebApplicationFirewallPolicyRuleSetVersion,
+							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 						},
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
@@ -1226,7 +1229,7 @@ func resourceApplicationGateway() *schema.Resource {
 									"rule_group_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate2.ValidateWebApplicationFirewallPolicyRuleGroupName,
+										ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 									},
 
 									"rules": {
@@ -1319,26 +1322,24 @@ func resourceApplicationGateway() *schema.Resource {
 }
 
 func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*clients.Client)
-	client := armClient.Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewApplicationGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Application Gateway %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_application_gateway", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_application_gateway", id.ID())
 		}
 	}
 
@@ -1347,22 +1348,19 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 	t := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
-	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
-	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.Account.SubscriptionId, resGroup, name)
-
 	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
 
-	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
+	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("Error expanding `request_routing_rule`: %+v", err)
 	}
 
-	urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, gatewayID)
+	urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("Error expanding `url_path_map`: %+v", err)
 	}
 
-	redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
+	redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("Error expanding `redirect_configuration`: %+v", err)
 	}
@@ -1374,7 +1372,7 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
-	httpListeners, err := expandApplicationGatewayHTTPListeners(d, gatewayID)
+	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
 	}
@@ -1390,7 +1388,7 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 			TrustedRootCertificates:       trustedRootCertificates,
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
-			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, gatewayID),
+			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
 			EnableHTTP2:                   utils.Bool(enablehttp2),
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
@@ -1460,46 +1458,37 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if stopApplicationGateway {
-		future, err := client.Stop(ctx, resGroup, name)
+		future, err := client.Stop(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error Stopping Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("stopping %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the Application Gateway %q (Resource Group %q) to stop: %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for %s to stop: %+v", id, err)
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the create/update of Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	if stopApplicationGateway {
-		future, err := client.Start(ctx, resGroup, name)
+		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error Starting Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("starting %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the Application Gateway %q (Resource Group %q) to start: %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for %s to start: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Application Gateway %q (Resource Group %q)", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceApplicationGatewayRead(d, meta)
 }
 
@@ -1508,22 +1497,20 @@ func resourceApplicationGatewayRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["applicationGateways"]
 
-	applicationGateway, err := client.Get(ctx, resGroup, name)
+	applicationGateway, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(applicationGateway.Response) {
-			log.Printf("[DEBUG] Application Gateway %q was not found in Resource Group %q - removing from state", name, resGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Application Gateway %s: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", applicationGateway.Name)
@@ -1654,20 +1641,18 @@ func resourceApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["applicationGateways"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting for Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Application Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -1709,7 +1694,7 @@ func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentit
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := parse.UserAssignedIdentityID(key)
+			parsedId, err := msiParse.UserAssignedIdentityID(key)
 			if err != nil {
 				return nil, err
 			}

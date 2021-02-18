@@ -205,6 +205,5 @@ func resourceAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
-
 	return err
 }

@@ -102,6 +102,7 @@ func (client EntitiesRelationsClient) List(ctx context.Context, resourceGroupNam
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -177,7 +178,6 @@ func (client EntitiesRelationsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesRelationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

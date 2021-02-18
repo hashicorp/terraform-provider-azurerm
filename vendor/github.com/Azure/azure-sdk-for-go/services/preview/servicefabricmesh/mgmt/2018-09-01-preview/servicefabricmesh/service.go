@@ -157,6 +157,7 @@ func (client ServiceClient) List(ctx context.Context, resourceGroupName string, 
 	}
 	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -218,7 +219,6 @@ func (client ServiceClient) listNextResults(ctx context.Context, lastResults Ser
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.ServiceClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

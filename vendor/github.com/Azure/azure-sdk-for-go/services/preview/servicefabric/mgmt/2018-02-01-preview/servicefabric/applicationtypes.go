@@ -147,7 +147,7 @@ func (client ApplicationTypesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -184,7 +184,23 @@ func (client ApplicationTypesClient) DeleteSender(req *http.Request) (future App
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ApplicationTypesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationTypesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

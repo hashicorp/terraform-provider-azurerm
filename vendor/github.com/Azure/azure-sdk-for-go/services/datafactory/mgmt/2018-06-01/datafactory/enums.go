@@ -2669,6 +2669,8 @@ const (
 	TypeBlobTrigger TypeBasicTrigger = "BlobTrigger"
 	// TypeChainingTrigger ...
 	TypeChainingTrigger TypeBasicTrigger = "ChainingTrigger"
+	// TypeCustomEventsTrigger ...
+	TypeCustomEventsTrigger TypeBasicTrigger = "CustomEventsTrigger"
 	// TypeMultiplePipelineTrigger ...
 	TypeMultiplePipelineTrigger TypeBasicTrigger = "MultiplePipelineTrigger"
 	// TypeRerunTumblingWindowTrigger ...
@@ -2683,7 +2685,7 @@ const (
 
 // PossibleTypeBasicTriggerValues returns an array of possible values for the TypeBasicTrigger const type.
 func PossibleTypeBasicTriggerValues() []TypeBasicTrigger {
-	return []TypeBasicTrigger{TypeBlobEventsTrigger, TypeBlobTrigger, TypeChainingTrigger, TypeMultiplePipelineTrigger, TypeRerunTumblingWindowTrigger, TypeScheduleTrigger, TypeTrigger, TypeTumblingWindowTrigger}
+	return []TypeBasicTrigger{TypeBlobEventsTrigger, TypeBlobTrigger, TypeChainingTrigger, TypeCustomEventsTrigger, TypeMultiplePipelineTrigger, TypeRerunTumblingWindowTrigger, TypeScheduleTrigger, TypeTrigger, TypeTumblingWindowTrigger}
 }
 
 // VariableType enumerates the values for variable type.

@@ -350,6 +350,7 @@ func (client CertificateClient) ListByAutomationAccount(ctx context.Context, res
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -411,7 +412,6 @@ func (client CertificateClient) listByAutomationAccountNextResults(ctx context.C
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CertificateClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

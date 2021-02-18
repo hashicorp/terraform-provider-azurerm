@@ -374,6 +374,7 @@ func (client DataSourcesClient) ListByWorkspace(ctx context.Context, resourceGro
 	}
 	if result.dslr.hasNextLink() && result.dslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -439,7 +440,6 @@ func (client DataSourcesClient) listByWorkspaceNextResults(ctx context.Context, 
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DataSourcesClient", "listByWorkspaceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

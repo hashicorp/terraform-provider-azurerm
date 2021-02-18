@@ -293,8 +293,7 @@ func resourceMediaJobDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Cancel the job before we attempt to delete it.
-	_, err = client.CancelJob(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
-	if err != nil {
+	if _, err = client.CancelJob(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name); err != nil {
 		return fmt.Errorf("could not cancel Media Job %q (reource group %q) for delete: %+v", id.Name, id.ResourceGroup, err)
 	}
 

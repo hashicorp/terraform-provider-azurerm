@@ -57,8 +57,7 @@ func (ApiManagementProductAPIResource) Exists(ctx context.Context, clients *clie
 	productId := id.Path["products"]
 	apiName := id.Path["apis"]
 
-	_, err = clients.ApiManagement.ProductApisClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
-	if err != nil {
+	if _, err = clients.ApiManagement.ProductApisClient.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName); err != nil {
 		return nil, fmt.Errorf("reading ApiManagement Policy (%s): %+v", id, err)
 	}
 

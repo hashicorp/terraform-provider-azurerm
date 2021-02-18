@@ -234,6 +234,7 @@ func (client OAuth2PermissionGrantClient) List(ctx context.Context, filter strin
 	}
 	if result.oa2pglr.hasNextLink() && result.oa2pglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

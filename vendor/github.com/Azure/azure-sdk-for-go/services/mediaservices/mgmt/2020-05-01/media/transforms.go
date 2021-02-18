@@ -323,6 +323,7 @@ func (client TransformsClient) List(ctx context.Context, resourceGroupName strin
 	}
 	if result.tc.hasNextLink() && result.tc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -390,7 +391,6 @@ func (client TransformsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.TransformsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

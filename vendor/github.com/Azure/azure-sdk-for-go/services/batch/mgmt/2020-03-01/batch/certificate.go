@@ -182,7 +182,7 @@ func (client CertificateClient) Create(ctx context.Context, resourceGroupName st
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -229,7 +229,33 @@ func (client CertificateClient) CreateSender(req *http.Request) (future Certific
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CertificateClient) (c Certificate, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "batch.CertificateCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("batch.CertificateCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "batch.CertificateCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "batch.CertificateCreateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -282,7 +308,7 @@ func (client CertificateClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -319,7 +345,23 @@ func (client CertificateClient) DeleteSender(req *http.Request) (future Certific
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CertificateClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "batch.CertificateDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("batch.CertificateDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -474,6 +516,7 @@ func (client CertificateClient) ListByBatchAccount(ctx context.Context, resource
 	}
 	if result.lcr.hasNextLink() && result.lcr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -544,7 +587,6 @@ func (client CertificateClient) listByBatchAccountNextResults(ctx context.Contex
 	result, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "listByBatchAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

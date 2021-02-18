@@ -582,12 +582,14 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		if existing.Properties == nil || existing.Properties.VaultURI == nil {
 			return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
 		}
+
 		var err error
 		if len(*contacts.ContactList) == 0 {
 			_, err = managementClient.DeleteCertificateContacts(ctx, *existing.Properties.VaultURI)
 		} else {
 			_, err = managementClient.SetCertificateContacts(ctx, *existing.Properties.VaultURI, contacts)
 		}
+
 		if err != nil {
 			return fmt.Errorf("setting Contacts for %s: %+v", *id, err)
 		}

@@ -68,7 +68,7 @@ func (client InboundSecurityRuleClient) CreateOrUpdate(ctx context.Context, reso
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.InboundSecurityRuleClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.InboundSecurityRuleClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -109,7 +109,33 @@ func (client InboundSecurityRuleClient) CreateOrUpdateSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client InboundSecurityRuleClient) (isr InboundSecurityRule, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.InboundSecurityRuleCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.InboundSecurityRuleCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		isr.Response.Response, err = future.GetResult(sender)
+		if isr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.InboundSecurityRuleCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && isr.Response.Response.StatusCode != http.StatusNoContent {
+			isr, err = client.CreateOrUpdateResponder(isr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.InboundSecurityRuleCreateOrUpdateFuture", "Result", isr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

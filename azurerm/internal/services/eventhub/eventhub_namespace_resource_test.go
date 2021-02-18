@@ -389,6 +389,29 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_SkuDowngradeFromAutoInflateWithMaxThroughput(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.maximumThroughputUnits(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
+		},
+	})
+}
+
 func TestAccEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}

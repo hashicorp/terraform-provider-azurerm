@@ -67,7 +67,7 @@ func (client ReplicationProtectionContainersClient) Create(ctx context.Context, 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -107,7 +107,33 @@ func (client ReplicationProtectionContainersClient) CreateSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainersClient) (pc ProtectionContainer, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pc.Response.Response, err = future.GetResult(sender)
+		if pc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
+			pc, err = client.CreateResponder(pc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersCreateFuture", "Result", pc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -146,7 +172,7 @@ func (client ReplicationProtectionContainersClient) Delete(ctx context.Context, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -184,7 +210,23 @@ func (client ReplicationProtectionContainersClient) DeleteSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -223,7 +265,7 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItem(ctx 
 
 	result, err = client.DiscoverProtectableItemSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "DiscoverProtectableItem", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "DiscoverProtectableItem", nil, "Failure sending request")
 		return
 	}
 
@@ -263,7 +305,33 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItemSende
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainersClient) (pc ProtectionContainer, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pc.Response.Response, err = future.GetResult(sender)
+		if pc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
+			pc, err = client.DiscoverProtectableItemResponder(pc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture", "Result", pc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -390,6 +458,7 @@ func (client ReplicationProtectionContainersClient) List(ctx context.Context) (r
 	}
 	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -451,7 +520,6 @@ func (client ReplicationProtectionContainersClient) listNextResults(ctx context.
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -507,6 +575,7 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabrics(ctx
 	}
 	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -569,7 +638,6 @@ func (client ReplicationProtectionContainersClient) listByReplicationFabricsNext
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -615,7 +683,7 @@ func (client ReplicationProtectionContainersClient) SwitchProtection(ctx context
 
 	result, err = client.SwitchProtectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "SwitchProtection", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "SwitchProtection", nil, "Failure sending request")
 		return
 	}
 
@@ -655,7 +723,33 @@ func (client ReplicationProtectionContainersClient) SwitchProtectionSender(req *
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainersClient) (pc ProtectionContainer, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersSwitchProtectionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersSwitchProtectionFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pc.Response.Response, err = future.GetResult(sender)
+		if pc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersSwitchProtectionFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
+			pc, err = client.SwitchProtectionResponder(pc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersSwitchProtectionFuture", "Result", pc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

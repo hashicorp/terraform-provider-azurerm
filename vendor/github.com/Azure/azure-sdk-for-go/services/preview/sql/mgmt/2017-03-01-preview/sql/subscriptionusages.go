@@ -155,6 +155,7 @@ func (client SubscriptionUsagesClient) ListByLocation(ctx context.Context, locat
 	}
 	if result.sulr.hasNextLink() && result.sulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -215,7 +216,6 @@ func (client SubscriptionUsagesClient) listByLocationNextResults(ctx context.Con
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SubscriptionUsagesClient", "listByLocationNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

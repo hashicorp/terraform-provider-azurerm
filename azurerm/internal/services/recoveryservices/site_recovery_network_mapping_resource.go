@@ -45,7 +45,7 @@ func resourceSiteRecoveryNetworkMapping() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
 				Type:         schema.TypeString,
@@ -115,7 +115,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta inter
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_network_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_network_mapping", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -141,7 +141,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error retrieving site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryNetworkMappingRead(d, meta)
 }
@@ -179,7 +179,7 @@ func resourceSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfa
 		d.Set("source_network_id", props.PrimaryNetworkID)
 		d.Set("target_network_id", props.RecoveryNetworkID)
 
-		targetFabricId, err := azure.ParseAzureResourceID(azure.HandleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
+		targetFabricId, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
 		if err != nil {
 			return err
 		}

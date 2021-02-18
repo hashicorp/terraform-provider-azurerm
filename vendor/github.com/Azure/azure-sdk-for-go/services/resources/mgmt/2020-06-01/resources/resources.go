@@ -245,7 +245,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -285,7 +285,33 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (future CreateOrUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (gr GenericResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.CreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gr.Response.Response, err = future.GetResult(sender)
+		if gr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+			gr, err = client.CreateOrUpdateResponder(gr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -334,7 +360,7 @@ func (client Client) CreateOrUpdateByID(ctx context.Context, resourceID string, 
 
 	result, err = client.CreateOrUpdateByIDSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "CreateOrUpdateByID", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "CreateOrUpdateByID", nil, "Failure sending request")
 		return
 	}
 
@@ -369,7 +395,33 @@ func (client Client) CreateOrUpdateByIDSender(req *http.Request) (future CreateO
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (gr GenericResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.CreateOrUpdateByIDFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gr.Response.Response, err = future.GetResult(sender)
+		if gr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+			gr, err = client.CreateOrUpdateByIDResponder(gr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -421,7 +473,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -459,7 +511,23 @@ func (client Client) DeleteSender(req *http.Request) (future DeleteFuture, err e
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.DeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.DeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -499,7 +567,7 @@ func (client Client) DeleteByID(ctx context.Context, resourceID string, APIVersi
 
 	result, err = client.DeleteByIDSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "DeleteByID", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "DeleteByID", nil, "Failure sending request")
 		return
 	}
 
@@ -532,7 +600,23 @@ func (client Client) DeleteByIDSender(req *http.Request) (future DeleteByIDFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.DeleteByIDFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.DeleteByIDFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -762,6 +846,7 @@ func (client Client) List(ctx context.Context, filter string, expand string, top
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -830,7 +915,6 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -909,6 +993,7 @@ func (client Client) ListByResourceGroup(ctx context.Context, resourceGroupName 
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -978,7 +1063,6 @@ func (client Client) listByResourceGroupNextResults(ctx context.Context, lastRes
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1032,7 +1116,7 @@ func (client Client) MoveResources(ctx context.Context, sourceResourceGroupName 
 
 	result, err = client.MoveResourcesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "MoveResources", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "MoveResources", nil, "Failure sending request")
 		return
 	}
 
@@ -1069,7 +1153,23 @@ func (client Client) MoveResourcesSender(req *http.Request) (future MoveResource
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.MoveResourcesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.MoveResourcesFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1120,7 +1220,7 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -1160,7 +1260,33 @@ func (client Client) UpdateSender(req *http.Request) (future UpdateFuture, err e
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (gr GenericResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.UpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gr.Response.Response, err = future.GetResult(sender)
+		if gr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+			gr, err = client.UpdateResponder(gr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1202,7 +1328,7 @@ func (client Client) UpdateByID(ctx context.Context, resourceID string, APIVersi
 
 	result, err = client.UpdateByIDSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "UpdateByID", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "UpdateByID", nil, "Failure sending request")
 		return
 	}
 
@@ -1237,7 +1363,33 @@ func (client Client) UpdateByIDSender(req *http.Request) (future UpdateByIDFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (gr GenericResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.UpdateByIDFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gr.Response.Response, err = future.GetResult(sender)
+		if gr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+			gr, err = client.UpdateByIDResponder(gr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1288,7 +1440,7 @@ func (client Client) ValidateMoveResources(ctx context.Context, sourceResourceGr
 
 	result, err = client.ValidateMoveResourcesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "ValidateMoveResources", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "ValidateMoveResources", nil, "Failure sending request")
 		return
 	}
 
@@ -1325,7 +1477,23 @@ func (client Client) ValidateMoveResourcesSender(req *http.Request) (future Vali
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.ValidateMoveResourcesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.ValidateMoveResourcesFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

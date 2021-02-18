@@ -94,6 +94,7 @@ import (
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
 		eventhub.Registration{},
+		loadbalancer.Registration{},
 		resource.Registration{},
 	}
 }

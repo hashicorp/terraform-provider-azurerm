@@ -80,7 +80,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) CreateOrUpdate(ctx
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) CreateOrUpdateSend
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceAzureADOnlyAuthenticationsClient) (miaaoa ManagedInstanceAzureADOnlyAuthentication, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		miaaoa.Response.Response, err = future.GetResult(sender)
+		if miaaoa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && miaaoa.Response.Response.StatusCode != http.StatusNoContent {
+			miaaoa, err = client.CreateOrUpdateResponder(miaaoa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsCreateOrUpdateFuture", "Result", miaaoa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -159,7 +185,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) Delete(ctx context
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -196,7 +222,23 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) DeleteSender(req *
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceAzureADOnlyAuthenticationsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAzureADOnlyAuthenticationsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -326,6 +368,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) ListByInstance(ctx
 	}
 	if result.miaaoalr.hasNextLink() && result.miaaoalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -387,7 +430,6 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) listByInstanceNext
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

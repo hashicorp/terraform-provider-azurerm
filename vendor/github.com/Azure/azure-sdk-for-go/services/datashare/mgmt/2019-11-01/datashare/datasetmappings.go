@@ -323,6 +323,7 @@ func (client DataSetMappingsClient) ListByShareSubscription(ctx context.Context,
 	}
 	if result.dsml.hasNextLink() && result.dsml.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -394,7 +395,6 @@ func (client DataSetMappingsClient) listByShareSubscriptionNextResults(ctx conte
 	result, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "listByShareSubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

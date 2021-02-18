@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -23,9 +25,10 @@ func resourceRoute() *schema.Resource {
 		Update: resourceRouteCreateUpdate,
 		Delete: resourceRouteDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.RouteID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -81,34 +84,32 @@ func resourceRoute() *schema.Resource {
 
 func resourceRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RoutesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	name := d.Get("name").(string)
-	rtName := d.Get("route_table_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
 
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
+	id := parse.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("route_table_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, rtName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_route", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_route", id.ID())
 		}
 	}
 
-	locks.ByName(rtName, routeTableResourceName)
-	defer locks.UnlockByName(rtName, routeTableResourceName)
+	locks.ByName(id.RouteTableName, routeTableResourceName)
+	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
 
 	route := network.Route{
-		Name: &name,
+		Name: utils.String(id.Name),
 		RoutePropertiesFormat: &network.RoutePropertiesFormat{
 			AddressPrefix: &addressPrefix,
 			NextHopType:   network.RouteNextHopType(nextHopType),
@@ -119,24 +120,16 @@ func resourceRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 		route.RoutePropertiesFormat.NextHopIPAddress = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, rtName, name, route)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.RouteTableName, id.Name, route)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion for Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, rtName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Route %q/%q (resource group %q) ID", rtName, name, resGroup)
-	}
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceRouteRead(d, meta)
 }
 
@@ -145,26 +138,23 @@ func resourceRouteRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RouteID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	rtName := id.Path["routeTables"]
-	routeName := id.Path["routes"]
 
-	resp, err := client.Get(ctx, resGroup, rtName, routeName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Route %q: %+v", routeName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", routeName)
-	d.Set("resource_group_name", resGroup)
-	d.Set("route_table_name", rtName)
+	d.Set("name", id.Name)
+	d.Set("route_table_name", id.RouteTableName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.RoutePropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
@@ -180,24 +170,21 @@ func resourceRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RouteID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	rtName := id.Path["routeTables"]
-	routeName := id.Path["routes"]
 
-	locks.ByName(rtName, routeTableResourceName)
-	defer locks.UnlockByName(rtName, routeTableResourceName)
+	locks.ByName(id.RouteTableName, routeTableResourceName)
+	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
 
-	future, err := client.Delete(ctx, resGroup, rtName, routeName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Route %q (Route Table %q / Resource Group %q): %+v", routeName, rtName, resGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Route %q (Route Table %q / Resource Group %q): %+v", routeName, rtName, resGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

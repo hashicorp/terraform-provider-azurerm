@@ -394,8 +394,7 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		return fmt.Errorf("Bad: Deallocation error: %+v", err)
 	}
 
-	_, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("Bad: Generalizing error: %+v", err)
 	}
 

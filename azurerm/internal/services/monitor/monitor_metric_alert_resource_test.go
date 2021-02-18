@@ -252,11 +252,12 @@ resource "azurerm_monitor_metric_alert" "test" {
   window_size         = "PT12H"
 
   criteria {
-    metric_namespace = "Microsoft.Storage/storageAccounts"
-    metric_name      = "Transactions"
-    aggregation      = "Total"
-    operator         = "GreaterThan"
-    threshold        = 99
+    metric_namespace       = "Microsoft.Storage/storageAccounts"
+    metric_name            = "Transactions"
+    aggregation            = "Total"
+    operator               = "GreaterThan"
+    threshold              = 99
+    skip_metric_validation = true
 
     dimension {
       name     = "GeoType"
@@ -315,17 +316,21 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  count                           = %[3]d
-  name                            = "acctestVM-${count.index}"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  disable_password_authentication = false
+  count               = %[3]d
+  name                = "acctestVM-${count.index}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test[count.index].id,
   ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -352,13 +357,14 @@ resource "azurerm_monitor_metric_alert" "test" {
   scopes              = azurerm_linux_virtual_machine.test.*.id
   dynamic_criteria {
     metric_namespace = "Microsoft.Compute/virtualMachines"
-    metric_name      = "Network In"
-    aggregation      = "Total"
+    metric_name      = "CPU Credits Consumed"
+    aggregation      = "Average"
 
-    operator          = "GreaterOrLessThan"
-    alert_sensitivity = "Medium"
+    operator               = "GreaterOrLessThan"
+    alert_sensitivity      = "Medium"
+    skip_metric_validation = true
   }
-  window_size              = "PT1H"
+  window_size              = "PT5M"
   frequency                = "PT5M"
   target_resource_type     = "Microsoft.Compute/virtualMachines"
   target_resource_location = "%s"

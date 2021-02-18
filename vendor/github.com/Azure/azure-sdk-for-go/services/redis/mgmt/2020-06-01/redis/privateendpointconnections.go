@@ -309,7 +309,7 @@ func (client PrivateEndpointConnectionsClient) Put(ctx context.Context, resource
 
 	result, err = client.PutSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsClient", "Put", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsClient", "Put", nil, "Failure sending request")
 		return
 	}
 
@@ -348,7 +348,33 @@ func (client PrivateEndpointConnectionsClient) PutSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsPutFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("redis.PrivateEndpointConnectionsPutFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pec.Response.Response, err = future.GetResult(sender)
+		if pec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsPutFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+			pec, err = client.PutResponder(pec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "redis.PrivateEndpointConnectionsPutFuture", "Result", pec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -88,7 +88,7 @@ func (client AccountClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -126,7 +126,33 @@ func (client AccountClient) CreateSender(req *http.Request) (future AccountCreat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountClient) (a Account, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "batch.AccountCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("batch.AccountCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		a.Response.Response, err = future.GetResult(sender)
+		if a.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "batch.AccountCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
+			a, err = client.CreateResponder(a.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "batch.AccountCreateFuture", "Result", a.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -173,7 +199,7 @@ func (client AccountClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -209,7 +235,23 @@ func (client AccountClient) DeleteSender(req *http.Request) (future AccountDelet
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "batch.AccountDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("batch.AccountDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -427,6 +469,7 @@ func (client AccountClient) List(ctx context.Context) (result AccountListResultP
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -486,7 +529,6 @@ func (client AccountClient) listNextResults(ctx context.Context, lastResults Acc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -542,6 +584,7 @@ func (client AccountClient) ListByResourceGroup(ctx context.Context, resourceGro
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -602,7 +645,6 @@ func (client AccountClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

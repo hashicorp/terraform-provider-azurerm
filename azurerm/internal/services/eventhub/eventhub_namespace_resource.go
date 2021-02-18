@@ -55,7 +55,7 @@ func resourceEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -301,6 +301,15 @@ func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
 		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(v.(int)))
+	}
+
+	// @favoretti: if we are downgrading from Standard to Basic SKU and namespace had both autoInflate enabled and
+	// maximumThroughputUnits set - we need to force throughput units back to 0, otherwise downgrade fails
+	//
+	// See: https://github.com/terraform-providers/terraform-provider-azurerm/issues/10244
+	//
+	if parameters.Sku.Tier == eventhub.SkuTierBasic && !autoInflateEnabled {
+		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(0)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)

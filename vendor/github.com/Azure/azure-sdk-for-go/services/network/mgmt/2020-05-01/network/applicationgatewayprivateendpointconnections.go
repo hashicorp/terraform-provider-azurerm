@@ -67,7 +67,7 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) Delete(ctx cont
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,23 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) DeleteSender(re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ApplicationGatewayPrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ApplicationGatewayPrivateEndpointConnectionsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -233,6 +249,7 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) List(ctx contex
 	}
 	if result.agpeclr.hasNextLink() && result.agpeclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -294,7 +311,6 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) listNextResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -340,7 +356,7 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) Update(ctx cont
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -381,7 +397,33 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) UpdateSender(re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ApplicationGatewayPrivateEndpointConnectionsClient) (agpec ApplicationGatewayPrivateEndpointConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ApplicationGatewayPrivateEndpointConnectionsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		agpec.Response.Response, err = future.GetResult(sender)
+		if agpec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && agpec.Response.Response.StatusCode != http.StatusNoContent {
+			agpec, err = client.UpdateResponder(agpec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsUpdateFuture", "Result", agpec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -34,7 +34,6 @@ resource "azurerm_mssql_virtual_machine" "example" {
     maintenance_window_duration_in_minutes = 60
     maintenance_window_starting_hour       = 2
   }
-
 }
 ```
 
@@ -45,6 +44,8 @@ The following arguments are supported:
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit) and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
+
+* `auto_backup` (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
 * `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
@@ -63,6 +64,36 @@ The following arguments are supported:
 * `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `auto_backup` block supports the following:
+
+* `encryption_enabled` - (Optional) Enable or disable encryption for backups. Defaults to `false`.
+
+* `encryption_password` - (Optional) Encryption password to use. Must be specified when encryption is enabled.
+
+* `manual_schedule` - (Optional) A `manual_schedule` block as documented below. When this block is present, the schedule type is set to `Manual`. Without this block, the schedule type is set to `Automated`.
+
+* `retention_period_in_days` - (Required) Retention period of backups, in days. Valid values are from `1` to `30`.
+
+* `storage_blob_endpoint` - (Required) Blob endpoint for the storage account where backups will be kept.
+
+* `storage_account_access_key` - (Required) Access key for the storage account where backups will be kept.
+
+* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup. Defaults to `false`.
+
+---
+
+The `manual_schedule` block supports the following:
+
+* `full_backup_frequency` - (Optional) Frequency of full backups. Valid values include `Daily` or `Weekly`. Required when `backup_schedule_automated` is false.
+
+* `full_backup_start_hour` - (Optional) Start hour of a given day during which full backups can take place. Valid values are from `0` to `23`. Required when `backup_schedule_automated` is false.
+
+* `full_backup_window_in_hours` - (Optional) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`. Required when `backup_schedule_automated` is false.
+
+* `log_backup_frequency_in_minutes` - (Optional) Frequency of log backups, in minutes. Valid values are from `5` to `60`. Required when `backup_schedule_automated` is false.
 
 ---
 

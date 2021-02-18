@@ -91,7 +91,7 @@ func (client NamedValueClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -134,7 +134,33 @@ func (client NamedValueClient) CreateOrUpdateSender(req *http.Request) (future N
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamedValueClient) (nvc NamedValueContract, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.NamedValueCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.NamedValueCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		nvc.Response.Response, err = future.GetResult(sender)
+		if nvc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.NamedValueCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && nvc.Response.Response.StatusCode != http.StatusNoContent {
+			nvc, err = client.CreateOrUpdateResponder(nvc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.NamedValueCreateOrUpdateFuture", "Result", nvc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -474,6 +500,7 @@ func (client NamedValueClient) ListByService(ctx context.Context, resourceGroupN
 	}
 	if result.nvc.hasNextLink() && result.nvc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -544,7 +571,6 @@ func (client NamedValueClient) listByServiceNextResults(ctx context.Context, las
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -692,7 +718,7 @@ func (client NamedValueClient) Update(ctx context.Context, resourceGroupName str
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -732,7 +758,33 @@ func (client NamedValueClient) UpdateSender(req *http.Request) (future NamedValu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamedValueClient) (nvc NamedValueContract, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.NamedValueUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.NamedValueUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		nvc.Response.Response, err = future.GetResult(sender)
+		if nvc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.NamedValueUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && nvc.Response.Response.StatusCode != http.StatusNoContent {
+			nvc, err = client.UpdateResponder(nvc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.NamedValueUpdateFuture", "Result", nvc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

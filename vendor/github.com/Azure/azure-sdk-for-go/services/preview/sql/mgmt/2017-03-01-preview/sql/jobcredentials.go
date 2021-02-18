@@ -336,6 +336,7 @@ func (client JobCredentialsClient) ListByAgent(ctx context.Context, resourceGrou
 	}
 	if result.jclr.hasNextLink() && result.jclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -398,7 +399,6 @@ func (client JobCredentialsClient) listByAgentNextResults(ctx context.Context, l
 	result, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "listByAgentNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

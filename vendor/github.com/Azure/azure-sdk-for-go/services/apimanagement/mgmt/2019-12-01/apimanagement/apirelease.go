@@ -492,6 +492,7 @@ func (client APIReleaseClient) ListByService(ctx context.Context, resourceGroupN
 	}
 	if result.arc.hasNextLink() && result.arc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -563,7 +564,6 @@ func (client APIReleaseClient) listByServiceNextResults(ctx context.Context, las
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIReleaseClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -83,7 +83,7 @@ func (client SQLPoolWorkloadClassifierClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -124,7 +124,33 @@ func (client SQLPoolWorkloadClassifierClient) CreateOrUpdateSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolWorkloadClassifierClient) (wc WorkloadClassifier, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolWorkloadClassifierCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		wc.Response.Response, err = future.GetResult(sender)
+		if wc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && wc.Response.Response.StatusCode != http.StatusNoContent {
+			wc, err = client.CreateOrUpdateResponder(wc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierCreateOrUpdateFuture", "Result", wc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -176,7 +202,7 @@ func (client SQLPoolWorkloadClassifierClient) Delete(ctx context.Context, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -215,7 +241,23 @@ func (client SQLPoolWorkloadClassifierClient) DeleteSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolWorkloadClassifierClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadClassifierDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolWorkloadClassifierDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
