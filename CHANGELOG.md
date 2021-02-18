@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to build using Go 1.16 which adds support for darwin/arm64 (Apple Silicon) [GH-10615]
+* dependencies: updating to build using Go 1.16 which adds support for `darwin/arm64` (Apple Silicon) [GH-10615]
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
 * Data Source: `azurerm_bastion_host` - updating to use a Resource ID Formatter [GH-10570]
 * Data Source: `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter [GH-10570]
