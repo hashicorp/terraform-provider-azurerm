@@ -8,7 +8,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedKeyVaults: true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentDelete: false,
+			PermanentlyDeleteOnDestroy: false,
 		},
 		Network: NetworkFeatures{
 			RelaxedLocking: false,

@@ -151,8 +151,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
-			if v, ok := logAnalyticsWorkspaceRaw["permanent_delete"]; ok {
-				features.LogAnalyticsWorkspace.PermanentDelete = v.(bool)
+			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
+				features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
 			}
 		}
 	}

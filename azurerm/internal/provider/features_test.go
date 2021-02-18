@@ -35,7 +35,7 @@ func TestExpandFeatures(t *testing.T) {
 					RollInstancesWhenRequired: true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentDelete: false,
+					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},
@@ -51,7 +51,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"log_analytics_workspace": []interface{}{
 						map[string]interface{}{
-							"permanent_delete": true,
+							"permanently_delete_on_destroy": true,
 						},
 					},
 					"network": []interface{}{
@@ -83,7 +83,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedKeyVaults: true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentDelete: true,
+					PermanentlyDeleteOnDestroy: true,
 				},
 				Network: features.NetworkFeatures{
 					RelaxedLocking: true,
@@ -133,7 +133,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"log_analytics_workspace": []interface{}{
 						map[string]interface{}{
-							"permanent_delete": false,
+							"permanently_delete_on_destroy": false,
 						},
 					},
 				},
@@ -144,7 +144,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedKeyVaults: false,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentDelete: false,
+					PermanentlyDeleteOnDestroy: false,
 				},
 				Network: features.NetworkFeatures{
 					RelaxedLocking: false,
@@ -523,7 +523,7 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentDelete: false,
+					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},
@@ -533,14 +533,14 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 				map[string]interface{}{
 					"log_analytics_workspace": []interface{}{
 						map[string]interface{}{
-							"permanent_delete": true,
+							"permanently_delete_on_destroy": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentDelete: true,
+					PermanentlyDeleteOnDestroy: true,
 				},
 			},
 		},
@@ -550,14 +550,14 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 				map[string]interface{}{
 					"log_analytics_workspace": []interface{}{
 						map[string]interface{}{
-							"permanent_delete": false,
+							"permanently_delete_on_destroy": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentDelete: false,
+					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},

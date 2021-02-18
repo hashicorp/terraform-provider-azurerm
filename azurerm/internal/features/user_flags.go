@@ -32,5 +32,5 @@ type TemplateDeploymentFeatures struct {
 }
 
 type LogAnalyticsWorkspaceFeatures struct {
-	PermanentDelete bool
+	PermanentlyDeleteOnDestroy bool
 }
