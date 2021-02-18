@@ -208,7 +208,7 @@ func resourceNetAppVolume() *schema.Resource {
 							Default:  "dst",
 							ValidateFunc: validation.StringInSlice([]string{
 								"dst",
-							}, true),
+							}, falsee),
 						},
 
 						"remote_volume_location": azure.SchemaLocation(),
