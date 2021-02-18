@@ -539,7 +539,7 @@ func resourceApiManagementService() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"id": {
+						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -1668,7 +1668,7 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 	result["enabled"] = *input.Enabled
 
 	if input.ID != nil {
-		result["id"] = *input.ID
+		result["tenant_id"] = *input.ID
 	}
 
 	if input.PrimaryKey != nil {

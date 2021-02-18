@@ -348,6 +348,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
+* `tenant_access` - The `tenant_access` block as documented below.
+
 ---
 
 An `additional_location` block exports the following:
@@ -365,6 +367,16 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+A `tenant_access` block exports the following:
+
+* `tenant_id` - The identifier for the tenant access information contract.
+
+* `primary_key` - Primary access key for the tenant access information contract.
+
+* `secondary_key` - Secondary access key for the tenant access information contract.
 
 ## Timeouts
 
