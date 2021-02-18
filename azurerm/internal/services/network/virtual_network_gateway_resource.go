@@ -319,7 +319,6 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 							Type:       schema.TypeString,
 							Optional:   true,
 							Computed:   true,
-							ForceNew:   true,
 							Deprecated: "Deprecated in favor of `peering_addresses`",
 						},
 

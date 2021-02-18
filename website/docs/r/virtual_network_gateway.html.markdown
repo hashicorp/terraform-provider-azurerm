@@ -232,11 +232,6 @@ The `bgp_settings` block supports:
 
 * `asn` - (Optional) The Autonomous System Number (ASN) to use as part of the BGP.
 
-* `peering_address` - (Optional / **Deprecated**) The BGP peer IP address of the virtual network
-    gateway. This address is needed to configure the created gateway as a BGP Peer
-    on the on-premises VPN devices. The IP address must be part of the subnet of
-    the Virtual Network Gateway. Changing this forces a new resource to be created.
-
 * `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. You can specify either one `peering_addresses` (normal use case) or two (when `active_active` is `true`).
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
@@ -254,7 +249,9 @@ A `peering_addresses` supports the following:
 
 * `ip_configuration_name` - (Required) The name of the IP configuration of this Virtual Network Gateway (as you defined in the`ip_configuration`).
 
-* `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway. The valid range for the Azure reserved APIPA address is from "169.254.21.0" to "169.254.22.255".
+* `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
+  
+~> **Note:** The valid range for the reserved APIPA address in Azure Public is from "169.254.21.0" to "169.254.22.255".
 
 ---
 
