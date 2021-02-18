@@ -1,5 +1,9 @@
 ## 2.49.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
+
 ## 2.48.0 (February 18, 2021)
 
 FEATURES:
