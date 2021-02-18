@@ -237,7 +237,7 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 	expandedFeatures := expandSignalRFeatures(featureFlags)
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
-	if upstreamSettings != nil && !signalRIsInServerlessMode(expandedFeatures) {
+	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(expandedFeatures) {
 		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
