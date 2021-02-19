@@ -73,7 +73,14 @@ func resourceNetAppSnapshot() *schema.Resource {
 
 			// TODO: remove this in a next breaking changes release since tags are
 			// not supported anymore on Snapshots (todo 3.0)
-			"tags": tags.Schema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Deprecated: "Deprecated, snapshots don't support tags anymore.",
+			},
 		},
 	}
 }
