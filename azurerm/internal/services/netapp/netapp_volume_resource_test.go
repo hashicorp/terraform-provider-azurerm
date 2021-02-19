@@ -314,7 +314,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     endpoint_type             = "dst"
     remote_volume_location    = azurerm_resource_group.test.location
     remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
-    replication_schedule      = "_10minutely"
+    replication_frequency     = "10minutes"
   }
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
