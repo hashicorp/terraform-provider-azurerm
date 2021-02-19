@@ -170,7 +170,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
-		redisenderpris.Registration{},
+		redisenterprise.Registration{},
 		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},

@@ -75,6 +75,7 @@ import (
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
 	recoveryServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
+	redisenterprise "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
@@ -170,6 +171,7 @@ type Client struct {
 	PrivateDns            *privatedns.Client
 	RecoveryServices      *recoveryServices.Client
 	Redis                 *redis.Client
+	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
 	Search                *search.Client
@@ -267,6 +269,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.PrivateDns = privatedns.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)
+	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 	client.Search = search.NewClient(o)
