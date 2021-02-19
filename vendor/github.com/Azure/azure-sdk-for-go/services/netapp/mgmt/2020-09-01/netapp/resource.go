@@ -46,7 +46,7 @@ func NewResourceClientWithBaseURI(baseURI string, subscriptionID string) Resourc
 // Parameters:
 // body - file path availability request.
 // location - the location
-func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body ResourceNameAvailabilityRequest, location string) (result ResourceNameAvailability, err error) {
+func (client ResourceClient) CheckFilePathAvailability(ctx context.Context, body ResourceNameAvailabilityRequest, location string) (result CheckAvailabilityResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceClient.CheckFilePathAvailability")
 		defer func() {
@@ -93,7 +93,7 @@ func (client ResourceClient) CheckFilePathAvailabilityPreparer(ctx context.Conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -116,7 +116,7 @@ func (client ResourceClient) CheckFilePathAvailabilitySender(req *http.Request) 
 
 // CheckFilePathAvailabilityResponder handles the response to the CheckFilePathAvailability request. The method always
 // closes the http.Response Body.
-func (client ResourceClient) CheckFilePathAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
+func (client ResourceClient) CheckFilePathAvailabilityResponder(resp *http.Response) (result CheckAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -130,7 +130,7 @@ func (client ResourceClient) CheckFilePathAvailabilityResponder(resp *http.Respo
 // Parameters:
 // body - name availability request.
 // location - the location
-func (client ResourceClient) CheckNameAvailability(ctx context.Context, body ResourceNameAvailabilityRequest, location string) (result ResourceNameAvailability, err error) {
+func (client ResourceClient) CheckNameAvailability(ctx context.Context, body ResourceNameAvailabilityRequest, location string) (result CheckAvailabilityResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceClient.CheckNameAvailability")
 		defer func() {
@@ -177,7 +177,7 @@ func (client ResourceClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -200,7 +200,91 @@ func (client ResourceClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
 // closes the http.Response Body.
-func (client ResourceClient) CheckNameAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
+func (client ResourceClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckAvailabilityResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// CheckQuotaAvailability check if a quota is available.
+// Parameters:
+// body - quota availability request.
+// location - the location
+func (client ResourceClient) CheckQuotaAvailability(ctx context.Context, body QuotaAvailabilityRequest, location string) (result CheckAvailabilityResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceClient.CheckQuotaAvailability")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: body,
+			Constraints: []validation.Constraint{{Target: "body.Name", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "body.ResourceGroup", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("netapp.ResourceClient", "CheckQuotaAvailability", err.Error())
+	}
+
+	req, err := client.CheckQuotaAvailabilityPreparer(ctx, body, location)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.ResourceClient", "CheckQuotaAvailability", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CheckQuotaAvailabilitySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "netapp.ResourceClient", "CheckQuotaAvailability", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CheckQuotaAvailabilityResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.ResourceClient", "CheckQuotaAvailability", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CheckQuotaAvailabilityPreparer prepares the CheckQuotaAvailability request.
+func (client ResourceClient) CheckQuotaAvailabilityPreparer(ctx context.Context, body QuotaAvailabilityRequest, location string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-09-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.NetApp/locations/{location}/checkQuotaAvailability", pathParameters),
+		autorest.WithJSON(body),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CheckQuotaAvailabilitySender sends the CheckQuotaAvailability request. The method will close the
+// http.Response Body if it receives an error.
+func (client ResourceClient) CheckQuotaAvailabilitySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// CheckQuotaAvailabilityResponder handles the response to the CheckQuotaAvailability request. The method always
+// closes the http.Response Body.
+func (client ResourceClient) CheckQuotaAvailabilityResponder(resp *http.Response) (result CheckAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
