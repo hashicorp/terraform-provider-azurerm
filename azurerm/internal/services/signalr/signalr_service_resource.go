@@ -471,14 +471,14 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
 
-		upstreamTemplate := &signalr.UpstreamTemplate{
+		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			URLTemplate:     utils.String(setting["url_template"].(string)),
 		}
 
-		upstreamTemplates = append(upstreamTemplates, *upstreamTemplate)
+		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
 	}
 
 	return &signalr.ServerlessUpstreamSettings{
@@ -493,25 +493,35 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 	}
 
 	for _, settings := range *upstreamSettings.Templates {
-		upstreamSetting := make(map[string]interface{})
-
+		categoryPattern := make([]interface{}, 0)
 		if settings.CategoryPattern != nil {
 			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
-			upstreamSetting["category_pattern"] = utils.FlattenStringSlice(&categoryPatterns)
-		}
-		if settings.EventPattern != nil {
-			eventPatterns := strings.Split(*settings.EventPattern, ",")
-			upstreamSetting["event_pattern"] = utils.FlattenStringSlice(&eventPatterns)
-		}
-		if settings.HubPattern != nil {
-			hubPatterns := strings.Split(*settings.HubPattern, ",")
-			upstreamSetting["hub_pattern"] = utils.FlattenStringSlice(&hubPatterns)
-		}
-		if settings.URLTemplate != nil {
-			upstreamSetting["url_template"] = *settings.URLTemplate
+			categoryPattern = utils.FlattenStringSlice(&categoryPatterns)
 		}
 
-		result = append(result, upstreamSetting)
+		eventPattern := make([]interface{}, 0)
+		if settings.EventPattern != nil {
+			eventPatterns := strings.Split(*settings.EventPattern, ",")
+			eventPattern = utils.FlattenStringSlice(&eventPatterns)
+		}
+
+		hubPattern := make([]interface{}, 0)
+		if settings.HubPattern != nil {
+			hubPatterns := strings.Split(*settings.HubPattern, ",")
+			hubPattern = utils.FlattenStringSlice(&hubPatterns)
+		}
+
+		urlTemplate := ""
+		if settings.URLTemplate != nil {
+			urlTemplate = *settings.URLTemplate
+		}
+
+		result = append(result, map[string]interface{}{
+			"url_template":     urlTemplate,
+			"hub_pattern":      hubPattern,
+			"event_pattern":    eventPattern,
+			"category_pattern": categoryPattern,
+		})
 	}
 	return result
 }
