@@ -78,7 +78,7 @@ resource "azurerm_netapp_volume" "example" {
     endpoint_type             = "dst"
     remote_volume_location    = azurerm_resource_group.example_primary.location
     remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
-    replication_schedule      = "_10minutely"
+    replication_frequency      = "_10minutely"
   }
 }
 ```
@@ -143,7 +143,7 @@ An `data_protection_replication` is used when enabling the Cross-Region Replicat
 
 * `remote_volume_resource_id` - (Required) Primary volume's resource id.
   
-* `replication_schedule` - (Required) Replication frequency, supported values are '_10minutely', 'hourly', 'daily', values are case sensitive.
+* `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 
 A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_crr)
 

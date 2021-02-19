@@ -138,6 +138,6 @@ resource "azurerm_netapp_volume" "example_secondary" {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_resource_group.example.location
       remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
-      replication_schedule      = "10minutes"
+      replication_frequency      = "10minutes"
   }
 }

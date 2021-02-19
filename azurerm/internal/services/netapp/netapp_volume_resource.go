@@ -219,7 +219,7 @@ func resourceNetAppVolume() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
-						"replication_schedule": {
+						"replication_frequency": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -700,7 +700,7 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *netapp.Vo
 	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
 		replicationObject.RemoteVolumeResourceID = utils.String(v.(string))
 	}
-	if v, ok := replicationRaw["replication_schedule"]; ok {
+	if v, ok := replicationRaw["replication_frequency"]; ok {
 		replicationObject.ReplicationSchedule = netapp.ReplicationSchedule(translateTFSchedule(v.(string)))
 	}
 
@@ -798,7 +798,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumeProperties
 			"endpoint_type":             strings.ToLower(string(input.Replication.EndpointType)),
 			"remote_volume_location":    input.Replication.RemoteVolumeRegion,
 			"remote_volume_resource_id": input.Replication.RemoteVolumeResourceID,
-			"replication_schedule":      translateSDKSchedule(strings.ToLower(string(input.Replication.ReplicationSchedule))),
+			"replication_frequency":     translateSDKSchedule(strings.ToLower(string(input.Replication.ReplicationSchedule))),
 		},
 	}
 }
