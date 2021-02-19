@@ -108,7 +108,7 @@ func TestAccSubscriptionTemplateDeployment_withOutputs(t *testing.T) {
 			Config: r.withOutputsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\""),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
 		},
 		data.ImportStep(),
