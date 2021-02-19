@@ -173,12 +173,12 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 						},
 						"administrator_login": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"administrator_password": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -383,16 +383,20 @@ func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resource
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
 		catalogInfo := catalogInfos.([]interface{})[0].(map[string]interface{})
 
-		adminPassword := &datafactory.SecureString{
-			Value: utils.String(catalogInfo["administrator_password"].(string)),
-			Type:  datafactory.TypeSecureString,
-		}
-
 		ssisProperties.CatalogInfo = &datafactory.IntegrationRuntimeSsisCatalogInfo{
 			CatalogServerEndpoint: utils.String(catalogInfo["server_endpoint"].(string)),
-			CatalogAdminUserName:  utils.String(catalogInfo["administrator_login"].(string)),
-			CatalogAdminPassword:  adminPassword,
 			CatalogPricingTier:    datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string)),
+		}
+
+		if adminUserName := catalogInfo["administrator_login"]; adminUserName.(string) != "" {
+			ssisProperties.CatalogInfo.CatalogAdminUserName = utils.String(adminUserName.(string))
+		}
+
+		if adminPassword := catalogInfo["administrator_password"]; adminPassword.(string) != "" {
+			ssisProperties.CatalogInfo.CatalogAdminPassword = &datafactory.SecureString{
+				Value: utils.String(adminPassword.(string)),
+				Type:  datafactory.TypeSecureString,
+			}
 		}
 	}
 
@@ -432,9 +436,12 @@ func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *
 	}
 
 	catalogInfo := map[string]string{
-		"server_endpoint":     *ssisProperties.CatalogServerEndpoint,
-		"administrator_login": *ssisProperties.CatalogAdminUserName,
-		"pricing_tier":        string(ssisProperties.CatalogPricingTier),
+		"server_endpoint": *ssisProperties.CatalogServerEndpoint,
+		"pricing_tier":    string(ssisProperties.CatalogPricingTier),
+	}
+
+	if ssisProperties.CatalogAdminUserName != nil {
+		catalogInfo["administrator_login"] = *ssisProperties.CatalogAdminUserName
 	}
 
 	if adminPassword, ok := d.GetOk("catalog_info.0.administrator_password"); ok {
