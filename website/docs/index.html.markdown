@@ -196,7 +196,11 @@ The `virtual_machine` block supports the following:
 
 ~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
 
-* `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
+* `power_off_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources power off before the Virtual Machine is destroyed? Defaults to `true`.
+
+* `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is power off? Defaults to `false`.
+
+~> **Note:** This only takes effect if `power_off_on_deletion` is enabled. 
 
 ~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 

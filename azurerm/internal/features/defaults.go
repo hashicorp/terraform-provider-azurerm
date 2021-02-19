@@ -15,6 +15,7 @@ func Default() UserFeatures {
 		},
 		VirtualMachine: VirtualMachineFeatures{
 			DeleteOSDiskOnDeletion: true,
+			PowerOffOnDeletion:     true,
 			GracefulShutdown:       false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{

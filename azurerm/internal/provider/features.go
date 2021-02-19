@@ -164,6 +164,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
 				features.VirtualMachine.GracefulShutdown = v.(bool)
 			}
+			if v, ok := virtualMachinesRaw["power_off_on_deletion"]; ok {
+				features.VirtualMachine.PowerOffOnDeletion = v.(bool)
+			}
 		}
 	}
 
