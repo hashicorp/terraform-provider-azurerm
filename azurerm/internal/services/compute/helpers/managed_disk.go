@@ -48,7 +48,7 @@ func DeleteManagedDisks(ctx context.Context, client *clients.Client, dataDisks *
 }
 
 func UpdateManagedDisks(ctx context.Context, client *compute.DisksClient, dataDiskUpdates []DataDiskUpdate) error {
-	if dataDiskUpdates == nil || len(dataDiskUpdates) == 0 {
+	if len(dataDiskUpdates) == 0 {
 		return nil
 	}
 

@@ -1208,7 +1208,6 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return err
 		}
 
-		//diskUpdates := make([]helpers.DataDiskUpdate, 0)
 		// Do we have disks to resize or change encryption set?
 		err = helpers.UpdateManagedDisks(ctx, disksClient, diskUpdates)
 		if err != nil {
