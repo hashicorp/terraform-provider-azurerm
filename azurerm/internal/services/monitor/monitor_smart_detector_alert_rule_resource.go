@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -17,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -137,6 +137,8 @@ func resourceMonitorSmartDetectorAlertRule() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: commonValidate.ISO8601Duration,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -180,6 +182,7 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData, m
 			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*schema.Set).List()),
 			ActionGroups: expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("throttling_duration"); ok {
@@ -249,7 +252,7 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta inte
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
