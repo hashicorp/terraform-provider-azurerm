@@ -43,8 +43,6 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster. Changing this forces a new Redis Enterprise Cluster to be created.
 
----
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
