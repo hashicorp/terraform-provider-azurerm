@@ -100,11 +100,11 @@ func TestParseNestedItemID(t *testing.T) {
 	for _, tc := range cases {
 		secretId, err := ParseNestedItemID(tc.Input)
 		if err != nil {
-			if !tc.ExpectError {
-				t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
+			if tc.ExpectError {
+				continue
 			}
 
-			return
+			t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
 		}
 
 		if secretId == nil {
@@ -121,6 +121,10 @@ func TestParseNestedItemID(t *testing.T) {
 
 		if tc.Expected.Version != secretId.Version {
 			t.Fatalf("Expected 'Version' to be '%s', got '%s' for ID '%s'", tc.Expected.Version, secretId.Version, tc.Input)
+		}
+
+		if tc.Input != secretId.ID() {
+			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
 	}
 }
@@ -184,11 +188,11 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 	for _, tc := range cases {
 		secretId, err := ParseOptionallyVersionedNestedItemID(tc.Input)
 		if err != nil {
-			if !tc.ExpectError {
-				t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
+			if tc.ExpectError {
+				continue
 			}
 
-			return
+			t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
 		}
 
 		if secretId == nil {
@@ -205,6 +209,10 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 
 		if tc.Expected.Version != secretId.Version {
 			t.Fatalf("Expected 'Version' to be '%s', got '%s' for ID '%s'", tc.Expected.Version, secretId.Version, tc.Input)
+		}
+
+		if tc.Input != secretId.ID() {
+			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
 	}
 }

@@ -192,6 +192,7 @@ func (client EncryptionScopesClient) List(ctx context.Context, resourceGroupName
 	}
 	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -253,7 +254,6 @@ func (client EncryptionScopesClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.EncryptionScopesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

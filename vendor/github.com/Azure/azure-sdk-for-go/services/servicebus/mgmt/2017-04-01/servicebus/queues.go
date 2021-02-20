@@ -653,6 +653,7 @@ func (client QueuesClient) ListAuthorizationRules(ctx context.Context, resourceG
 	}
 	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -715,7 +716,6 @@ func (client QueuesClient) listAuthorizationRulesNextResults(ctx context.Context
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -796,6 +796,7 @@ func (client QueuesClient) ListByNamespace(ctx context.Context, resourceGroupNam
 	}
 	if result.sqlr.hasNextLink() && result.sqlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -863,7 +864,6 @@ func (client QueuesClient) listByNamespaceNextResults(ctx context.Context, lastR
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

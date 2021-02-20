@@ -352,6 +352,7 @@ func (client CredentialClient) ListByAutomationAccount(ctx context.Context, reso
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -413,7 +414,6 @@ func (client CredentialClient) listByAutomationAccountNextResults(ctx context.Co
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CredentialClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

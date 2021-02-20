@@ -16,6 +16,10 @@ import (
 // this should only be used as a last resort - since all acctests should run nightly.
 var packagesToSkip = map[string]struct{}{
 	"devspace": {},
+
+	// force-deprecated and will be removed by Azure on 2021-04-28
+	// new clusters cannot be cretaed - so there's no point trying to run the tests
+	"servicefabricmesh": {},
 }
 
 func main() {

@@ -93,7 +93,7 @@ func (client ConnectionMonitorsClient) CreateOrUpdate(ctx context.Context, resou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -135,7 +135,33 @@ func (client ConnectionMonitorsClient) CreateOrUpdateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConnectionMonitorsClient) (cmr ConnectionMonitorResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ConnectionMonitorsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cmr.Response.Response, err = future.GetResult(sender)
+		if cmr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cmr.Response.Response.StatusCode != http.StatusNoContent {
+			cmr, err = client.CreateOrUpdateResponder(cmr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsCreateOrUpdateFuture", "Result", cmr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -175,7 +201,7 @@ func (client ConnectionMonitorsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -212,7 +238,23 @@ func (client ConnectionMonitorsClient) DeleteSender(req *http.Request) (future C
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConnectionMonitorsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ConnectionMonitorsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -405,7 +447,7 @@ func (client ConnectionMonitorsClient) Query(ctx context.Context, resourceGroupN
 
 	result, err = client.QuerySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Query", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Query", nil, "Failure sending request")
 		return
 	}
 
@@ -442,7 +484,33 @@ func (client ConnectionMonitorsClient) QuerySender(req *http.Request) (future Co
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConnectionMonitorsClient) (cmqr ConnectionMonitorQueryResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsQueryFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ConnectionMonitorsQueryFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cmqr.Response.Response, err = future.GetResult(sender)
+		if cmqr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsQueryFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cmqr.Response.Response.StatusCode != http.StatusNoContent {
+			cmqr, err = client.QueryResponder(cmqr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsQueryFuture", "Result", cmqr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -482,7 +550,7 @@ func (client ConnectionMonitorsClient) Start(ctx context.Context, resourceGroupN
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -519,7 +587,23 @@ func (client ConnectionMonitorsClient) StartSender(req *http.Request) (future Co
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConnectionMonitorsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ConnectionMonitorsStartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -558,7 +642,7 @@ func (client ConnectionMonitorsClient) Stop(ctx context.Context, resourceGroupNa
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -595,7 +679,23 @@ func (client ConnectionMonitorsClient) StopSender(req *http.Request) (future Con
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConnectionMonitorsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ConnectionMonitorsStopFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

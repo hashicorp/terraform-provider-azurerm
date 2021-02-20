@@ -512,6 +512,7 @@ func (client APITagDescriptionClient) ListByService(ctx context.Context, resourc
 	}
 	if result.tdc.hasNextLink() && result.tdc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -583,7 +584,6 @@ func (client APITagDescriptionClient) listByServiceNextResults(ctx context.Conte
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -93,7 +93,7 @@ func (client BaseClient) CreateRecommendedActionSession(ctx context.Context, res
 
 	result, err = client.CreateRecommendedActionSessionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.BaseClient", "CreateRecommendedActionSession", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mariadb.BaseClient", "CreateRecommendedActionSession", nil, "Failure sending request")
 		return
 	}
 
@@ -131,7 +131,23 @@ func (client BaseClient) CreateRecommendedActionSessionSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BaseClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "mariadb.CreateRecommendedActionSessionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("mariadb.CreateRecommendedActionSessionFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

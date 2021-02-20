@@ -359,6 +359,25 @@ func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 	})
 }
 
+func TestMinTlsVersionOnServerUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.beforeUpdate(data, "9.6", "TLS1_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.afterUpdate(data, "9.6", "TLS1_0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -766,4 +785,70 @@ resource "azurerm_postgresql_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
+}
+
+func (PostgreSQLServerResource) beforeUpdate(data acceptance.TestData, version string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
+}
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
+}
+
+func (PostgreSQLServerResource) afterUpdate(data acceptance.TestData, version string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
+
+}
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }

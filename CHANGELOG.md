@@ -1,46 +1,206 @@
-## 2.45.0 (Unreleased)
+## 2.49.0 (Unreleased)
 
-FEATURES:
+ENHANCEMENTS:
 
-* **New Resource:** `azurerm_data_factory_linked_service_snowflake` [GH-10239]
-* **New Resource:** `azurerm_data_factory_linked_service_azure_table_storage` [GH-10305]
-* **New Resource:** `azurerm_iothub_enrichment` [GH-9239]
-* **New Resource:** `azurerm_iot_security_solution` [GH-10034]
-* **New Resource**: `azurerm_media_streaming_policy` [GH-10133]
-* **New Resource:** `azurerm_spring_cloud_active_deployment` [GH-9959]
-* **New Resource:** `azurerm_spring_cloud_java_deployment` [GH-9959]
-
-IMPROVEMENTS:
-
-* dependencies: updating to `v0.11.17` of `github.com/Azure/go-autorest/autorest` [GH-10259]
-* dependencies: updating the `firewall` resources to use the Networking API `2020-07-01` [GH-10252]
-* dependencies: updating the `load balancer` resources to use the Networking API version `2020-05-01` [GH-10263]
-* Data Source: `azurerm_app_service_environment` - export the `cluster_setting` block [GH-10303]
-* Data Source: `azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute [GH-10275]
-* `azurerm_app_service` - support for the propety `number_of_workers` [GH-10143]
-* `azurerm_app_service_environment` - support for the `cluster_setting` block [GH-10303]
-* `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property [GH-10182]
-* `azurerm_firewall_policy` - support for the `sku` property [GH-10186]
-* `azurerm_iothub` - support for the `enrichment` property [GH-9239]
-* `azurerm_key_vault` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
-* `azurerm_key_vault` - support both ipv4 and cidr formats for the `network_acls.ip_rules` property [GH-10266]
-* `azurerm_key_vault_certificate` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
-* `azurerm_key_vault_key` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
-* `azurerm_key_vault_secret` - optimised loading of and added caching when retrieving the Key Vault [GH-10330]
-* `azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute [GH-10275]
-* `azurerm_linux_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
-* `azurerm_media_services_account` - support for setting the `storage_authentication_type` field to `System` [GH-10133]
-* `azurerm_redis_cache` - support multiple availability zones [GH-10283]
-* `azurerm_storage_data_lake_gen2_filesystem` - support for the `ace` block [GH-9917]
-* `azurerm_servicebus_namespace` - will now allow a capacity of `16` for the `Premium` SKU [GH-10337]
-* `azurerm_windows_virtual_machine` - skipping shutdown for a machine in a failed state [GH-10189]
-* `azurerm_linux_virtual_machine_scale_set` - support for the `extensions_time_budget` property [GH-10298]
-* `azurerm_windows_virtual_machine_scale_set` - support for the `extensions_time_budget` property [GH-10298]
+* `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
 
 BUG FIXES:
 
-* `azurerm_media_streaming_endpoint` - stopping the streaming endpoint prior to deletion if the endpoint is in a running state [GH-10216]
-* `azurerm_role_definition` - don't add `scope` to `assignable_scopes` unless none are specified [GH-8624]
+* `azurerm_batch_certificate`: Allow empty `password` when format is pfx [GH-10642]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
+* `azurerm_kusto_cluster`: changing `virtual_network_configuration` forces a new resource to be created. [GH-10640]
+
+## 2.48.0 (February 18, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_application_gateway` ([#10268](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10268))
+
+ENHANCEMENTS:
+
+* dependencies: updating to build using Go 1.16 which adds support for `darwin/arm64` (Apple Silicon) ([#10615](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10615))
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` ([#10561](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10561))
+* Data Source: `azurerm_bastion_host` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* Data Source: `azurerm_kubernetes_cluster_node_pool` - exposing the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* Data Source: `azurerm_route` - pdating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_subnet ` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_subscriptions` - adding the field `id` to the `subscriptions` block ([#10598](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10598))
+* Data Source: `azurerm_virtual_network` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_bastion_host` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_bastion_host` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_kubernetes_cluster` - support for configuring the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* `azurerm_kubernetes_cluster` - support for `automatic_channel_upgrade` ([#10530](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10530))
+* `azurerm_kubernetes_cluster` - support for `skip_nodes_with_local_storage` within the `auto_scaler_profile` block ([#10531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10531))
+* `azurerm_kubernetes_cluster` - support for `skip_nodes_with_system_pods` within the `auto_scaler_profile` block ([#10531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10531))
+* `azurerm_kubernetes_cluster_node_pool` - support for configuring the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* `azurerm_lighthouse_definition` - add support for `principal_id_display_name` property ([#10613](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10613))
+* `azurerm_log_analytics_workspace` - Support for `capacity_reservation_level` property and `CapacityReservation` SKU ([#10612](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10612))
+* `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_point_to_site_vpn_gateway` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_route` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_route` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_subnet` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_subnet` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `synapse_workspace_resource` - support for the `azure_devops_repo` and `github_repo` blocks ([#10157](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10157))
+* `azurerm_virtual_network` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_virtual_network` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+
+BUG FIXES:
+
+* `azurerm_eventgrid_event_subscription` - change the number of possible `advanced_filter` items from `5` to `25` ([#10625](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10625))
+* `azurerm_key_vault` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields within the `access_policy` block ([#10593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10593))
+* `azurerm_key_vault_access_policy ` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields ([#10593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10593))
+* `azurerm_mariadb_firewall_rule` - correctly validate the `name` property ([#10579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10579))
+* `azurerm_postgresql_server` - correctly change `ssl_minimal_tls_version_enforced` on update ([#10606](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10606))
+* `azurerm_private_endpoint` - only updating the associated Private DNS Zone Group when there's changes ([#10559](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10559))
+* `azurerm_resource_group_template_deployment` - fixing an issue where the API version for nested items couldn't be found during deletion ([#10565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10565))
+
+## 2.47.0 (February 11, 2021)
+
+UPGRADE NOTES
+
+* `azurerm_frontdoor` & `azurerm_frontdoor_custom_https_configuration` - the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` have been added to the `azurerm_frontdoor` resource, which are a map of name-ID references. An upcoming version of the Azure Provider will change the blocks `backend_pool`, `backend_pool_health_probe`, `backend_pool_load_balancing`, `frontend_endpoint` and `routing_rule` from a List to a Set to work around an ordering issue within the Azure API - as such you should update your Terraform Configuration to reference these new Maps, rather than the Lists directly, due to the upcoming breaking change. For example, changing `azurerm_frontdoor.example.frontend_endpoint[1].id` to `azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]` ([#9357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9357))
+* `azurerm_lb_backend_address_pool` - the field `backend_addresses` has been deprecated and is no longer functional - instead the `azurerm_lb_backend_address_pool_address` resource offers the same functionality. ([#10488](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10488))
+* `azurerm_linux_virtual_machine_scale_set` & `azurerm_windows_virtual_machine_scale_set` - the in-line `extension` block is now GA - the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` no longer has any effect and can be removed ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_data_factory_integration_runtime_managed` - this resource has been renamed/deprecated in favour of `azurerm_data_factory_integration_runtime_azure_ssis` ([#10236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10236))
+* The provider-block field `skip_credentials_validation` is now deprecated since this was non-functional and will be removed in 3.0 of the Azure Provider ([#10464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10464))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_key_vault_certificate_data` ([#8184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8184))
+* **New Resource:** `azurerm_application_insights_smart_detection_rule` ([#10539](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10539))
+* **New Resource:** `azurerm_data_factory_integration_runtime_azure` ([#10236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10236))
+* **New Resource:** `azurerm_data_factory_integration_runtime_azure_ssis` ([#10236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10236))
+* **New Resource:** `azurerm_lb_backend_address_pool_address` ([#10488](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10488))
+
+ENHANCEMENTS:
+
+* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to `v1.16.0` ([#10521](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10521))
+* `azurerm_frontdoor` - added the new fields `backend_pool_health_probes`, `backend_pool_load_balancing_settings`, `backend_pools`, `frontend_endpoints`, `routing_rules` which are a map of name-ID references ([#9357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9357))
+* `azurerm_kubernetes_cluster` - updating the validation for the `log_analytics_workspace_id` field within the `oms_agent` block within the `addon_profile` block ([#10520](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10520))
+* `azurerm_kubernetes_cluster` - support for configuring `only_critical_addons_enabled` ([#10307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10307))
+* `azurerm_kubernetes_cluster` - support for configuring `private_dns_zone_id` ([#10201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10201))
+* `azurerm_linux_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_media_streaming_endpoint` - exporting the field `host_name` ([#10527](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10527))
+* `azurerm_mssql_virtual_machine` - support for `auto_backup` ([#10460](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10460))
+* `azurerm_windows_virtual_machine_scale_set` - the `extension` block is now GA and available without enabling the beta ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_site_recovery_replicated_vm` - support for the `recovery_public_ip_address_id` property and changing `target_static_ip` or `target_static_ip` force a new resource to be created ([#10446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10446))
+
+BUG FIXES:
+
+* provider: the provider-block field `skip_credentials_validation` is now deprecated since this was non-functional. This will be removed in 3.0 of the Azure Provider ([#10464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10464))
+* Data Source: `azurerm_shared_image_versions` - retrieving all versions of the image prior to filtering ([#10519](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10519))
+* `azurerm_app_service` - the `ip_restriction.x.ip_address` propertynow accepts anything other than an empty string ([#10440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10440))
+* `azurerm_cosmosdb_account` - validate the `key_vault_key_id` property is versionless ([#10420](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10420))
+* `azurerm_cosmosdb_account` - will no longer panic if the response is nil ([#10525](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10525))
+* `azurerm_eventhub_namespace` - correctly downgrade to the `Basic` sku ([#10536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10536))
+* `azurerm_key_vault_key` - export the `versionless_id` attribute ([#10420](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10420))
+* `azurerm_lb_backend_address_pool` - the `backend_addresses` block is now deprecated and non-functional - use the `azurerm_lb_backend_address_pool_address` resource instead ([#10488](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10488))
+* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `protected_settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_linux_virtual_machine_scale_set` - fixing a bug when `settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_monitor_diagnostic_setting` - changing the `log_analytics_workspace_id` property no longer creates a new resource ([#10512](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10512))
+* `azurerm_storage_data_lake_gen2_filesystem` - do not set/retrieve ACLs when HNS is not enabled  ([#10470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10470))
+* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `protected_settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+* `azurerm_windows_virtual_machine_scale_set ` - fixing a bug when `settings` within the `extension` block was an empty string ([#10528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10528))
+
+## 2.46.1 (February 05, 2021)
+
+BUG FIXES:
+
+* `azurerm_lb_backend_address_pool` - mark `backend_address` as computed ([#10481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10481))
+
+## 2.46.0 (February 04, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_identity_provider_aadb2c` ([#10240](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10240))
+* **New Resource:** `azurerm_cosmosdb_cassandra_table` ([#10328](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10328))
+
+ENHANCEMENTS:
+
+* dependencies: updating `recoveryservices` to API version `2018-07-10` ([#10373](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10373))
+* `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip`, `sampling_percentage` and `verbosity` properties ([#10325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10325))
+* `azurerm_api_management_diagnostic` - support for the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks ([#10325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10325))
+* `azurerm_kubernetes_cluster` - support for configuring the field `enable_host_encryption` within the `default_node_pool` block ([#10398](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10398))
+* `azurerm_kubernetes_cluster` - added length validation to the `admin_password` field within the `windows_profile` block ([#10452](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10452))
+* `azurerm_kubernetes_cluster_node_pool` - support for `enable_host_encryption` ([#10398](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10398))
+* `azurerm_lb_backend_address_pool` - support for the `backend_address` block ([#10291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10291))
+* `azurerm_redis_cache` - support for the `public_network_access_enabled` property ([#10410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10410))
+* `azurerm_role_assignment` - adding validation for that the `scope` is either a Management Group, Subscription, Resource Group or Resource ID ([#10438](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10438))
+* `azurerm_service_fabric_cluster` - support for the `reverse_proxy_certificate_common_names` block ([#10367](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10367))
+* `azurerm_monitor_metric_alert` - support for the `skip_metric_validation` property ([#10422](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10422))
+
+BUG FIXES:
+
+* Data Source: `azurerm_api_management` fix an exception with User Assigned Managed Identities ([#10429](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10429))
+* `azurerm_api_management_api_diagnostic` - fix a bug where specifying `log_client_ip = false` would not disable the setting ([#10325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10325))
+* `azurerm_key_vault` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_key_vault_certificate` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_key_vault_key` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_key_vault_secret` - fixing a race condition when setting the cache ([#10447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10447))
+* `azurerm_mssql_virtual_machine` - fixing a crash where the KeyVault was nil in the API response ([#10469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10469))
+* `azurerm_storage_account_datasource` - prevent panics from passing in an empty `name` ([#10370](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10370))
+* `azurerm_storage_data_lake_gen2_filesystem` - change the `ace` property to a TypeSet to ensure consistent ordering ([#10372](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10372))
+* `azurerm_storage_data_lake_gen2_path` - change the `ace` property to a TypeSet to ensure consistent ordering ([#10372](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10372))
+
+## 2.45.1 (January 28, 2021)
+
+BUG FIXES:
+
+* `azurerm_app_service_environment` - prevent a panic when the API returns a nil cluster settings ([#10365](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10365))
+
+## 2.45.0 (January 28, 2021)
+
+FEATURES:
+
+* **New Data Source** `azurerm_search_service` ([#10181](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10181))
+* **New Resource:** `azurerm_data_factory_linked_service_snowflake` ([#10239](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10239))
+* **New Resource:** `azurerm_data_factory_linked_service_azure_table_storage` ([#10305](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10305))
+* **New Resource:** `azurerm_iothub_enrichment` ([#9239](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9239))
+* **New Resource:** `azurerm_iot_security_solution` ([#10034](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10034))
+* **New Resource:** `azurerm_media_streaming_policy` ([#10133](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10133))
+* **New Resource:** `azurerm_spring_cloud_active_deployment` ([#9959](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9959))
+* **New Resource:** `azurerm_spring_cloud_java_deployment` ([#9959](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9959))
+
+IMPROVEMENTS:
+
+* dependencies: updating to `v0.11.17` of `github.com/Azure/go-autorest/autorest` ([#10259](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10259))
+* dependencies: updating the `firewall` resources to use the Networking API `2020-07-01` ([#10252](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10252))
+* dependencies: updating the `load balancer` resources to use the Networking API version `2020-05-01` ([#10263](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10263))
+* Data Source: `azurerm_app_service_environment` - export the `cluster_setting` block ([#10303](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10303))
+* Data Source: `azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute ([#10275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10275))
+* `azurerm_app_service` - support for the propety `number_of_workers` ([#10143](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10143))
+* `azurerm_app_service_environment` - support for the `cluster_setting` block ([#10303](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10303))
+* `azurerm_data_factory_dataset_delimited_text` - support for the `compression_codec` property ([#10182](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10182))
+* `azurerm_firewall_policy` - support for the `sku` property ([#10186](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10186))
+* `azurerm_iothub` - support for the `enrichment` property ([#9239](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9239))
+* `azurerm_key_vault` - optimised loading of and added caching when retrieving the Key Vault ([#10330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10330))
+* `azurerm_key_vault` - support both ipv4 and cidr formats for the `network_acls.ip_rules` property ([#10266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10266))
+* `azurerm_key_vault_certificate` - optimised loading of and added caching when retrieving the Key Vault ([#10330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10330))
+* `azurerm_key_vault_key` - optimised loading of and added caching when retrieving the Key Vault ([#10330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10330))
+* `azurerm_key_vault_secret` - optimised loading of and added caching when retrieving the Key Vault ([#10330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10330))
+* `azurerm_key_vault_certificate` - support for the `certificate_data_base64` attribute ([#10275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10275))
+* `azurerm_linux_virtual_machine` - skipping shutdown for a machine in a failed state ([#10189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10189))
+* `azurerm_media_services_account` - support for setting the `storage_authentication_type` field to `System` ([#10133](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10133))
+* `azurerm_redis_cache` - support multiple availability zones ([#10283](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10283))
+* `azurerm_storage_data_lake_gen2_filesystem` - support for the `ace` block ([#9917](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9917))
+* `azurerm_servicebus_namespace` - will now allow a capacity of `16` for the `Premium` SKU ([#10337](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10337))
+* `azurerm_windows_virtual_machine` - skipping shutdown for a machine in a failed state ([#10189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10189))
+* `azurerm_linux_virtual_machine_scale_set` - support for the `extensions_time_budget` property ([#10298](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10298))
+* `azurerm_windows_virtual_machine_scale_set` - support for the `extensions_time_budget` property ([#10298](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10298))
+
+BUG FIXES:
+
+* `azurerm_iot_time_series_insights_reference_data_set` - the field `data_string_comparison_behavior` is now `ForceNew` ([#10343](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10343))
+* `azurerm_iot_time_series_insights_reference_data_set` - the `key_property` block is now `ForceNew` ([#10343](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10343))
+* `azurerm_linux_virtual_machine_scale_set` - fixing an issue where `protected_settings` field within the `extension` block couldn't be empty ([#10351](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10351))
+* `azurerm_linux_virtual_machine_scale_set` - fixing an issue where `settings` field within the `extension` block couldn't be empty ([#10351](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10351))
+* `azurerm_media_streaming_endpoint` - stopping the streaming endpoint prior to deletion if the endpoint is in a running state ([#10216](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10216))
+* `azurerm_role_definition` - don't add `scope` to `assignable_scopes` unless none are specified ([#8624](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8624))
+* `azurerm_windows_virtual_machine_scale_set` - fixing an issue where `protected_settings` field within the `extension` block couldn't be empty ([#10351](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10351))
+* `azurerm_windows_virtual_machine_scale_set` - fixing an issue where `settings` field within the `extension` block couldn't be empty ([#10351](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10351))
 
 ## 2.44.0 (January 21, 2021)
 

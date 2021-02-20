@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
 func SchemaResourceGroupName() *schema.Schema {
@@ -22,6 +22,16 @@ func SchemaResourceGroupNameDeprecated() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
+		ValidateFunc: validateResourceGroupName,
+		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
+	}
+}
+
+func SchemaResourceGroupNameDeprecatedComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		Computed:     true,
 		ValidateFunc: validateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}

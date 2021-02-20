@@ -2,6 +2,7 @@ package iothub
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -13,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +27,11 @@ func resourceIotHubEnrichment() *schema.Resource {
 		Read:   resourceArmIotHubEnrichmentRead,
 		Update: resourceArmIotHubEnrichmentCreateUpdate,
 		Delete: resourceArmIotHubEnrichmentDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.EnrichmentID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -75,6 +80,7 @@ func resourceIotHubEnrichment() *schema.Resource {
 }
 
 func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,7 +102,6 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interf
 
 	enrichmentKey := d.Get("key").(string)
 	enrichmentValue := d.Get("value").(string)
-	resourceId := fmt.Sprintf("%s/Enrichments/%s", *iothub.ID, enrichmentKey)
 	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
 
 	enrichment := devices.EnrichmentProperties{
@@ -117,12 +122,13 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interf
 
 	enrichments := make([]devices.EnrichmentProperties, 0)
 
+	id := parse.NewEnrichmentID(subscriptionId, resourceGroup, iothubName, enrichmentKey)
 	alreadyExists := false
 	for _, existingEnrichment := range *routing.Enrichments {
 		if existingEnrichment.Key != nil {
 			if strings.EqualFold(*existingEnrichment.Key, enrichmentKey) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_enrichment", resourceId)
+					return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
 				}
 				enrichments = append(enrichments, enrichment)
 				alreadyExists = true
@@ -148,7 +154,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceArmIotHubEnrichmentRead(d, meta)
 }
@@ -158,38 +164,44 @@ func resourceArmIotHubEnrichmentRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedEnrichmentId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EnrichmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedEnrichmentId.ResourceGroup
-	iothubName := parsedEnrichmentId.Path["IotHubs"]
-	enrichmentKey := parsedEnrichmentId.Path["Enrichments"]
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] IoTHub %q was not found in Resource Group %q (so Enrichment cannot exist) - removing from state", id.IotHubName, id.ResourceGroup)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
-	d.Set("key", enrichmentKey)
-	d.Set("iothub_name", iothubName)
-	d.Set("resource_group_name", resourceGroup)
-
-	if iothub.Properties == nil || iothub.Properties.Routing == nil {
-		return nil
-	}
-
-	if enrichments := iothub.Properties.Routing.Enrichments; enrichments != nil {
-		for _, enrichment := range *enrichments {
+	var props *devices.EnrichmentProperties
+	if resp.Properties != nil && resp.Properties.Routing != nil && resp.Properties.Routing.Enrichments != nil {
+		for _, enrichment := range *resp.Properties.Routing.Enrichments {
 			if enrichment.Key != nil {
-				if strings.EqualFold(*enrichment.Key, enrichmentKey) {
-					d.Set("value", enrichment.Value)
-					d.Set("endpoint_names", enrichment.EndpointNames)
+				if strings.EqualFold(*enrichment.Key, id.Name) {
+					props = &enrichment
+					break
 				}
 			}
 		}
 	}
+
+	if props == nil {
+		log.Printf("[DEBUG] %s was not found - removing from state", *id)
+		d.SetId("")
+		return nil
+	}
+
+	d.Set("key", id.Name)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("value", props.Value)
+	d.Set("endpoint_names", props.EndpointNames)
 
 	return nil
 }
@@ -199,31 +211,27 @@ func resourceArmIotHubEnrichmentDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedEnrichmentId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EnrichmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedEnrichmentId.ResourceGroup
-	iothubName := parsedEnrichmentId.Path["IotHubs"]
-	enrichmentKey := parsedEnrichmentId.Path["Enrichments"]
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil {
 		return nil
 	}
-	enrichments := iothub.Properties.Routing.Enrichments
 
+	enrichments := iothub.Properties.Routing.Enrichments
 	if enrichments == nil {
 		return nil
 	}
@@ -231,20 +239,20 @@ func resourceArmIotHubEnrichmentDelete(d *schema.ResourceData, meta interface{})
 	updatedEnrichments := make([]devices.EnrichmentProperties, 0)
 	for _, enrichment := range *enrichments {
 		if enrichment.Key != nil {
-			if !strings.EqualFold(*enrichment.Key, enrichmentKey) {
+			if !strings.EqualFold(*enrichment.Key, id.Name) {
 				updatedEnrichments = append(updatedEnrichments, enrichment)
 			}
 		}
 	}
 	iothub.Properties.Routing.Enrichments = &updatedEnrichments
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("Error updating IotHub %q (Resource Group %q) with Enrichment %q: %+v", iothubName, resourceGroup, enrichmentKey, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for IotHub %q (Resource Group %q) to finish updating Enrichment %q: %+v", iothubName, resourceGroup, enrichmentKey, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

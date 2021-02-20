@@ -80,7 +80,7 @@ func (client SQLPoolRestorePointsClient) Create(ctx context.Context, resourceGro
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client SQLPoolRestorePointsClient) CreateSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolRestorePointsClient) (rp RestorePoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolRestorePointsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rp.Response.Response, err = future.GetResult(sender)
+		if rp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
+			rp, err = client.CreateResponder(rp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsCreateFuture", "Result", rp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

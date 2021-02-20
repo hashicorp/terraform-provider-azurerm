@@ -355,6 +355,7 @@ func (client Python2PackageClient) ListByAutomationAccount(ctx context.Context, 
 	}
 	if result.mlr.hasNextLink() && result.mlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -416,7 +417,6 @@ func (client Python2PackageClient) listByAutomationAccountNextResults(ctx contex
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.Python2PackageClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

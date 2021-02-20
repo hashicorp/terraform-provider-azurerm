@@ -172,7 +172,7 @@ The `policy_settings` block supports the following:
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
-* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `128`. Defaults to `128`.
+* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `128`. Defaults to `128`.
 
 ---
 

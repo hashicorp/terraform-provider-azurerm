@@ -324,6 +324,7 @@ func (client TrustedIDProvidersClient) ListByAccount(ctx context.Context, resour
 	}
 	if result.tiplr.hasNextLink() && result.tiplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -385,7 +386,6 @@ func (client TrustedIDProvidersClient) listByAccountNextResults(ctx context.Cont
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "listByAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

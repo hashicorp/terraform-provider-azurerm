@@ -74,6 +74,7 @@ func (client ManagedRuleSetsClient) List(ctx context.Context) (result ManagedRul
 	}
 	if result.mrsdl.hasNextLink() && result.mrsdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -133,7 +134,6 @@ func (client ManagedRuleSetsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ManagedRuleSetsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

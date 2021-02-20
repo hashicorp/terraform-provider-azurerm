@@ -80,7 +80,7 @@ func (client ServerTrustGroupsClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ServerTrustGroupsClient) CreateOrUpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerTrustGroupsClient) (stg ServerTrustGroup, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerTrustGroupsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		stg.Response.Response, err = future.GetResult(sender)
+		if stg.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && stg.Response.Response.StatusCode != http.StatusNoContent {
+			stg, err = client.CreateOrUpdateResponder(stg.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsCreateOrUpdateFuture", "Result", stg.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -160,7 +186,7 @@ func (client ServerTrustGroupsClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -197,7 +223,23 @@ func (client ServerTrustGroupsClient) DeleteSender(req *http.Request) (future Se
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerTrustGroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerTrustGroupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -328,6 +370,7 @@ func (client ServerTrustGroupsClient) ListByInstance(ctx context.Context, resour
 	}
 	if result.stglr.hasNextLink() && result.stglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -389,7 +432,6 @@ func (client ServerTrustGroupsClient) listByInstanceNextResults(ctx context.Cont
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -447,6 +489,7 @@ func (client ServerTrustGroupsClient) ListByLocation(ctx context.Context, resour
 	}
 	if result.stglr.hasNextLink() && result.stglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -508,7 +551,6 @@ func (client ServerTrustGroupsClient) listByLocationNextResults(ctx context.Cont
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

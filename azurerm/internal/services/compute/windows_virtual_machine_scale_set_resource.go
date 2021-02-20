@@ -9,16 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -245,7 +244,7 @@ func resourceWindowsVirtualMachineScaleSet() *schema.Resource {
 			"timezone": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.VirtualMachineTimeZone(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
 			"upgrade_mode": {
@@ -437,12 +436,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 		},
 	}
 
-	if features.VMSSExtensionsBeta() {
-		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
-			if err != nil {
-				return err
-			}
+	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
+		virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -835,20 +832,14 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta in
 		update.Sku = sku
 	}
 
-	if features.VMSSExtensionsBeta() {
-		if d.HasChange("extension") {
-			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
-			if err != nil {
-				return err
-			}
-			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
-		}
-	}
+	if d.HasChanges("extension", "extensions_time_budget") {
+		updateInstances = true
 
-	if d.HasChange("extensions_time_budget") {
-		if updateProps.VirtualMachineProfile.ExtensionProfile == nil {
-			updateProps.VirtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+		extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+		if err != nil {
+			return err
 		}
+		updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
@@ -1064,13 +1055,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta inte
 			}
 		}
 
-		if features.VMSSExtensionsBeta() {
-			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
-			if err != nil {
-				return fmt.Errorf("failed flattening `extension`: %+v", err)
-			}
-			d.Set("extension", extensionProfile)
+		extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+		if err != nil {
+			return fmt.Errorf("failed flattening `extension`: %+v", err)
 		}
+		d.Set("extension", extensionProfile)
 
 		extensionsTimeBudget := "PT1H30M"
 		if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {

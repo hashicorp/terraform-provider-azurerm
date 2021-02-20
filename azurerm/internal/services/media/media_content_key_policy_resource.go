@@ -476,8 +476,7 @@ func resourceMediaContentKeyPolicyDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -94,7 +94,7 @@ func TestAccApiManagementAPIOperationPolicy_rawXml(t *testing.T) {
 	})
 }
 
-func (t ApiManagementApiOperationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiOperationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

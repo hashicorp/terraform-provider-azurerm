@@ -246,6 +246,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx cont
 	}
 	if result.edbaplr.hasNextLink() && result.edbaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -308,7 +309,6 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) listByDatabaseNextResul
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

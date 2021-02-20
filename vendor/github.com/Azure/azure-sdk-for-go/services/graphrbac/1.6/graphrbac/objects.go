@@ -83,6 +83,7 @@ func (client ObjectsClient) GetObjectsByObjectIds(ctx context.Context, parameter
 	}
 	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -12,10 +12,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -562,7 +562,7 @@ func TestAccApplicationGateway_manualSslCertificateChangeIgnoreChanges(t *testin
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_certificate.0.name").HasValue("acctestcertificate1"),
-				testCheckApplicationGatewayChangeCert(data.ResourceName, "acctestcertificate2"),
+				data.CheckWithClient(r.changeCert("acctestcertificate2")),
 			),
 		},
 		{
@@ -931,14 +931,12 @@ func TestAccApplicationGateway_backendAddressPoolEmptyIpList(t *testing.T) {
 }
 
 func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApplicationGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["applicationGateways"]
 
-	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, resGroup, name)
+	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Application Gateway (%s): %+v", id, err)
 	}
@@ -3796,21 +3794,12 @@ resource "azurerm_application_gateway" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func testCheckApplicationGatewayChangeCert(resourceName, certName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		gatewayName := state.Attributes["name"]
+		resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		gatewayName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		agw, err := client.Get(ctx, resourceGroup, gatewayName)
+		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on ApplicationGatewaysClient: %+v", err)
 		}
@@ -3823,7 +3812,7 @@ func testCheckApplicationGatewayChangeCert(resourceName, certName string) resour
 
 		newSslCertificates := make([]network.ApplicationGatewaySslCertificate, 1)
 		newSslCertificates[0] = network.ApplicationGatewaySslCertificate{
-			Name: utils.String(certName),
+			Name: utils.String(certificateName),
 			Etag: utils.String("*"),
 
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
@@ -3834,12 +3823,12 @@ func testCheckApplicationGatewayChangeCert(resourceName, certName string) resour
 
 		agw.SslCertificates = &newSslCertificates
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
+		future, err := clients.Network.ApplicationGatewaysClient.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
 		if err != nil {
 			return fmt.Errorf("Bad: updating AGW: %+v", err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err := future.WaitForCompletionRef(ctx, clients.Network.ApplicationGatewaysClient.Client); err != nil {
 			return fmt.Errorf("Bad: waiting for update of AGW: %+v", err)
 		}
 
