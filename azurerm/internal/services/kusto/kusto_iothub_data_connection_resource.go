@@ -111,31 +111,25 @@ func resourceKustoIotHubDataConnection() *schema.Resource {
 
 func resourceKustoIotHubDataConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Iot Hub Data Connection creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-	databaseName := d.Get("database_name").(string)
-
-	connectionModel, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
+	id := parse.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(connectionModel.Response) {
-			return fmt.Errorf("checking for presence of existing Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %s", name, resourceGroup, clusterName, databaseName, err)
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
-		if dataConnection.ID != nil && *dataConnection.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kusto_iothub_data_connection", *dataConnection.ID)
-		}
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_kusto_iothub_data_connection", id.ID())
 	}
 
 	dataConnection := kusto.IotHubDataConnection{
-		Name:     &name,
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		IotHubConnectionProperties: &kusto.IotHubConnectionProperties{
 			IotHubResourceID:       utils.String(d.Get("iothub_id").(string)),
@@ -148,29 +142,16 @@ func resourceKustoIotHubDataConnectionCreate(d *schema.ResourceData, meta interf
 		dataConnection.IotHubConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*schema.Set).List())
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, databaseName, name, dataConnection)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
 	if err != nil {
-		return fmt.Errorf("creating or updating Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
-	}
-	dataConnection, ok := resp.Value.(kusto.IotHubDataConnection)
-	if !ok {
-		return fmt.Errorf("expected Type of Kusto Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %q but actually not", name, resourceGroup, clusterName, databaseName, kusto.KindIotHub)
-	}
-	if dataConnection.ID == nil || *dataConnection.ID == "" {
-		return fmt.Errorf("cannot read Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q) ID", name, resourceGroup, clusterName, databaseName)
-	}
-
-	d.SetId(*dataConnection.ID)
-
+	d.SetId(id.ID())
 	return resourceKustoIotHubDataConnectionRead(d, meta)
 }
 
@@ -190,7 +171,7 @@ func resourceKustoIotHubDataConnectionRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -223,11 +204,11 @@ func resourceKustoIotHubDataConnectionDelete(d *schema.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Kusto Iot Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
